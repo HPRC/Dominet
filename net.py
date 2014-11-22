@@ -3,27 +3,36 @@ import threading
 import http.server
 
 PORT_NUMBER = 9999
+ROOT = "/"
+INDEX = "index.html"
+MIMETYPES = { "css": "text/css", 
+						 "html": "text/html", 
+						   "js": "text/javascript"}
+
 
 class myHandler(http.server.BaseHTTPRequestHandler):
 	def do_GET(self):
 		print("Get request for: " + self.path)
-
-		if self.path=="/":
-			self.path = "index.html"
-		elif self.path.startswith("/"):
-			self.path = self.path[1:]
-		mimetype = { "css": "text/css", "html": "text/html", "js": "text/javascript"}
+		resource = self.__routesHelper(self.path)
 		try:
-			data = open(self.path, "rb").read()
+			data = open(resource, "rb").read()
 			self.send_response(200)
-			self.send_header("Content-type", mimetype.get(self.path.split(".")[1], "text/plain"))
+			self.send_header("Content-type", MIMETYPES.get(resource.split(".")[1], "text/plain"))
 			self.end_headers()
 			self.wfile.write(data)
 			data.close()
 		except:
-			print ("404 not found %s", self.path)
+			print ("404 not found {0}".format(resource))
 			#self.send_error(404, "ERROR")
-
+		
+	def __routesHelper(self, request):
+		#File requests 
+		if (request.startswith("/")):
+			if request == ROOT:
+				return INDEX
+			else:
+				file = request[1:]
+				return file
 
 def start_server():
 	server = http.server.HTTPServer(("", PORT_NUMBER), myHandler)
@@ -34,5 +43,7 @@ def main():
 	mainThread = threading.Thread(target=start_server)
 	mainThread.start()
 
+
+			
 if __name__ == "__main__":
   main()
