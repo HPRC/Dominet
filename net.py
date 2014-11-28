@@ -1,9 +1,7 @@
-import sys
 import threading
 import http.server
 import socketserver
 import client
-
 
 PORT_NUMBER = 9999
 ROOT = "/"
@@ -18,7 +16,22 @@ class myHandler(http.server.BaseHTTPRequestHandler):
 			 "html": "text/html", 
 		   "js": "text/javascript"}
 
-		print("Get request for: " + self.path)
+		print("GET request for: " + self.path)
+
+		if self.path.startswith("/wait/"):
+			id = int(self.path.split("/")[-1])
+			p = self.getClient(id)
+
+			if not p:
+				self.send_error(404, "ERROR no client with id " + str(id))
+			else:
+				item = p.getAction()
+				self.send_response(200)
+				self.end_headers()
+				self.wfile.write(item)
+			return
+
+		#serve static files
 		resource = self.__routesHelper(self.path)
 		try:
 			f = open(resource, "rb")
@@ -38,12 +51,13 @@ class myHandler(http.server.BaseHTTPRequestHandler):
 			if request == ROOT:
 				return INDEX
 			else:
-				file = request[1:]
-				return file
+				f = request[1:]
+				return f
 
 	def do_POST(self):
 		print("POST request for: " + self.path)
 
+		#initialize new client
 		if self.path=="/":
 			with self.server.serverLock:
 				id = self.server.unassigned_id
@@ -54,9 +68,24 @@ class myHandler(http.server.BaseHTTPRequestHandler):
 			self.end_headers()
 			self.wfile.write(str(id).encode())
 
-	def getClient(id):
+		elif self.path.startswith("/endturn/"):
+			id = int(self.path.split("/")[-1])
+			p = self.getClient(id)
+
+			if not p:
+				self.send_error(404, "ERROR no client with id " + str(id))
+			else:
+				length = int(self.headers["Content-length"])
+				data = self.rfile.read(length)
+				p.PostResponse(data)
+				#p.endTurn()
+				self.send_response(200)
+				self.end_headers()
+
+	def getClient(self, id):
 		with client.Client.clientLock:
 			currentClient = client.Client.idMap.get(id)
+		return currentClient
 
 class asyncHttpServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
   #terminate all spawned threads on exit
@@ -73,21 +102,25 @@ def start_server():
 def main():
 	mainThread = threading.Thread(target=start_server)
 	mainThread.start()
- 
-	with client.Client.clientLock:
-		while (len(client.Client.unattachedClientList) < NUM_PLAYERS):
-			print("Waiting for other player.....")
-			client.Client.clientLock.wait()
-		print("ABCDEFEEFE")
-		connectedClients = client.Client.unattachedClientList
-		#unattached clients are now attached
-		client.Client.unattachedClientList = [];
+	
+	while(True):
+		with client.Client.clientLock:
+			while (len(client.Client.unattachedClientList) < NUM_PLAYERS):
+				print("Waiting for other player.....")
+				client.Client.clientLock.wait()
 
-		for i,c in connectedClients:
-			print(i + " CIDR " + c)
+			connectedClients = client.Client.unattachedClientList
+			#unattached clients are now attached
+			client.Client.unattachedClientList = [];
+
+		#game begin
+		turn = 0
+		while(True):
+			for i in connectedClients:
+				i.announce(str(connectedClients[turn].id) + "'s turn!")
+			connectedClients[turn].takeTurn()
+			turn = ((turn + 1) % len(connectedClients))
 
 
-
-			
 if __name__ == "__main__":
   main()
