@@ -13,7 +13,6 @@ var client = (function() {
 				context:this,
 				success: function(data){
 					this.id = parseInt(data);
-					this.committer = new committer(this.id);
 					this.waitServer();
 				}
 			});
@@ -40,9 +39,8 @@ var client = (function() {
 			//init ui actions
 			var that = this;
 			$("#endTurn").click(function(){
-				console.log(that.id)
 				$.ajax({
-					url: "/endturn/" + that.id,
+					url: "/respond/" + that.id,
 					type:'POST',
 					dataType: "json",
 					data: JSON.stringify({
@@ -64,8 +62,6 @@ var client = (function() {
 	return constructor;
 
 }());
-
-
 
 $(document).ready(function(){
 	var c = new client();

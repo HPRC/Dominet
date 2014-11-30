@@ -68,7 +68,7 @@ class myHandler(http.server.BaseHTTPRequestHandler):
 			self.end_headers()
 			self.wfile.write(str(id).encode())
 
-		elif self.path.startswith("/endturn/"):
+		elif self.path.startswith("/respond/"):
 			id = int(self.path.split("/")[-1])
 			p = self.getClient(id)
 

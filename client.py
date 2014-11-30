@@ -28,13 +28,20 @@ class Client:
 		pid["turn"] = self.id
 		pid["command"] = "startturn"
 		self.queue.put(json.dumps(pid).encode())
-		with self.postLock:
-			while pid["id"] not in self.post_ids:
-				self.postLock.wait(timeout=None)
-			r = self.post_ids.pop(pid["id"], None)
-			print(r)
-			print("ASDASDASD")
-			return r
+		while(True):
+			with self.postLock:
+				while pid["id"] not in self.post_ids:
+					self.postLock.wait(timeout=None)
+				r = self.post_ids.pop(pid["id"], None)
+				print(r)
+				if (not self.executeClientResponse(r)):
+					return
+
+	def executeClientResponse(self, json):
+		if (json['action'] == 'endturn'):
+			return False
+		return True
+
 
 	def postId(self):
 		post = { "id": self.next_post_id}
