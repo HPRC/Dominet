@@ -78,7 +78,6 @@ class myHandler(http.server.BaseHTTPRequestHandler):
 				length = int(self.headers["Content-length"])
 				data = self.rfile.read(length)
 				p.PostResponse(data)
-				#p.endTurn()
 				self.send_response(200)
 				self.end_headers()
 
@@ -99,6 +98,15 @@ def start_server():
 	print("Server started on " + str(PORT_NUMBER))	
 	server.serve_forever()
 
+def start_game(players):
+	turn = 0
+	while(True):
+		for i in players:
+			i.announce(str(players[turn].id) + "'s turn!")
+		players[turn].takeTurn()
+		turn = ((turn + 1) % len(players))
+
+
 def main():
 	mainThread = threading.Thread(target=start_server)
 	mainThread.start()
@@ -112,14 +120,9 @@ def main():
 			connectedClients = client.Client.unattachedClientList
 			#unattached clients are now attached
 			client.Client.unattachedClientList = [];
-
-		#game begin
-		turn = 0
-		while(True):
-			for i in connectedClients:
-				i.announce(str(connectedClients[turn].id) + "'s turn!")
-			connectedClients[turn].takeTurn()
-			turn = ((turn + 1) % len(connectedClients))
+		#We got here because we have enough players for a game, start a game on new thread
+		gameThread = threading.Thread(target=start_game, args=(connectedClients,))
+		gameThread.start()
 
 
 if __name__ == "__main__":

@@ -13,6 +13,7 @@ var client = (function() {
 				context:this,
 				success: function(data){
 					this.id = parseInt(data);
+					this.committer = new committer(this.id);
 					this.waitServer();
 				}
 			});
@@ -28,7 +29,7 @@ var client = (function() {
 					if (jsonres.command === "startturn" && jsonres.turn === this.id){
 						this.startTurn(jsonres);
 					} else if (jsonres.command === "announce"){
-						$('#msg').append(jsonres.msg);
+						$('#msg').append("<br>" + jsonres.msg);
 						this.waitServer();
 					}
 				}
@@ -37,7 +38,6 @@ var client = (function() {
 
 		startTurn: function(data){
 			//init ui actions
-			console.log(data);
 			var that = this;
 			$("#endTurn").click(function(){
 				console.log(that.id)
@@ -64,6 +64,8 @@ var client = (function() {
 	return constructor;
 
 }());
+
+
 
 $(document).ready(function(){
 	var c = new client();

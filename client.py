@@ -17,7 +17,7 @@ class Client:
 		with Client.clientLock:
 			Client.unattachedClientList.append(self)
 			Client.idMap[id] = self
-			print(id)
+			print(str(id) + " initialized")
 			Client.clientLock.notify_all()
 
 	def getAction(self):
@@ -47,13 +47,8 @@ class Client:
 	def PostResponse(self, data):
 		item = json.loads(data.decode())
 		id = item.get("id", None)
-		print(str(id) + "AA")
 		if not id: 
 			return
 		with self.postLock:
 			self.post_ids[id] = item
 			self.postLock.notify_all()		
-
-
-	def endTurn(self):
-		self.queue.put(json.dumps({"command": "endTurn", "id":self.id}).encode())
