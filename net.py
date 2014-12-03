@@ -1,8 +1,10 @@
+import socket
 import threading
 import http.server
 import socketserver
 import client
 
+HOST = ''
 PORT_NUMBER = 9999
 ROOT = "/"
 INDEX = "index.html"
@@ -16,7 +18,7 @@ class myHandler(http.server.BaseHTTPRequestHandler):
 			 "html": "text/html", 
 		   "js": "text/javascript"}
 
-		print("GET request for: " + self.path)
+		print("\033[94m GET request for: " + self.path + "\033[0m")
 
 		if self.path.startswith("/wait/"):
 			id = int(self.path.split("/")[-1])
@@ -62,7 +64,7 @@ class myHandler(http.server.BaseHTTPRequestHandler):
 			with self.server.serverLock:
 				id = self.server.unassigned_id
 				self.server.unassigned_id += 1
-			c = client.Client(id)
+			c = client.DmClient(id)
 			self.send_response(200)
 			self.send_header("Content-type", "text/plain")
 			self.end_headers()
@@ -94,17 +96,25 @@ class asyncHttpServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
   serverLock = threading.Lock()
 
 def start_server():
-	server = asyncHttpServer(("", PORT_NUMBER), myHandler)
+	server = asyncHttpServer((HOST, PORT_NUMBER), myHandler)
 	print("Server started on " + str(PORT_NUMBER))	
 	server.serve_forever()
 
 def start_game(players):
+	gameChat = threading.Thread(target=start_chat, args=(players,))
+	gameChat.start()
 	turn = 0
+	for i in players:
+		i.initGame(players)
 	while(True):
 		for i in players:
 			i.announce(str(players[turn].id) + "'s turn!")
 		players[turn].takeTurn()
 		turn = ((turn + 1) % len(players))
+
+def start_chat(players):
+	pass
+	#todo
 
 
 def main():

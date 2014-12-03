@@ -18,6 +18,16 @@ var client = (function() {
 			});
 			$("#msg").text("Waiting for other player...");
 		},
+
+		initGame: function(json){
+			console.log("let the games begin" + json.player1 + " vs "+ json.player2);
+			var socket = new WebSocket("ws://localhost:9999");
+		    socket.onopen = function () {
+      			connection.send('Hello, Server!!'); //send a message to server once connection is opened.
+		    };
+			this.waitServer();
+		},
+
 		waitServer: function(){
 			$.ajax({
 				url: "/wait/" + this.id,
@@ -25,7 +35,9 @@ var client = (function() {
 				success: function(data){
 					console.log(data);
 					var jsonres = JSON.parse(data);
-					if (jsonres.command === "startturn" && jsonres.turn === this.id){
+					if (jsonres.command === "initgame"){
+						this.initGame(jsonres);
+					} else if (jsonres.command === "startturn" && jsonres.turn === this.id){
 						this.startTurn(jsonres);
 					} else if (jsonres.command === "announce"){
 						$('#msg').append("<br>" + jsonres.msg);
@@ -36,7 +48,6 @@ var client = (function() {
 		},
 
 		startTurn: function(data){
-			//init ui actions
 			var that = this;
 			$("#endTurn").click(function(){
 				$.ajax({

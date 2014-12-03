@@ -23,6 +23,10 @@ class Client:
 	def getAction(self):
 		return self.queue.get(True)
 
+	#called before start of first turn
+	def initGame(self, players):
+		self.queue.put(json.dumps({"command":"initgame" ,"player1": players[0].id, "player2": players[1].id}).encode())
+
 	def takeTurn(self):
 		pid = self.postId()
 		pid["turn"] = self.id
@@ -59,3 +63,31 @@ class Client:
 		with self.postLock:
 			self.post_ids[id] = item
 			self.postLock.notify_all()		
+
+
+class DmClient(Client):
+	def __init__(self, id):
+		Client.__init__(self, id)
+		self.discard = []
+		self.deck = []
+		self.hand = []
+		self.actions = 0
+		self.buys = 0
+
+	#override
+	def takeTurn(self):
+		self.actions = 1
+		self.buys = 1
+		Client.takeTurn(self)
+
+	#override
+	def executeClientResponse(self, json):
+		if not Client.executeClientResponse(self, json):
+			return False
+		else:
+			# if (json['action'] == 'test'):
+			# 	self.buys += 1
+			# 	print("\033[94m" + str(self.buys) + "\033[0m")
+			return True
+
+
