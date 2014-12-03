@@ -21,10 +21,6 @@ var client = (function() {
 
 		initGame: function(json){
 			console.log("let the games begin" + json.player1 + " vs "+ json.player2);
-			var socket = new WebSocket("ws://localhost:9999");
-		    socket.onopen = function () {
-      			connection.send('Hello, Server!!'); //send a message to server once connection is opened.
-		    };
 			this.waitServer();
 		},
 
