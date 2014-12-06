@@ -1,8 +1,7 @@
-import socket
-import threading
-import http.server
-import socketserver
 import client
+import json
+import os
+from tornado import httpserver, ioloop, web, websocket	
 
 HOST = ''
 PORT_NUMBER = 9999
@@ -11,129 +10,81 @@ INDEX = "index.html"
 NUM_PLAYERS = 2
 
 
-class myHandler(http.server.BaseHTTPRequestHandler):
-	def do_GET(self):
-		#mimetypes doesn't need to be global since its only used for get requests
-		mimetypes = { "css": "text/css", 
-			 "html": "text/html", 
-		   "js": "text/javascript"}
+class mainHandler(web.RequestHandler):
+	def get(self):
+		self.render(INDEX)
+	def post(self):
+		pass
 
-		print("\033[94m GET request for: " + self.path + "\033[0m")
+class GameHandler(websocket.WebSocketHandler):
+	unattachedClients = []
 
-		if self.path.startswith("/wait/"):
-			id = int(self.path.split("/")[-1])
-			p = self.getClient(id)
+	def initialize(self):
+		self.id = self.application.unassigned_id
+		self.application.unassigned_id += 1
+		self.unattachedClients.append(self)
+		self.game = None
 
-			if not p:
-				self.send_error(404, "ERROR no client with id " + str(id))
-			else:
-				item = p.getAction()
-				self.send_response(200)
-				self.end_headers()
-				self.wfile.write(item)
-			return
+	def write_json(self, **kwargs):
+		if not "command" in kwargs:
+			print("no command found for " + json.dumps(kwargs))
+		return self.write_message(json.dumps(kwargs))		
 
-		#serve static files
-		resource = self.__routesHelper(self.path)
-		try:
-			f = open(resource, "rb")
-			data = f.read()
-			self.send_response(200)
-			self.send_header("Content-type", mimetypes.get(resource.split(".")[1], "text/plain"))
-			self.end_headers()
-			self.wfile.write(data)
-			f.close()
-		except:
-			print ("404 not found {0}".format(resource))
-			self.send_error(404, "ERROR")
-		
-	def __routesHelper(self, request):
-		#File requests 
-		if (request.startswith("/")):
-			if request == ROOT:
-				return INDEX
-			else:
-				f = request[1:]
-				return f
+	def open(self):
+		#init client
+		self.write_json(command="init", id=self.id)
+		if (len(self.unattachedClients) >= NUM_PLAYERS):
+			player1 = self.unattachedClients.pop(0)
+			player2 = self.unattachedClients.pop(0)
+			g = Game([player1, player2])
+			for i in g.players:
+				i.game = g
+			g.start_game()
 
-	def do_POST(self):
-		print("POST request for: " + self.path)
+	def on_message(self,data):
+		jsondata = json.loads(data)
+		if (jsondata["command"] == "endTurn"):
+			self.game.change_turn()
 
-		#initialize new client
-		if self.path=="/":
-			with self.server.serverLock:
-				id = self.server.unassigned_id
-				self.server.unassigned_id += 1
-			c = client.DmClient(id)
-			self.send_response(200)
-			self.send_header("Content-type", "text/plain")
-			self.end_headers()
-			self.wfile.write(str(id).encode())
+	def take_turn(self):
+		self.write_json(command="startTurn")
 
-		elif self.path.startswith("/respond/"):
-			id = int(self.path.split("/")[-1])
-			p = self.getClient(id)
 
-			if not p:
-				self.send_error(404, "ERROR no client with id " + str(id))
-			else:
-				length = int(self.headers["Content-length"])
-				data = self.rfile.read(length)
-				p.PostResponse(data)
-				self.send_response(200)
-				self.end_headers()
+class Game():
+	def __init__(self, players):
+		self.players = players
+		self.turn = 0
 
-	def getClient(self, id):
-		with client.Client.clientLock:
-			currentClient = client.Client.idMap.get(id)
-		return currentClient
+	def start_game(self):
+		for i in self.players:
+			i.write_json(command="initGame", player1=self.players[0].id, player2=self.players[1].id)
+		self.announce("Starting game with " + str(self.players[0].id) + " and " + str(self.players[1].id))
+		self.players[self.turn].take_turn()
 
-class asyncHttpServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
-  #terminate all spawned threads on exit
-  daemon_threads = True
-  reuse_address = True
-  unassigned_id = 1
-  serverLock = threading.Lock()
+	def announce(self, msg):
+		for i in self.players:
+			i.write_json(command="announce", msg=msg)
 
-def start_server():
-	server = asyncHttpServer((HOST, PORT_NUMBER), myHandler)
-	print("Server started on " + str(PORT_NUMBER))	
-	server.serve_forever()
-
-def start_game(players):
-	gameChat = threading.Thread(target=start_chat, args=(players,))
-	gameChat.start()
-	turn = 0
-	for i in players:
-		i.initGame(players)
-	while(True):
-		for i in players:
-			i.announce(str(players[turn].id) + "'s turn!")
-		players[turn].takeTurn()
-		turn = ((turn + 1) % len(players))
-
-def start_chat(players):
-	pass
-	#todo
+	def change_turn(self):
+		self.turn = (self.turn + 1) % len(self.players)
+		self.announce(str(self.players[self.turn].id) + " 's turn !")
+		self.players[self.turn].take_turn()
 
 
 def main():
-	mainThread = threading.Thread(target=start_server)
-	mainThread.start()
-	
-	while(True):
-		with client.Client.clientLock:
-			while (len(client.Client.unattachedClientList) < NUM_PLAYERS):
-				print("Waiting for other player.....")
-				client.Client.clientLock.wait()
+	app = web.Application([
+		(r'/', mainHandler),
+		(r'/ws', GameHandler)
+	    ],
+	    static_path=os.path.join(os.path.dirname(__file__), "static"),
+	    debug=True
+	    )
+	app.unassigned_id = 1
 
-			connectedClients = client.Client.unattachedClientList
-			#unattached clients are now attached
-			client.Client.unattachedClientList = [];
-		#We got here because we have enough players for a game, start a game on new thread
-		gameThread = threading.Thread(target=start_game, args=(connectedClients,))
-		gameThread.start()
-
+	mainServer = httpserver.HTTPServer(app)
+	mainServer.listen(PORT_NUMBER)
+	print("server listening on " + str(PORT_NUMBER))
+	ioloop.IOLoop.instance().start()
 
 if __name__ == "__main__":
   main()

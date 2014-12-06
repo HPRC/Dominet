@@ -1,6 +1,6 @@
 Dominet
 
 Python Server
-* requires: python 3
+* requires: python 3, tornado
 * to run: python3 net.py
-* ensure you have
+* open browser to localhost:9999
