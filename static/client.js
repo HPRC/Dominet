@@ -1,3 +1,5 @@
+
+
 var client = (function() {
 
 	var constructor = function() {
@@ -26,6 +28,20 @@ var client = (function() {
 			$("#endTurn").css('visibility', 'hidden');
 		});
 
+		$("#sendChat").click(function(){
+			var msg = $("#inputChat").val();
+			msg = msg.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+			that.socket.send(JSON.stringify({"command": "chat", "msg": msg}))
+		});
+
+		$("#inputChat").keypress(function(e){
+			if(e.which==13){
+				var msg = $("#inputChat").val();
+				msg = msg.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+				that.socket.send(JSON.stringify({"command": "chat", "msg": msg}))
+				$("#inputChat").val("");
+			}
+		});
 	};
 
 	constructor.prototype = {
@@ -43,6 +59,10 @@ var client = (function() {
 
 		startTurn: function(json){
 			$("#endTurn").css('visibility', 'visible');
+		},
+
+		chat: function(json){
+			$("#gameChat").append("<br>" + json.msg);
 		}
 	};
 	return constructor;

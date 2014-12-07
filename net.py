@@ -43,17 +43,30 @@ class GameHandler(websocket.WebSocketHandler):
 
 	def on_message(self,data):
 		jsondata = json.loads(data)
-		if (jsondata["command"] == "endTurn"):
-			self.game.change_turn()
+		self.exec_commands(jsondata)
 
 	def take_turn(self):
 		self.write_json(command="startTurn")
 
+	def exec_commands(self, data):
+		cmd = data["command"]
+		print("\033[94m" + json.dumps(data) + "\033[0m")
+		if (cmd == "endTurn"):
+			self.game.change_turn()
+		elif (cmd == "chat"):
+			self.game.chat(data["msg"])
+
+	def on_close(self):
+		print("\033[94m Socket Closed HELP!\033[0m")
 
 class Game():
 	def __init__(self, players):
 		self.players = players
 		self.turn = 0
+
+	def chat(self, msg):
+		for i in self.players:
+			i.write_json(command="chat", msg=msg)
 
 	def start_game(self):
 		for i in self.players:
@@ -69,7 +82,6 @@ class Game():
 		self.turn = (self.turn + 1) % len(self.players)
 		self.announce(str(self.players[self.turn].id) + " 's turn !")
 		self.players[self.turn].take_turn()
-
 
 def main():
 	app = web.Application([

@@ -1,3 +1,13 @@
 #endTurn {
 	visibility: hidden;
 }
+
+#container {
+	margin-top: 2%;
+	width:95%;
+}
+
+#scrolldiv {
+	overflow: auto;
+	height:200px;
+}
