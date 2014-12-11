@@ -4,6 +4,7 @@ var client = (function() {
 
 	var constructor = function() {
 		this.id = null;
+		this.name = null;
 		var that = this;
 		this.socket = new WebSocket("ws://localhost:9999/ws");
 			
@@ -47,6 +48,7 @@ var client = (function() {
 	constructor.prototype = {
 		init: function(json) {
 			this.id = json.id;
+			this.name = json.name;
 		},
 
 		initGame: function(json){
@@ -62,7 +64,7 @@ var client = (function() {
 		},
 
 		chat: function(json){
-			$("#gameChat").append("<br>" + json.msg);
+			$("#gameChat").append("<br><b>" + json.speaker + ": </b>" + json.msg);
 		}
 	};
 	return constructor;
