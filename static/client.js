@@ -5,9 +5,9 @@ var client = (function() {
 	var constructor = function() {
 		this.id = null;
 		this.name = null;
-		var that = this;
 		this.socket = new WebSocket("ws://localhost:9999/ws");
-			
+		var that = this;
+
 		this.socket.onopen = function(event){
 			$("#msg").text("Waiting for other player...");
 		};
@@ -16,7 +16,7 @@ var client = (function() {
 			var jsonres = JSON.parse(event.data);
 			var exec = that[jsonres.command];
 			if (exec != undefined){
-				exec(jsonres);
+				exec.call(that,jsonres);
 			}
 		};
 
@@ -24,9 +24,10 @@ var client = (function() {
 			console.log("socket closed");
 		};
 
+
 		$("#endTurn").click(function(){
 			that.socket.send(JSON.stringify({"command": "endTurn"}))
-			$("#endTurn").css('visibility', 'hidden');
+			$("#playerOptions").css('visibility', 'hidden');
 		});
 
 		$("#sendChat").click(function(){
@@ -43,30 +44,50 @@ var client = (function() {
 				$("#inputChat").val("");
 			}
 		});
+
 	};
 
-	constructor.prototype = {
-		init: function(json) {
+	constructor.prototype.init = function(json) {
 			this.id = json.id;
 			this.name = json.name;
-		},
+	};
 
-		initGame: function(json){
-			console.log("let the games begin" + json.player1 + " vs "+ json.player2);
-		},
-
-		announce: function(json){
-			$('#msg').append("<br>" + json.msg);
-		},
-
-		startTurn: function(json){
-			$("#endTurn").css('visibility', 'visible');
-		},
-
-		chat: function(json){
-			$("#gameChat").append("<br><b>" + json.speaker + ": </b>" + json.msg);
+	constructor.prototype.initGame = function(json){
+		var that = this;
+		var hand = JSON.parse(json.hand);
+		for (var i=0; i<hand.length; i++){
+			var c = $('<button/>', {
+				  type: 'button',
+				  text: hand[i].title,
+				  click: function(n) {
+				  	return function(){
+					  	if (hand[n].type !== "Victory"){
+					  		that.socket.send(JSON.stringify({"command": "play", "card": hand[n] .title}));
+					  	}
+				  	};
+			  	}(i)
+			});
+			$("#hand").append(c);
 		}
 	};
+
+	constructor.prototype.announce = function(json){
+			$('#msg').append("<br>" + json.msg);
+	};
+
+	constructor.prototype.chat = function(json){
+			$("#gameChat").append("<br><b>" + json.speaker + ": </b>" + json.msg);
+	};
+
+	constructor.prototype.startTurn = function(json){
+			$("#actions").text(json.actions);
+			$("#buys").text(json.actions);
+			$("#balance").text(json.balance);
+			$("#playerOptions").css('visibility', 'visible');
+	};
+
+
+
 	return constructor;
 
 }());

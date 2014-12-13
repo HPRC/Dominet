@@ -1,7 +1,8 @@
-import client
+import client as c
 import json
 import os
 from tornado import httpserver, ioloop, web, websocket	
+import card
 
 HOST = ''
 PORT_NUMBER = 9999
@@ -52,6 +53,10 @@ class GameHandler(websocket.WebSocketHandler):
 		jsondata = json.loads(data)
 		self.exec_commands(jsondata)
 
+	#called before players take their turns
+	def setup(self):
+		pass
+
 	def take_turn(self):
 		self.write_json(command="startTurn")
 
@@ -80,9 +85,9 @@ class Game():
 			i.write_json(command="chat", msg=msg, speaker=speaker)
 
 	def start_game(self):
+		self.announce("Starting game with " + str(self.players[0].name) + " and " + str(self.players[1].name))
 		for i in self.players:
-			i.write_json(command="initGame", player1=self.players[0].id, player2=self.players[1].id)
-		self.announce("Starting game with " + str(self.players[0].id) + " and " + str(self.players[1].id))
+			i.setup()
 		self.players[self.turn].take_turn()
 
 	def announce(self, msg):
@@ -97,7 +102,7 @@ class Game():
 def main():
 	app = web.Application([
 		(r'/', mainHandler),
-		(r'/ws', GameHandler)
+		(r'/ws', c.DmClient)
 	    ],
 	    static_path=os.path.join(os.path.dirname(__file__), "static"),
 	    debug=True
