@@ -8,7 +8,7 @@ class Card():
 
 	def play(self):
 		raise NotImplementedError
-	
+
 
 class Copper(Card):
 	def __init__(self, game, played_by):
@@ -17,6 +17,7 @@ class Copper(Card):
 		self.type = "Money"
 
 	def play(self):
+		self.game.announce("<b>" + self.played_by.name + "</b> played " + self.title)
 		self.played_by.balance += 1
 
 class Estate(Card):

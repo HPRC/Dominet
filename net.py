@@ -62,7 +62,6 @@ class GameHandler(websocket.WebSocketHandler):
 
 	def exec_commands(self, data):
 		cmd = data["command"]
-		print("\033[94m" + json.dumps(data) + "\033[0m")
 
 		if self.game == None:
 			return
@@ -88,6 +87,7 @@ class Game():
 		self.announce("Starting game with " + str(self.players[0].name) + " and " + str(self.players[1].name))
 		for i in self.players:
 			i.setup()
+		self.announce(str(self.players[self.turn].name) + " 's turn !")
 		self.players[self.turn].take_turn()
 
 	def announce(self, msg):

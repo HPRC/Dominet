@@ -1,6 +1,7 @@
-<html>
+<html ng-app="clientApp">
 <head>
 	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script type="text/javascript" src="/static/angular.min.js"></script>
 	<script type="text/javascript" src="/static/client.js"></script>
 	<link rel="stylesheet" href="/static/style.css" />	
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
@@ -13,7 +14,7 @@
 		</div>
 	</div>
 
-	<div class="row">
+	<div class="row" ng-controller="clientController">
 		<div id="leftColumn" class="col-md-3"></div>
 		<div id="rightColumn" class="col-md-9">
 			<div id="msg">blank</div>
@@ -25,6 +26,7 @@
 				<button id="endTurn">End Turn</button>
 			</div>
 			<div id="hand">
+				<button ng-repeat="card in hand">{{!card.title}}</button>
 			</div>
 			<hr>
 			<div id="scrolldiv">
