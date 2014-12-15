@@ -18,15 +18,15 @@
 		<div id="leftColumn" class="col-md-3"></div>
 		<div id="rightColumn" class="col-md-9">
 			<div id="msg">blank</div>
-			<div id="playerOptions" style="visibility:hidden">
-				<span class="resources"><b>actions:</b></span><span id="actions" class="resources"></span>
-				<span class="resources"><b>buys:</b></span><span id="buys" class="resources"></span>
-				<span class="resources"><b>balance:</b></span><span id="balance" class="resources"></span>
+			<div id="playerOptions" ng-show="turn">
+				<span class="resources"><b>actions:</b>{{!actions}}</span>
+				<span class="resources"><b>buys:</b>{{!buys}}</span>
+				<span class="resources"><b>balance:</b>{{!balance}}</span>
 				<button id="spendMoney">+$</button>
-				<button id="endTurn">End Turn</button>
+				<button ng-click="c.endTurn()">End Turn</button>
 			</div>
 			<div id="hand">
-				<button ng-repeat="card in hand">{{!card.title}}</button>
+					<button ng-controller="handController" ng-repeat="card in hand" ng-show="show" ng-disabled="disabled(card)" ng-click="clickCard(card.title)">{{!card.title}}</button>
 			</div>
 			<hr>
 			<div id="scrolldiv">

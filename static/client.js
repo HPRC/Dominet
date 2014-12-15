@@ -7,6 +7,9 @@
 			this.name = null;
 			this.turn = false;
 			this.hand = null;
+			this.actions = 0;
+			this.buys = 0;
+			this.balance = 0;
 			this.socket = new WebSocket("ws://localhost:9999/ws");
 			var that = this;
 
@@ -19,8 +22,13 @@
 				var exec = that[jsonres.command];
 				if (exec != undefined){
 					exec.call(that,jsonres);
+					//TODO refactor
 					$scope.$apply(function(){
-						$scope.hand = that.hand;
+						$scope.hand = c.getHand();
+						$scope.turn = c.getTurn();
+						$scope.actions = c.getActions();
+						$scope.buys = c.getBuys();
+						$scope.balance = c.getBalance();
 					});
 				}
 			};
@@ -28,13 +36,6 @@
 			this.socket.close = function(event){
 				console.log("socket closed");
 			};
-
-
-			$("#endTurn").click(function(){
-				this.turn = false;
-				that.socket.send(JSON.stringify({"command": "endTurn"}))
-				$("#playerOptions").css('visibility', 'hidden');
-			});
 
 			$("#sendChat").click(function(){
 				var msg = $("#inputChat").val();
@@ -60,22 +61,9 @@
 
 		constructor.prototype.initGame = function(json){
 			var that = this;
+
 			this.hand = JSON.parse(json.hand);
 			console.log(this.hand);
-			for (var i=0; i<hand.length; i++){
-				var c = $('<button/>', {
-					  type: 'button',
-					  text: that.hand[i].title,
-					  click: function(n) {
-					  	return function(){
-						  	if (that.hand[n].type !== "Victory"){
-						  		that.socket.send(JSON.stringify({"command": "play", "card": that.hand[n] .title}));
-						  	}
-					  	};
-				  	}(i)
-				});
-				$("#hand").append(c);
-			}
 		};
 
 		constructor.prototype.announce = function(json){
@@ -86,6 +74,22 @@
 				$("#gameChat").append("<br><b>" + json.speaker + ": </b>" + json.msg);
 		};
 
+		constructor.prototype.startTurn = function(json){
+			this.turn = true;
+			this.actions = json.actions;
+			this.buys = json.buys;
+			this.balance = json.balance;
+		};
+
+		constructor.prototype.endTurn = function(){
+			this.turn = false;
+			this.socket.send(JSON.stringify({"command": "endTurn"}));
+		};
+
+		constructor.prototype.playCard = function(title){
+			this.socket.send(JSON.stringify({"command":"play", "card": title}));
+		};
+
 		constructor.prototype.getHand = function(){
 			return this.hand;
 		};
@@ -94,18 +98,61 @@
 			return this.turn;
 		};
 
-		constructor.prototype.startTurn = function(json){
-				this.turn = true;
-				$("#actions").text(json.actions);
-				$("#buys").text(json.actions);
-				$("#balance").text(json.balance);
-				$("#playerOptions").css('visibility', 'visible');
+		constructor.prototype.getActions = function(){
+			return this.actions;
+		};
+
+		constructor.prototype.getBalance = function(){
+			return this.balance;
+		};
+
+		constructor.prototype.getBuys = function(){
+			return this.buys;
 		};
 
 		var c = new constructor();
+		$scope.c = c;
 		$scope.hand = c.getHand();
 		$scope.turn = c.getTurn();
+		$scope.actions = c.getActions();
+		$scope.buys = c.getBuys();
+		$scope.balance = c.getBalance();
 	});
+	
+	clientModule.controller("handController", function($scope){
+		$scope.show = true;
+		$scope.disabled = function(card){
+			if (card.type === "Victory" || $scope.turn === false){
+				return true;
+			}
+			return false;
+		};
+
+		$scope.clickCard = function(card){
+			$scope.c.playCard(card);
+			$scope.show = false;
+		}
+
+	});
+	// clientModule.directive("handCard", function(){
+	// 	return {
+	// 		restrict: 'EA',
+	// 		template: '<button>{{card.title}}</button>',
+	// 		compile: function(element, attributes){
+	// 			var link = function(scope, element, attributes){
+	// 				var card = JSON.parse(attributes.card);
+	// 				if (card.type === "Victory"){
+	// 					//how to disable
+	// 				}
+	// 				element.bind('click', function(){
+	// 					element.css('display', 'none');
+	// 					scope.c.playCard(card.title);
+	// 				});
+	// 			};
+	// 			return link
+	// 		}
+	// 	};
+	// });
 
 })();
 
