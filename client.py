@@ -10,8 +10,8 @@ class DmClient(GameHandler):
 		deck = []
 		for i in range(0,7):
 			deck.append(card.Copper(game=self.game, played_by=self))
-		deck.append(card.Estate(game=self.game, played_by=self))
-		deck.append(card.Estate(game=self.game, played_by=self))
+		for i in range(0,3):
+			deck.append(card.Estate(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
@@ -56,6 +56,9 @@ class DmClient(GameHandler):
 			else:
 				handtuple[1] -= 1
 				handtuple[0].play()
+
+	def update_ui(self, **kwargs):
+		self.write_json(command="updateUi", **kwargs)
 
 	def hand_json(self):
 		h = []

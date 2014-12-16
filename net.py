@@ -44,7 +44,7 @@ class GameHandler(websocket.WebSocketHandler):
 		if (len(self.unattachedClients) >= NUM_PLAYERS):
 			player1 = self.unattachedClients.pop(0)
 			player2 = self.unattachedClients.pop(0)
-			g = Game([player1, player2])
+			g = DmGame([player1, player2])
 			for i in g.players:
 				i.game = g
 			g.start_game()
@@ -98,6 +98,17 @@ class Game():
 		self.turn = (self.turn + 1) % len(self.players)
 		self.announce(str(self.players[self.turn].name) + " 's turn !")
 		self.players[self.turn].take_turn()
+
+class DmGame(Game):
+	def __init__(self, players):
+		Game.__init__(self, players)
+		self.kingdom = [card.Estate(self, None), card.Copper(self, None), card.Silver(self,None), card.Gold(self, None)]
+
+	#override
+	def start_game(self):
+		for i in self.players:
+			i.write_json(command="kingdomCards", data=json.dumps([x.to_json() for x in self.kingdom]))
+		Game.start_game(self)
 
 def main():
 	app = web.Application([

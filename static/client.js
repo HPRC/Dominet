@@ -7,6 +7,7 @@
 			this.name = null;
 			this.turn = false;
 			this.hand = null;
+			this.kingdom = [];
 			this.actions = 0;
 			this.buys = 0;
 			this.balance = 0;
@@ -29,6 +30,7 @@
 						$scope.actions = c.getActions();
 						$scope.buys = c.getBuys();
 						$scope.balance = c.getBalance();
+						$scope.kingdom = c.getKingdom();
 					});
 				}
 			};
@@ -60,10 +62,7 @@
 		};
 
 		constructor.prototype.initGame = function(json){
-			var that = this;
-
 			this.hand = JSON.parse(json.hand);
-			console.log(this.hand);
 		};
 
 		constructor.prototype.announce = function(json){
@@ -74,11 +73,14 @@
 				$("#gameChat").append("<br><b>" + json.speaker + ": </b>" + json.msg);
 		};
 
+		constructor.prototype.kingdomCards = function(json){
+			this.kingdom = JSON.parse(json.data);
+			console.log(this.kingdom);
+		};
+
 		constructor.prototype.startTurn = function(json){
 			this.turn = true;
-			this.actions = json.actions;
-			this.buys = json.buys;
-			this.balance = json.balance;
+			this.updateUi(json);
 		};
 
 		constructor.prototype.endTurn = function(){
@@ -88,6 +90,12 @@
 
 		constructor.prototype.playCard = function(title){
 			this.socket.send(JSON.stringify({"command":"play", "card": title}));
+		};
+
+		constructor.prototype.updateUi = function(json){
+			this.actions = json.actions || this.actions;
+			this.buys = json.buys || this.buys;
+			this.balance = json.balance || this.balance;
 		};
 
 		constructor.prototype.getHand = function(){
@@ -110,6 +118,10 @@
 			return this.buys;
 		};
 
+		constructor.prototype.getKingdom = function(){
+			return this.kingdom;
+		}
+
 		var c = new constructor();
 		$scope.c = c;
 		$scope.hand = c.getHand();
@@ -117,6 +129,7 @@
 		$scope.actions = c.getActions();
 		$scope.buys = c.getBuys();
 		$scope.balance = c.getBalance();
+		$scope.kingdom = c.getKingdom();
 	});
 	
 	clientModule.controller("handController", function($scope){

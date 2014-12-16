@@ -15,7 +15,11 @@
 	</div>
 
 	<div class="row" ng-controller="clientController">
-		<div id="leftColumn" class="col-md-3"></div>
+		<div id="leftColumn" class="col-md-3">
+			<div ng-repeat="card in kingdom | orderBy:'price':true">
+				<button><b>{{!card.price}}</b>  {{!card.title}}</button>
+			</div>
+		</div>
 		<div id="rightColumn" class="col-md-9">
 			<div id="msg">blank</div>
 			<div id="playerOptions" ng-show="turn">
