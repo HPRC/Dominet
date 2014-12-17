@@ -30,7 +30,7 @@
 				<button ng-click="c.endTurn()">End Turn</button>
 			</div>
 			<div id="hand">
-					<button ng-controller="handController" ng-repeat="card in hand" ng-show="show" ng-disabled="disabled(card)" ng-click="clickCard(card.title)">{{!card.title}}</button>
+					<button ng-controller="handController" ng-repeat="card in hand" ng-show="show" ng-disabled="disabled(card)" ng-click="clickCard(card)">{{!card.title}}</button>
 			</div>
 			<hr>
 			<div id="scrolldiv">

@@ -56,6 +56,7 @@ class Estate(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
 		self.title = "Estate"
+		self.description = "+1 VP"
 		self.price = 2
 		self.type = "Victory"
 

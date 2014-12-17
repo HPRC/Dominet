@@ -65,10 +65,7 @@ class GameHandler(websocket.WebSocketHandler):
 
 		if self.game == None:
 			return
-
-		if (cmd == "endTurn"):
-			self.game.change_turn()
-		elif (cmd == "chat"):
+		if (cmd == "chat"):
 			self.game.chat(data["msg"], self.name)
 
 	def on_close(self):

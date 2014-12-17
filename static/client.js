@@ -61,7 +61,7 @@
 				this.name = json.name;
 		};
 
-		constructor.prototype.initGame = function(json){
+		constructor.prototype.initHand = function(json){
 			this.hand = JSON.parse(json.hand);
 		};
 
@@ -85,11 +85,29 @@
 
 		constructor.prototype.endTurn = function(){
 			this.turn = false;
+			this.discard(this.hand);
 			this.socket.send(JSON.stringify({"command": "endTurn"}));
 		};
 
-		constructor.prototype.playCard = function(title){
-			this.socket.send(JSON.stringify({"command":"play", "card": title}));
+		constructor.prototype.discard = function(cards){
+			var cardsByTitle = $.map(cards, function(val, index){
+				return val.title;
+			});
+			this.socket.send(JSON.stringify({"command": "discard", "cards": cardsByTitle}));
+			//remove from hand
+			for (var j=0; j<cards.length; j++){
+				for (var i=0; i<this.hand.length; i++){
+					if (cards[j] == this.hand[i]){
+						this.hand.splice(i,1);
+						i--;
+					}
+				}
+			}
+		};
+
+		constructor.prototype.playCard = function(card){
+			this.socket.send(JSON.stringify({"command":"play", "card": card.title}));
+			this.discard([card]);
 		};
 
 		constructor.prototype.updateUi = function(json){
