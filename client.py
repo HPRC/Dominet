@@ -68,6 +68,8 @@ class DmClient(GameHandler):
 			self.discard(data["cards"])
 		elif (cmd == "endTurn"):
 			self.end_turn()
+		elif (cmd == "gainCard"):
+			self.gain_card(data["card"])
 
 	def end_turn(self):
 		self.actions = 0
@@ -77,6 +79,9 @@ class DmClient(GameHandler):
 		self.update_hand()
 		self.game.change_turn()
 
+	def gain_card(self, card):
+		self.discard_pile.append(self.game.kingdom[card][0])
+		self.game.kingdom[card][1] -=1
 
 	def discard(self, cards):
 		for x in cards:
@@ -94,9 +99,5 @@ class DmClient(GameHandler):
 			card = data[0]
 			count = data[1]
 			for i in range(0, count):
-				h.append(
-					{"title" : card.title,
-					"type" : card.type,
-					"description" : card.description
-					})
+				h.append(card.to_json())
 		return json.dumps(h)

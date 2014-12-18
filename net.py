@@ -99,13 +99,37 @@ class Game():
 class DmGame(Game):
 	def __init__(self, players):
 		Game.__init__(self, players)
-		self.kingdom = [card.Estate(self, None), card.Copper(self, None), card.Silver(self,None), card.Gold(self, None)]
+		#kingdom = dictionary {card.title => [card, count]} i.e {"Copper": [card.Copper(self,None),10]}
+		self.kingdom = self.init_kingdom([card.Estate(self, None), card.Copper(self, None), card.Silver(self,None), card.Gold(self, None)])
 
 	#override
 	def start_game(self):
 		for i in self.players:
-			i.write_json(command="kingdomCards", data=json.dumps([x.to_json() for x in self.kingdom]))
+			i.write_json(command="kingdomCards", data=self.kingdom_json())
 		Game.start_game(self)
+
+	def kingdom_json(self):
+		kingdom = []
+		for title, data in self.kingdom.items():
+			card = data[0]
+			count = data[1]
+			formatCard = card.to_json()
+			formatCard["count"] = count
+			kingdom.append(formatCard)
+		return json.dumps(kingdom)
+
+
+	def init_kingdom(self, cards):
+		kingdom = {}
+		for x in cards:
+			if (x.type == "Victory"):
+				if (len(self.players) ==2):
+					kingdom[x.title] = [x,8]
+				else:
+					kingdom[x.title] = [x,12]
+			else:
+				kingdom[x.title] = [x,10]
+		return kingdom
 
 def main():
 	app = web.Application([

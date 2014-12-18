@@ -71,6 +71,7 @@
 
 		constructor.prototype.chat = function(json){
 				$("#gameChat").append("<br><b>" + json.speaker + ": </b>" + json.msg);
+				$("#scrolldiv").scrollTop($("#scrolldiv")[0].scrollHeight);
 		};
 
 		constructor.prototype.kingdomCards = function(json){
@@ -107,7 +108,11 @@
 
 		constructor.prototype.playCard = function(card){
 			this.socket.send(JSON.stringify({"command":"play", "card": card.title}));
-			this.discard([card]);
+			//this.discard([card]);
+		};
+
+		constructor.prototype.gainCard = function(card){
+			this.socket.send(JSON.stringify({"command":"gainCard", "card": card.title}));
 		};
 
 		constructor.prototype.updateUi = function(json){
