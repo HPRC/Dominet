@@ -9,6 +9,8 @@ class Card():
 
 	def play(self):
 		self.game.announce("<b>" + self.played_by.name + "</b> played " + self.title)
+		if (self.type == "Action"):
+			self.played_by.actions -= 1
 
 	def to_json(self):
 		return {
@@ -27,7 +29,17 @@ class Money(Card):
 	def play(self):
 		Card.play(self)
 		self.played_by.balance += self.value
-		self.played_by.update_ui(balance=self.played_by.balance)
+		self.played_by.update_resources(balance=self.played_by.balance)
+
+	#override
+	def to_json(self):
+		return {
+			"title": self.title,
+			"type": self.type,
+			"description": self.description,
+			"price": self.price,
+			"value": self.value
+		}
 
 
 class Copper(Money):
@@ -62,5 +74,37 @@ class Estate(Card):
 
 	def play(self):
 		return
+
+class Village(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Village"
+		self.description = "+1 draw, +2 actions"
+		self.price = 3
+		self.type = "Action"
+
+	def play(self):
+		Card.play(self)
+		self.played_by.actions += 2
+		self.played_by.draw(1)
+		self.played_by.update_hand()
+		self.played_by.update_resources(actions=self.played_by.actions)
+
+class Woodcutter(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Woodcutter"
+		self.description = "$2, +1 Buy"
+		self.price = 3
+		self.type = "Action"
+
+	def play(self):
+		Card.play(self)
+		self.played_by.balance += 2
+		self.played_by.buys += 1
+		self.played_by.update_resources(actions=self.played_by.actions, 
+			balance=self.played_by.balance, buys=self.played_by.buys)
+
+
 
 

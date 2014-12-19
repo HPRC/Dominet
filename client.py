@@ -20,13 +20,13 @@ class DmClient(GameHandler):
 			random.shuffle(self.discard_pile)
 			self.deck = self.discard_pile + self.deck
 			self.discard_pile = []
-			print(self.deck)
 		for i in range(0, numCards):
-			card = self.deck.pop()
-			if (card.title in self.hand):	
-				self.hand[card.title] = [card, self.hand[card.title][1] + 1]
-			else:
-				self.hand[card.title] = [card, 1]
+			if (len(self.deck) >= 1):
+				card = self.deck.pop()
+				if (card.title in self.hand):	
+					self.hand[card.title] = [card, self.hand[card.title][1] + 1]
+				else:
+					self.hand[card.title] = [card, 1]
 
 	#override
 	def setup(self):
@@ -43,7 +43,7 @@ class DmClient(GameHandler):
 		self.update_hand()
 
 	def update_hand(self):
-		self.write_json(command="initHand", hand=self.hand_json())
+		self.write_json(command="updateHand", hand=self.hand_json())
 
 	#override
 	def take_turn(self):
@@ -68,8 +68,8 @@ class DmClient(GameHandler):
 			self.discard(data["cards"])
 		elif (cmd == "endTurn"):
 			self.end_turn()
-		elif (cmd == "gainCard"):
-			self.gain_card(data["card"])
+		elif (cmd == "buyCard"):
+			self.buy_card(data["card"])
 
 	def end_turn(self):
 		self.actions = 0
@@ -79,9 +79,13 @@ class DmClient(GameHandler):
 		self.update_hand()
 		self.game.change_turn()
 
-	def gain_card(self, card):
-		self.discard_pile.append(self.game.kingdom[card][0])
-		self.game.kingdom[card][1] -=1
+	def buy_card(self, card):
+		if (self.buys > 0):
+			self.game.announce(self.name + " buys " + card)
+			self.buys -= 1
+			self.discard_pile.append(self.game.kingdom[card][0])
+			self.game.kingdom[card][1] -=1
+			self.write_json(command="updatePiles", card=card, count=self.game.kingdom[card][1])
 
 	def discard(self, cards):
 		for x in cards:
@@ -90,8 +94,8 @@ class DmClient(GameHandler):
 			if (self.hand[x][1] == 0):
 				self.hand.pop(x, None)
 
-	def update_ui(self, **kwargs):
-		self.write_json(command="updateUi", **kwargs)
+	def update_resources(self, **kwargs):
+		self.write_json(command="updateResources", **kwargs)
 
 	def hand_json(self):
 		h = []

@@ -7,10 +7,11 @@
 			this.name = null;
 			this.turn = false;
 			this.hand = null;
-			this.kingdom = [];
+			this.kingdom = {};
 			this.actions = 0;
 			this.buys = 0;
 			this.balance = 0;
+			this.spendableMoney = 0;
 			this.socket = new WebSocket("ws://localhost:9999/ws");
 			var that = this;
 
@@ -31,6 +32,7 @@
 						$scope.buys = c.getBuys();
 						$scope.balance = c.getBalance();
 						$scope.kingdom = c.getKingdom();
+						$scope.spendableMoney = c.getSpendableMoney();
 					});
 				}
 			};
@@ -61,7 +63,7 @@
 				this.name = json.name;
 		};
 
-		constructor.prototype.initHand = function(json){
+		constructor.prototype.updateHand = function(json){
 			this.hand = JSON.parse(json.hand);
 		};
 
@@ -75,13 +77,22 @@
 		};
 
 		constructor.prototype.kingdomCards = function(json){
-			this.kingdom = JSON.parse(json.data);
+			var kingdomArray = JSON.parse(json.data);
+			for (var i=0; i< kingdomArray.length; i++) {
+				this.kingdom[kingdomArray[i].title] = kingdomArray[i];			
+			}
 			console.log(this.kingdom);
 		};
 
 		constructor.prototype.startTurn = function(json){
 			this.turn = true;
-			this.updateUi(json);
+			this.updateResources(json);
+			for (var i=0; i<this.hand.length; i++){
+				if (this.hand[i].type === "Money"){
+					this.spendableMoney += this.hand[i].value;
+					console.log(this.hand);
+				}
+			}
 		};
 
 		constructor.prototype.endTurn = function(){
@@ -106,16 +117,31 @@
 			}
 		};
 
+		constructor.prototype.spendAllMoney = function(){
+			this.balance += spendableMoney;
+			for (var i=0; i<this.hand.length; i++){
+
+			}
+		}
+
 		constructor.prototype.playCard = function(card){
 			this.socket.send(JSON.stringify({"command":"play", "card": card.title}));
 			//this.discard([card]);
 		};
 
-		constructor.prototype.gainCard = function(card){
-			this.socket.send(JSON.stringify({"command":"gainCard", "card": card.title}));
+		constructor.prototype.buyCard = function(card){
+			if (this.balance >= card.price){
+				this.buys -= 1;
+				this.balance -= card.price;
+				this.socket.send(JSON.stringify({"command":"buyCard", "card": card.title}));
+			}
 		};
 
-		constructor.prototype.updateUi = function(json){
+		constructor.prototype.updatePiles = function(json){
+			this.kingdom[json.card].count = json.count;
+		};
+
+		constructor.prototype.updateResources = function(json){
 			this.actions = json.actions || this.actions;
 			this.buys = json.buys || this.buys;
 			this.balance = json.balance || this.balance;
@@ -143,7 +169,11 @@
 
 		constructor.prototype.getKingdom = function(){
 			return this.kingdom;
-		}
+		};
+
+		constructor.prototype.getSpendableMoney = function(){
+			return this.spendableMoney;
+		};
 
 		var c = new constructor();
 		$scope.c = c;
@@ -153,6 +183,8 @@
 		$scope.buys = c.getBuys();
 		$scope.balance = c.getBalance();
 		$scope.kingdom = c.getKingdom();
+		$scope.spendableMoney = c.getSpendableMoney();
+
 	});
 	
 	clientModule.controller("handController", function($scope){
@@ -167,7 +199,7 @@
 		$scope.clickCard = function(card){
 			$scope.c.playCard(card);
 			$scope.show = false;
-		}
+		};
 
 	});
 	// clientModule.directive("handCard", function(){

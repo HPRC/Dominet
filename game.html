@@ -16,8 +16,8 @@
 
 	<div class="row" ng-controller="clientController">
 		<div id="leftColumn" class="col-md-3">
-			<div ng-repeat="card in kingdom | orderBy:'price':true">
-				<button ng-click="c.gainCard(card)"><b>{{!card.price}}</b>  {{!card.title}} :: {{!card.count}}</button>
+			<div ng-repeat="(title, card) in kingdom">
+				<button ng-click="c.buyCard(card)"><b>{{!card.price}}</b>  {{!card.title}} :: {{!card.count}}</button>
 			</div>
 		</div>
 		<div id="rightColumn" class="col-md-9">
@@ -26,7 +26,7 @@
 				<span class="resources"><b>actions:</b>{{!actions}}</span>
 				<span class="resources"><b>buys:</b>{{!buys}}</span>
 				<span class="resources"><b>balance:</b>{{!balance}}</span>
-				<button id="spendMoney">+$</button>
+				<button id="spendMoney">+${{!spendableMoney}}</button>
 				<button ng-click="c.endTurn()">End Turn</button>
 			</div>
 			<div id="hand">
