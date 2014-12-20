@@ -1,13 +1,22 @@
 
 #container {
-	margin: 2% auto 0 auto;
+	margin: 2% auto 2% auto;
 	width:95%;
 }
 
-#scrolldiv {
-	overflow: auto;
-	height:150px;
+#leftColumn {
+	position:fixed;
 }
+
+#scrollChat {
+	overflow: auto;
+	height:100px;
+}
+
+#msg {
+	min-height: 250px;
+}
+
 
 .resources {
 	font-size:1.6em;

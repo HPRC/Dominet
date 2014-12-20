@@ -81,9 +81,11 @@ class DmClient(GameHandler):
 
 	def buy_card(self, card):
 		if (self.buys > 0):
-			self.game.announce(self.name + " buys " + card)
+			self.game.announce("<b>" + self.name + "</b> buys " + card)
 			self.buys -= 1
-			self.discard_pile.append(self.game.kingdom[card][0])
+			newCard = self.game.kingdom[card][0]
+			newCard.played_by = self
+			self.discard_pile.append(newCard)
 			self.game.kingdom[card][1] -=1
 			self.write_json(command="updatePiles", card=card, count=self.game.kingdom[card][1])
 
@@ -94,8 +96,8 @@ class DmClient(GameHandler):
 			if (self.hand[x][1] == 0):
 				self.hand.pop(x, None)
 
-	def update_resources(self, **kwargs):
-		self.write_json(command="updateResources", **kwargs)
+	def update_resources(self):
+		self.write_json(command="updateResources", actions=self.actions, buys=self.buys, balance=self.balance)
 
 	def hand_json(self):
 		h = []

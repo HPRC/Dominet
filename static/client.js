@@ -11,6 +11,7 @@
 			this.actions = 0;
 			this.buys = 0;
 			this.balance = 0;
+			this.played = [];
 			this.spendableMoney = 0;
 			this.socket = new WebSocket("ws://localhost:9999/ws");
 			var that = this;
@@ -69,11 +70,12 @@
 
 		constructor.prototype.announce = function(json){
 				$('#msg').append("<br>" + json.msg);
+				$("#container").scrollTop($(document).height());
 		};
 
 		constructor.prototype.chat = function(json){
 				$("#gameChat").append("<br><b>" + json.speaker + ": </b>" + json.msg);
-				$("#scrolldiv").scrollTop($("#scrolldiv")[0].scrollHeight);
+				$("#scrollChat").scrollTop($("#scrollChat")[0].scrollHeight);
 		};
 
 		constructor.prototype.kingdomCards = function(json){
@@ -87,21 +89,22 @@
 		constructor.prototype.startTurn = function(json){
 			this.turn = true;
 			this.updateResources(json);
-			for (var i=0; i<this.hand.length; i++){
-				if (this.hand[i].type === "Money"){
-					this.spendableMoney += this.hand[i].value;
-					console.log(this.hand);
-				}
-			}
+			this.spendableMoney = 0;
+			this.updateSpendable();
 		};
 
 		constructor.prototype.endTurn = function(){
 			this.turn = false;
 			this.discard(this.hand);
+			this.discard(this.played);
+			this.played = [];
 			this.socket.send(JSON.stringify({"command": "endTurn"}));
 		};
 
 		constructor.prototype.discard = function(cards){
+			if (cards.length == 0){
+				return;
+			}
 			var cardsByTitle = $.map(cards, function(val, index){
 				return val.title;
 			});
@@ -117,16 +120,34 @@
 			}
 		};
 
-		constructor.prototype.spendAllMoney = function(){
-			this.balance += spendableMoney;
+		constructor.prototype.updateSpendable = function (){
 			for (var i=0; i<this.hand.length; i++){
+				if (this.hand[i].type === "Money"){
+					this.spendableMoney += this.hand[i].value;
+				}
+			}
+		}
 
+		constructor.prototype.spendAllMoney = function(){
+			this.spendableMoney = 0;
+			for (var i=0; i<this.hand.length; i++){
+				if (this.hand[i].type === "Money"){
+					this.playCard(this.hand[i]);
+					i--;
+				}
 			}
 		}
 
 		constructor.prototype.playCard = function(card){
 			this.socket.send(JSON.stringify({"command":"play", "card": card.title}));
-			//this.discard([card]);
+			this.played.push(card);
+			//remove from hand
+			for (var i=0; i<this.hand.length; i++){
+				if (card == this.hand[i]){
+					this.hand.splice(i,1);
+					i--;
+				}
+			}
 		};
 
 		constructor.prototype.buyCard = function(card){
@@ -142,9 +163,9 @@
 		};
 
 		constructor.prototype.updateResources = function(json){
-			this.actions = json.actions || this.actions;
-			this.buys = json.buys || this.buys;
-			this.balance = json.balance || this.balance;
+			this.actions = json.actions;
+			this.buys = json.buys;
+			this.balance = json.balance;
 		};
 
 		constructor.prototype.getHand = function(){
@@ -188,7 +209,6 @@
 	});
 	
 	clientModule.controller("handController", function($scope){
-		$scope.show = true;
 		$scope.disabled = function(card){
 			if (card.type === "Victory" || $scope.turn === false){
 				return true;
@@ -198,7 +218,6 @@
 
 		$scope.clickCard = function(card){
 			$scope.c.playCard(card);
-			$scope.show = false;
 		};
 
 	});

@@ -29,7 +29,7 @@ class Money(Card):
 	def play(self):
 		Card.play(self)
 		self.played_by.balance += self.value
-		self.played_by.update_resources(balance=self.played_by.balance)
+		self.played_by.update_resources()
 
 	#override
 	def to_json(self):
@@ -75,6 +75,17 @@ class Estate(Card):
 	def play(self):
 		return
 
+class Duchy(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Duchy"
+		self.description = "+3 VP"
+		self.price = 5
+		self.type = "Victory"
+
+	def play(self):
+		return
+
 class Village(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
@@ -88,7 +99,7 @@ class Village(Card):
 		self.played_by.actions += 2
 		self.played_by.draw(1)
 		self.played_by.update_hand()
-		self.played_by.update_resources(actions=self.played_by.actions)
+		self.played_by.update_resources()
 
 class Woodcutter(Card):
 	def __init__(self, game, played_by):
@@ -102,8 +113,7 @@ class Woodcutter(Card):
 		Card.play(self)
 		self.played_by.balance += 2
 		self.played_by.buys += 1
-		self.played_by.update_resources(actions=self.played_by.actions, 
-			balance=self.played_by.balance, buys=self.played_by.buys)
+		self.played_by.update_resources()
 
 
 

@@ -7,7 +7,7 @@
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
 
 </head>
-<div id="container">
+<body id="container">
 	<div class="row">
 		<div class="col-md-9 col-md-offset-3">
 			<h4>Dominet</h4>
@@ -15,9 +15,11 @@
 	</div>
 
 	<div class="row" ng-controller="clientController">
-		<div id="leftColumn" class="col-md-3">
-			<div ng-repeat="(title, card) in kingdom">
-				<button ng-click="c.buyCard(card)"><b>{{!card.price}}</b>  {{!card.title}} :: {{!card.count}}</button>
+		<div id="leftContainer" class="col-md-3">
+			<div id="leftColumn">
+				<div ng-repeat="(title, card) in kingdom">
+					<button ng-click="c.buyCard(card)"><b>{{!card.price}}</b>  {{!card.title}} :: {{!card.count}}</button>
+				</div>
 			</div>
 		</div>
 		<div id="rightColumn" class="col-md-9">
@@ -26,14 +28,14 @@
 				<span class="resources"><b>actions:</b>{{!actions}}</span>
 				<span class="resources"><b>buys:</b>{{!buys}}</span>
 				<span class="resources"><b>balance:</b>{{!balance}}</span>
-				<button id="spendMoney">+${{!spendableMoney}}</button>
+				<button id="spendMoney" ng-click="c.spendAllMoney()">+${{!spendableMoney}}</button>
 				<button ng-click="c.endTurn()">End Turn</button>
 			</div>
 			<div id="hand">
-					<button ng-controller="handController" ng-repeat="card in hand" ng-show="show" ng-disabled="disabled(card)" ng-click="clickCard(card)">{{!card.title}}</button>
+					<button ng-controller="handController" ng-repeat="card in hand" ng-disabled="disabled(card)" ng-click="clickCard(card)">{{!card.title}}</button>
 			</div>
 			<hr>
-			<div id="scrolldiv">
+			<div id="scrollChat">
 				<div id="gameChat">
 				</div>
 			</div>
@@ -46,6 +48,6 @@
 				<button id="sendChat" class="btn btn-default">Send</button>
 			</div>
 		</div>
-	</div>
-</div>
+	</dxiv>
+</body>
 </html>
