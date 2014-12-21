@@ -11,7 +11,7 @@ class DmClient(GameHandler):
 		for i in range(0,7):
 			deck.append(card.Copper(game=self.game, played_by=self))
 		for i in range(0,3):
-			deck.append(card.Estate(game=self.game, played_by=self))
+			deck.append(card.Militia(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
@@ -43,7 +43,7 @@ class DmClient(GameHandler):
 		self.update_hand()
 
 	def update_hand(self):
-		self.write_json(command="updateHand", hand=self.hand_json())
+		self.write_json(command="updateHand", hand=json.dumps(self.hand_array()))
 
 	#override
 	def take_turn(self):
@@ -70,6 +70,8 @@ class DmClient(GameHandler):
 			self.end_turn()
 		elif (cmd == "buyCard"):
 			self.buy_card(data["card"])
+		elif (cmd == "unwait"):
+			self.unwait();
 
 	def end_turn(self):
 		self.actions = 0
@@ -89,6 +91,19 @@ class DmClient(GameHandler):
 			self.game.kingdom[card][1] -=1
 			self.write_json(command="updatePiles", card=card, count=self.game.kingdom[card][1])
 
+	def select_cards(self, num_cards, do_to_select):
+		self.write_json(command="updateMode", mode="select", doToSelect=do_to_select, count=num_cards)
+
+	def wait(self, msg):
+		self.write_json(command="updateMode", mode="wait")
+
+	def unwait(self):
+		if (self.actions > 0):
+			default_mode = "action"
+		else:
+			default_mode = "buy"
+		self.game.get_turn_owner().write_json(command="updateMode", mode=default_mode)
+
 	def discard(self, cards):
 		for x in cards:
 			self.hand[x][1] -= 1
@@ -99,11 +114,11 @@ class DmClient(GameHandler):
 	def update_resources(self):
 		self.write_json(command="updateResources", actions=self.actions, buys=self.buys, balance=self.balance)
 
-	def hand_json(self):
+	def hand_array(self):
 		h = []
 		for title, data in self.hand.items():
 			card = data[0]
 			count = data[1]
 			for i in range(0, count):
 				h.append(card.to_json())
-		return json.dumps(h)
+		return h

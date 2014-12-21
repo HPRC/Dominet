@@ -1,19 +1,27 @@
 (function() {
 	var clientModule = angular.module("clientApp", []);
 
-	clientModule.controller("clientController", function($scope){
+	clientModule.service('socket', function(){
+		var socket = new WebSocket("ws://localhost:9999/ws");
+		return socket;
+
+	});
+
+	clientModule.controller("clientController", function($scope, socket){
 		var constructor = function() {
 			this.id = null;
 			this.name = null;
 			this.turn = false;
-			this.hand = null;
+			this.hand = [];
 			this.kingdom = {};
 			this.actions = 0;
 			this.buys = 0;
 			this.balance = 0;
 			this.played = [];
 			this.spendableMoney = 0;
-			this.socket = new WebSocket("ws://localhost:9999/ws");
+			//mode overidden by turn
+			this.modeJson = {"mode":"action"}; //.mode = action, buy, select, wait
+			this.socket = socket;
 			var that = this;
 
 			this.socket.onopen = function(event){
@@ -34,6 +42,7 @@
 						$scope.balance = c.getBalance();
 						$scope.kingdom = c.getKingdom();
 						$scope.spendableMoney = c.getSpendableMoney();
+						$scope.modeJson = c.getModeJson();
 					});
 				}
 			};
@@ -93,6 +102,10 @@
 			this.updateSpendable();
 		};
 
+		constructor.prototype.updateMode = function(json){
+			this.modeJson = json;
+		};
+
 		constructor.prototype.endTurn = function(){
 			this.turn = false;
 			this.discard(this.hand);
@@ -121,32 +134,40 @@
 		};
 
 		constructor.prototype.updateSpendable = function (){
+			this.spendableMoney = 0;
 			for (var i=0; i<this.hand.length; i++){
 				if (this.hand[i].type === "Money"){
 					this.spendableMoney += this.hand[i].value;
 				}
 			}
-		}
+		};
 
 		constructor.prototype.spendAllMoney = function(){
 			this.spendableMoney = 0;
+			this.modeJson = {"mode":"buy"};
 			for (var i=0; i<this.hand.length; i++){
 				if (this.hand[i].type === "Money"){
 					this.playCard(this.hand[i]);
 					i--;
 				}
 			}
-		}
+		};
 
 		constructor.prototype.playCard = function(card){
-			this.socket.send(JSON.stringify({"command":"play", "card": card.title}));
-			this.played.push(card);
-			//remove from hand
-			for (var i=0; i<this.hand.length; i++){
-				if (card == this.hand[i]){
-					this.hand.splice(i,1);
-					i--;
+			if (this.actions > 0 || card.type.indexOf("Action") === -1){
+				this.socket.send(JSON.stringify({"command":"play", "card": card.title}));
+				this.played.push(card);
+				//remove from hand
+				for (var i=0; i<this.hand.length; i++){
+					if (card == this.hand[i]){
+						this.hand.splice(i,1);
+						i--;
+					}
 				}
+			}
+			if (card.type === "Money"){
+				this.modeJson = {"mode":"buy"};
+				this.updateSpendable();
 			}
 		};
 
@@ -167,6 +188,14 @@
 			this.buys = json.buys;
 			this.balance = json.balance;
 		};
+
+		constructor.prototype.modeDefault = function(){
+			if (this.actions > 0){
+				this.modeJson = {"mode":"action"};
+			} else {
+				this.modeJson = {"mode":"buy"};
+			}
+		}
 
 		constructor.prototype.getHand = function(){
 			return this.hand;
@@ -196,6 +225,10 @@
 			return this.spendableMoney;
 		};
 
+		constructor.prototype.getModeJson = function(){
+			return this.modeJson;
+		};
+
 		var c = new constructor();
 		$scope.c = c;
 		$scope.hand = c.getHand();
@@ -205,13 +238,19 @@
 		$scope.balance = c.getBalance();
 		$scope.kingdom = c.getKingdom();
 		$scope.spendableMoney = c.getSpendableMoney();
+		$scope.modeJson = c.getModeJson();
 
 	});
 	
 	clientModule.controller("handController", function($scope){
 		$scope.disabled = function(card){
-			if (card.type === "Victory" || $scope.turn === false){
+			if (card.type === "Victory" || $scope.turn === false || $scope.modeJson.mode === "wait"){
 				return true;
+			}
+			if ($scope.modeJson.mode === "buy"){
+				if (card.type.indexOf("Action") !== -1){
+					return true;
+				}
 			}
 			return false;
 		};
@@ -221,25 +260,67 @@
 		};
 
 	});
-	// clientModule.directive("handCard", function(){
-	// 	return {
-	// 		restrict: 'EA',
-	// 		template: '<button>{{card.title}}</button>',
-	// 		compile: function(element, attributes){
-	// 			var link = function(scope, element, attributes){
-	// 				var card = JSON.parse(attributes.card);
-	// 				if (card.type === "Victory"){
-	// 					//how to disable
-	// 				}
-	// 				element.bind('click', function(){
-	// 					element.css('display', 'none');
-	// 					scope.c.playCard(card.title);
-	// 				});
-	// 			};
-	// 			return link
-	// 		}
-	// 	};
-	// });
+
+	clientModule.controller("kingdomController", function($scope){
+		$scope.getKingdomArray = function(){
+			return $.map($scope.kingdom, function(card, title){
+				return card;
+			});
+		};
+
+		$scope.disabled = function(){
+			return (!$scope.turn || $scope.modeJson.mode === "wait");
+		};
+
+		$scope.getButtonStyle = function(card){
+			var colorDict = {
+				"Money": "btn btn-warning",
+				"Victory": "btn btn-success",
+				"Action|Attack": "btn btn-danger"
+			};
+
+			if (card.type in colorDict){
+				return colorDict[card.type];
+			} else {
+				return "btn btn-default";
+			}
+		}
+
+	});
+
+	clientModule.controller("selectController", function($scope){
+		$scope.canBeDone = false;
+		$scope.selected = [];
+		$scope.check = function(card, isChecked){
+			var checkedCount = $("input:checkbox:checked").length;
+			if (checkedCount >= $scope.modeJson.count){
+				$("input:checkbox").not(":checked").attr("disabled", true);
+				$scope.canBeDone = true;
+			} else {
+				$("input:checkbox").not(":checked").attr("disabled", false);
+				$scope.canBeDone = false;
+			}
+
+			if (isChecked){
+				$scope.selected.push(card);
+			} else {
+				var i = $scope.selected.indexOf(card);
+				$scope.selected.splice(i,1);
+			}
+		};
+
+		$scope.doneSelection = function(){
+			var doThis = $scope.modeJson.doToSelect;
+			if ($scope.c[doThis]){
+				$scope.c[doThis]($scope.selected);
+				$scope.modeJson = $scope.c.modeDefault();
+				$scope.c.socket.send(JSON.stringify({"command": "unwait"}));
+			} else {
+				console.log(doThis + " not found!?");
+			}
+		};
+
+	});
 
 })();
 

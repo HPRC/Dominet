@@ -9,7 +9,7 @@ class Card():
 
 	def play(self):
 		self.game.announce("<b>" + self.played_by.name + "</b> played " + self.title)
-		if (self.type == "Action"):
+		if ("Action" in self.type):
 			self.played_by.actions -= 1
 
 	def to_json(self):
@@ -114,6 +114,24 @@ class Woodcutter(Card):
 		self.played_by.balance += 2
 		self.played_by.buys += 1
 		self.played_by.update_resources()
+
+class Militia(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Militia"
+		self.description = "$2, Each other player discards down to 3 cards in hand."
+		self.price = 4
+		self.type = "Action|Attack"
+
+	def play(self):
+		Card.play(self)
+		self.played_by.balance += 2
+		self.played_by.update_resources()
+		for i in self.game.players:
+			if ( i != self.played_by):
+				i.select_cards(len(i.hand_array())-3, "discard")
+		self.played_by.wait("Waiting for other players to discard")
+
 
 
 
