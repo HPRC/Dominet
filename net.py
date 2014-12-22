@@ -105,7 +105,8 @@ class DmGame(Game):
 		#kingdom = dictionary {card.title => [card, count]} i.e {"Copper": [card.Copper(self,None),10]}
 		self.kingdom = self.init_kingdom([card.Estate(self, None), card.Copper(self, None), 
 			card.Silver(self,None), card.Gold(self, None), card.Village(self, None),
-			card.Woodcutter(self,None), card.Duchy(self, None), card.Militia(self, None)])
+			card.Woodcutter(self,None), card.Duchy(self, None), card.Militia(self, None), card.Province(self, None),
+			card.Cellar(self,None)])
 
 	#override
 	def start_game(self):

@@ -75,6 +75,7 @@
 
 		constructor.prototype.updateHand = function(json){
 			this.hand = JSON.parse(json.hand);
+			this.updateSpendable();
 		};
 
 		constructor.prototype.announce = function(json){
@@ -103,6 +104,7 @@
 		};
 
 		constructor.prototype.updateMode = function(json){
+			console.log(json);
 			this.modeJson = json;
 		};
 
@@ -289,16 +291,23 @@
 	});
 
 	clientModule.controller("selectController", function($scope){
-		$scope.canBeDone = false;
+		if ($scope.modeJson.count){
+			$scope.canBeDone = false;
+		} else {
+			$scope.canBeDone = true;
+		}
 		$scope.selected = [];
 		$scope.check = function(card, isChecked){
-			var checkedCount = $("input:checkbox:checked").length;
-			if (checkedCount >= $scope.modeJson.count){
-				$("input:checkbox").not(":checked").attr("disabled", true);
-				$scope.canBeDone = true;
-			} else {
-				$("input:checkbox").not(":checked").attr("disabled", false);
-				$scope.canBeDone = false;
+			console.log($scope.modeJson);
+			if ($scope.modeJson.count != undefined){
+				var checkedCount = $("input:checkbox:checked").length;
+				if (checkedCount >= $scope.modeJson.count){
+					$("input:checkbox").not(":checked").attr("disabled", true);
+					$scope.canBeDone = true;
+				} else {
+					$("input:checkbox").not(":checked").attr("disabled", false);
+					$scope.canBeDone = false;
+				}
 			}
 
 			if (isChecked){
@@ -310,14 +319,12 @@
 		};
 
 		$scope.doneSelection = function(){
-			var doThis = $scope.modeJson.doToSelect;
-			if ($scope.c[doThis]){
-				$scope.c[doThis]($scope.selected);
-				$scope.modeJson = $scope.c.modeDefault();
-				$scope.c.socket.send(JSON.stringify({"command": "unwait"}));
-			} else {
-				console.log(doThis + " not found!?");
-			}
+			var cardsByTitle = $.map($scope.selected, function(val, index){
+				return val.title;
+			});
+			$scope.c.socket.send(JSON.stringify({"command": "unwait", "selection": cardsByTitle	, "card":$scope.modeJson.card}));
+			$scope.c.modeDefault();
+			$scope.selected = [];
 		};
 
 	});

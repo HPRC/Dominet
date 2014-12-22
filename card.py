@@ -9,6 +9,7 @@ class Card():
 
 	def play(self):
 		self.game.announce("<b>" + self.played_by.name + "</b> played " + self.title)
+		self.played_by.discard([self.title], self.played_by.played)
 		if ("Action" in self.type):
 			self.played_by.actions -= 1
 
@@ -19,6 +20,10 @@ class Card():
 			"description": self.description,
 			"price": self.price
 		}
+
+	#called after a selection, if played by opponent on me, I use a temp kingdom card with me as owner to resolve effects
+	def post_select(self, selection):
+		pass
 
 class Money(Card):
 	def __init__(self, game, played_by):
@@ -86,6 +91,35 @@ class Duchy(Card):
 	def play(self):
 		return
 
+class Province(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Province"
+		self.description = "+6 VP"
+		self.price = 8
+		self.type = "Victory"
+
+	def play(self):
+		return
+
+class Cellar(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Cellar"
+		self.description = "+1 action, Discard any number of cards, +1 Card per card discarded."
+		self.price = 2
+		self.type = "Action"
+
+	def play(self):
+		Card.play(self)
+		self.played_by.actions += 1
+		self.played_by.select_cards(None, self.title)
+
+	def post_select(self, selection):
+		self.played_by.discard(selection, self.played_by.discard_pile)
+		self.played_by.draw(len(selection))
+		self.played_by.update_hand()
+
 class Village(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
@@ -129,10 +163,12 @@ class Militia(Card):
 		self.played_by.update_resources()
 		for i in self.game.players:
 			if ( i != self.played_by):
-				i.select_cards(len(i.hand_array())-3, "discard")
+				i.select_cards(len(i.hand_array())-3, self.title)
 		self.played_by.wait("Waiting for other players to discard")
 
-
+	def post_select(self, selection):
+		self.played_by.discard(selection, self.played_by.discard_pile)
+		self.played_by.update_hand()
 
 
 

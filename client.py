@@ -11,7 +11,7 @@ class DmClient(GameHandler):
 		for i in range(0,7):
 			deck.append(card.Copper(game=self.game, played_by=self))
 		for i in range(0,3):
-			deck.append(card.Militia(game=self.game, played_by=self))
+			deck.append(card.Cellar(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
@@ -35,6 +35,7 @@ class DmClient(GameHandler):
 		self.deck = self.base_deck()
 		#dictionary of card title => [card object, count]
 		self.hand = {}
+		self.played = []
 		self.actions = 0
 		self.buys = 0
 		self.balance = 0
@@ -49,6 +50,7 @@ class DmClient(GameHandler):
 	def take_turn(self):
 		self.actions = 1
 		self.buys = 1
+		self.write_json(command="updateMode", mode="action")
 		self.write_json(command="startTurn", actions=self.actions, buys=self.buys, 
 			balance=self.balance)
 
@@ -65,18 +67,20 @@ class DmClient(GameHandler):
 			else:
 				handtuple[0].play()
 		elif (cmd == "discard"):
-			self.discard(data["cards"])
+			self.discard(data["cards"], self.discard_pile)
 		elif (cmd == "endTurn"):
 			self.end_turn()
 		elif (cmd == "buyCard"):
 			self.buy_card(data["card"])
 		elif (cmd == "unwait"):
-			self.unwait();
+			self.unwait(data["selection"], data["card"]);
 
 	def end_turn(self):
 		self.actions = 0
 		self.buys = 0
 		self.balance = 0
+		self.discard_pile = self.discard_pile + self.played
+		self.played = []
 		self.draw(self.hand_size)
 		self.update_hand()
 		self.game.change_turn()
@@ -91,23 +95,26 @@ class DmClient(GameHandler):
 			self.game.kingdom[card][1] -=1
 			self.write_json(command="updatePiles", card=card, count=self.game.kingdom[card][1])
 
-	def select_cards(self, num_cards, do_to_select):
-		self.write_json(command="updateMode", mode="select", doToSelect=do_to_select, count=num_cards)
+	def select_cards(self, num_cards, card):
+		self.write_json(command="updateMode", mode="select", count=num_cards, card=card)
 
 	def wait(self, msg):
 		self.write_json(command="updateMode", mode="wait")
 
-	def unwait(self):
+	def unwait(self, selection, card):
 		if (self.actions > 0):
 			default_mode = "action"
 		else:
 			default_mode = "buy"
 		self.game.get_turn_owner().write_json(command="updateMode", mode=default_mode)
+		tempCard = self.game.kingdom[card][0]
+		tempCard.played_by = self
+		tempCard.post_select(selection)
 
-	def discard(self, cards):
+	def discard(self, cards, pile):
 		for x in cards:
 			self.hand[x][1] -= 1
-			self.discard_pile.append(self.hand[x][0])
+			pile.append(self.hand[x][0])
 			if (self.hand[x][1] == 0):
 				self.hand.pop(x, None)
 
