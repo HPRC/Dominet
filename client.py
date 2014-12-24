@@ -11,7 +11,7 @@ class DmClient(GameHandler):
 		for i in range(0,7):
 			deck.append(card.Copper(game=self.game, played_by=self))
 		for i in range(0,3):
-			deck.append(card.Cellar(game=self.game, played_by=self))
+			deck.append(card.Remodel(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
@@ -30,6 +30,7 @@ class DmClient(GameHandler):
 
 	#override
 	def setup(self):
+		self.trash_pile = []
 		self.discard_pile = []
 		#deck = [bottom, middle, top] 
 		self.deck = self.base_deck()
@@ -74,6 +75,8 @@ class DmClient(GameHandler):
 			self.buy_card(data["card"])
 		elif (cmd == "unwait"):
 			self.unwait(data["selection"], data["card"]);
+		elif (cmd == "gain"):
+			self.gain(data["card"])
 
 	def end_turn(self):
 		self.actions = 0
@@ -118,6 +121,22 @@ class DmClient(GameHandler):
 			if (self.hand[x][1] == 0):
 				self.hand.pop(x, None)
 
+	def gain(self, card):
+		if (self.actions > 0):
+			default_mode = "action"
+		else:
+			default_mode = "buy"
+		self.game.get_turn_owner().write_json(command="updateMode", mode=default_mode)
+		self.game.announce(self.name_string() + " gains " + card)
+		newCard = self.game.kingdom[card][0]
+		newCard.played_by = self
+		self.game.kingdom[card][1] -=1
+		self.discard_pile.append(newCard)
+
+
+	def gain_from_kingdom(self, price_limit, equal_only):
+		self.write_json(command="updateMode", mode="gain", price=price_limit, equal_only=equal_only)
+
 	def update_resources(self):
 		self.write_json(command="updateResources", actions=self.actions, buys=self.buys, balance=self.balance)
 
@@ -129,3 +148,6 @@ class DmClient(GameHandler):
 			for i in range(0, count):
 				h.append(card.to_json())
 		return h
+
+	def name_string(self):
+		return "<b>" + self.name + "</b>"

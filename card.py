@@ -8,7 +8,7 @@ class Card():
 		self.price = None
 
 	def play(self):
-		self.game.announce("<b>" + self.played_by.name + "</b> played " + self.title)
+		self.game.announce(self.played_by.name_string() + " played " + self.title)
 		self.played_by.discard([self.title], self.played_by.played)
 		if ("Action" in self.type):
 			self.played_by.actions -= 1
@@ -68,6 +68,16 @@ class Gold(Money):
 		self.value = 3
 		self.price = 6
 
+class Curse(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Curse"
+		self.description = "-1 VP"
+		self.price = 0
+		self.type = "Curse"
+
+	def play(self):
+		return
 
 class Estate(Card):
 	def __init__(self, game, played_by):
@@ -153,7 +163,7 @@ class Militia(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
 		self.title = "Militia"
-		self.description = "$2, Each other player discards down to 3 cards in hand."
+		self.description = "+$2, Each other player discards down to 3 cards in hand."
 		self.price = 4
 		self.type = "Action|Attack"
 
@@ -170,5 +180,85 @@ class Militia(Card):
 		self.played_by.discard(selection, self.played_by.discard_pile)
 		self.played_by.update_hand()
 
+class Smithy(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Smithy"
+		self.description = "+3 cards"
+		self.price = 4
+		self.type = "Action"
 
+	def play(self):
+		Card.play(self)
+		self.played_by.draw(3)
+		self.played_by.update_hand()
+		self.played_by.update_resources()
 
+class Remodel(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Remodel"
+		self.description = "Trash a card from your hand, gain a card costing up to 2 more than the trashed card"
+		self.price = 4
+		self.type = "Action"
+
+	def play(self):
+		Card.play(self)
+		self.played_by.select_cards(1, self.title)
+		self.played_by.update_resources()
+
+	def post_select(self, selection):
+		self.played_by.discard(selection, self.played_by.trash_pile)
+		self.game.announce(self.played_by.name_string() + " trashes " + selection[0])
+		card_trashed = self.game.kingdom[selection[0]][0]
+		self.played_by.gain_from_kingdom(card_trashed.price + 2, False)
+		self.played_by.update_hand()
+
+class Festival(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Festival"
+		self.description = "+$2, +2 actions, +1 buy"
+		self.price = 5
+		self.type = "Action"
+
+	def play(self):
+		Card.play(self)
+		self.played_by.balance += 2
+		self.played_by.actions += 2
+		self.played_by.buys += 1
+		self.played_by.update_resources()
+
+class Council_Room(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Council Room"
+		self.description = "+4 cards, +1 buy. Each other player draws a card"
+		self.price = 5
+		self.type = "Action"
+
+	def play(self):
+		Card.play(self)
+		self.played_by.draw(4)
+		self.played_by.buys += 1
+		self.played_by.update_hand()
+		self.played_by.update_resources()
+		for i in self.game.players:
+			if (i != self.played_by):
+				i.draw(1)
+				i.update_hand()
+
+class Laboratory(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Laboratory"
+		self.description = "+2 cards, +1 action"
+		self.price = 5
+		self.type = "Action"
+
+	def play(self):
+		Card.play(self)
+		self.played_by.draw(2)
+		self.played_by.actions += 1
+		self.played_by.update_hand()
+		self.played_by.update_resources()

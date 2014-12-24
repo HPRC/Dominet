@@ -19,7 +19,7 @@
 			<div id="leftColumn" ng-controller="kingdomController">
 				<table class="table">
 					<tr ng-repeat="card in getKingdomArray() | orderBy:'price':true">
-						<td><b>${{!card.price}}</b>  <button ng-disabled="disabled()" type="button" ng-class="getButtonStyle(card)" ng-click="c.buyCard(card)">{{!card.title}}</button> :: {{!card.count}}</td>
+						<td><b>${{!card.price}}</b>  <button ng-disabled="disabled(card)" type="button" ng-class="getButtonStyle(card)" ng-click="clickCard(card)">{{!card.title}}</button> :: {{!card.count}}</td>
 					</tr>
 				</table>
 			</div>
@@ -30,16 +30,22 @@
 				<span class="resources"><b>actions:</b>{{!actions}}</span>
 				<span class="resources"><b>buys:</b>{{!buys}}</span>
 				<span class="resources"><b>balance:</b>{{!balance}}</span>
-				<button id="spendMoney" ng-click="c.spendAllMoney()" ng-disabled="modeJson.mode == 'wait'">+${{!spendableMoney}}</button>
-				<button ng-click="c.endTurn()" ng-disabled="modeJson.mode === 'wait'">End Turn</button>
+				<button id="spendMoney" ng-click="c.spendAllMoney()" ng-show="modeJson.mode === 'action'|| modeJson.mode === 'buy'">+${{!spendableMoney}}</button>
+				<button ng-click="c.endTurn()" ng-show="modeJson.mode === 'action' || modeJson.mode === 'buy'">End Turn</button>
 			</div>
 			<div id="wait" ng-show="modeJson.mode === 'wait'"><h5>Waiting for other player</h5></div>
 			<div id="select" ng-show="modeJson.mode ==='select'" ng-controller="selectController">
-				<h5>Select Cards</h5>
-				<label class="checkbox-inline" ng-repeat="card in hand">
-					<input type="checkbox" ng-init="checked=false" ng-click="checked=!checked; check(card,checked)">{{!card.title}}
-				</label>
-				<button ng-disabled="!canBeDone" ng-click="doneSelection()">Done</button>
+				<div ng-if="modeJson.count > 1 || modeJson.count === null">
+					<h5>Select Cards</h5>
+					<label class="checkbox-inline" ng-repeat="card in hand">
+						<input type="checkbox" ng-init="checked=false" ng-click="checked=!checked; check(card,checked)">{{!card.title}}
+					</label>
+					<button ng-disabled="!canBeDone" ng-click="doneSelection()">Done</button>
+				</div>
+				<div ng-if="modeJson.count === 1">
+					<h5>Select Card</h5>
+					<a href ng-click="selectOne(card)" ng-repeat="card in hand">  {{!card.title}}  </a>
+				</div>
 			</div>
 			<div id="hand">
 					<button ng-controller="handController" ng-repeat="card in hand" ng-disabled="disabled(card)" ng-click="clickCard(card)">{{!card.title}}</button>

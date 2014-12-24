@@ -20,7 +20,7 @@
 			this.played = [];
 			this.spendableMoney = 0;
 			//mode overidden by turn
-			this.modeJson = {"mode":"action"}; //.mode = action, buy, select, wait
+			this.modeJson = {"mode":"action"}; //.mode = action, buy, select, gain, wait
 			this.socket = socket;
 			var that = this;
 
@@ -111,8 +111,7 @@
 		constructor.prototype.endTurn = function(){
 			this.turn = false;
 			this.discard(this.hand);
-			this.discard(this.played);
-			this.played = [];
+			this.played = []; //discarded on backend
 			this.socket.send(JSON.stringify({"command": "endTurn"}));
 		};
 
@@ -191,14 +190,6 @@
 			this.balance = json.balance;
 		};
 
-		constructor.prototype.modeDefault = function(){
-			if (this.actions > 0){
-				this.modeJson = {"mode":"action"};
-			} else {
-				this.modeJson = {"mode":"buy"};
-			}
-		}
-
 		constructor.prototype.getHand = function(){
 			return this.hand;
 		};
@@ -246,7 +237,8 @@
 	
 	clientModule.controller("handController", function($scope){
 		$scope.disabled = function(card){
-			if (card.type === "Victory" || $scope.turn === false || $scope.modeJson.mode === "wait"){
+			if (card.type === "Victory" || $scope.turn === false || $scope.modeJson.mode === "wait"
+				|| $scope.modeJson.mode === "select" || $scope.modeJson.mode === "gain"){
 				return true;
 			}
 			if ($scope.modeJson.mode === "buy"){
@@ -270,8 +262,24 @@
 			});
 		};
 
-		$scope.disabled = function(){
+		$scope.disabled = function(card){
+			if ($scope.modeJson.mode === "gain"){
+				if ($scope.modeJson.equal_only){
+					return card.price !== $scope.modeJson.price;
+				} else {
+					return card.price > $scope.modeJson.price;
+				}
+			}
 			return (!$scope.turn || $scope.modeJson.mode === "wait");
+		};
+
+		$scope.clickCard = function(card){
+			if ($scope.modeJson.mode === "gain"){
+				//refactor into method (?)
+				$scope.c.socket.send(JSON.stringify({"command": "gain", "card": card.title}));
+			} else {
+				$scope.c.buyCard(card);
+			}
 		};
 
 		$scope.getButtonStyle = function(card){
@@ -318,12 +326,16 @@
 			}
 		};
 
+		$scope.selectOne = function(card){
+			$scope.selected.push(card);
+			$scope.doneSelection();
+		};
+
 		$scope.doneSelection = function(){
 			var cardsByTitle = $.map($scope.selected, function(val, index){
 				return val.title;
 			});
 			$scope.c.socket.send(JSON.stringify({"command": "unwait", "selection": cardsByTitle	, "card":$scope.modeJson.card}));
-			$scope.c.modeDefault();
 			$scope.selected = [];
 		};
 
