@@ -16,9 +16,14 @@
 
 	<div class="row" ng-controller="clientController">
 		<div id="leftContainer" class="col-md-3">
-			<div id="leftColumn" ng-controller="kingdomController">
+			<div id="leftColumn" ng-controller="supplyController">
 				<table class="table">
-					<tr ng-repeat="card in getKingdomArray() | orderBy:'price':true">
+					<tr ng-repeat="card in getSupplyArray(kingdom) | orderBy:'price':true">
+						<td><b>${{!card.price}}</b>  <button ng-disabled="disabled(card)" type="button" ng-class="getButtonStyle(card)" ng-click="clickCard(card)">{{!card.title}}</button> :: {{!card.count}}</td>
+					</tr>
+				</table>
+				<table class="table">
+					<tr ng-repeat="card in getSupplyArray(baseSupply) | orderBy:'price':true">
 						<td><b>${{!card.price}}</b>  <button ng-disabled="disabled(card)" type="button" ng-class="getButtonStyle(card)" ng-click="clickCard(card)">{{!card.title}}</button> :: {{!card.count}}</td>
 					</tr>
 				</table>

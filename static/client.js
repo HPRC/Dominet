@@ -4,16 +4,16 @@
 	clientModule.factory('socket', function(){
 		var socket = new WebSocket("ws://localhost:9999/ws");
 		return socket;
-
 	});
 
-	clientModule.factory('client', function(socket, $rootScope) {
+	clientModule.factory('client', function(socket) {
 		var constructor = function() {
 			this.id = null;
 			this.name = null;
 			this.turn = false;
 			this.hand = [];
 			this.kingdom = {};
+			this.baseSupply = {};
 			this.actions = 0;
 			this.buys = 0;
 			this.balance = 0;
@@ -74,7 +74,13 @@
 			for (var i=0; i< kingdomArray.length; i++) {
 				this.kingdom[kingdomArray[i].title] = kingdomArray[i];			
 			}
-			console.log(this.kingdom);
+		};
+
+		constructor.prototype.baseCards = function(json){
+			var baseArray = JSON.parse(json.data);
+			for (var i=0; i< baseArray.length; i++) {
+				this.baseSupply[baseArray[i].title] = baseArray[i];			
+			}
 		};
 
 		constructor.prototype.startTurn = function(json){
@@ -194,6 +200,10 @@
 		constructor.prototype.getKingdom = function(){
 			return this.kingdom;
 		};
+		
+		constructor.prototype.getBaseSupply = function(){
+			return this.baseSupply;
+		};
 
 		constructor.prototype.getSpendableMoney = function(){
 			return this.spendableMoney;
@@ -260,9 +270,9 @@
 
 	});
 
-	clientModule.controller("kingdomController", function($scope, socket, client){
-		$scope.getKingdomArray = function(){
-			return $.map($scope.kingdom, function(card, title){
+	clientModule.controller("supplyController", function($scope, socket, client){
+		$scope.getSupplyArray = function(supply){
+			return $.map(supply, function(card, title){
 				return card;
 			});
 		};

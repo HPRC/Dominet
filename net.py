@@ -41,6 +41,8 @@ class GameHandler(websocket.WebSocketHandler):
 	def open(self):
 		#init client
 		self.write_json(command="init", id=self.id, name=self.name)
+		if ():
+
 		if (len(self.unattachedClients) >= NUM_PLAYERS):
 			player1 = self.unattachedClients.pop(0)
 			player2 = self.unattachedClients.pop(0)
@@ -103,44 +105,44 @@ class DmGame(Game):
 	def __init__(self, players):
 		Game.__init__(self, players)
 		#kingdom = dictionary {card.title => [card, count]} i.e {"Copper": [card.Copper(self,None),10]}
-		self.base_supply = self.init_kingdom([card.Curse(self, None), card.Estate(self, None), 
+		self.base_supply = self.init_supply([card.Curse(self, None), card.Estate(self, None), 
 			card.Duchy(self, None), card.Province(self, None), card.Copper(self,None),
 			card.Silver(self, None), card.Gold(self, None)])
 
-		self.kingdom = self.init_kingdom([card.Estate(self, None), card.Copper(self, None), 
-			card.Silver(self,None), card.Gold(self, None), card.Village(self, None),
-			card.Woodcutter(self,None), card.Duchy(self, None), card.Militia(self, None), card.Province(self, None),
-			card.Cellar(self,None), card.Laboratory(self, None), card.Curse(self, None), card.Festival(self, None), 
+		self.kingdom = self.init_supply([card.Village(self, None),
+			card.Woodcutter(self,None), card.Militia(self, None),
+			card.Cellar(self,None), card.Laboratory(self, None), card.Festival(self, None), 
 			card.Council_Room(self,None), card.Remodel(self, None)])
 
 	#override
 	def start_game(self):
 		for i in self.players:
-			i.write_json(command="kingdomCards", data=self.kingdom_json())
+			i.write_json(command="kingdomCards", data=self.supply_json(self.kingdom))
+			i.write_json(command="baseCards", data=self.supply_json(self.base_supply))
 		Game.start_game(self)
 
-	def kingdom_json(self):
-		kingdom = []
-		for title, data in self.kingdom.items():
+	def supply_json(self, supply):
+		supply_list = []
+		for title, data in supply.items():
 			card = data[0]
 			count = data[1]
 			formatCard = card.to_json()
 			formatCard["count"] = count
-			kingdom.append(formatCard)
-		return json.dumps(kingdom)
+			supply_list.append(formatCard)
+		return json.dumps(supply_list)
 
 
-	def init_kingdom(self, cards):
-		kingdom = {}
+	def init_supply(self, cards):
+		supply = {}
 		for x in cards:
 			if (x.type == "Victory"):
 				if (len(self.players) ==2):
-					kingdom[x.title] = [x,8]
+					supply[x.title] = [x,8]
 				else:
-					kingdom[x.title] = [x,12]
+					supply[x.title] = [x,12]
 			else:
-				kingdom[x.title] = [x,10]
-		return kingdom
+				supply[x.title] = [x,10]
+		return supply
 
 def main():
 	app = web.Application([
