@@ -1,13 +1,13 @@
 (function() {
 	var clientModule = angular.module("clientApp", []);
 
-	clientModule.service('socket', function(){
+	clientModule.factory('socket', function(){
 		var socket = new WebSocket("ws://localhost:9999/ws");
 		return socket;
 
 	});
 
-	clientModule.controller("clientController", function($scope, socket){
+	clientModule.factory('client', function(socket, $rootScope) {
 		var constructor = function() {
 			this.id = null;
 			this.name = null;
@@ -21,47 +21,28 @@
 			this.spendableMoney = 0;
 			//mode overidden by turn
 			this.modeJson = {"mode":"action"}; //.mode = action, buy, select, gain, wait
-			this.socket = socket;
 			var that = this;
 
-			this.socket.onopen = function(event){
-				$("#msg").text("Waiting for other player...");
-			};
-
-			this.socket.onmessage = function(event){
+			//socket
+			this.onmessage = function(event){
 				var jsonres = JSON.parse(event.data);
 				var exec = that[jsonres.command];
 				if (exec != undefined){
 					exec.call(that,jsonres);
-					//TODO refactor
-					$scope.$apply(function(){
-						$scope.hand = c.getHand();
-						$scope.turn = c.getTurn();
-						$scope.actions = c.getActions();
-						$scope.buys = c.getBuys();
-						$scope.balance = c.getBalance();
-						$scope.kingdom = c.getKingdom();
-						$scope.spendableMoney = c.getSpendableMoney();
-						$scope.modeJson = c.getModeJson();
-					});
 				}
-			};
-
-			this.socket.close = function(event){
-				console.log("socket closed");
 			};
 
 			$("#sendChat").click(function(){
 				var msg = $("#inputChat").val();
 				msg = msg.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-				that.socket.send(JSON.stringify({"command": "chat", "msg": msg}))
+				socket.send(JSON.stringify({"command": "chat", "msg": msg}))
 			});
 
 			$("#inputChat").keypress(function(e){
 				if(e.which==13){
 					var msg = $("#inputChat").val();
 					msg = msg.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-					that.socket.send(JSON.stringify({"command": "chat", "msg": msg}))
+					socket.send(JSON.stringify({"command": "chat", "msg": msg}))
 					$("#inputChat").val("");
 				}
 			});
@@ -112,7 +93,7 @@
 			this.turn = false;
 			this.discard(this.hand);
 			this.played = []; //discarded on backend
-			this.socket.send(JSON.stringify({"command": "endTurn"}));
+			socket.send(JSON.stringify({"command": "endTurn"}));
 		};
 
 		constructor.prototype.discard = function(cards){
@@ -122,7 +103,7 @@
 			var cardsByTitle = $.map(cards, function(val, index){
 				return val.title;
 			});
-			this.socket.send(JSON.stringify({"command": "discard", "cards": cardsByTitle}));
+			socket.send(JSON.stringify({"command": "discard", "cards": cardsByTitle}));
 			//remove from hand
 			for (var j=0; j<cards.length; j++){
 				for (var i=0; i<this.hand.length; i++){
@@ -156,7 +137,7 @@
 
 		constructor.prototype.playCard = function(card){
 			if (this.actions > 0 || card.type.indexOf("Action") === -1){
-				this.socket.send(JSON.stringify({"command":"play", "card": card.title}));
+				socket.send(JSON.stringify({"command":"play", "card": card.title}));
 				this.played.push(card);
 				//remove from hand
 				for (var i=0; i<this.hand.length; i++){
@@ -176,7 +157,7 @@
 			if (this.balance >= card.price){
 				this.buys -= 1;
 				this.balance -= card.price;
-				this.socket.send(JSON.stringify({"command":"buyCard", "card": card.title}));
+				socket.send(JSON.stringify({"command":"buyCard", "card": card.title}));
 			}
 		};
 
@@ -221,21 +202,45 @@
 		constructor.prototype.getModeJson = function(){
 			return this.modeJson;
 		};
+		return new constructor();
+	});
 
-		var c = new constructor();
-		$scope.c = c;
-		$scope.hand = c.getHand();
-		$scope.turn = c.getTurn();
-		$scope.actions = c.getActions();
-		$scope.buys = c.getBuys();
-		$scope.balance = c.getBalance();
-		$scope.kingdom = c.getKingdom();
-		$scope.spendableMoney = c.getSpendableMoney();
-		$scope.modeJson = c.getModeJson();
+	clientModule.controller("clientController", function($scope, socket, client){
+		$scope.c = client;
+		$scope.hand = client.getHand();
+		$scope.turn = client.getTurn();
+		$scope.actions = client.getActions();
+		$scope.buys = client.getBuys();
+		$scope.balance = client.getBalance();
+		$scope.kingdom = client.getKingdom();
+		$scope.spendableMoney = client.getSpendableMoney();
+		$scope.modeJson = client.getModeJson();
+		socket.onopen = function(event){
+			$("#msg").text("Waiting for other player...");
+		};
 
+		socket.onmessage = function(event){
+
+			client.onmessage(event);
+
+			$scope.$apply(function(){
+				$scope.hand = client.getHand();
+				$scope.turn = client.getTurn();
+				$scope.actions = client.getActions();
+				$scope.buys = client.getBuys();
+				$scope.balance = client.getBalance();
+				$scope.kingdom = client.getKingdom();
+				$scope.spendableMoney = client.getSpendableMoney();
+				$scope.modeJson = client.getModeJson();
+			});
+		};
+
+		socket.close = function(event){
+			console.log("socket closed");
+		};
 	});
 	
-	clientModule.controller("handController", function($scope){
+	clientModule.controller("handController", function($scope, client){
 		$scope.disabled = function(card){
 			if (card.type === "Victory" || $scope.turn === false || $scope.modeJson.mode === "wait"
 				|| $scope.modeJson.mode === "select" || $scope.modeJson.mode === "gain"){
@@ -250,12 +255,12 @@
 		};
 
 		$scope.clickCard = function(card){
-			$scope.c.playCard(card);
+			client.playCard(card);
 		};
 
 	});
 
-	clientModule.controller("kingdomController", function($scope){
+	clientModule.controller("kingdomController", function($scope, socket, client){
 		$scope.getKingdomArray = function(){
 			return $.map($scope.kingdom, function(card, title){
 				return card;
@@ -276,9 +281,9 @@
 		$scope.clickCard = function(card){
 			if ($scope.modeJson.mode === "gain"){
 				//refactor into method (?)
-				$scope.c.socket.send(JSON.stringify({"command": "gain", "card": card.title}));
+				socket.send(JSON.stringify({"command": "gain", "card": card.title}));
 			} else {
-				$scope.c.buyCard(card);
+				client.buyCard(card);
 			}
 		};
 
@@ -298,7 +303,7 @@
 
 	});
 
-	clientModule.controller("selectController", function($scope){
+	clientModule.controller("selectController", function($scope, socket){
 		if ($scope.modeJson.count){
 			$scope.canBeDone = false;
 		} else {
@@ -335,7 +340,7 @@
 			var cardsByTitle = $.map($scope.selected, function(val, index){
 				return val.title;
 			});
-			$scope.c.socket.send(JSON.stringify({"command": "unwait", "selection": cardsByTitle	, "card":$scope.modeJson.card}));
+			socket.send(JSON.stringify({"command": "unwait", "selection": cardsByTitle	, "card":$scope.modeJson.card}));
 			$scope.selected = [];
 		};
 
