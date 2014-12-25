@@ -91,7 +91,6 @@
 		};
 
 		constructor.prototype.updateMode = function(json){
-			console.log(json);
 			this.modeJson = json;
 		};
 
@@ -168,7 +167,11 @@
 		};
 
 		constructor.prototype.updatePiles = function(json){
-			this.kingdom[json.card].count = json.count;
+			if (json.card in this.kingdom){
+				this.kingdom[json.card].count = json.count;
+			} else {
+				this.baseSupply[json.card].count = json.count;
+			}
 		};
 
 		constructor.prototype.updateResources = function(json){
@@ -223,6 +226,7 @@
 		$scope.buys = client.getBuys();
 		$scope.balance = client.getBalance();
 		$scope.kingdom = client.getKingdom();
+		$scope.baseSupply = client.getBaseSupply();
 		$scope.spendableMoney = client.getSpendableMoney();
 		$scope.modeJson = client.getModeJson();
 		socket.onopen = function(event){
@@ -230,7 +234,7 @@
 		};
 
 		socket.onmessage = function(event){
-
+			console.log(event);
 			client.onmessage(event);
 
 			$scope.$apply(function(){
@@ -240,6 +244,7 @@
 				$scope.buys = client.getBuys();
 				$scope.balance = client.getBalance();
 				$scope.kingdom = client.getKingdom();
+				$scope.baseSupply = client.getBaseSupply();
 				$scope.spendableMoney = client.getSpendableMoney();
 				$scope.modeJson = client.getModeJson();
 			});

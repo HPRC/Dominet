@@ -6,6 +6,31 @@ import random
 class DmClient(GameHandler):
 	hand_size = 5
 
+	#override
+	def open(self):
+		#resume on player reconnect
+		for each_game in self.games:
+			for p in each_game.players:
+				if (self.name == p.name):
+					p.resume_state(self)
+					self.game = p.game
+					#update game players
+					index = self.game.players.index(p)
+					self.game.players.pop(index)
+					self.game.players.insert(index, self)
+
+					self.update_hand()
+					self.write_json(command="kingdomCards", data=self.game.supply_json(self.game.kingdom))
+					self.write_json(command="baseCards", data=self.game.supply_json(self.game.base_supply))
+
+					if (each_game.get_turn_owner() == self):
+						self.write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
+						self.write_json(command="startTurn", actions=self.actions, 
+							buys=self.buys, balance=self.balance)
+					self.game.announce(self.name_string() + " has reconnected!")
+					return
+		GameHandler.open(self)
+
 	def base_deck(self):
 		deck = []
 		for i in range(0,7):
@@ -43,6 +68,21 @@ class DmClient(GameHandler):
 		self.VP = 0
 		self.draw(self.hand_size)
 		self.update_hand()
+
+	def resume_state(self, new_conn):
+		new_conn.trash_pile = self.trash_pile
+		new_conn.discard_pile = self.discard_pile
+		new_conn.deck = self.deck
+		new_conn.hand = self.hand
+		new_conn.played = self.played
+		new_conn.actions = self.actions
+		new_conn.buys = self.buys
+		new_conn.balance = self.balance
+		new_conn.VP = self.VP
+		for card in self.deck + self.discard_pile + self.trash_pile:
+			card.played_by = new_conn
+		for title, l in self.hand.items():
+			l[0].played_by = new_conn
 
 	def update_hand(self):
 		self.write_json(command="updateHand", hand=json.dumps(self.hand_array()))
@@ -92,11 +132,10 @@ class DmClient(GameHandler):
 		if (self.buys > 0):
 			self.game.announce("<b>" + self.name + "</b> buys " + card)
 			self.buys -= 1
-			newCard = self.game.kingdom[card][0]
+			newCard = self.game.supply[card][0]
 			newCard.played_by = self
 			self.discard_pile.append(newCard)
-			self.game.kingdom[card][1] -=1
-			self.write_json(command="updatePiles", card=card, count=self.game.kingdom[card][1])
+			self.game.remove_from_supply(card)
 
 	def select_cards(self, num_cards, card):
 		self.write_json(command="updateMode", mode="select", count=num_cards, card=card)
@@ -105,12 +144,8 @@ class DmClient(GameHandler):
 		self.write_json(command="updateMode", mode="wait")
 
 	def unwait(self, selection, card):
-		if (self.actions > 0):
-			default_mode = "action"
-		else:
-			default_mode = "buy"
-		self.game.get_turn_owner().write_json(command="updateMode", mode=default_mode)
-		tempCard = self.game.kingdom[card][0]
+		self.game.get_turn_owner().write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
+		tempCard = self.game.supply[card][0]
 		tempCard.played_by = self
 		tempCard.post_select(selection)
 
@@ -122,19 +157,14 @@ class DmClient(GameHandler):
 				self.hand.pop(x, None)
 
 	def gain(self, card):
-		if (self.actions > 0):
-			default_mode = "action"
-		else:
-			default_mode = "buy"
-		self.game.get_turn_owner().write_json(command="updateMode", mode=default_mode)
+		self.game.get_turn_owner().write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
 		self.game.announce(self.name_string() + " gains " + card)
-		newCard = self.game.kingdom[card][0]
+		newCard = self.game.supply[card][0]
 		newCard.played_by = self
-		self.game.kingdom[card][1] -=1
 		self.discard_pile.append(newCard)
+		self.game.remove_from_supply(card)
 
-
-	def gain_from_kingdom(self, price_limit, equal_only):
+	def gain_from_supply(self, price_limit, equal_only):
 		self.write_json(command="updateMode", mode="gain", price=price_limit, equal_only=equal_only)
 
 	def update_resources(self):

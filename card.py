@@ -210,8 +210,8 @@ class Remodel(Card):
 	def post_select(self, selection):
 		self.played_by.discard(selection, self.played_by.trash_pile)
 		self.game.announce(self.played_by.name_string() + " trashes " + selection[0])
-		card_trashed = self.game.kingdom[selection[0]][0]
-		self.played_by.gain_from_kingdom(card_trashed.price + 2, False)
+		card_trashed = self.game.supply[selection[0]][0]
+		self.played_by.gain_from_supply(card_trashed.price + 2, False)
 		self.played_by.update_hand()
 
 class Festival(Card):

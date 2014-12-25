@@ -25,6 +25,7 @@ class mainHandler(web.RequestHandler):
 
 class GameHandler(websocket.WebSocketHandler):
 	unattachedClients = []
+	games = []
 
 	def initialize(self):
 		self.name = self.get_cookie("DMTusername")
@@ -41,14 +42,13 @@ class GameHandler(websocket.WebSocketHandler):
 	def open(self):
 		#init client
 		self.write_json(command="init", id=self.id, name=self.name)
-		if ():
-
 		if (len(self.unattachedClients) >= NUM_PLAYERS):
 			player1 = self.unattachedClients.pop(0)
 			player2 = self.unattachedClients.pop(0)
 			g = DmGame([player1, player2])
 			for i in g.players:
 				i.game = g
+			self.games.append(g)
 			g.start_game()
 
 	def on_message(self,data):
@@ -114,6 +114,9 @@ class DmGame(Game):
 			card.Cellar(self,None), card.Laboratory(self, None), card.Festival(self, None), 
 			card.Council_Room(self,None), card.Remodel(self, None)])
 
+		self.supply = self.base_supply.copy()
+		self.supply.update(self.kingdom)
+
 	#override
 	def start_game(self):
 		for i in self.players:
@@ -131,6 +134,14 @@ class DmGame(Game):
 			supply_list.append(formatCard)
 		return json.dumps(supply_list)
 
+	def remove_from_supply(self, card):
+		print(self.supply[card])
+		if (card in self.kingdom):
+			self.kingdom[card][1] -=1
+		else:
+			self.base_supply[card][1] -=1
+		for i in self.players:
+			i.write_json(command="updatePiles", card=card, count=self.supply[card][1])
 
 	def init_supply(self, cards):
 		supply = {}
