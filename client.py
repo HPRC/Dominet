@@ -28,8 +28,16 @@ class DmClient(GameHandler):
 						self.write_json(command="startTurn", actions=self.actions, 
 							buys=self.buys, balance=self.balance)
 					self.game.announce(self.name_string() + " has reconnected!")
+					for i in self.game.players:
+						i.write_json(command="updateMode", mode="action" if i.actions > 0 else "buy")
 					return
 		GameHandler.open(self)
+	
+	#override
+	def on_close(self):
+		for i in self.game.players:
+			if i != self:
+				i.wait(self.name + " has disconnected!")
 
 	def base_deck(self):
 		deck = []
@@ -116,8 +124,8 @@ class DmClient(GameHandler):
 			self.end_turn()
 		elif (cmd == "buyCard"):
 			self.buy_card(data["card"])
-		elif (cmd == "unwait"):
-			self.unwait(data["selection"], data["card"], data["act_on"]);
+		elif (cmd == "post_selection"):
+			self.post_selection(data["selection"], data["card"], data["act_on"]);
 		elif (cmd == "gain"):
 			self.gain(data["card"])
 
@@ -147,7 +155,7 @@ class DmClient(GameHandler):
 	def wait(self, msg):
 		self.write_json(command="updateMode", mode="wait", msg=msg)
 
-	def unwait(self, selection, card, act_on):
+	def post_selection(self, selection, card, act_on):
 		for i in self.game.players:
 			i.write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
 		tempCard = self.game.supply[card][0]

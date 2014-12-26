@@ -4,9 +4,17 @@
 	width:95%;
 }
 
+.popover {
+	width:100%;
+}
 
 #leftColumn {
 	position:fixed;
+	width:33%;
+}
+
+#rightColumn {
+	margin-left:34%;
 }
 
 #scrollChat {

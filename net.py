@@ -48,8 +48,8 @@ class GameHandler(websocket.WebSocketHandler):
 			g = DmGame([player1, player2])
 			for i in g.players:
 				i.game = g
-			self.games.append(g)
 			g.start_game()
+			self.games.append(g)
 
 	def on_message(self,data):
 		jsondata = json.loads(data)
@@ -86,7 +86,7 @@ class Game():
 		self.announce("Starting game with " + str(self.players[0].name) + " and " + str(self.players[1].name))
 		for i in self.players:
 			i.setup()
-		self.announce(str(self.players[self.turn].name) + " 's turn !")
+		self.announce(self.players[self.turn].name_string() + " 's turn !")
 		self.players[self.turn].take_turn()
 
 	def announce(self, msg):

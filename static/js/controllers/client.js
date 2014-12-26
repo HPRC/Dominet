@@ -49,7 +49,7 @@
 		};
 
 		constructor.prototype.updateHand = function(json){
-			this.hand = 	json.hand;
+			this.hand = json.hand;
 			console.log(this.hand);
 			this.updateSpendable();
 		};
@@ -230,7 +230,6 @@
 
 		socket.onmessage = function(event){
 			client.onmessage(event);
-
 			$scope.$apply(function(){
 				$scope.hand = client.getHand();
 				$scope.turn = client.getTurn();
@@ -247,6 +246,7 @@
 		socket.close = function(event){
 			console.log("socket closed");
 		};
+
 	});
 	
 	clientModule.controller("handController", function($scope, client){
@@ -270,11 +270,21 @@
 	});
 
 	clientModule.controller("supplyController", function($scope, socket, client){
-		$scope.getSupplyArray = function(supply){
+		var getSupplyArray = function(supply){
 			return $.map(supply, function(card, title){
 				return card;
 			});
 		};
+
+		$scope.kingdomSupplyArray = getSupplyArray($scope.kingdom);
+		$scope.baseSupplyArray = getSupplyArray($scope.baseSupply);
+
+	    $scope.$watch('kingdom', function(newValue, oldValue) {
+			$scope.kingdomSupplyArray = getSupplyArray($scope.kingdom);
+    	}, true);
+	    $scope.$watch('baseSupply', function(newValue, oldValue) {
+			$scope.baseSupplyArray = getSupplyArray($scope.baseSupply);
+    	}, true);
 
 		$scope.disabled = function(card){
 			if ($scope.modeJson.mode === "gain"){
@@ -313,11 +323,14 @@
 	});
 
 	clientModule.controller("selectController", function($scope, socket){
-		if ($scope.modeJson.count){
-			$scope.canBeDone = false;
-		} else {
-			$scope.canBeDone = true;
-		}
+	    $scope.$watch('modeJson', function(newValue, oldValue) {
+			if ($scope.modeJson.count){
+				$scope.canBeDone = false;
+			} else {
+				$scope.canBeDone = true;
+			}
+    	});
+
 		$scope.selected = [];
 		$scope.check = function(option, isChecked){
 			console.log($scope.modeJson);
@@ -346,7 +359,7 @@
 		};
 
 		$scope.doneSelection = function(){
-			socket.send(JSON.stringify({"command": "unwait", "selection": $scope.selected, "card":$scope.modeJson.card, "act_on":$scope.modeJson.act_on}));
+			socket.send(JSON.stringify({"command": "post_selection", "selection": $scope.selected, "card":$scope.modeJson.card, "act_on":$scope.modeJson.act_on}));
 			$scope.selected = [];
 		};
 
