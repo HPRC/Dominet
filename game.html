@@ -33,7 +33,7 @@
 			<div class="col-md-6">
 				<table class="table">
 					<tr ng-repeat="card in baseSupplyArray | orderBy:'price':true">
-						<td><b>${{!card.price}}</b>  <button ng-disabled="disabled(card)" type="button" ng-class="getButtonStyle(card)" ng-click="clickCard(card)">{{!card.title}} <span class="badge">{{!card.count}}</span></button></td>
+						<td><supply-card></supply-card></td>
 					</tr>
 				</table>
 			</div>

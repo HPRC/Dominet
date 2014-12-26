@@ -53,6 +53,7 @@ class Copper(Money):
 		self.title = "Copper"
 		self.value = 1
 		self.price = 0
+		self.description = "+$1"
 
 class Silver(Money):
 	def __init__(self, game, played_by):
@@ -60,6 +61,7 @@ class Silver(Money):
 		self.title = "Silver"
 		self.value = 2
 		self.price = 3
+		self.description = "+$2"
 
 class Gold(Money):
 	def __init__(self, game, played_by):
@@ -67,6 +69,7 @@ class Gold(Money):
 		self.title = "Gold"
 		self.value = 3
 		self.price = 6
+		self.description = "+$3"
 
 class Curse(Card):
 	def __init__(self, game, played_by):
@@ -74,6 +77,7 @@ class Curse(Card):
 		self.title = "Curse"
 		self.description = "-1 VP"
 		self.price = 0
+		self.vp = -1
 		self.type = "Curse"
 
 	def play(self):
@@ -85,6 +89,7 @@ class Estate(Card):
 		self.title = "Estate"
 		self.description = "+1 VP"
 		self.price = 2
+		self.vp = 1
 		self.type = "Victory"
 
 	def play(self):
@@ -96,6 +101,7 @@ class Duchy(Card):
 		self.title = "Duchy"
 		self.description = "+3 VP"
 		self.price = 5
+		self.vp = 3
 		self.type = "Victory"
 
 	def play(self):
@@ -107,6 +113,7 @@ class Province(Card):
 		self.title = "Province"
 		self.description = "+6 VP"
 		self.price = 8
+		self.vp = 6
 		self.type = "Victory"
 
 	def play(self):
@@ -290,7 +297,7 @@ class Council_Room(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
 		self.title = "Council Room"
-		self.description = "+4 cards, +1 buy. Each other player draws a card"
+		self.description = "+4 cards,	 +1 buy. Each other player draws a card"
 		self.price = 5
 		self.type = "Action"
 

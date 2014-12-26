@@ -130,6 +130,7 @@ class DmClient(GameHandler):
 			self.gain(data["card"])
 
 	def end_turn(self):
+		self.game.detect_end()
 		self.actions = 0
 		self.buys = 0
 		self.balance = 0
@@ -195,6 +196,16 @@ class DmClient(GameHandler):
 			for i in range(0, count):
 				h.append(card.to_json())
 		return h
+
+	def total_vp(self):
+		total = 0
+		for card in self.deck + self.discard:
+			if ("Victory" in card.type):
+				total += card.vp
+		for title, data in self.hand.items():
+			if ("Victory" in data[0].type):
+				total += data[0].vp
+		return total
 
 	def card_list_to_titles(self, lst):
 		return list(map(lambda x: x['title'], lst))

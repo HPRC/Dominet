@@ -104,6 +104,7 @@ class Game():
 class DmGame(Game):
 	def __init__(self, players):
 		Game.__init__(self, players)
+		self.empty_piles = 0
 		#kingdom = dictionary {card.title => [card, count]} i.e {"Copper": [card.Copper(self,None),10]}
 		self.base_supply = self.init_supply([card.Curse(self, None), card.Estate(self, None), 
 			card.Duchy(self, None), card.Province(self, None), card.Copper(self,None),
@@ -116,6 +117,7 @@ class DmGame(Game):
 
 		self.supply = self.base_supply.copy()
 		self.supply.update(self.kingdom)
+
 
 	#override
 	def start_game(self):
@@ -142,6 +144,9 @@ class DmGame(Game):
 			self.base_supply[card][1] -=1
 		for i in self.players:
 			i.write_json(command="updatePiles", card=card, count=self.supply[card][1])
+		if (self.supply[card][1] == 0):
+			self.empty_piles += 1
+			self.detect_end()
 
 	def init_supply(self, cards):
 		supply = {}
@@ -159,6 +164,13 @@ class DmGame(Game):
 		for i in self.players:
 			if (i.name == name):
 				return i
+
+	def detect_end(self):
+		if (self.supply["Province"][1] == 0 or self.empty_piles >=3):
+			self.announce("GAME OVER")
+			list(map(lambda x: (x, x.total_vp()), self.players))
+		else:
+			return False
 
 def main():
 	app = web.Application([

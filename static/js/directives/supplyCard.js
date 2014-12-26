@@ -3,7 +3,7 @@ clientModule.directive('supplyCard', function(){
 		restrict: 'EA',
 		templateUrl: '/static/js/directives/supplyCard.html',
 		link: function(scope, elm, attrs) {
-			console.log(scope.card);
+			// console.log(scope.card);
 		}
 	};
 });
