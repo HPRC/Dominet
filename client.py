@@ -34,17 +34,15 @@ class DmClient(GameHandler):
 	def base_deck(self):
 		deck = []
 		for i in range(0,7):
-			deck.append(card.Copper(game=self.game, played_by=self))
+			deck.append(card.Militia(game=self.game, played_by=self))
 		for i in range(0,3):
-			deck.append(card.Remodel(game=self.game, played_by=self))
+			deck.append(card.Spy(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
 	def draw(self, numCards):
 		if (len(self.deck)<5):
-			random.shuffle(self.discard_pile)
-			self.deck = self.discard_pile + self.deck
-			self.discard_pile = []
+			self.shuffle_discard_to_deck()
 		for i in range(0, numCards):
 			if (len(self.deck) >= 1):
 				card = self.deck.pop()
@@ -52,6 +50,11 @@ class DmClient(GameHandler):
 					self.hand[card.title] = [card, self.hand[card.title][1] + 1]
 				else:
 					self.hand[card.title] = [card, 1]
+
+	def shuffle_discard_to_deck(self):
+		random.shuffle(self.discard_pile)
+		self.deck = self.discard_pile + self.deck
+		self.discard_pile = []
 
 	#override
 	def setup(self):
@@ -85,7 +88,7 @@ class DmClient(GameHandler):
 			l[0].played_by = new_conn
 
 	def update_hand(self):
-		self.write_json(command="updateHand", hand=json.dumps(self.hand_array()))
+		self.write_json(command="updateHand", hand=self.hand_array())
 
 	#override
 	def take_turn(self):
@@ -114,7 +117,7 @@ class DmClient(GameHandler):
 		elif (cmd == "buyCard"):
 			self.buy_card(data["card"])
 		elif (cmd == "unwait"):
-			self.unwait(data["selection"], data["card"]);
+			self.unwait(data["selection"], data["card"], data["act_on"]);
 		elif (cmd == "gain"):
 			self.gain(data["card"])
 
@@ -137,17 +140,23 @@ class DmClient(GameHandler):
 			self.discard_pile.append(newCard)
 			self.game.remove_from_supply(card)
 
-	def select_cards(self, num_cards, card):
-		self.write_json(command="updateMode", mode="select", count=num_cards, card=card)
+	def select(self, num_needed, card, select_from, msg, act_on=None):
+		self.write_json(command="updateMode", mode="select", count=num_needed, card=card, 
+			select_from=select_from, msg=msg, act_on=act_on)
 
 	def wait(self, msg):
-		self.write_json(command="updateMode", mode="wait")
+		self.write_json(command="updateMode", mode="wait", msg=msg)
 
-	def unwait(self, selection, card):
-		self.game.get_turn_owner().write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
+	def unwait(self, selection, card, act_on):
+		for i in self.game.players:
+			i.write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
 		tempCard = self.game.supply[card][0]
 		tempCard.played_by = self
-		tempCard.post_select(selection)
+		#default act_on is the player who just selected
+		if (act_on == None):
+			tempCard.post_select(selection)
+		else:
+			tempCard.post_select(selection, act_on)
 
 	def discard(self, cards, pile):
 		for x in cards:
@@ -178,6 +187,9 @@ class DmClient(GameHandler):
 			for i in range(0, count):
 				h.append(card.to_json())
 		return h
+
+	def card_list_to_titles(self, lst):
+		return list(map(lambda x: x['title'], lst))
 
 	def name_string(self):
 		return "<b>" + self.name + "</b>"

@@ -112,7 +112,7 @@ class DmGame(Game):
 		self.kingdom = self.init_supply([card.Village(self, None),
 			card.Woodcutter(self,None), card.Militia(self, None),
 			card.Cellar(self,None), card.Laboratory(self, None), card.Festival(self, None), 
-			card.Council_Room(self,None), card.Remodel(self, None)])
+			card.Council_Room(self,None), card.Remodel(self, None), card.Moneylender(self, None), card.Spy(self, None)])
 
 		self.supply = self.base_supply.copy()
 		self.supply.update(self.kingdom)
@@ -154,6 +154,11 @@ class DmGame(Game):
 			else:
 				supply[x.title] = [x,10]
 		return supply
+
+	def get_player_from_name(self, name):
+		for i in self.players:
+			if (i.name == name):
+				return i
 
 def main():
 	app = web.Application([

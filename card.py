@@ -21,7 +21,7 @@ class Card():
 			"price": self.price
 		}
 
-	#called after a selection, if played by opponent on me, I use a temp kingdom card with me as owner to resolve effects
+	#called after a selection, if played by opponent on me, I use a temp supply card with me as owner to resolve effects
 	def post_select(self, selection):
 		pass
 
@@ -123,7 +123,8 @@ class Cellar(Card):
 	def play(self):
 		Card.play(self)
 		self.played_by.actions += 1
-		self.played_by.select_cards(None, self.title)
+		self.played_by.select(None, self.title, 
+			self.played_by.card_list_to_titles(self.played_by.hand_array()), "select cards to discard")
 
 	def post_select(self, selection):
 		self.played_by.discard(selection, self.played_by.discard_pile)
@@ -159,6 +160,44 @@ class Woodcutter(Card):
 		self.played_by.buys += 1
 		self.played_by.update_resources()
 
+class Spy(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Spy"
+		self.description = "+1 card, +1 action. Each player (including you) reveals the top card of his deck and either\
+		discards it or puts it back, your choice"
+		self.price = 4
+		self.type = "Action|Attack"
+
+	def play(self):
+		Card.play(self)
+		self.played_by.actions += 1
+		self.played_by.draw(1)
+		self.played_by.update_resources()
+		self.fire(self.played_by)
+
+	def fire(self, player):
+		if (len(player.deck) < 1):
+			player.shuffle_discard_to_deck()
+		revealed_card = player.deck[-1]
+		self.played_by.select(1, self.title, ["discard", "keep"],  
+			player.name + " revealed " + revealed_card.title, player.name)
+
+	def post_select(self, selection, act_on):
+		receiver = self.game.get_player_from_name(act_on)
+		if (selection[0] == "discard"):
+			card = receiver.deck.pop()
+			receiver.discard_pile.append(card)
+			self.game.announce(self.played_by.name_string() + " discards " + card.title + " from " + 
+				receiver.name_string() + "'s deck")
+		else:
+			card = receiver.deck[-1]
+			self.game.announce(self.played_by.name_string() + " leaves " + card.title + " on " + 
+				receiver.name_string() + "'s deck")
+		next_player_index = (self.game.players.index(receiver) + 1) % len(self.game.players)
+		if (self.game.players[next_player_index] != self.played_by):
+			self.fire(self.game.players[next_player_index])
+
 class Militia(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
@@ -173,7 +212,8 @@ class Militia(Card):
 		self.played_by.update_resources()
 		for i in self.game.players:
 			if ( i != self.played_by):
-				i.select_cards(len(i.hand_array())-3, self.title)
+				i.select(len(i.hand_array())-3, self.title, i.card_list_to_titles(i.hand_array()),
+				 "select 2 cards to discard")
 		self.played_by.wait("Waiting for other players to discard")
 
 	def post_select(self, selection):
@@ -194,6 +234,22 @@ class Smithy(Card):
 		self.played_by.update_hand()
 		self.played_by.update_resources()
 
+class Moneylender(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Moneylender"
+		self.description = "trash a copper from your hand, if you do +$3"
+		self.price = 4
+		self.type = "Action"
+
+	def play(self):
+		Card.play(self)
+		if (self.played_by.hand["Copper"][1] >= 1):
+			self.played_by.discard(["Copper"], self.played_by.trash_pile)
+			self.played_by.balance += 3
+		self.played_by.update_hand()
+		self.played_by.update_resources()
+
 class Remodel(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
@@ -204,7 +260,8 @@ class Remodel(Card):
 
 	def play(self):
 		Card.play(self)
-		self.played_by.select_cards(1, self.title)
+		self.played_by.select(1, self.title, self.played_by.hand_array(),
+		 "select card to remodel")
 		self.played_by.update_resources()
 
 	def post_select(self, selection):

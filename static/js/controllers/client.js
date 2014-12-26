@@ -1,10 +1,4 @@
 (function() {
-	var clientModule = angular.module("clientApp", []);
-
-	clientModule.factory('socket', function(){
-		var socket = new WebSocket("ws://localhost:9999/ws");
-		return socket;
-	});
 
 	clientModule.factory('client', function(socket) {
 		var constructor = function() {
@@ -55,7 +49,8 @@
 		};
 
 		constructor.prototype.updateHand = function(json){
-			this.hand = JSON.parse(json.hand);
+			this.hand = 	json.hand;
+			console.log(this.hand);
 			this.updateSpendable();
 		};
 
@@ -234,7 +229,6 @@
 		};
 
 		socket.onmessage = function(event){
-			console.log(event);
 			client.onmessage(event);
 
 			$scope.$apply(function(){
@@ -325,7 +319,7 @@
 			$scope.canBeDone = true;
 		}
 		$scope.selected = [];
-		$scope.check = function(card, isChecked){
+		$scope.check = function(option, isChecked){
 			console.log($scope.modeJson);
 			if ($scope.modeJson.count != undefined){
 				var checkedCount = $("input:checkbox:checked").length;
@@ -339,23 +333,20 @@
 			}
 
 			if (isChecked){
-				$scope.selected.push(card);
+				$scope.selected.push(option);
 			} else {
-				var i = $scope.selected.indexOf(card);
+				var i = $scope.selected.indexOf(option);
 				$scope.selected.splice(i,1);
 			}
 		};
 
-		$scope.selectOne = function(card){
-			$scope.selected.push(card);
+		$scope.selectOne = function(option){
+			$scope.selected.push(option);
 			$scope.doneSelection();
 		};
 
 		$scope.doneSelection = function(){
-			var cardsByTitle = $.map($scope.selected, function(val, index){
-				return val.title;
-			});
-			socket.send(JSON.stringify({"command": "unwait", "selection": cardsByTitle	, "card":$scope.modeJson.card}));
+			socket.send(JSON.stringify({"command": "unwait", "selection": $scope.selected, "card":$scope.modeJson.card, "act_on":$scope.modeJson.act_on}));
 			$scope.selected = [];
 		};
 

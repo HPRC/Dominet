@@ -3,7 +3,11 @@
 	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 	<script type="text/javascript" src="/static/angular.min.js"></script>
 	<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
-	<script type="text/javascript" src="/static/client.js"></script>
+
+	<script type="text/javascript" src="/static/js/clientModule.js"></script>
+	<script type="text/javascript" src="/static/js/services/clientSocket.js"></script>
+	<script type="text/javascript" src="/static/js/controllers/client.js"></script>
+
 	<link rel="stylesheet" href="/static/style.css" />	
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
 
@@ -16,22 +20,20 @@
 	</div>
 	<div class="row" ng-controller="clientController">
 		<div id="leftContainer" class="col-md-4">
-			<div id="leftColumn" ng-controller="supplyController">
-				<div class="row">
-					<div class="col-md-6">
-						<table class="table">
-							<tr ng-repeat="card in getSupplyArray(kingdom) | orderBy:'price':true">
-								<td><b>${{!card.price}}</b>  <button ng-disabled="disabled(card)" type="button" ng-class="getButtonStyle(card)" ng-click="clickCard(card)">{{!card.title}}</button> :: {{!card.count}}</td>
-							</tr>
-						</table>
-					</div>
-					<div class="col-md-6">
-						<table class="table">
-							<tr ng-repeat="card in getSupplyArray(baseSupply) | orderBy:'price':true">
-								<td><b>${{!card.price}}</b>  <button ng-disabled="disabled(card)" type="button" ng-class="getButtonStyle(card)" ng-click="clickCard(card)">{{!card.title}}</button> :: {{!card.count}}</td>
-							</tr>
-						</table>
-					</div>
+			<div id="leftColumn" ng-controller="supplyController" class="row">
+				<div class="col-md-6">
+					<table class="table">
+						<tr ng-repeat="card in getSupplyArray(kingdom) | orderBy:'price':true">
+							<td><b>${{!card.price}}</b>  <button ng-disabled="disabled(card)" type="button" ng-class="getButtonStyle(card)" ng-click="clickCard(card)">{{!card.title}}</button> :: {{!card.count}}</td>
+						</tr>
+					</table>
+				</div>
+				<div class="col-md-6">
+					<table class="table">
+						<tr ng-repeat="card in getSupplyArray(baseSupply) | orderBy:'price':true">
+							<td><b>${{!card.price}}</b>  <button ng-disabled="disabled(card)" type="button" ng-class="getButtonStyle(card)" ng-click="clickCard(card)">{{!card.title}}</button> :: {{!card.count}}</td>
+						</tr>
+					</table>
 				</div>
 			</div>
 		</div>
@@ -44,18 +46,18 @@
 				<button id="spendMoney" ng-click="c.spendAllMoney()" ng-show="modeJson.mode === 'action'|| modeJson.mode === 'buy'">+${{!spendableMoney}}</button>
 				<button ng-click="c.endTurn()" ng-show="modeJson.mode === 'action' || modeJson.mode === 'buy'">End Turn</button>
 			</div>
-			<div id="wait" ng-show="modeJson.mode === 'wait'"><h5>Waiting for other player</h5></div>
+			<div id="wait" ng-show="modeJson.mode === 'wait'"><h4>{{!modeJson.msg}}</h4></div>
 			<div id="select" ng-show="modeJson.mode ==='select'" ng-controller="selectController">
 				<div ng-if="modeJson.count > 1 || modeJson.count === null">
-					<h5>Select Cards</h5>
-					<label class="checkbox-inline" ng-repeat="card in hand">
-						<input type="checkbox" ng-init="checked=false" ng-click="checked=!checked; check(card,checked)">{{!card.title}}
+					<h4>{{!modeJson.msg}}</h4>
+					<label class="checkbox-inline" ng-repeat="option in modeJson.select_from track by $index">
+						<input type="checkbox" ng-init="checked=false" ng-click="checked=!checked; check(option,checked)">{{!option}}
 					</label>
 					<button ng-disabled="!canBeDone" ng-click="doneSelection()">Done</button>
 				</div>
 				<div ng-if="modeJson.count === 1">
-					<h5>Select Card</h5>
-					<a href ng-click="selectOne(card)" ng-repeat="card in hand">  {{!card.title}}  </a>
+					<h5>{{!modeJson.msg}}</h5>
+					<a href ng-click="selectOne(option)" ng-repeat="option in modeJson.select_from track by $index">  {{!option}}  </a>
 				</div>
 			</div>
 			<div id="hand">
