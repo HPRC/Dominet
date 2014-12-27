@@ -297,7 +297,7 @@ class Council_Room(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
 		self.title = "Council Room"
-		self.description = "+4 cards,	 +1 buy. Each other player draws a card"
+		self.description = "+4 cards, +1 buy. Each other player draws a card"
 		self.price = 5
 		self.type = "Action"
 

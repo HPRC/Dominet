@@ -28,11 +28,10 @@ class GameHandler(websocket.WebSocketHandler):
 	games = []
 
 	def initialize(self):
-		self.name = self.get_cookie("DMTusername")
-		self.id = self.application.unassigned_id
+		print("\033[94m 1ELP!\033[0m")
+		self.client = c.DmClient(self.get_cookie("DMTusername"), self.application.unassigned_id, self)
 		self.application.unassigned_id += 1
-		self.unattachedClients.append(self)
-		self.game = None
+		self.unattachedClients.append(self.client)
 
 	def write_json(self, **kwargs):
 		if not "command" in kwargs:
@@ -41,7 +40,7 @@ class GameHandler(websocket.WebSocketHandler):
 
 	def open(self):
 		#init client
-		self.write_json(command="init", id=self.id, name=self.name)
+		self.write_json(command="init", id=self.client.id, name=self.client.name)
 		if (len(self.unattachedClients) >= NUM_PLAYERS):
 			player1 = self.unattachedClients.pop(0)
 			player2 = self.unattachedClients.pop(0)
@@ -53,30 +52,52 @@ class GameHandler(websocket.WebSocketHandler):
 
 	def on_message(self,data):
 		jsondata = json.loads(data)
-		self.exec_commands(jsondata)
-
-	#called before players take their turns
-	def setup(self):
-		pass
-
-	def take_turn(self):
-		self.write_json(command="startTurn")
-
-	def exec_commands(self, data):
-		cmd = data["command"]
-
-		if self.game == None:
-			return
-		if (cmd == "chat"):
-			self.game.chat(data["msg"], self.name)
+		self.client.exec_commands(jsondata)
 
 	def on_close(self):
 		print("\033[94m Socket Closed HELP!\033[0m")
 
+class DmHandler(GameHandler):
+
+	#override
+	def open(self):
+		#resume on player reconnect
+		for each_game in self.games:
+			for p in each_game.players:
+				if (self.client.name == p.name):
+					p.resume_state(self)
+					self.client.game = p.game
+					#update game players
+					index = self.client.game.players.index(p)
+					self.client.game.players.pop(index)
+					self.client.game.players.insert(index, self.client)
+
+					self.client.update_hand()
+					self.write_json(command="kingdomCards", data=self.client.game.supply_json(self.client.game.kingdom))
+					self.write_json(command="baseCards", data=self.client.game.supply_json(self.client.game.base_supply))
+
+					if (each_game.get_turn_owner() == self):
+						self.write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
+						self.write_json(command="startTurn", actions=self.actions, 
+							buys=self.buys, balance=self.balance)
+					self.client.game.announce(self.name_string() + " has reconnected!")
+					for i in self.client.game.players:
+						i.write_json(command="updateMode", mode="action" if i.actions > 0 else "buy")
+					return
+		GameHandler.open(self)
+	
+	#override
+	def on_close(self):
+		for i in self.client.game.players:
+			if i != self.client:
+				i.wait(self.client.name + " has disconnected!")
+
 class Game():
 	def __init__(self, players):
 		self.players = players
-		self.turn = 0
+		self.first = 0
+		self.turn = self.first
+		self.turn_count = 0
 
 	def chat(self, msg, speaker):
 		for i in self.players:
@@ -94,7 +115,8 @@ class Game():
 			i.write_json(command="announce",msg=msg)
 
 	def change_turn(self):
-		self.turn = (self.turn + 1) % len(self.players)
+		self.turn_count += 1
+		self.turn = self.turn_count % len(self.players)
 		self.announce("<b>" + str(self.players[self.turn].name) + " 's turn !</b>")
 		self.players[self.turn].take_turn()
 
@@ -137,7 +159,6 @@ class DmGame(Game):
 		return json.dumps(supply_list)
 
 	def remove_from_supply(self, card):
-		print(self.supply[card])
 		if (card in self.kingdom):
 			self.kingdom[card][1] -=1
 		else:
@@ -168,14 +189,26 @@ class DmGame(Game):
 	def detect_end(self):
 		if (self.supply["Province"][1] == 0 or self.empty_piles >=3):
 			self.announce("GAME OVER")
-			list(map(lambda x: (x, x.total_vp()), self.players))
+			player_vp_list = (list(map(lambda x: (x, x.total_vp()), self.players)))
+			winners = [max(player_vp_list, key=lambda x: x[1])]
+			player_vp_list.remove(winners[0])
+			while max(player_vp_list, key=lambda x: x[1])[1] == winners[0][1]:
+				tie = max(player_vp_list, key=lambda x: x[1])
+				winners.append(tie)
+				player_vp_list.remove(tie)
+			if (len(winners) == 1):
+				self.announce(winners[0][0].name_string() + " has claimed victory!")
+				return True
+			else:
+				#resolve tiebreaker TODO
+				return True
 		else:
 			return False
 
 def main():
 	app = web.Application([
 		(r'/', mainHandler),
-		(r'/ws', c.DmClient)
+		(r'/ws', DmHandler)
 	    ],
 	    static_path=os.path.join(os.path.dirname(__file__), "static"),
 	    debug=True

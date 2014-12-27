@@ -1,50 +1,41 @@
-from net import GameHandler
 import json
 import card
 import random
 
-class DmClient(GameHandler):
+class Client():
 	hand_size = 5
+	def __init__(self, name, c_id, handler):
+		self.name = name
+		self.id = c_id
+		self.handler = handler
 
-	#override
-	def open(self):
-		#resume on player reconnect
-		for each_game in self.games:
-			for p in each_game.players:
-				if (self.name == p.name):
-					p.resume_state(self)
-					self.game = p.game
-					#update game players
-					index = self.game.players.index(p)
-					self.game.players.pop(index)
-					self.game.players.insert(index, self)
+	#called before players take their turns
+	def setup(self):
+		pass
 
-					self.update_hand()
-					self.write_json(command="kingdomCards", data=self.game.supply_json(self.game.kingdom))
-					self.write_json(command="baseCards", data=self.game.supply_json(self.game.base_supply))
+	def write_json(self, **kwargs):
+		self.handler.write_json(**kwargs)
 
-					if (each_game.get_turn_owner() == self):
-						self.write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
-						self.write_json(command="startTurn", actions=self.actions, 
-							buys=self.buys, balance=self.balance)
-					self.game.announce(self.name_string() + " has reconnected!")
-					for i in self.game.players:
-						i.write_json(command="updateMode", mode="action" if i.actions > 0 else "buy")
-					return
-		GameHandler.open(self)
-	
-	#override
-	def on_close(self):
-		for i in self.game.players:
-			if i != self:
-				i.wait(self.name + " has disconnected!")
+	def take_turn(self):
+		self.write_json(command="startTurn")
+
+	def exec_commands(self, data):
+		cmd = data["command"]
+
+		if self.game == None:
+			return
+		if (cmd == "chat"):
+			self.game.chat(data["msg"], self.name)
+
+
+class DmClient(Client):
 
 	def base_deck(self):
 		deck = []
 		for i in range(0,7):
-			deck.append(card.Militia(game=self.game, played_by=self))
+			deck.append(card.Gold(game=self.game, played_by=self))
 		for i in range(0,3):
-			deck.append(card.Spy(game=self.game, played_by=self))
+			deck.append(card.Estate(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
@@ -64,7 +55,6 @@ class DmClient(GameHandler):
 		self.deck = self.discard_pile + self.deck
 		self.discard_pile = []
 
-	#override
 	def setup(self):
 		self.trash_pile = []
 		self.discard_pile = []
@@ -108,7 +98,7 @@ class DmClient(GameHandler):
 
 	#override
 	def exec_commands(self, data):
-		GameHandler.exec_commands(self, data)
+		Client.exec_commands(self, data)
 		cmd = data["command"]
 		print("\033[94m" + json.dumps(data) + "\033[0m")
 
@@ -199,12 +189,13 @@ class DmClient(GameHandler):
 
 	def total_vp(self):
 		total = 0
-		for card in self.deck + self.discard:
+		for card in self.deck + self.discard_pile:
 			if ("Victory" in card.type):
 				total += card.vp
 		for title, data in self.hand.items():
 			if ("Victory" in data[0].type):
-				total += data[0].vp
+				for i in range(0, data[1]):
+					total += data[0].vp
 		return total
 
 	def card_list_to_titles(self, lst):
