@@ -8,6 +8,11 @@
 	width:100%;
 }
 
+.popover-content {
+	text-align: center;
+	white-space: pre-wrap;
+}
+
 #leftColumn {
 	position:fixed;
 	width:33%;

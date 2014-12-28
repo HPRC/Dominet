@@ -50,7 +50,6 @@
 
 		constructor.prototype.updateHand = function(json){
 			this.hand = json.hand;
-			console.log(this.hand);
 			this.updateSpendable();
 		};
 
@@ -173,6 +172,9 @@
 			this.actions = json.actions;
 			this.buys = json.buys;
 			this.balance = json.balance;
+			if (this.modeJson.mode === "buy" && this.buys === 0){
+				this.endTurn();
+			}
 		};
 
 		constructor.prototype.getHand = function(){
@@ -287,6 +289,14 @@
     	}, true);
 
 		$scope.disabled = function(card){
+			if (card.title in $scope.kingdom && $scope.kingdom[card.title].count === 0 || 
+				card.title in $scope.baseSupply && $scope.baseSupply[card.title].count === 0){
+				return true;
+			}
+
+			if ($scope.modeJson.mode === "buy"){
+				return card.price > $scope.balance;
+			}
 			if ($scope.modeJson.mode === "gain"){
 				if ($scope.modeJson.equal_only){
 					return card.price !== $scope.modeJson.price;
@@ -294,7 +304,7 @@
 					return card.price > $scope.modeJson.price;
 				}
 			}
-			return (!$scope.turn || $scope.modeJson.mode === "wait");
+			return (!$scope.turn || $scope.modeJson.mode === "wait" || $scope.modeJson.mode === "action");
 		};
 
 		$scope.clickCard = function(card){
@@ -333,7 +343,6 @@
 
 		$scope.selected = [];
 		$scope.check = function(option, isChecked){
-			console.log($scope.modeJson);
 			if ($scope.modeJson.count != undefined){
 				var checkedCount = $("input:checkbox:checked").length;
 				if (checkedCount >= $scope.modeJson.count){

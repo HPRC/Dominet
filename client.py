@@ -1,6 +1,7 @@
 import json
-import card
+import card as crd
 import random
+import copy
 
 class Client():
 	hand_size = 5
@@ -33,9 +34,9 @@ class DmClient(Client):
 	def base_deck(self):
 		deck = []
 		for i in range(0,7):
-			deck.append(card.Gold(game=self.game, played_by=self))
+			deck.append(crd.Copper(game=self.game, played_by=self))
 		for i in range(0,3):
-			deck.append(card.Estate(game=self.game, played_by=self))
+			deck.append(crd.Estate(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
@@ -103,6 +104,8 @@ class DmClient(Client):
 		print("\033[94m" + json.dumps(data) + "\033[0m")
 
 		if (cmd == "play"):
+			if (data["card"] not in self.hand):
+				print(self.hand)
 			handtuple = self.hand[data["card"]]
 			if (handtuple[1] - 1 < 0 ):
 				print ("error, tried to play a card no longer in hand")
@@ -133,11 +136,16 @@ class DmClient(Client):
 	def buy_card(self, card):
 		if (self.buys > 0):
 			self.game.announce("<b>" + self.name + "</b> buys " + card)
-			self.buys -= 1
-			newCard = self.game.supply[card][0]
+			# alternative to copy but requires module to have all cards
+			# card_class = getattr(crd, card)
+			# newCard = card_class(self.game, self)
+			newCard = copy.copy(self.game.supply[card][0])
 			newCard.played_by = self
 			self.discard_pile.append(newCard)
 			self.game.remove_from_supply(card)
+			self.buys -= 1
+			self.balance -= newCard.price
+			self.update_resources()
 
 	def select(self, num_needed, card, select_from, msg, act_on=None):
 		self.write_json(command="updateMode", mode="select", count=num_needed, card=card, 
@@ -148,7 +156,7 @@ class DmClient(Client):
 
 	def post_selection(self, selection, card, act_on):
 		for i in self.game.players:
-			i.write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
+			i.write_json(command="updateMode", mode="action" if i.actions > 0 else "buy")
 		tempCard = self.game.supply[card][0]
 		tempCard.played_by = self
 		#default act_on is the player who just selected
@@ -167,7 +175,7 @@ class DmClient(Client):
 	def gain(self, card):
 		self.game.get_turn_owner().write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
 		self.game.announce(self.name_string() + " gains " + card)
-		newCard = self.game.supply[card][0]
+		newCard = copy.copy(self.game.supply[card][0])
 		newCard.played_by = self
 		self.discard_pile.append(newCard)
 		self.game.remove_from_supply(card)

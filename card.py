@@ -123,7 +123,7 @@ class Cellar(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
 		self.title = "Cellar"
-		self.description = "+1 action, Discard any number of cards, +1 Card per card discarded."
+		self.description = "+1 action\n Discard any number of cards, +1 Card per card discarded."
 		self.price = 2
 		self.type = "Action"
 
@@ -142,7 +142,7 @@ class Village(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
 		self.title = "Village"
-		self.description = "+1 draw, +2 actions"
+		self.description = "+1 draw\n +2 actions"
 		self.price = 3
 		self.type = "Action"
 
@@ -150,6 +150,7 @@ class Village(Card):
 		Card.play(self)
 		self.played_by.actions += 2
 		self.played_by.draw(1)
+		self.game.announce("-- gaining 2 actions and drawing a card")
 		self.played_by.update_hand()
 		self.played_by.update_resources()
 
@@ -157,7 +158,7 @@ class Woodcutter(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
 		self.title = "Woodcutter"
-		self.description = "$2, +1 Buy"
+		self.description = "$2\n +1 Buy"
 		self.price = 3
 		self.type = "Action"
 
@@ -165,14 +166,14 @@ class Woodcutter(Card):
 		Card.play(self)
 		self.played_by.balance += 2
 		self.played_by.buys += 1
+		self.game.announce("-- gaining $2 and 1 buy")
 		self.played_by.update_resources()
 
 class Spy(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
 		self.title = "Spy"
-		self.description = "+1 card, +1 action. Each player (including you) reveals the top card of his deck and either\
-		discards it or puts it back, your choice"
+		self.description = "+1 card\n +1 action\n Each player (including you) reveals the top card of his deck and either discards it or puts it back, your choice"
 		self.price = 4
 		self.type = "Action|Attack"
 
@@ -180,7 +181,9 @@ class Spy(Card):
 		Card.play(self)
 		self.played_by.actions += 1
 		self.played_by.draw(1)
+		self.game.announce("-- getting +1 action, +1 card")
 		self.played_by.update_resources()
+		self.played_by.update_hand()
 		self.fire(self.played_by)
 
 	def fire(self, player):
@@ -209,7 +212,7 @@ class Militia(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
 		self.title = "Militia"
-		self.description = "+$2, Each other player discards down to 3 cards in hand."
+		self.description = "+$2\n Each other player discards down to 3 cards in hand."
 		self.price = 4
 		self.type = "Action|Attack"
 
@@ -238,6 +241,7 @@ class Smithy(Card):
 	def play(self):
 		Card.play(self)
 		self.played_by.draw(3)
+		self.game.announce("-- drawing 3 cards")
 		self.played_by.update_hand()
 		self.played_by.update_resources()
 
@@ -254,6 +258,9 @@ class Moneylender(Card):
 		if (self.played_by.hand["Copper"][1] >= 1):
 			self.played_by.discard(["Copper"], self.played_by.trash_pile)
 			self.played_by.balance += 3
+			self.game.announce("-- trashing a copper and gaining $3")
+		else:
+			self.game.announce("-- but has no copper to trash")
 		self.played_by.update_hand()
 		self.played_by.update_resources()
 
@@ -282,7 +289,7 @@ class Festival(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
 		self.title = "Festival"
-		self.description = "+$2, +2 actions, +1 buy"
+		self.description = "+$2\n +2 actions\n +1 buy"
 		self.price = 5
 		self.type = "Action"
 
@@ -291,13 +298,14 @@ class Festival(Card):
 		self.played_by.balance += 2
 		self.played_by.actions += 2
 		self.played_by.buys += 1
+		self.game.announce("-- gaining 2 actions, 1 buy and $2")
 		self.played_by.update_resources()
 
 class Council_Room(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
 		self.title = "Council Room"
-		self.description = "+4 cards, +1 buy. Each other player draws a card"
+		self.description = "+4 cards\n +1 buy\n Each other player draws a card"
 		self.price = 5
 		self.type = "Action"
 
@@ -307,6 +315,8 @@ class Council_Room(Card):
 		self.played_by.buys += 1
 		self.played_by.update_hand()
 		self.played_by.update_resources()
+		self.game.announce("-- drawing 4 cards and getting +1 buy")
+		self.game.announce("-- each other player draws a card")
 		for i in self.game.players:
 			if (i != self.played_by):
 				i.draw(1)
@@ -316,7 +326,7 @@ class Laboratory(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
 		self.title = "Laboratory"
-		self.description = "+2 cards, +1 action"
+		self.description = "+2 cards\n +1 action"
 		self.price = 5
 		self.type = "Action"
 
@@ -324,5 +334,6 @@ class Laboratory(Card):
 		Card.play(self)
 		self.played_by.draw(2)
 		self.played_by.actions += 1
+		self.game.announce("-- drawing 2 cards and gaining +1 action")
 		self.played_by.update_hand()
 		self.played_by.update_resources()

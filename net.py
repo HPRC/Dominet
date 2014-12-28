@@ -28,7 +28,6 @@ class GameHandler(websocket.WebSocketHandler):
 	games = []
 
 	def initialize(self):
-		print("\033[94m 1ELP!\033[0m")
 		self.client = c.DmClient(self.get_cookie("DMTusername"), self.application.unassigned_id, self)
 		self.application.unassigned_id += 1
 		self.unattachedClients.append(self.client)
@@ -65,7 +64,7 @@ class DmHandler(GameHandler):
 		for each_game in self.games:
 			for p in each_game.players:
 				if (self.client.name == p.name):
-					p.resume_state(self)
+					p.resume_state(self.client)
 					self.client.game = p.game
 					#update game players
 					index = self.client.game.players.index(p)
@@ -76,11 +75,11 @@ class DmHandler(GameHandler):
 					self.write_json(command="kingdomCards", data=self.client.game.supply_json(self.client.game.kingdom))
 					self.write_json(command="baseCards", data=self.client.game.supply_json(self.client.game.base_supply))
 
-					if (each_game.get_turn_owner() == self):
-						self.write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
-						self.write_json(command="startTurn", actions=self.actions, 
-							buys=self.buys, balance=self.balance)
-					self.client.game.announce(self.name_string() + " has reconnected!")
+					if (each_game.get_turn_owner() == self.client):
+						self.write_json(command="updateMode", mode="action" if self.client.actions > 0 else "buy")
+						self.write_json(command="startTurn", actions=self.client.actions, 
+							buys=self.client.buys, balance=self.client.balance)
+					self.client.game.announce(self.client.name_string() + " has reconnected!")
 					for i in self.client.game.players:
 						i.write_json(command="updateMode", mode="action" if i.actions > 0 else "buy")
 					return
@@ -107,7 +106,7 @@ class Game():
 		self.announce("Starting game with " + str(self.players[0].name) + " and " + str(self.players[1].name))
 		for i in self.players:
 			i.setup()
-		self.announce(self.players[self.turn].name_string() + " 's turn !")
+		self.announce("<b>---- " + self.players[self.turn].name + " 's turn ----</b>")
 		self.players[self.turn].take_turn()
 
 	def announce(self, msg):
@@ -117,7 +116,7 @@ class Game():
 	def change_turn(self):
 		self.turn_count += 1
 		self.turn = self.turn_count % len(self.players)
-		self.announce("<b>" + str(self.players[self.turn].name) + " 's turn !</b>")
+		self.announce("<b>---- " + str(self.players[self.turn].name) + " 's turn ----</b>")
 		self.players[self.turn].take_turn()
 
 	def get_turn_owner(self):
@@ -177,6 +176,8 @@ class DmGame(Game):
 					supply[x.title] = [x,8]
 				else:
 					supply[x.title] = [x,12]
+			elif (x.title == "Copper" or x.title=="Silver" or x.title=="Gold"):
+				supply[x.title] = [x,30]
 			else:
 				supply[x.title] = [x,10]
 		return supply
