@@ -337,3 +337,20 @@ class Laboratory(Card):
 		self.game.announce("-- drawing 2 cards and gaining +1 action")
 		self.played_by.update_hand()
 		self.played_by.update_resources()
+
+class Witch(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Witch"
+		self.description = "+2 cards\n Each other player gains a curse card"
+		self.price = 5
+		self.type = "Action|Attack"
+
+	def play(self):
+		Card.play(self)
+		self.played_by.draw(2)
+		self.game.announce("-- drawing 2 cards")
+		self.played_by.update_hand()
+		for i in self.game.players:
+			if (i != self.played_by):
+				i.gain("Curse")

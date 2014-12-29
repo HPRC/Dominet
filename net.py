@@ -134,7 +134,8 @@ class DmGame(Game):
 		self.kingdom = self.init_supply([card.Village(self, None),
 			card.Woodcutter(self,None), card.Militia(self, None),
 			card.Cellar(self,None), card.Laboratory(self, None), card.Festival(self, None), 
-			card.Council_Room(self,None), card.Remodel(self, None), card.Moneylender(self, None), card.Spy(self, None)])
+			card.Council_Room(self,None), card.Remodel(self, None), card.Moneylender(self, None), card.Spy(self, None),
+			card.Witch(self,None)])
 
 		self.supply = self.base_supply.copy()
 		self.supply.update(self.kingdom)
@@ -166,7 +167,6 @@ class DmGame(Game):
 			i.write_json(command="updatePiles", card=card, count=self.supply[card][1])
 		if (self.supply[card][1] == 0):
 			self.empty_piles += 1
-			self.detect_end()
 
 	def init_supply(self, cards):
 		supply = {}
@@ -193,15 +193,22 @@ class DmGame(Game):
 			player_vp_list = (list(map(lambda x: (x, x.total_vp()), self.players)))
 			winners = [max(player_vp_list, key=lambda x: x[1])]
 			player_vp_list.remove(winners[0])
-			while max(player_vp_list, key=lambda x: x[1])[1] == winners[0][1]:
-				tie = max(player_vp_list, key=lambda x: x[1])
-				winners.append(tie)
-				player_vp_list.remove(tie)
+			win_vp = winners[0][1]
+			for p in player_vp_list:
+				if (p[1] == win_vp):
+					winners.append(p)
 			if (len(winners) == 1):
 				self.announce(winners[0][0].name_string() + " has claimed victory!")
 				return True
 			else:
-				#resolve tiebreaker TODO
+				last_player_went = self.players.index(self.get_turn_owner())
+				filtered_winners = [p for p in winners if self.players.index(p[0]) > last_player_went]
+				if (len(filtered_winners) == 0):
+					self.announce(" ".join(x[0].name_string() for x in winners) + " rejoice in a shared victory.")
+				elif (len(filtered_winners) == 1):
+					self.announce(filtered_winners[0][0].name_string() + " has claimed victory!")
+				else:
+					self.announce(" ".join([x[0].name_string() for x in filtered_winners]) + " rejoice in a shared victory")
 				return True
 		else:
 			return False

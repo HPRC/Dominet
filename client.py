@@ -34,9 +34,9 @@ class DmClient(Client):
 	def base_deck(self):
 		deck = []
 		for i in range(0,7):
-			deck.append(crd.Copper(game=self.game, played_by=self))
+			deck.append(crd.Gold(game=self.game, played_by=self))
 		for i in range(0,3):
-			deck.append(crd.Estate(game=self.game, played_by=self))
+			deck.append(crd.Gold(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
@@ -123,7 +123,8 @@ class DmClient(Client):
 			self.gain(data["card"])
 
 	def end_turn(self):
-		self.game.detect_end()
+		if self.game.detect_end():
+			return
 		self.actions = 0
 		self.buys = 0
 		self.balance = 0
@@ -134,7 +135,7 @@ class DmClient(Client):
 		self.game.change_turn()
 
 	def buy_card(self, card):
-		if (self.buys > 0):
+		if (self.buys > 0 and self.game.supply[card][1] > 0):
 			self.game.announce("<b>" + self.name + "</b> buys " + card)
 			# alternative to copy but requires module to have all cards
 			# card_class = getattr(crd, card)
@@ -174,11 +175,12 @@ class DmClient(Client):
 
 	def gain(self, card):
 		self.game.get_turn_owner().write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
-		self.game.announce(self.name_string() + " gains " + card)
-		newCard = copy.copy(self.game.supply[card][0])
-		newCard.played_by = self
-		self.discard_pile.append(newCard)
-		self.game.remove_from_supply(card)
+		if (self.game.supply[card][1] > 0):
+			self.game.announce(self.name_string() + " gains " + card)
+			newCard = copy.copy(self.game.supply[card][0])
+			newCard.played_by = self
+			self.discard_pile.append(newCard)
+			self.game.remove_from_supply(card)
 
 	def gain_from_supply(self, price_limit, equal_only):
 		self.write_json(command="updateMode", mode="gain", price=price_limit, equal_only=equal_only)

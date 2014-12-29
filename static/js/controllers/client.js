@@ -253,7 +253,7 @@
 	
 	clientModule.controller("handController", function($scope, client){
 		$scope.disabled = function(card){
-			if (card.type === "Victory" || $scope.turn === false || $scope.modeJson.mode === "wait"
+			if (card.type === "Victory" || card.type === "Curse" || $scope.turn === false || $scope.modeJson.mode === "wait"
 				|| $scope.modeJson.mode === "select" || $scope.modeJson.mode === "gain"){
 				return true;
 			}
