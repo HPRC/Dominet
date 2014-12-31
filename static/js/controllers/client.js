@@ -25,22 +25,6 @@
 					exec.call(that,jsonres);
 				}
 			};
-
-			$("#sendChat").click(function(){
-				var msg = $("#inputChat").val();
-				msg = msg.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-				socket.send(JSON.stringify({"command": "chat", "msg": msg}))
-			});
-
-			$("#inputChat").keypress(function(e){
-				if(e.which==13){
-					var msg = $("#inputChat").val();
-					msg = msg.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-					socket.send(JSON.stringify({"command": "chat", "msg": msg}))
-					$("#inputChat").val("");
-				}
-			});
-
 		};
 
 		constructor.prototype.init = function(json) {
@@ -56,11 +40,6 @@
 		constructor.prototype.announce = function(json){
 				$('#msg').append("<br>" + json.msg);
 				$("#container").scrollTop($(document).height());
-		};
-
-		constructor.prototype.chat = function(json){
-				$("#gameChat").append("<br><b>" + json.speaker + ": </b>" + json.msg);
-				$("#scrollChat").scrollTop($("#scrollChat")[0].scrollHeight);
 		};
 
 		constructor.prototype.kingdomCards = function(json){
@@ -231,6 +210,7 @@
 		};
 
 		socket.onmessage = function(event){
+			console.log(event);
 			client.onmessage(event);
 			$scope.$apply(function(){
 				$scope.hand = client.getHand();

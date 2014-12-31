@@ -33,5 +33,10 @@ class TestGame(unittest.TestCase):
 			self.player1.gain("Province")
 		self.assertTrue(self.game.detect_end())
 
+	# def test_detect_end_piles(self):
+	# 	for title, data in self.game.supply.items():
+	# 		self.
+
+
 if __name__ == '__main__':
 	unittest.main()

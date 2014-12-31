@@ -3,11 +3,11 @@
 	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 	<script type="text/javascript" src="/static/angular.min.js"></script>
 	<script type="text/javascript" src="/static/js/ui-bootstrap-custom-tpls-0.12.0.min.js"></script>
-	<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
 
 	<script type="text/javascript" src="/static/js/clientModule.js"></script>
 	<script type="text/javascript" src="/static/js/services/clientSocket.js"></script>
 	<script type="text/javascript" src="/static/js/controllers/client.js"></script>
+	<script type="text/javascript" src="/static/js/controllers/chatController.js"></script>
 	<script type="text/javascript" src="/static/js/directives/supplyCard.js"></script>
 
 	<link rel="stylesheet" href="/static/style.css" />	
@@ -69,7 +69,7 @@
 					<button ng-controller="handController" ng-repeat="card in hand" ng-disabled="disabled(card)" ng-click="clickCard(card)">{{!card.title}}</button>
 			</div>
 			<hr>
-			<div id="scrollChat">
+			<div id="scrollChat" ng-controller="chatController">
 				<div id="gameChat">
 				</div>
 			</div>

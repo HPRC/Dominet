@@ -15,6 +15,10 @@ class mainHandler(web.RequestHandler):
 	def get(self):
 		if (self.get_cookie("DMTusername") != None):
 			self.render("game.html")
+			# if (self.in_game()):
+			# 	self.render("game.html")
+			# else:
+			# 	self.render("lobby.html")
 		else:
 			self.render(INDEX)
 
@@ -22,6 +26,18 @@ class mainHandler(web.RequestHandler):
 		#expire_days ~ 30min
 		self.set_cookie("DMTusername", str(self.get_argument("username")), expires_days=.02)
 		self.render("game.html")
+		# if (self.in_game()):
+		# 	self.render("game.html")
+		# else:
+		# 	self.render("lobby.html")
+
+	def in_game(self):
+		for g in GameHandler.games:
+			print(g)
+			if (self.get_cookie("DMTusername") in list(map(lambda x: x.name, g.players))):
+				return True
+		return False
+
 
 class GameHandler(websocket.WebSocketHandler):
 	unattachedClients = []
