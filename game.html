@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html ng-app="clientApp">
 <head>
 	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
@@ -69,17 +70,19 @@
 					<button ng-controller="handController" ng-repeat="card in hand" ng-disabled="disabled(card)" ng-click="clickCard(card)">{{!card.title}}</button>
 			</div>
 			<hr>
-			<div id="scrollChat" ng-controller="chatController">
-				<div id="gameChat">
+			<div ng-controller="chatController">
+				<div class="scrollChat" style="height:100px;">
+					<div id="gameChat">
+					</div>
 				</div>
-			</div>
-			<hr>
-			<div class="col-md-8">
-  				<label class="sr-only" for="inputChat">inputChat</label>
-				<input type="text" id="inputChat" class="form-control">
-			</div>
-			<div class="col-md-4">
-				<button id="sendChat" class="btn btn-default">Send</button>
+				<hr>
+				<div class="col-md-8">
+	  				<label class="sr-only" for="inputChat">inputChat</label>
+					<input type="text" id="inputChat" class="form-control" ng-model="inputText">
+				</div>
+				<div class="col-md-4">
+					<button id="sendChat" class="btn btn-default">Send</button>
+				</div>
 			</div>
 		</div>
 	</div>

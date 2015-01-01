@@ -2,7 +2,7 @@ import client as c
 import json
 import os
 from tornado import httpserver, ioloop, web, websocket	
-import card
+import game as g
 
 HOST = ''
 PORT_NUMBER = 9999
@@ -14,27 +14,26 @@ NUM_PLAYERS = 2
 class mainHandler(web.RequestHandler):
 	def get(self):
 		if (self.get_cookie("DMTusername") != None):
-			self.render("game.html")
-			# if (self.in_game()):
-			# 	self.render("game.html")
-			# else:
-			# 	self.render("lobby.html")
+			# self.render("game.html")
+			if (self.in_game()):
+				self.render("game.html")
+			else:
+				self.render("lobby.html")
 		else:
 			self.render(INDEX)
 
 	def post(self):
 		#expire_days ~ 30min
 		self.set_cookie("DMTusername", str(self.get_argument("username")), expires_days=.02)
-		self.render("game.html")
-		# if (self.in_game()):
-		# 	self.render("game.html")
-		# else:
-		# 	self.render("lobby.html")
+		# self.render("game.html")
+		if (self.in_game()):
+			self.render("game.html")
+		else:
+			self.render("lobby.html")
 
 	def in_game(self):
-		for g in GameHandler.games:
-			print(g)
-			if (self.get_cookie("DMTusername") in list(map(lambda x: x.name, g.players))):
+		for eg in GameHandler.games:
+			if (self.get_cookie("DMTusername") in list(map(lambda x: x.name, eg.players))):
 				return True
 		return False
 
@@ -56,14 +55,27 @@ class GameHandler(websocket.WebSocketHandler):
 	def open(self):
 		#init client
 		self.write_json(command="init", id=self.client.id, name=self.client.name)
+		self.chat(self.client.name + " has joined the lobby", None)
+		GameHandler.update_lobby();
 		if (len(self.unattachedClients) >= NUM_PLAYERS):
 			player1 = self.unattachedClients.pop(0)
 			player2 = self.unattachedClients.pop(0)
-			g = DmGame([player1, player2])
-			for i in g.players:
-				i.game = g
-			g.start_game()
-			self.games.append(g)
+			game = g.DmGame([player1, player2])
+			for i in game.players:
+				i.game = game
+			game.start_game()
+			self.games.append(game)
+
+	def chat(self, msg, speaker):
+		for i in GameHandler.unattachedClients:
+			i.write_json(command="chat", msg=msg, speaker=speaker)
+
+	def update_lobby():
+		for i in GameHandler.unattachedClients:
+			i.write_json(command="lobby", lobby_list=GameHandler.get_lobby_names())
+
+	def get_lobby_names():
+		return list(map(lambda x: x.name, GameHandler.unattachedClients))
 
 	def on_message(self,data):
 		jsondata = json.loads(data)
@@ -107,127 +119,6 @@ class DmHandler(GameHandler):
 			if i != self.client:
 				i.wait(self.client.name + " has disconnected!")
 
-class Game():
-	def __init__(self, players):
-		self.players = players
-		self.first = 0
-		self.turn = self.first
-		self.turn_count = 0
-
-	def chat(self, msg, speaker):
-		for i in self.players:
-			i.write_json(command="chat", msg=msg, speaker=speaker)
-
-	def start_game(self):
-		self.announce("Starting game with " + str(self.players[0].name) + " and " + str(self.players[1].name))
-		for i in self.players:
-			i.setup()
-		self.announce("<b>---- " + self.players[self.turn].name + " 's turn ----</b>")
-		self.players[self.turn].take_turn()
-
-	def announce(self, msg):
-		for i in self.players:
-			i.write_json(command="announce",msg=msg)
-
-	def change_turn(self):
-		self.turn_count += 1
-		self.turn = self.turn_count % len(self.players)
-		self.announce("<b>---- " + str(self.players[self.turn].name) + " 's turn ----</b>")
-		self.players[self.turn].take_turn()
-
-	def get_turn_owner(self):
-		return self.players[self.turn]
-
-class DmGame(Game):
-	def __init__(self, players):
-		Game.__init__(self, players)
-		self.empty_piles = 0
-		#kingdom = dictionary {card.title => [card, count]} i.e {"Copper": [card.Copper(self,None),10]}
-		self.base_supply = self.init_supply([card.Curse(self, None), card.Estate(self, None), 
-			card.Duchy(self, None), card.Province(self, None), card.Copper(self,None),
-			card.Silver(self, None), card.Gold(self, None)])
-
-		self.kingdom = self.init_supply([card.Village(self, None),
-			card.Woodcutter(self,None), card.Militia(self, None),
-			card.Cellar(self,None), card.Laboratory(self, None), card.Festival(self, None), 
-			card.Council_Room(self,None), card.Remodel(self, None), card.Moneylender(self, None), card.Spy(self, None),
-			card.Witch(self,None)])
-
-		self.supply = self.base_supply.copy()
-		self.supply.update(self.kingdom)
-
-
-	#override
-	def start_game(self):
-		for i in self.players:
-			i.write_json(command="kingdomCards", data=self.supply_json(self.kingdom))
-			i.write_json(command="baseCards", data=self.supply_json(self.base_supply))
-		Game.start_game(self)
-
-	def supply_json(self, supply):
-		supply_list = []
-		for title, data in supply.items():
-			card = data[0]
-			count = data[1]
-			formatCard = card.to_json()
-			formatCard["count"] = count
-			supply_list.append(formatCard)
-		return json.dumps(supply_list)
-
-	def remove_from_supply(self, card):
-		if (card in self.kingdom):
-			self.kingdom[card][1] -=1
-		else:
-			self.base_supply[card][1] -=1
-		for i in self.players:
-			i.write_json(command="updatePiles", card=card, count=self.supply[card][1])
-		if (self.supply[card][1] == 0):
-			self.empty_piles += 1
-
-	def init_supply(self, cards):
-		supply = {}
-		for x in cards:
-			if (x.type == "Victory"):
-				if (len(self.players) ==2):
-					supply[x.title] = [x,8]
-				else:
-					supply[x.title] = [x,12]
-			elif (x.title == "Copper" or x.title=="Silver" or x.title=="Gold"):
-				supply[x.title] = [x,30]
-			else:
-				supply[x.title] = [x,10]
-		return supply
-
-	def get_player_from_name(self, name):
-		for i in self.players:
-			if (i.name == name):
-				return i
-
-	def detect_end(self):
-		if (self.supply["Province"][1] == 0 or self.empty_piles >=3):
-			self.announce("GAME OVER")
-			player_vp_list = (list(map(lambda x: (x, x.total_vp()), self.players)))
-			winners = [max(player_vp_list, key=lambda x: x[1])]
-			player_vp_list.remove(winners[0])
-			win_vp = winners[0][1]
-			for p in player_vp_list:
-				if (p[1] == win_vp):
-					winners.append(p)
-			if (len(winners) == 1):
-				self.announce(winners[0][0].name_string() + " has claimed victory!")
-				return True
-			else:
-				last_player_went = self.players.index(self.get_turn_owner())
-				filtered_winners = [p for p in winners if self.players.index(p[0]) > last_player_went]
-				if (len(filtered_winners) == 0):
-					self.announce(" ".join(x[0].name_string() for x in winners) + " rejoice in a shared victory.")
-				elif (len(filtered_winners) == 1):
-					self.announce(filtered_winners[0][0].name_string() + " has claimed victory!")
-				else:
-					self.announce(" ".join([x[0].name_string() for x in filtered_winners]) + " rejoice in a shared victory")
-				return True
-		else:
-			return False
 
 def main():
 	app = web.Application([

@@ -1,28 +1,30 @@
-clientModule.controller("chatController", function($scope, socket){
+clientModule.controller("chatController", function($rootScope, $scope, socket){
+    $scope.inputText = "";
+
 	$("#sendChat").click(function(){
-		var msg = $("#inputChat").val();
-		msg = msg.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-		socket.send(JSON.stringify({"command": "chat", "msg": msg}))
+		$scope.inputText = $scope.inputText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+		socket.send(JSON.stringify({"command": "chat", "msg": $scope.inputText}));
+		$("#inputChat").val("");
 	});
 
 	$("#inputChat").keypress(function(e){
 		if(e.which==13){
-			var msg = $("#inputChat").val();
-			msg = msg.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-			socket.send(JSON.stringify({"command": "chat", "msg": msg}))
+			$scope.inputText = $scope.inputText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+			socket.send(JSON.stringify({"command": "chat", "msg": $scope.inputText}))
 			$("#inputChat").val("");
 		}
 	});
 
-	socket.onmessage = function(event){
-		socket.onmessage(event);
-		console.log("chat");
+	$rootScope.$on("socketmsg", function(data, event){
 		var jsonres = JSON.parse(event.data);
 		if (jsonres.command === "chat"){
-			console.log("A");
-			$("#gameChat").append("<br><b>" + jsonres.speaker + ": </b>" + jsonres.msg);
-			$("#scrollChat").scrollTop($("#scrollChat")[0].scrollHeight);
+			if (jsonres.speaker){
+				$("#gameChat").append("<br><b>" + jsonres.speaker + ": </b>" + jsonres.msg);
+			} else {
+				$("#gameChat").append("<br>" + jsonres.msg);
+			}
+			$(".scrollChat").scrollTop($(".scrollChat")[0].scrollHeight);
 		}
-	};
+	});
 
 });

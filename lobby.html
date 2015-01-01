@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html ng-app="clientApp">
 <head>
 	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
@@ -7,26 +8,31 @@
 	<script type="text/javascript" src="/static/js/clientModule.js"></script>
 	<script type="text/javascript" src="/static/js/services/clientSocket.js"></script>
 	<script type="text/javascript" src="/static/js/controllers/chatController.js"></script>
+	<script type="text/javascript" src="/static/js/controllers/lobbyController.js"></script>
 	<link rel="stylesheet" href="/static/style.css" />	
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <div id="container">
-	<div class="row">
+	<div class="row" ng-controller="lobbyController">
 		<div class="col-md-4">
+			<h2>Lobby</h2>
+			<div ng-repeat="client in lobbyList">{{!client}}</div>
 		</div>
 		<div class="col-md-8">
 			<h2>Dominet</h2>
-			<div id="scrollChat">
-				<div id="gameChat">
+			<div ng-controller="chatController">
+				<div class="scrollChat" style="height:35em;">
+					<div id="gameChat">
+					</div>
 				</div>
-			</div>
-			<div class="row" ng-controller="chatController">
-				<div class="col-md-8">
-	  				<label class="sr-only" for="inputChat">inputChat</label>
-					<input type="text" id="inputChat" class="form-control">
-				</div>
-				<div class="col-md-4">
-					<button id="sendChat" class="btn btn-default">Send</button>
+				<div class="row">
+					<div class="col-md-8">
+		  				<label class="sr-only" for="inputChat">inputChat</label>
+						<input type="text" id="inputChat" class="form-control" ng-model="inputText">
+					</div>
+					<div class="col-md-4">
+						<button id="sendChat" class="btn btn-default">Send</button>
+					</div>
 				</div>
 			</div>
 		</div>

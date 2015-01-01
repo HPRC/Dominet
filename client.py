@@ -9,6 +9,7 @@ class Client():
 		self.name = name
 		self.id = c_id
 		self.handler = handler
+		self.game = None
 
 	#called before players take their turns
 	def setup(self):
@@ -24,10 +25,12 @@ class Client():
 		cmd = data["command"]
 
 		if self.game == None:
+			if (cmd == "chat"):
+				self.handler.chat(data["msg"], self.name)
 			return
+		#else do game commands
 		if (cmd == "chat"):
 			self.game.chat(data["msg"], self.name)
-
 
 class DmClient(Client):
 

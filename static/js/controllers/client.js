@@ -194,7 +194,7 @@
 		return new constructor();
 	});
 
-	clientModule.controller("clientController", function($scope, socket, client){
+	clientModule.controller("clientController", function($rootScope, $scope, socket, client){
 		$scope.c = client;
 		$scope.hand = client.getHand();
 		$scope.turn = client.getTurn();
@@ -205,12 +205,7 @@
 		$scope.baseSupply = client.getBaseSupply();
 		$scope.spendableMoney = client.getSpendableMoney();
 		$scope.modeJson = client.getModeJson();
-		socket.onopen = function(event){
-			$("#msg").text("Waiting for other player...");
-		};
-
-		socket.onmessage = function(event){
-			console.log(event);
+		$rootScope.$on("socketmsg", function(data, event){
 			client.onmessage(event);
 			$scope.$apply(function(){
 				$scope.hand = client.getHand();
@@ -223,11 +218,7 @@
 				$scope.spendableMoney = client.getSpendableMoney();
 				$scope.modeJson = client.getModeJson();
 			});
-		};
-
-		socket.close = function(event){
-			console.log("socket closed");
-		};
+		});
 
 	});
 	
