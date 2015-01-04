@@ -10,6 +10,7 @@ class Client():
 		self.id = c_id
 		self.handler = handler
 		self.game = None
+		self.ready = False
 
 	#called before players take their turns
 	def setup(self):
@@ -105,8 +106,11 @@ class DmClient(Client):
 		Client.exec_commands(self, data)
 		cmd = data["command"]
 		print("\033[94m" + json.dumps(data) + "\033[0m")
-
-		if (cmd == "play"):
+		if (cmd == "ready"):
+			self.ready = True
+			if (self.game.players_ready()):
+				self.game.start_game()
+		elif (cmd == "play"):
 			if (data["card"] not in self.hand):
 				print(self.hand)
 			handtuple = self.hand[data["card"]]

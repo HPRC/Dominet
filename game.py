@@ -123,3 +123,9 @@ class DmGame(Game):
 				return True
 		else:
 			return False
+
+	def players_ready(self):
+		for i in self.players:
+			if (not i.ready):
+				return False
+		return True

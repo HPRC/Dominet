@@ -191,6 +191,11 @@
 		constructor.prototype.getModeJson = function(){
 			return this.modeJson;
 		};
+
+		constructor.prototype.getName = function(){
+			return this.name;
+		};
+
 		return new constructor();
 	});
 
@@ -205,7 +210,13 @@
 		$scope.baseSupply = client.getBaseSupply();
 		$scope.spendableMoney = client.getSpendableMoney();
 		$scope.modeJson = client.getModeJson();
-		$rootScope.$on("socketmsg", function(data, event){
+			console.log("Aasdfksfksnfkemk");
+
+		$scope.$on("$destroy", function(){
+			socketlistener();
+		});
+		socket.send(JSON.stringify({"command": "ready", "name": client.name}));
+		var socketlistener = $rootScope.$on("socketmsg", function(data, event){
 			client.onmessage(event);
 			$scope.$apply(function(){
 				$scope.hand = client.getHand();

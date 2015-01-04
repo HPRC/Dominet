@@ -15,7 +15,11 @@ clientModule.controller("chatController", function($rootScope, $scope, socket){
 		}
 	});
 
-	$rootScope.$on("socketmsg", function(data, event){
+	$scope.$on("$destroy", function(){
+		socketlistener();
+	});
+
+	var socketlistener = $rootScope.$on("socketmsg", function(data, event){
 		var jsonres = JSON.parse(event.data);
 		if (jsonres.command === "chat"){
 			if (jsonres.speaker){
