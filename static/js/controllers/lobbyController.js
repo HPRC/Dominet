@@ -14,11 +14,9 @@ clientModule.controller("lobbyController", function($rootScope, $scope, socket, 
 	};
 
 	$scope.accept = function(challenger){
-		for (var i=0; i<$scope.challengers.length; i++){
-			$scope.decline($scope.challengers[i]);
-			i--;
-		}
-		socket.send(JSON.stringify({"command": "startGame", "players": [$scope.name, challenger]}));
+		$scope.challengers.splice($scope.challengers.indexOf(challenger),1);
+		socket.send(JSON.stringify({"command": "loadGame", "players": [$scope.name, challenger], "challenger": challenger}));
+		decline_all();
 	};
 
 	$scope.decline = function(challenger){
@@ -38,15 +36,35 @@ clientModule.controller("lobbyController", function($rootScope, $scope, socket, 
 		$scope.challenging = null;
 	};
 
+	$scope.gotAccepted = function(json){
+		$scope.challenging = null;
+		decline_all();
+
+	};
+
 	$scope.lobby = function(json){
 		$scope.name = client.name;
 		$scope.lobbyList = json.lobby_list;
 	};
 
+	var decline_all = function(){
+		for (var i=0; i<$scope.challengers.length; i++){
+			$scope.decline($scope.challengers[i]);
+			i--;
+		}
+	};
+
 	$scope.resume = function(json){
+		if ($scope.challenging !== null){
+			$scope.cancel();
+		}
 		$scope.$apply(function(){
 			$scope.main.game = true;	
 		});
+	};
+
+	$scope.announce = function(json){
+		$("#gameChat").append("<br>" + json.msg);
 	};
 
 	$scope.$on("$destroy", function(){

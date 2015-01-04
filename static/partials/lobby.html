@@ -5,6 +5,7 @@
 			<i>Waiting for <b>{{challenging}}</b></i>
 			<a href="#" ng-click="cancel()">Cancel</a>
 		</span>
+		<br>
 		<span ng-repeat="challenger in challengers">You have been challenged by: <b>{{challenger}}</b>
 		<a href="#" ng-click="accept(challenger)" style="margin-left:1em">Accept</a>
 		<a href="#" ng-click="decline(challenger)" style="margin-left:1em">Decline (politely)</a>
@@ -14,7 +15,7 @@
 		<div class="col-md-4">
 			<h3>Lobby</h3>
 			<div ng-repeat="client in lobbyList">
-				{{client}} <button class="btn btn-primary btn-xs" ng-show="client !== name" ng-disabled="challenging" ng-click="challenge(client)">Challenge</button>
+				{{client}} <button class="btn btn-primary btn-xs" ng-show="client !== name" ng-disabled="challenging || challengers.indexOf(client) !== -1" ng-click="challenge(client)">Challenge</button>
 			</div>
 		</div>
 		<div class="col-md-8">

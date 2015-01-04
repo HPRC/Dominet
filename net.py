@@ -52,13 +52,16 @@ class GameHandler(websocket.WebSocketHandler):
 		GameHandler.update_lobby()
 
 	def load_game(self, *args):
-		for x in args:
-			del GameHandler.unattachedClients[x.name]
 		game = g.DmGame(list(args))
 		for i in game.players:
 			i.write_json(command="resume")
 			i.game = game
 		self.games.append(game)
+		for x in args:
+			del GameHandler.unattachedClients[x.name]
+		GameHandler.update_lobby()
+		GameHandler.announce_lobby(" and ".join(list(map(lambda x: x.name, args))) + " started a game.")
+
 
 	def chat(self, msg, speaker):
 		for name, p in GameHandler.unattachedClients.items():
@@ -75,7 +78,9 @@ class GameHandler(websocket.WebSocketHandler):
 		jsondata = json.loads(data)
 		self.client.exec_commands(jsondata)
 		cmd = jsondata["command"]
-		if (cmd == "startGame"):
+		if (cmd == "loadGame"):
+			GameHandler.unattachedClients[jsondata["challenger"]].write_json(
+				command="gotAccepted")
 			self.load_game(*list(map(lambda x: GameHandler.unattachedClients[x], jsondata["players"])))
 		elif (cmd == "challenge"):
 			GameHandler.unattachedClients[jsondata["otherPlayer"]].write_json(
@@ -86,6 +91,10 @@ class GameHandler(websocket.WebSocketHandler):
 		elif (cmd == "decline"):
 			GameHandler.unattachedClients[jsondata["challenger"]].write_json(
 				command="gotDeclined")
+
+	def announce_lobby(msg):
+		for name, p in GameHandler.unattachedClients.items():
+			p.write_json(command="announce", msg= msg)
 
 	def on_close(self):
 		del GameHandler.unattachedClients[self.client.name]
