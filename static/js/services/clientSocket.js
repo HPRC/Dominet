@@ -1,5 +1,5 @@
 clientModule.factory('socket', function($rootScope){
-	var socket = new WebSocket("ws://192.168.0.100:9999/ws");
+	var socket = new WebSocket("ws://192.168.0.101:9999/ws");
 	socket.onopen = function(event){
 		$("#msg").text("Waiting for other player...");
 	};

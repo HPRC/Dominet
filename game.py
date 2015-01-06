@@ -30,6 +30,9 @@ class Game():
 		self.announce("<b>---- " + str(self.players[self.turn].name) + " 's turn ----</b>")
 		self.players[self.turn].take_turn()
 
+	def get_opponents(self, player):
+		return [x for x in self.players if x != player]
+
 	def get_turn_owner(self):
 		return self.players[self.turn]
 

@@ -38,9 +38,9 @@ class DmClient(Client):
 	def base_deck(self):
 		deck = []
 		for i in range(0,7):
-			deck.append(crd.Copper(game=self.game, played_by=self))
+			deck.append(crd.Militia(game=self.game, played_by=self))
 		for i in range(0,3):
-			deck.append(crd.Estate(game=self.game, played_by=self))
+			deck.append(crd.Moat(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
@@ -74,6 +74,8 @@ class DmClient(Client):
 		self.VP = 0
 		self.draw(self.hand_size)
 		self.update_hand()
+		#List of players waiting for, callback
+		self.waiting = {"on": [], "cb": None}
 
 	def resume_state(self, new_conn):
 		new_conn.trash_pile = self.trash_pile
@@ -125,7 +127,9 @@ class DmClient(Client):
 		elif (cmd == "buyCard"):
 			self.buy_card(data["card"])
 		elif (cmd == "post_selection"):
-			self.post_selection(data["selection"], data["card"], data["act_on"]);
+			self.update_wait()
+			if (self.waiting["cb"] != None):
+				self.waiting["cb"](data["selection"])
 		elif (cmd == "gain"):
 			self.gain(data["card"])
 
@@ -155,23 +159,19 @@ class DmClient(Client):
 			self.balance -= newCard.price
 			self.update_resources()
 
-	def select(self, num_needed, card, select_from, msg, act_on=None):
+	def select(self, num_needed, card, select_from, msg):
 		self.write_json(command="updateMode", mode="select", count=num_needed, card=card, 
-			select_from=select_from, msg=msg, act_on=act_on)
+			select_from=select_from, msg=msg)
 
 	def wait(self, msg):
 		self.write_json(command="updateMode", mode="wait", msg=msg)
 
-	def post_selection(self, selection, card, act_on):
+	def update_wait(self):
 		for i in self.game.players:
-			i.write_json(command="updateMode", mode="action" if i.actions > 0 else "buy")
-		tempCard = self.game.supply[card][0]
-		tempCard.played_by = self
-		#default act_on is the player who just selected
-		if (act_on == None):
-			tempCard.post_select(selection)
-		else:
-			tempCard.post_select(selection, act_on)
+			if self in i.waiting["on"]:
+				i.waiting["on"].remove(self)
+			if len(i.waiting["on"]) == 0:
+				i.write_json(command="updateMode", mode="action" if i.actions > 0 else "buy")
 
 	def discard(self, cards, pile):
 		for x in cards:

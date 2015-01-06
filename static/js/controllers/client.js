@@ -276,7 +276,7 @@
 				return true;
 			}
 
-			if ($scope.modeJson.mode === "buy"){
+			if ($scope.turn && $scope.modeJson.mode === "buy"){
 				return card.price > $scope.balance;
 			}
 			if ($scope.modeJson.mode === "gain"){
