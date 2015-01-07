@@ -23,7 +23,9 @@
 	</div>
 	<div id="rightColumn">
 		<div id="msg"></div>
-
+		<div id="gameover" ng-show="modeJson.mode === 'gameover'">
+			<button class="btn btn-default" ng-click="returnLobby()">Return to Lobby</button>
+		</div>
 		<div id="wait" ng-show="modeJson.mode === 'wait'"><h4>{{modeJson.msg}}</h4>
 		</div>
 		<div id="select" ng-show="modeJson.mode ==='select'" ng-controller="selectController">

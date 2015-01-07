@@ -14,7 +14,7 @@
 			this.played = [];
 			this.spendableMoney = 0;
 			//mode overidden by turn
-			this.modeJson = {"mode":"action"}; //.mode = action, buy, select, gain, wait
+			this.modeJson = {"mode":"action"}; //.mode = action, buy, select, gain, wait, gameover
 			var that = this;
 
 			//socket
@@ -210,7 +210,6 @@
 		$scope.baseSupply = client.getBaseSupply();
 		$scope.spendableMoney = client.getSpendableMoney();
 		$scope.modeJson = client.getModeJson();
-			console.log("Aasdfksfksnfkemk");
 
 		$scope.$on("$destroy", function(){
 			socketlistener();
@@ -230,6 +229,10 @@
 				$scope.modeJson = client.getModeJson();
 			});
 		});
+
+		$scope.returnLobby = function(){
+			$scope.main.game = false;	
+		};
 
 	});
 	

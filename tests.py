@@ -1,6 +1,7 @@
 import unittest
 import net
 import client as c
+import game as g
 
 class DummyHandler():
 	def write_json(self, **kwargs):
@@ -10,7 +11,7 @@ class TestGame(unittest.TestCase):
 	def setUp(self):
 		self.player1 = c.DmClient("player1", 0, DummyHandler())
 		self.player2 = c.DmClient("player2", 1, DummyHandler())
-		self.game = net.DmGame([self.player1, self.player2])
+		self.game = g.DmGame([self.player1, self.player2])
 		for i in self.game.players:
 			i.game = self.game
 			i.setup()
@@ -26,7 +27,9 @@ class TestGame(unittest.TestCase):
 		self.assertTrue(self.game.base_supply["Estate"][1] == 7)
 
 	def test_total_vp(self):
-		self.assertTrue(self.player1.total_vp() == 3)
+		initial_vp = self.player1.total_vp()
+		self.player1.gain("Province")
+		self.assertTrue(self.player1.total_vp() == initial_vp + 6)
 
 	def test_detect_end(self):
 		for i in range(0,8):

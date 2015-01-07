@@ -1,6 +1,7 @@
 import client as c
 import card
 import json
+import net
 
 class Game():
 	def __init__(self, players):
@@ -113,7 +114,6 @@ class DmGame(Game):
 					winners.append(p)
 			if (len(winners) == 1):
 				self.announce(winners[0][0].name_string() + " has claimed victory!")
-				return True
 			else:
 				last_player_went = self.players.index(self.get_turn_owner())
 				filtered_winners = [p for p in winners if self.players.index(p[0]) > last_player_went]
@@ -123,7 +123,10 @@ class DmGame(Game):
 					self.announce(filtered_winners[0][0].name_string() + " has claimed victory!")
 				else:
 					self.announce(" ".join([x[0].name_string() for x in filtered_winners]) + " rejoice in a shared victory")
-				return True
+			for i in self.players:
+				i.write_json(command="updateMode", mode="gameover")
+			net.GameHandler.games.remove(self)
+			return True
 		else:
 			return False
 

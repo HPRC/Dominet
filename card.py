@@ -295,8 +295,8 @@ class Militia(AttackCard):
 			if ( i != self.played_by):
 				i.select(len(i.hand_array())-3, self.title, i.card_list_to_titles(i.hand_array()),
 				 "select 2 cards to discard")
-
-				def post_select_on(selection):
+			
+				def post_select_on(selection, i=i):
 					self.post_select(selection, i)
 
 				i.waiting["on"].append(i)
@@ -305,6 +305,7 @@ class Militia(AttackCard):
 		self.played_by.wait("Waiting for other players to discard")
 
 	def post_select(self, selection, act_on):
+		print(act_on.name)
 		act_on.discard(selection, act_on.discard_pile)
 		act_on.update_hand()
 

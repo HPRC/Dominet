@@ -2,12 +2,14 @@
 <html>
 <head>
 	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-	<link rel="stylesheet" href="/static/style.css" />	
+	<script type="text/javascript" src="/static/js/index.js"></script>
+	<link rel="stylesheet" href="/static/style.css" />
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <div id="container">
 	<h2>Dominet</h2>
-<form role="form" action="/" method="POST">
+<div id="errorMsg"></div>
+<form role="form" action="/" method="POST" onsubmit="return validateUsername()">
 	<div class="form-group">
 		<label for="inputUsername">Username</label>
 		<input name="username" type="text" class="form-control" id="inputUsername" placeholder="Enter Username" style="width:300px">

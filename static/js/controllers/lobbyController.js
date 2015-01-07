@@ -59,7 +59,7 @@ clientModule.controller("lobbyController", function($rootScope, $scope, socket, 
 			$scope.cancel();
 		}
 		$scope.$apply(function(){
-			$scope.main.game = true;	
+			$scope.main.game = true;
 		});
 	};
 
