@@ -34,7 +34,7 @@ class Money(Card):
 	def play(self):
 		Card.play(self)
 		self.played_by.balance += self.value
-		self.played_by.update_resources()
+		self.played_by.update_resources(True)
 
 	#override
 	def to_json(self):
@@ -181,6 +181,7 @@ class Moat(Card):
 		self.played_by.draw(2)
 		self.played_by.update_resources()
 		self.played_by.update_hand()
+		self.played_by.update_mode()
 
 	def react(self, react_to_callback):
 		self.played_by.select(1, self.title, ["Reveal", "Hide"],  
@@ -229,6 +230,7 @@ class Woodcutter(Card):
 		self.played_by.buys += 1
 		self.game.announce("-- gaining $2 and 1 buy")
 		self.played_by.update_resources()
+		self.played_by.update_mode()
 
 class Spy(AttackCard):
 	def __init__(self, game, played_by):
@@ -256,7 +258,7 @@ class Spy(AttackCard):
 		self.played_by.select(1, self.title, ["discard", "keep"],  
 			player.name + " revealed " + revealed_card.title)
 
-		def post_select_on(selection):
+		def post_select_on(selection, player=player):
 			self.post_select(selection, player)
 
 		self.played_by.waiting["on"].append(self.played_by)
@@ -305,7 +307,6 @@ class Militia(AttackCard):
 		self.played_by.wait("Waiting for other players to discard")
 
 	def post_select(self, selection, act_on):
-		print(act_on.name)
 		act_on.discard(selection, act_on.discard_pile)
 		act_on.update_hand()
 
@@ -323,6 +324,7 @@ class Smithy(Card):
 		self.game.announce("-- drawing 3 cards")
 		self.played_by.update_hand()
 		self.played_by.update_resources()
+		self.played_by.update_mode()
 
 class Moneylender(Card):
 	def __init__(self, game, played_by):
@@ -334,7 +336,7 @@ class Moneylender(Card):
 
 	def play(self):
 		Card.play(self)
-		if (self.played_by.hand["Copper"][1] >= 1):
+		if ("Copper" in self.played_by.hand.keys()):
 			self.played_by.discard(["Copper"], self.played_by.trash_pile)
 			self.played_by.balance += 3
 			self.game.announce("-- trashing a copper and gaining $3")
@@ -342,6 +344,7 @@ class Moneylender(Card):
 			self.game.announce("-- but has no copper to trash")
 		self.played_by.update_hand()
 		self.played_by.update_resources()
+		self.played_by.update_mode()
 
 class Remodel(Card):
 	def __init__(self, game, played_by):
@@ -355,9 +358,9 @@ class Remodel(Card):
 		Card.play(self)
 		self.played_by.select(1, self.title, self.played_by.card_list_to_titles(self.played_by.hand_array()),
 		 "select card to remodel")
+		self.played_by.update_resources()
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_select
-		self.played_by.update_resources()
 
 	def post_select(self, selection):
 		self.played_by.discard(selection, self.played_by.trash_pile)
@@ -402,6 +405,7 @@ class Council_Room(Card):
 			if (i != self.played_by):
 				i.draw(1)
 				i.update_hand()
+		self.played_by.update_mode()
 
 class Laboratory(Card):
 	def __init__(self, game, played_by):
@@ -437,3 +441,4 @@ class Witch(AttackCard):
 		for i in self.game.players:
 			if (i != self.played_by):
 				i.gain("Curse")
+		self.played_by.update_mode()

@@ -48,8 +48,8 @@ class DmGame(Game):
 
 		self.kingdom = self.init_supply([card.Village(self, None),
 			card.Woodcutter(self,None), card.Militia(self, None),
-			card.Cellar(self,None), card.Laboratory(self, None), card.Festival(self, None), 
-			card.Council_Room(self,None), card.Remodel(self, None), card.Moneylender(self, None), card.Spy(self, None),
+			card.Cellar(self,None), card.Festival(self, None), card.Council_Room(self,None), 
+			card.Remodel(self, None), card.Moneylender(self, None), card.Spy(self, None),
 			card.Witch(self,None)])
 
 		self.supply = self.base_supply.copy()
@@ -125,7 +125,7 @@ class DmGame(Game):
 					self.announce(" ".join([x[0].name_string() for x in filtered_winners]) + " rejoice in a shared victory")
 			for i in self.players:
 				i.write_json(command="updateMode", mode="gameover")
-			net.GameHandler.games.remove(self)
+			#net.GameHandler.games.remove(self)
 			return True
 		else:
 			return False

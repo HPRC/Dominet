@@ -38,9 +38,9 @@ class DmClient(Client):
 	def base_deck(self):
 		deck = []
 		for i in range(0,7):
-			deck.append(crd.Militia(game=self.game, played_by=self))
+			deck.append(crd.Copper(game=self.game, played_by=self))
 		for i in range(0,3):
-			deck.append(crd.Cellar(game=self.game, played_by=self))
+			deck.append(crd.Estate(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
@@ -172,7 +172,7 @@ class DmClient(Client):
 			if self in i.waiting["on"]:
 				i.waiting["on"].remove(self)
 			if len(i.waiting["on"]) == 0:
-				i.write_json(command="updateMode", mode="action" if i.actions > 0 else "buy")
+				i.update_mode()
 
 	def discard(self, cards, pile):
 		for x in cards:
@@ -181,8 +181,11 @@ class DmClient(Client):
 			if (self.hand[x][1] == 0):
 				self.hand.pop(x, None)
 
+	def update_mode(self):
+		self.write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
+
 	def gain(self, card):
-		self.game.get_turn_owner().write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
+		self.game.get_turn_owner().update_mode()
 		if (self.game.supply[card][1] > 0):
 			self.game.announce(self.name_string() + " gains " + card)
 			newCard = copy.copy(self.game.supply[card][0])
@@ -193,7 +196,9 @@ class DmClient(Client):
 	def gain_from_supply(self, price_limit, equal_only):
 		self.write_json(command="updateMode", mode="gain", price=price_limit, equal_only=equal_only)
 
-	def update_resources(self):
+	def update_resources(self, playedMoney = False):
+		if (playedMoney):
+			self.write_json(command="updateMode", mode="buy")
 		self.write_json(command="updateResources", actions=self.actions, buys=self.buys, balance=self.balance)
 
 	def hand_array(self):

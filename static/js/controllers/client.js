@@ -40,6 +40,8 @@
 		constructor.prototype.announce = function(json){
 				$('#msg').append("<br>" + json.msg);
 				$("#container").scrollTop($(document).height());
+				//TODO refactor
+				window.scrollTo(0,document.body.scrollHeight);
 		};
 
 		constructor.prototype.kingdomCards = function(json){
