@@ -33,19 +33,3 @@
 .resources {
 	font-size:1.6em;
 }
-/* Card type span color styles */
-.money {
-	background-color:#f0ad4e;
-}
-
-.action {
-
-}
-
-.victory {
-	background-color:#4cae4c;
-}
-
-.action-attack {
-	background-color:#d9534f;
-}

@@ -50,8 +50,10 @@
 			<button ng-click="c.endTurn()" ng-show="modeJson.mode === 'action' || modeJson.mode === 'buy'">End Turn</button>
 		</div>
 
-		<div id="hand">
-				<button ng-controller="handController" ng-repeat="card in hand" ng-disabled="disabled(card)" ng-click="clickCard(card)">{{card.title}}</button>
+		<div id="hand" ng-controller="handController">
+			<span ng-repeat="card in hand">
+				<button ng-disabled="disabled(card)" ng-class="getButtonStyle(card)" ng-click="clickCard(card)" style="margin:2px;">{{card.title}}</button>
+			</span>
 		</div>
 		<hr>
 		<div ng-controller="chatController">

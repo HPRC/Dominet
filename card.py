@@ -22,8 +22,7 @@ class Card():
 		}
 
 	def log_string(self):
-		return self.title
-
+		return "<span class='label label-default'>" + self.title + "</span>"
 
 class Money(Card):
 	def __init__(self, game, played_by):
@@ -47,7 +46,7 @@ class Money(Card):
 		}
 
 	def log_string(self):
-		return "<span class='money'>" + self.title + "</span>"
+		return "<span class='label label-warning'>" + self.title + "</span>"
 
 class AttackCard(Card):
 	def __init__(self, game, played_by):
@@ -75,7 +74,7 @@ class AttackCard(Card):
 		pass
 
 	def log_string(self):
-		return "<span class='action-attack'>" + self.title + "</span>"
+		return "<span class='label label-danger'>" + self.title + "</span>"
 
 class Copper(Money):
 	def __init__(self, game, played_by):
@@ -125,6 +124,9 @@ class Estate(Card):
 	def play(self):
 		return
 
+	def log_string(self):
+		return "<span class='label label-success'>" + self.title + "</span>"
+
 class Duchy(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
@@ -137,6 +139,9 @@ class Duchy(Card):
 	def play(self):
 		return
 
+	def log_string(self):
+		return "<span class='label label-success'>" + self.title + "</span>"
+
 class Province(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
@@ -148,6 +153,9 @@ class Province(Card):
 
 	def play(self):
 		return
+
+	def log_string(self):
+		return "<span class='label label-success'>" + self.title + "</span>"
 
 class Cellar(Card):
 	def __init__(self, game, played_by):
@@ -274,11 +282,11 @@ class Spy(AttackCard):
 		if (selection[0] == "discard"):
 			card = act_on.deck.pop()
 			act_on.discard_pile.append(card)
-			self.game.announce(self.played_by.name_string() + " discards " + card.title + " from " + 
+			self.game.announce(self.played_by.name_string() + " discards " + card.log_string() + " from " + 
 				act_on.name_string() + "'s deck")
 		else:
 			card = act_on.deck[-1]
-			self.game.announce(self.played_by.name_string() + " leaves " + card.title + " on " + 
+			self.game.announce(self.played_by.name_string() + " leaves " + card.log_string() + " on " + 
 				act_on.name_string() + "'s deck")
 		next_player_index = (self.game.players.index(act_on) + 1) % len(self.game.players)
 		if (self.game.players[next_player_index] != self.played_by):

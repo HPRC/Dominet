@@ -238,7 +238,7 @@
 
 	});
 	
-	clientModule.controller("handController", function($scope, client){
+	clientModule.controller("handController", function($scope, client, cardStyle){
 		$scope.disabled = function(card){
 			if (card.type === "Victory" || card.type === "Curse" || $scope.turn === false || $scope.modeJson.mode === "wait"
 				|| $scope.modeJson.mode === "select" || $scope.modeJson.mode === "gain"){
@@ -256,9 +256,11 @@
 			client.playCard(card);
 		};
 
+		// this causes bug with popover overlapping disabled hand cards
+		// $scope.getButtonStyle = cardStyle.getButtonStyle;
 	});
 
-	clientModule.controller("supplyController", function($scope, socket, client){
+	clientModule.controller("supplyController", function($scope, socket, client, cardStyle){
 		var getSupplyArray = function(supply){
 			return $.map(supply, function(card, title){
 				return card;
@@ -303,20 +305,7 @@
 			}
 		};
 
-		$scope.getButtonStyle = function(card){
-			var colorDict = {
-				"Money": "btn btn-warning",
-				"Victory": "btn btn-success",
-				"Action|Attack": "btn btn-danger"
-			};
-
-			if (card.type in colorDict){
-				return colorDict[card.type];
-			} else {
-				return "btn btn-default";
-			}
-		}
-
+		$scope.getButtonStyle = cardStyle.getButtonStyle;
 	});
 
 	clientModule.controller("selectController", function($scope, socket){
