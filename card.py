@@ -8,7 +8,7 @@ class Card():
 		self.price = None
 
 	def play(self):
-		self.game.announce(self.played_by.name_string() + " played " + self.title)
+		self.game.announce(self.played_by.name_string() + " played " + self.log_string())
 		self.played_by.discard([self.title], self.played_by.played)
 		if ("Action" in self.type):
 			self.played_by.actions -= 1
@@ -21,9 +21,9 @@ class Card():
 			"price": self.price
 		}
 
-	#called after a selection, if played by opponent on me, I use a temp supply card with me as owner to resolve effects
-	def post_select(self, selection):
-		pass
+	def log_string(self):
+		return self.title
+
 
 class Money(Card):
 	def __init__(self, game, played_by):
@@ -45,6 +45,9 @@ class Money(Card):
 			"price": self.price,
 			"value": self.value
 		}
+
+	def log_string(self):
+		return "<span class='money'>" + self.title + "</span>"
 
 class AttackCard(Card):
 	def __init__(self, game, played_by):
@@ -70,6 +73,9 @@ class AttackCard(Card):
 
 	def attack(self):
 		pass
+
+	def log_string(self):
+		return "<span class='action-attack'>" + self.title + "</span>"
 
 class Copper(Money):
 	def __init__(self, game, played_by):

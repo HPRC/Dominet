@@ -148,7 +148,7 @@ class DmClient(Client):
 
 	def buy_card(self, card):
 		if (self.buys > 0 and self.game.supply[card][1] > 0):
-			self.game.announce("<b>" + self.name + "</b> buys " + card)
+			self.game.announce("<b>" + self.name + "</b> buys " + card.log_title())
 			# alternative to copy but requires module to have all cards
 			# card_class = getattr(crd, card)
 			# newCard = card_class(self.game, self)
@@ -187,7 +187,7 @@ class DmClient(Client):
 	def gain(self, card):
 		self.game.get_turn_owner().update_mode()
 		if (self.game.supply[card][1] > 0):
-			self.game.announce(self.name_string() + " gains " + card)
+			self.game.announce(self.name_string() + " gains " + card.log_title())
 			newCard = copy.copy(self.game.supply[card][0])
 			newCard.played_by = self
 			self.discard_pile.append(newCard)
