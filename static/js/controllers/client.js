@@ -15,6 +15,7 @@
 			this.spendableMoney = 0;
 			//mode overidden by turn
 			this.modeJson = {"mode":"action"}; //.mode = action, buy, select, gain, wait, gameover
+			this.warn_action_skip = true;
 			var that = this;
 
 			//socket
@@ -116,6 +117,7 @@
 		};
 
 		constructor.prototype.playCard = function(card){
+
 			if (this.actions > 0 || card.type.indexOf("Action") === -1){
 				socket.send(JSON.stringify({"command":"play", "card": card.title}));
 				this.played.push(card);
@@ -127,10 +129,12 @@
 					}
 				}
 			}
+			
 			if (card.type === "Money"){
 				this.modeJson = {"mode":"buy"};
 				this.updateSpendable();
 			}
+
 		};
 
 		constructor.prototype.buyCard = function(card){

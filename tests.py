@@ -5,6 +5,8 @@ import game as g
 
 class DummyHandler():
 	def write_json(self, **kwargs):
+		if ("command" in kwargs and kwargs["command"] == "announce"):
+			print(kwargs["msg"])
 		pass
 
 class TestGame(unittest.TestCase):
@@ -31,15 +33,31 @@ class TestGame(unittest.TestCase):
 		self.player1.gain("Province")
 		self.assertTrue(self.player1.total_vp() == initial_vp + 6)
 
+	def test_gain(self):
+		initialCurses = self.game.supply["Curse"][1]
+		self.player2.gain("Curse")
+		self.assertTrue(self.player2.discard_pile[-1].title == "Curse")
+		self.assertTrue(self.game.supply["Curse"][1] == initialCurses-1)
+
 	def test_detect_end(self):
 		for i in range(0,8):
 			self.player1.gain("Province")
 		self.assertTrue(self.game.detect_end())
 
-	# def test_detect_end_piles(self):
-	# 	for title, data in self.game.supply.items():
-	# 		self.
+	def test_end_tie(self):
+		self.game.turn = 1;
+		for i in range(0,4):
+			self.player1.gain("Province")
+			self.player2.gain("Province")
+		self.assertTrue(self.game.detect_end())
 
+	#TODO card tests to separate file
+	# def test_Cellar(self):
+	# 	if ("Cellar" not in self.game.kingdom.keys()):
+	# 		print("Cellar isnt in kingdom")
+	# 	else:
+	# 		crd.Cellar(self.game, player1)
+	# 		print(self.player1.hand)
 
 if __name__ == '__main__':
 	unittest.main()

@@ -43,7 +43,11 @@ class GameHandler(websocket.WebSocketHandler):
 	def write_json(self, **kwargs):
 		if not "command" in kwargs:
 			print("no command found for " + json.dumps(kwargs))
-		return self.write_message(json.dumps(kwargs))		
+		try:
+			return self.write_message(json.dumps(kwargs))
+		except WebSocketClosedError:
+			print("Tried to write to closed socket")
+
 
 	def open(self):
 		#init client
@@ -97,7 +101,8 @@ class GameHandler(websocket.WebSocketHandler):
 			p.write_json(command="announce", msg= msg)
 
 	def on_close(self):
-		del GameHandler.unattachedClients[self.client.name]
+		if (self.client.name in GameHandler.unattachedClients):
+			del GameHandler.unattachedClients[self.client.name]
 		print("\033[94m Socket Closed HELP!\033[0m")
 
 class DmHandler(GameHandler):
