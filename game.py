@@ -120,14 +120,14 @@ class DmGame(Game):
 				if (len(filtered_winners) == 0):
 					#everyone wins
 					self.announce(self.construct_end_string(winners, win_vp))
-					for i,vp in filtered_winners:
-						self.announce(i.name_string() + " with " + construct_VP_string(i))
+					for i,vp in winners:
+						self.announce(i.name_string() + " with " + self.construct_VP_string(i))
 				elif (len(filtered_winners) == 1):
 					self.announce(self.construct_end_string(filtered_winners, win_vp))
 				else:
 					self.announce(self.construct_end_string(filtered_winners, win_vp))
 					for i,vp in filtered_winners:
-						self.announce(i.name_string() + " with " + construct_VP_string(i))
+						self.announce(i.name_string() + " with " + self.construct_VP_string(i))
 			for i in self.players:
 				i.write_json(command="updateMode", mode="gameover")
 			#net.GameHandler.games.remove(self)

@@ -2,6 +2,7 @@ import unittest
 import net
 import client as c
 import game as g
+import card as crd
 
 class DummyHandler():
 	def write_json(self, **kwargs):
@@ -45,19 +46,21 @@ class TestGame(unittest.TestCase):
 		self.assertTrue(self.game.detect_end())
 
 	def test_end_tie(self):
-		self.game.turn = 1;
+		self.game.turn = 1
 		for i in range(0,4):
 			self.player1.gain("Province")
 			self.player2.gain("Province")
 		self.assertTrue(self.game.detect_end())
 
-	#TODO card tests to separate file
-	# def test_Cellar(self):
-	# 	if ("Cellar" not in self.game.kingdom.keys()):
-	# 		print("Cellar isnt in kingdom")
-	# 	else:
-	# 		crd.Cellar(self.game, player1)
-	# 		print(self.player1.hand)
+	def test_spend_all_money(self):
+		self.player1.balance = 0
+		self.player1.hand = {"Copper" : [crd.Copper(self.game, self.player1), 5]}
+		self.player1.spend_all_money()
+		self.assertTrue(self.player1.balance == 5)
+		print(self.player1.hand.items())
+		self.assertTrue(len(self.player1.hand.items()) == 0)
+		self.assertTrue(len(self.player1.played) == 5)
+
 
 if __name__ == '__main__':
 	unittest.main()

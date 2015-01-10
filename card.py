@@ -21,8 +21,8 @@ class Card():
 			"price": self.price
 		}
 
-	def log_string(self):
-		return "<span class='label label-default'>" + self.title + "</span>"
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-default'>", self.title, "s</span>" if plural else "</span>"])
 
 class Money(Card):
 	def __init__(self, game, played_by):
@@ -45,8 +45,8 @@ class Money(Card):
 			"value": self.value
 		}
 
-	def log_string(self):
-		return "<span class='label label-warning'>" + self.title + "</span>"
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-warning'>", self.title, "s</span>" if plural else "</span>"])
 
 class AttackCard(Card):
 	def __init__(self, game, played_by):
@@ -73,8 +73,8 @@ class AttackCard(Card):
 	def attack(self):
 		pass
 
-	def log_string(self):
-		return "<span class='label label-danger'>" + self.title + "</span>"
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-danger'>", self.title, "s</span>" if plural else "</span>"])
 
 class Copper(Money):
 	def __init__(self, game, played_by):
@@ -123,9 +123,9 @@ class Estate(Card):
 
 	def play(self):
 		return
-
-	def log_string(self):
-		return "<span class='label label-success'>" + self.title + "</span>"
+		
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-success'>", self.title, "s</span>" if plural else "</span>"])
 
 class Duchy(Card):
 	def __init__(self, game, played_by):
@@ -139,8 +139,8 @@ class Duchy(Card):
 	def play(self):
 		return
 
-	def log_string(self):
-		return "<span class='label label-success'>" + self.title + "</span>"
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-success'>", self.title, "s</span>" if plural else "</span>"])
 
 class Province(Card):
 	def __init__(self, game, played_by):
@@ -154,8 +154,8 @@ class Province(Card):
 	def play(self):
 		return
 
-	def log_string(self):
-		return "<span class='label label-success'>" + self.title + "</span>"
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-success'>", self.title, "s</span>" if plural else "</span>"])
 
 class Cellar(Card):
 	def __init__(self, game, played_by):

@@ -133,6 +133,8 @@ class DmClient(Client):
 				self.waiting["cb"](data["selection"])
 		elif (cmd == "gain"):
 			self.gain(data["card"])
+		elif (cmd == "spendAllMoney"):
+			self.spend_all_money()
 
 	def end_turn(self):
 		if self.game.detect_end():
@@ -179,7 +181,7 @@ class DmClient(Client):
 			self.hand[x][1] -= 1
 			pile.append(self.hand[x][0])
 			if (self.hand[x][1] == 0):
-				self.hand.pop(x, None)
+				del self.hand[x]
 
 	def update_mode(self):
 		self.write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
@@ -209,6 +211,25 @@ class DmClient(Client):
 			for i in range(0, count):
 				h.append(card.to_json())
 		return h
+
+	def spend_all_money(self):
+		to_log = []
+		to_discard = {}
+		for title, data in self.hand.items():
+			if (data[0].type == "Money"):
+				for count in range(0, data[1]):
+					self.balance += data[0].value
+				if (len(to_log) != 0):
+					to_log.append(",")
+				to_discard[data[0].title] = data[1]
+				to_log.append(str(data[1]))
+				to_log.append(data[0].log_string() if data[1] == 1 else data[0].log_string(True))
+		for title, count in to_discard.items():
+			for i in range(0, count):
+				self.discard([title], self.played)
+		self.game.announce(self.name_string() + " played " + " ".join(to_log))
+		self.update_resources(True)
+		self.update_hand()
 
 	def total_vp(self, returnCards = False):
 		total = 0
