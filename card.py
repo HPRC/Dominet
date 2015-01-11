@@ -123,7 +123,7 @@ class Estate(Card):
 
 	def play(self):
 		return
-		
+
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-success'>", self.title, "s</span>" if plural else "</span>"])
 
@@ -211,8 +211,11 @@ class Moat(Card):
 	def post_select(self, selection):
 		self.played_by.waiting["cb"] = None
 		if (selection[0] == "Reveal"):
-			self.game.announce(self.played_by.name_string() + " reveals " + self.title)
+			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
+			self.played_by.protection += 1
 
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
 
 class Village(Card):
 	def __init__(self, game, played_by):
@@ -307,8 +310,8 @@ class Militia(AttackCard):
 		AttackCard.check_reactions(self, self.game.get_opponents(self.played_by))
 
 	def attack(self):
-		for i in self.game.players:
-			if ( i != self.played_by):
+		for i in self.game.get_opponents(self.played_by):
+			if (i.protection == 0):
 				i.select(len(i.hand_array())-3, self.title, i.card_list_to_titles(i.hand_array()),
 				 "select 2 cards to discard")
 			
@@ -318,7 +321,10 @@ class Militia(AttackCard):
 				i.waiting["on"].append(i)
 				i.waiting["cb"] = post_select_on
 				self.played_by.waiting["on"].append(i)
-		self.played_by.wait("Waiting for other players to discard")
+				self.played_by.wait("Waiting for other players to discard")
+			else:
+				i.protection -= 1
+				self.game.announce(i.name_string() + " is unaffected by the attack")
 
 	def post_select(self, selection, act_on):
 		act_on.discard(selection, act_on.discard_pile)

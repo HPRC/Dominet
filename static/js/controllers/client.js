@@ -231,7 +231,8 @@
 		});
 
 		$scope.returnLobby = function(){
-			$scope.main.game = false;	
+			$scope.main.game = false;
+			socket.send(JSON.stringify({"command": "returnToLobby"}));
 		};
 
 	});

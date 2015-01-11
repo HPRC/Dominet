@@ -140,16 +140,16 @@ class DmGame(Game):
 			return (winners[0][0].name_string() + " has claimed victory with " + 
 				str(winning_vp) + " points: " + self.construct_VP_string(winners[0][0]))
 		else:
-			return " ,".join(x[0].name_string() for x in winners) + " rejoice in a shared victory with " + str(winning_vp) + " points!"
+			return " & ".join(x[0].name_string() for x in winners) + " rejoice in a shared victory with " + str(winning_vp) + " points!"
 
 	def construct_VP_string(self, player):
 		ls = [] 
 		for title, count in player.total_vp(True).items():
 			if (count == 1):
-				ls.append(str(count) + " <span class=label label-success>" + title + "</span>")
+				ls.append(str(count) + " <span class='label label-success'>" + title + "</span>")
 			else:
-				ls.append(str(count) + " <span class=label label-success>" + title + "s</span>")
-		return ",".join(ls)
+				ls.append(str(count) + " <span class='label label-success'>" + title + "s</span>")
+		return " ".join(ls)
 
 	def players_ready(self):
 		for i in self.players:

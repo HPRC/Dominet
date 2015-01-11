@@ -60,7 +60,7 @@ class GameHandler(websocket.WebSocketHandler):
 		for i in game.players:
 			i.write_json(command="resume")
 			i.game = game
-		self.games.append(game)
+		GameHandler.games.append(game)
 		for x in args:
 			del GameHandler.unattachedClients[x.name]
 		GameHandler.update_lobby()
@@ -77,6 +77,13 @@ class GameHandler(websocket.WebSocketHandler):
 
 	def get_lobby_names():
 		return list(GameHandler.unattachedClients.keys())
+
+	def return_to_lobby(self):
+		GameHandler.unattachedClients[self.client.name] = self.client
+		GameHandler.update_lobby()
+		self.client.game.players.remove(self.client)
+		if (len(self.client.game.players) == 0):
+			GameHandler.games.remove(self.client.game)
 
 	def on_message(self,data):
 		jsondata = json.loads(data)

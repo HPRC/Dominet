@@ -4,7 +4,8 @@ clientModule.factory('cardStyle', function(){
 			var colorDict = {
 				"Money": "btn btn-warning",
 				"Victory": "btn btn-success",
-				"Action|Attack": "btn btn-danger"
+				"Action|Attack": "btn btn-danger",
+				"Action|Reaction": "btn btn-info"
 			};
 
 			if (card.type in colorDict){

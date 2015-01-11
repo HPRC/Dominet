@@ -38,9 +38,9 @@ class DmClient(Client):
 	def base_deck(self):
 		deck = []
 		for i in range(0,7):
-			deck.append(crd.Copper(game=self.game, played_by=self))
+			deck.append(crd.Gold(game=self.game, played_by=self))
 		for i in range(0,3):
-			deck.append(crd.Estate(game=self.game, played_by=self))
+			deck.append(crd.Gold(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
@@ -76,6 +76,7 @@ class DmClient(Client):
 		self.update_hand()
 		#List of players waiting for, callback
 		self.waiting = {"on": [], "cb": None}
+		self.protection = 0
 
 	def resume_state(self, new_conn):
 		new_conn.trash_pile = self.trash_pile
@@ -135,6 +136,8 @@ class DmClient(Client):
 			self.gain(data["card"])
 		elif (cmd == "spendAllMoney"):
 			self.spend_all_money()
+		elif (cmd == "returnToLobby"):
+			self.handler.return_to_lobby()
 
 	def end_turn(self):
 		if self.game.detect_end():
@@ -252,8 +255,31 @@ class DmClient(Client):
 					 	vp_dict[data[0].title] = 1
 		return total if not returnCards else vp_dict
 
+	def decklist_string(self):
+		decklist = {}
+		for card_title in self.card_list_to_titles(self.deck + self.discard_pile):
+			if card_title in decklist:
+				decklist[card_title] += 1  
+			else:
+				decklist[card_title] = 1
+		for card_title in self.card_list_to_titles(self.hand_array()):
+			if card_title in decklist:
+				decklist[card_title] += 1
+			else:
+				decklist[card_title] = 1
+		decklist_str = []
+		for card_title, count in decklist.items():
+			decklist_str.append(str(count))
+			if count == 1:
+				decklist_str.append(self.game.supply[card_title][0].log_string())
+			else:
+				decklist_str.append(self.game.supply[card_title][0].log_string(True))
+			decklist_str.append(" ")
+		return "".join(decklist_str)
+
+	#returns list of card titles from list of card jsons or card objects
 	def card_list_to_titles(self, lst):
-		return list(map(lambda x: x['title'], lst))
+		return list(map(lambda x: x['title'], lst)) if isinstance(lst[0], dict) else list(map(lambda x: x.title, lst))
 
 	def name_string(self):
 		return "<b>" + self.name + "</b>"

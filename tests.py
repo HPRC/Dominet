@@ -57,7 +57,6 @@ class TestGame(unittest.TestCase):
 		self.player1.hand = {"Copper" : [crd.Copper(self.game, self.player1), 5]}
 		self.player1.spend_all_money()
 		self.assertTrue(self.player1.balance == 5)
-		print(self.player1.hand.items())
 		self.assertTrue(len(self.player1.hand.items()) == 0)
 		self.assertTrue(len(self.player1.played) == 5)
 
