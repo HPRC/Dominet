@@ -44,7 +44,7 @@ html, body {
 }
 
 #game-panel {
-	height:80%;
+	height:70%;
 }
 
 #msg {
@@ -53,7 +53,7 @@ html, body {
 }
 
 .chat-container {
-	height:20%;
+	height:30%;
 }
 
 .resources {

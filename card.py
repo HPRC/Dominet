@@ -70,6 +70,13 @@ class AttackCard(Card):
 		if not self.reactions:
 			self.attack()
 
+	def is_blocked(target):
+		if (target.protection == 0):
+			return False
+		else:
+			target.protection -= 1
+			self.game.announce(target.name_string() + " is unaffected by the attack")
+
 	def attack(self):
 		pass
 
@@ -168,7 +175,7 @@ class Cellar(Card):
 	def play(self):
 		Card.play(self)
 		self.played_by.actions += 1
-		self.played_by.select(None, self.title, 
+		self.played_by.select(None, 
 			self.played_by.card_list_to_titles(self.played_by.hand_array()), "select cards to discard")
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_select
@@ -199,7 +206,7 @@ class Moat(Card):
 		self.played_by.update_mode()
 
 	def react(self, react_to_callback):
-		self.played_by.select(1, self.title, ["Reveal", "Hide"],  
+		self.played_by.select(1, ["Reveal", "Hide"],  
 			"Reveal " + self.title + " to prevent attack?")
 
 		def new_cb(selection):
@@ -250,6 +257,51 @@ class Woodcutter(Card):
 		self.played_by.update_resources()
 		self.played_by.update_mode()
 
+class Bureaucrat(AttackCard):
+	def __init__(self, game, played_by):
+		AttackCard.__init__(self, game, played_by)
+		self.title = "Bureaucrat"
+		self.description = "Gain a Silver, put it on top of your deck. Each other player reveals a Victory card \
+		and puts it on his deck or reveals a hand with no Victory cards."
+		self.price = 4
+
+	def play(self):
+		Card.play(self)
+		self.played_by.gain("Silver")
+		self.played_by.update_resources()
+		AttackCard.check_reactions(self, self.game.get_opponents(self.played_by))
+
+	def attack(self):
+		for i in self.game.get_opponents(self.played_by):
+			if not AttackCard.is_blocked(i):
+				i_victory_cards = []
+				for title, data in i.hand.items():
+					if "Victory" in data[0].type:
+						i_victory_cards.append(data[0])
+				print(i_victory_cards)
+				if len(i_victory_cards) == 0:
+					self.game.announce(i.name_string() + " has no Victory cards & reveals " + i.hand_string())
+				elif len(i_victory_cards) == 1:
+					self.game.announce(i.name_string() + " puts " + i_victory_cards[0].log_string() + " back on top of the deck")
+					i.discard([i_victory_cards[0].title], i.deck)
+					i.update_hand()
+				else:
+					i.select(1, i.card_list_to_titles(i_victory_cards), 
+						"select 2 cards to discard")
+
+					def post_select_on(selection, i=i):
+						self.post_select(selection, i)
+
+					i.waiting["on"].append(i)
+					i.waiting["cb"] = post_select_on
+					self.played_by.waiting["on"].append(i)
+					self.played_by.wait("Waiting for other players to choose a Victory card to put back")
+
+	def post_select(self, selection, act_on):
+		act_on.discard(selection, act_on.deck)
+		self.game.announce(act_on.name_string() + " puts " + self.game.supply[selection[0]][0].log_string() + " back on top of the deck")
+		act_on.update_hand()
+
 class Spy(AttackCard):
 	def __init__(self, game, played_by):
 		AttackCard.__init__(self, game, played_by)
@@ -270,17 +322,18 @@ class Spy(AttackCard):
 		self.fire(self.played_by)
 
 	def fire(self, player):
-		if (len(player.deck) < 1):
-			player.shuffle_discard_to_deck()
-		revealed_card = player.deck[-1]
-		self.played_by.select(1, self.title, ["discard", "keep"],  
-			player.name + " revealed " + revealed_card.title)
+		if not AttackCard.is_blocked(player):
+			if (len(player.deck) < 1):
+				player.shuffle_discard_to_deck()
+			revealed_card = player.deck[-1]
+			self.played_by.select(1, ["discard", "keep"],  
+				player.name + " revealed " + revealed_card.title)
 
-		def post_select_on(selection, player=player):
-			self.post_select(selection, player)
+			def post_select_on(selection, player=player):
+				self.post_select(selection, player)
 
-		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = post_select_on
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = post_select_on
 
 	def post_select(self, selection, act_on):
 		if (selection[0] == "discard"):
@@ -312,8 +365,8 @@ class Militia(AttackCard):
 
 	def attack(self):
 		for i in self.game.get_opponents(self.played_by):
-			if (i.protection == 0):
-				i.select(len(i.hand_array())-3, self.title, i.card_list_to_titles(i.hand_array()),
+			if not AttackCard.is_blocked(i):
+				i.select(len(i.hand_array())-3, i.card_list_to_titles(i.hand_array()),
 				 "select 2 cards to discard")
 			
 				def post_select_on(selection, i=i):
@@ -323,9 +376,6 @@ class Militia(AttackCard):
 				i.waiting["cb"] = post_select_on
 				self.played_by.waiting["on"].append(i)
 				self.played_by.wait("Waiting for other players to discard")
-			else:
-				i.protection -= 1
-				self.game.announce(i.name_string() + " is unaffected by the attack")
 
 	def post_select(self, selection, act_on):
 		act_on.discard(selection, act_on.discard_pile)
@@ -377,7 +427,7 @@ class Remodel(Card):
 
 	def play(self):
 		Card.play(self)
-		self.played_by.select(1, self.title, self.played_by.card_list_to_titles(self.played_by.hand_array()),
+		self.played_by.select(1, self.played_by.card_list_to_titles(self.played_by.hand_array()),
 		 "select card to remodel")
 		self.played_by.update_resources()
 		self.played_by.waiting["on"].append(self.played_by)
@@ -459,7 +509,7 @@ class Witch(AttackCard):
 		AttackCard.check_reactions(self, self.game.get_opponents(self.played_by))
 
 	def attack(self):
-		for i in self.game.players:
-			if (i != self.played_by):
+		for i in self.game.get_opponents(self.played_by):
+			if not AttackCard.is_blocked(i):
 				i.gain("Curse")
 		self.played_by.update_mode()

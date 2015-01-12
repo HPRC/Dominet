@@ -44,9 +44,11 @@ class DmClient(Client):
 	def base_deck(self):
 		deck = []
 		for i in range(0,7):
-			deck.append(crd.Village(game=self.game, played_by=self))
+			deck.append(crd.Bureaucrat(game=self.game, played_by=self))
 		for i in range(0,3):
-			deck.append(crd.Moat(game=self.game, played_by=self))
+			deck.append(crd.Estate(game=self.game, played_by=self))
+		for i in range(0,3):
+			deck.append(crd.Duchy(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
@@ -194,8 +196,8 @@ class DmClient(Client):
 			self.balance -= newCard.price
 			self.update_resources()
 
-	def select(self, num_needed, card, select_from, msg):
-		self.write_json(command="updateMode", mode="select", count=num_needed, card=card, 
+	def select(self, num_needed, select_from, msg):
+		self.write_json(command="updateMode", mode="select", count=num_needed, 
 			select_from=select_from, msg=msg)
 
 	def wait(self, msg):
@@ -243,6 +245,15 @@ class DmClient(Client):
 			for i in range(0, count):
 				h.append(card.to_json())
 		return h
+
+	def hand_string(self):
+		h = []
+		for title, data in self.hand.items():
+			card = data[0]
+			count = data[1]
+			h.append(str(count))
+			h.append(card.log_string(True)) if count > 1 else h.append(card.log_string)
+		return " ".join(h)
 
 	def spend_all_money(self):
 		to_log = []

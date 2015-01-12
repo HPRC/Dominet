@@ -341,7 +341,7 @@
 		};
 
 		$scope.doneSelection = function(){
-			socket.send(JSON.stringify({"command": "post_selection", "selection": $scope.selected, "card":$scope.modeJson.card, "act_on":$scope.modeJson.act_on}));
+			socket.send(JSON.stringify({"command": "post_selection", "selection": $scope.selected, "act_on":$scope.modeJson.act_on}));
 			$scope.selected = [];
 		};
 
