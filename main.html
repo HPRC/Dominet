@@ -17,11 +17,11 @@
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
 
 </head>
-<div id="container" ng-init="main.game = false">
-		<div ng-if="!main.game">
+<div id="container" class="full-height" ng-init="main.game = false">
+		<div class="full-height" ng-if="!main.game">
 			<ng-include src="'/static/partials/lobby.html'"></ng-include>
 		</div>
-		<div ng-if="main.game">
+		<div class="full-height" ng-if="main.game">
 			<ng-include src="'/static/partials/game.html'"></ng-include>
 		</div>
 	</div>

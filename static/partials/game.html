@@ -1,10 +1,9 @@
-<div class="row">
+<div class="row title-bar">
 	<div class="col-md-8 col-md-offset-4">
 		<h4>Dominet</h4>
 	</div>
 </div>
-<div class="row" ng-controller="clientController">
-
+<div id="client-container" class="row" ng-controller="clientController">
 	<div id="leftColumn" ng-controller="supplyController" class="row">
 		<div class="col-md-6">
 			<table class="table">
@@ -22,41 +21,42 @@
 		</div>
 	</div>
 	<div id="rightColumn">
-		<div id="msg"></div>
-		<div id="gameover" ng-show="modeJson.mode === 'gameover'">
-			<a href="#" ng-click="returnLobby()">Return to Lobby</a>
-		</div>
-		<div id="wait" ng-show="modeJson.mode === 'wait'"><h4>{{modeJson.msg}}</h4>
-		</div>
-		<div id="select" ng-show="modeJson.mode ==='select'" ng-controller="selectController">
-			<div ng-if="modeJson.count > 1 || modeJson.count === null">
-				<h4>{{modeJson.msg}}</h4>
-				<label class="checkbox-inline" ng-repeat="option in modeJson.select_from track by $index">
-					<input type="checkbox" ng-init="checked=false" ng-click="checked=!checked; check(option,checked)">{{option}}
-				</label>
-				<button ng-disabled="!canBeDone" ng-click="doneSelection()">Done</button>
+		<div id="game-panel">
+			<div id="msg"></div>
+			<div id="gameover" ng-show="modeJson.mode === 'gameover'">
+				<a href="#" ng-click="returnLobby()">Return to Lobby</a>
 			</div>
-			<div ng-if="modeJson.count === 1">
-				<h4>{{modeJson.msg}}</h4>
-				<a href ng-click="selectOne(option)" ng-repeat="option in modeJson.select_from track by $index">  {{option}}  </a>
+			<div id="wait" ng-show="modeJson.mode === 'wait'"><h4>{{modeJson.msg}}</h4>
+			</div>
+			<div id="select" ng-show="modeJson.mode ==='select'" ng-controller="selectController">
+				<div ng-if="modeJson.count > 1 || modeJson.count === null">
+					<h4>{{modeJson.msg}}</h4>
+					<label class="checkbox-inline" ng-repeat="option in modeJson.select_from track by $index">
+						<input type="checkbox" ng-init="checked=false" ng-click="checked=!checked; check(option,checked)">{{option}}
+					</label>
+					<button ng-disabled="!canBeDone" ng-click="doneSelection()">Done</button>
+				</div>
+				<div ng-if="modeJson.count === 1">
+					<h4>{{modeJson.msg}}</h4>
+					<a href ng-click="selectOne(option)" ng-repeat="option in modeJson.select_from track by $index">  {{option}}  </a>
+				</div>
+			</div>
+
+			<div id="playerOptions" ng-show="turn">
+				<span class="resources"><b>actions:</b>{{actions}}</span>
+				<span class="resources"><b>buys:</b>{{buys}}</span>
+				<span class="resources"><b>balance:</b>{{balance}}</span>
+				<button id="spendMoney" ng-click="c.spendAllMoney()" ng-show="modeJson.mode === 'action'|| modeJson.mode === 'buy'">+${{spendableMoney}}</button>
+				<button ng-click="c.endTurn()" ng-show="modeJson.mode === 'action' || modeJson.mode === 'buy'">End Turn</button>
+			</div>
+
+			<div id="hand" ng-controller="handController">
+				<span ng-repeat="card in hand">
+					<button ng-disabled="disabled(card)" ng-class="getButtonStyle(card)" ng-click="clickCard(card)">{{card.title}}</button>
+				</span>
 			</div>
 		</div>
-
-		<div id="playerOptions" ng-show="turn">
-			<span class="resources"><b>actions:</b>{{actions}}</span>
-			<span class="resources"><b>buys:</b>{{buys}}</span>
-			<span class="resources"><b>balance:</b>{{balance}}</span>
-			<button id="spendMoney" ng-click="c.spendAllMoney()" ng-show="modeJson.mode === 'action'|| modeJson.mode === 'buy'">+${{spendableMoney}}</button>
-			<button ng-click="c.endTurn()" ng-show="modeJson.mode === 'action' || modeJson.mode === 'buy'">End Turn</button>
-		</div>
-
-		<div id="hand" ng-controller="handController">
-			<span ng-repeat="card in hand">
-				<button ng-disabled="disabled(card)" ng-class="getButtonStyle(card)" ng-click="clickCard(card)">{{card.title}}</button>
-			</span>
-		</div>
-		<hr>
-		<div ng-controller="chatController">
+		<div class="chat-container" ng-controller="chatController">
 			<div class="scrollChat" style="height:100px;">
 				<div id="gameChat">
 				</div>
