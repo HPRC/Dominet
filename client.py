@@ -35,25 +35,39 @@ class Client():
 
 class DmClient(Client):
 
+	def write_json(self, **kwargs):
+		if kwargs["command"] == "updateMode":
+			#callback used to resume mode if reconnect
+			self.last_mode = kwargs
+		Client.write_json(self, **kwargs)
+
 	def base_deck(self):
 		deck = []
 		for i in range(0,7):
-			deck.append(crd.Gold(game=self.game, played_by=self))
+			deck.append(crd.Village(game=self.game, played_by=self))
 		for i in range(0,3):
-			deck.append(crd.Gold(game=self.game, played_by=self))
+			deck.append(crd.Moat(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
 	def draw(self, numCards):
+		num_drawn = 0
 		if (len(self.deck)<5):
 			self.shuffle_discard_to_deck()
 		for i in range(0, numCards):
 			if (len(self.deck) >= 1):
+				num_drawn += 1
 				card = self.deck.pop()
 				if (card.title in self.hand):	
 					self.hand[card.title] = [card, self.hand[card.title][1] + 1]
 				else:
 					self.hand[card.title] = [card, 1]
+		if num_drawn == 0:
+			return "nothing"
+		elif num_drawn == 1:
+			return "a card"
+		else:
+			return str(num_drawn) + " cards"
 
 	def shuffle_discard_to_deck(self):
 		random.shuffle(self.discard_pile)
@@ -61,6 +75,7 @@ class DmClient(Client):
 		self.discard_pile = []
 
 	def setup(self):
+		self.last_mode = {"command":"updateMode", "mode": "action"}
 		self.trash_pile = []
 		self.discard_pile = []
 		#deck = [bottom, middle, top] 
@@ -88,6 +103,7 @@ class DmClient(Client):
 		new_conn.buys = self.buys
 		new_conn.balance = self.balance
 		new_conn.VP = self.VP
+		new_conn.last_mode = self.last_mode
 		for card in self.deck + self.discard_pile + self.trash_pile:
 			card.played_by = new_conn
 		for title, l in self.hand.items():
@@ -111,8 +127,12 @@ class DmClient(Client):
 		print("\033[94m" + json.dumps(data) + "\033[0m")
 		if (cmd == "ready"):
 			self.ready = True
-			if (self.game.players_ready()):
+			# TODO this still restarts games where players disconnect on first turn
+			if (self.game.players_ready() and self.game.turn_count == 1):
 				self.game.start_game()
+			elif (self.game.players_ready()):
+				self.game.load_supplies()
+				self.resume()
 		elif (cmd == "play"):
 			if (data["card"] not in self.hand):
 				print(self.hand)
@@ -138,6 +158,15 @@ class DmClient(Client):
 			self.spend_all_money()
 		elif (cmd == "returnToLobby"):
 			self.handler.return_to_lobby()
+
+	def resume(self):
+		self.update_hand()
+		self.update_resources()
+		if (self.game.get_turn_owner() == self):
+			self.write_json(**self.last_mode)
+			self.write_json(command="startTurn", actions=self.actions, 
+			buys=self.buys, balance=self.balance)
+			self.game.announce(self.name_string() + " has reconnected!")
 
 	def end_turn(self):
 		if self.game.detect_end():
@@ -230,8 +259,9 @@ class DmClient(Client):
 		for title, count in to_discard.items():
 			for i in range(0, count):
 				self.discard([title], self.played)
-		self.game.announce(self.name_string() + " played " + " ".join(to_log))
-		self.update_resources(True)
+		if (len(to_log) > 0):
+			self.game.announce(self.name_string() + " played " + " ".join(to_log))
+			self.update_resources(True)
 		self.update_hand()
 
 	def total_vp(self, returnCards = False):

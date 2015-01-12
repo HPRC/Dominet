@@ -8,7 +8,7 @@ class Game():
 		self.players = players
 		self.first = 0
 		self.turn = self.first
-		self.turn_count = 0
+		self.turn_count = 1
 
 	def chat(self, msg, speaker):
 		for i in self.players:
@@ -18,7 +18,7 @@ class Game():
 		self.announce("Starting game with " + str(self.players[0].name) + " and " + str(self.players[1].name))
 		for i in self.players:
 			i.setup()
-		self.announce("<b>---- " + self.players[self.turn].name + " 's turn ----</b>")
+		self.announce("<b>---- " + self.players[self.turn].name + " 's turn " + str(self.turn_count) + " ----</b>")
 		self.players[self.turn].take_turn()
 
 	def announce(self, msg):
@@ -26,9 +26,10 @@ class Game():
 			i.write_json(command="announce",msg=msg)
 
 	def change_turn(self):
-		self.turn_count += 1
-		self.turn = self.turn_count % len(self.players)
-		self.announce("<b>---- " + str(self.players[self.turn].name) + " 's turn ----</b>")
+		self.turn = (self.turn + 1) % len(self.players)
+		if (self.turn == self.first):
+			self.turn_count += 1
+		self.announce("<b>---- " + str(self.players[self.turn].name) + " 's turn " + str(self.turn_count) + " ----</b>")
 		self.players[self.turn].take_turn()
 
 	def get_opponents(self, player):
@@ -58,10 +59,13 @@ class DmGame(Game):
 
 	#override
 	def start_game(self):
+		self.load_supplies()
+		Game.start_game(self)
+
+	def load_supplies(self):
 		for i in self.players:
 			i.write_json(command="kingdomCards", data=self.supply_json(self.kingdom))
 			i.write_json(command="baseCards", data=self.supply_json(self.base_supply))
-		Game.start_game(self)
 
 	def supply_json(self, supply):
 		supply_list = []

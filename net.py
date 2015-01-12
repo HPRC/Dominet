@@ -45,7 +45,7 @@ class GameHandler(websocket.WebSocketHandler):
 			print("no command found for " + json.dumps(kwargs))
 		try:
 			return self.write_message(json.dumps(kwargs))
-		except WebSocketClosedError:
+		except websocket.WebSocketClosedError:
 			print("Tried to write to closed socket")
 
 
@@ -128,16 +128,6 @@ class DmHandler(GameHandler):
 					self.client.game.players.pop(index)
 					self.client.game.players.insert(index, self.client)
 					self.write_json(command="resume")
-					self.client.update_hand()
-					self.write_json(command="kingdomCards", data=self.client.game.supply_json(self.client.game.kingdom))
-					self.write_json(command="baseCards", data=self.client.game.supply_json(self.client.game.base_supply))
-					if (each_game.get_turn_owner() == self.client):
-						self.write_json(command="updateMode", mode="action" if self.client.actions > 0 else "buy")
-						self.write_json(command="startTurn", actions=self.client.actions, 
-							buys=self.client.buys, balance=self.client.balance)
-					self.client.game.announce(self.client.name_string() + " has reconnected!")
-					for i in self.client.game.players:
-						i.write_json(command="updateMode", mode="action" if i.actions > 0 else "buy")
 					return
 		GameHandler.open(self)
 	

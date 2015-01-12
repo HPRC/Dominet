@@ -192,7 +192,8 @@ class Moat(Card):
 
 	def play(self):
 		Card.play(self)
-		self.played_by.draw(2)
+		drawn = self.played_by.draw(2)
+		self.game.announce(" -- drawing " + drawn)
 		self.played_by.update_resources()
 		self.played_by.update_hand()
 		self.played_by.update_mode()
@@ -228,8 +229,8 @@ class Village(Card):
 	def play(self):
 		Card.play(self)
 		self.played_by.actions += 2
-		self.played_by.draw(1)
-		self.game.announce("-- gaining 2 actions and drawing a card")
+		drawn = self.played_by.draw(1)
+		self.game.announce("-- gaining 2 actions and drawing " + drawn)
 		self.played_by.update_hand()
 		self.played_by.update_resources()
 
@@ -259,8 +260,8 @@ class Spy(AttackCard):
 	def play(self):
 		Card.play(self)
 		self.played_by.actions += 1
-		self.played_by.draw(1)
-		self.game.announce("-- getting +1 action, +1 card")
+		drawn = self.played_by.draw(1)
+		self.game.announce("-- getting +1 action and drawing " + drawn)
 		self.played_by.update_resources()
 		self.played_by.update_hand()
 		AttackCard.check_reactions(self, self.game.get_opponents(self.played_by))
@@ -340,8 +341,8 @@ class Smithy(Card):
 
 	def play(self):
 		Card.play(self)
-		self.played_by.draw(3)
-		self.game.announce("-- drawing 3 cards")
+		drawn = self.played_by.draw(3)
+		self.game.announce("-- drawing " + drawn)
 		self.played_by.update_hand()
 		self.played_by.update_resources()
 		self.played_by.update_mode()
@@ -415,11 +416,11 @@ class Council_Room(Card):
 
 	def play(self):
 		Card.play(self)
-		self.played_by.draw(4)
+		drawn = self.played_by.draw(4)
 		self.played_by.buys += 1
 		self.played_by.update_hand()
 		self.played_by.update_resources()
-		self.game.announce("-- drawing 4 cards and getting +1 buy")
+		self.game.announce("-- drawing " + drawn + " and getting +1 buy")
 		self.game.announce("-- each other player draws a card")
 		for i in self.game.players:
 			if (i != self.played_by):
@@ -437,9 +438,9 @@ class Laboratory(Card):
 
 	def play(self):
 		Card.play(self)
-		self.played_by.draw(2)
+		drawn = self.played_by.draw(2)
 		self.played_by.actions += 1
-		self.game.announce("-- drawing 2 cards and gaining +1 action")
+		self.game.announce("-- drawing " + drawn + " and gaining +1 action")
 		self.played_by.update_hand()
 		self.played_by.update_resources()
 
@@ -452,8 +453,8 @@ class Witch(AttackCard):
 
 	def play(self):
 		Card.play(self)
-		self.played_by.draw(2)
-		self.game.announce("-- drawing 2 cards")
+		drawn = self.played_by.draw(2)
+		self.game.announce("-- drawing " + drawn)
 		self.played_by.update_hand()
 		AttackCard.check_reactions(self, self.game.get_opponents(self.played_by))
 

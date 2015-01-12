@@ -1,5 +1,4 @@
 (function() {
-
 	clientModule.factory('client', function(socket) {
 		var constructor = function() {
 			this.id = null;
@@ -40,8 +39,7 @@
 		constructor.prototype.announce = function(json){
 				$('#msg').append("<br>" + json.msg);
 				$("#container").scrollTop($(document).height());
-				//TODO refactor
-				window.scrollTo(0,document.body.scrollHeight);
+				$("#msg").scrollTop($("#msg")[0].scrollHeight);
 		};
 
 		constructor.prototype.kingdomCards = function(json){
