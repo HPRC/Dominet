@@ -30,13 +30,15 @@ html, body {
 }
 
 #leftColumn {
-	position:fixed;
+	/*position:fixed;*/
 	width:33%;
+	float:left;
 }
 
 #rightColumn {
+	width:66%;
 	height:100%;
-	margin-left:34%;
+	float:left;
 }
 
 .scrollChat {

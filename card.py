@@ -70,7 +70,7 @@ class AttackCard(Card):
 		if not self.reactions:
 			self.attack()
 
-	def is_blocked(target):
+	def is_blocked(self, target):
 		if (target.protection == 0):
 			return False
 		else:
@@ -257,6 +257,19 @@ class Woodcutter(Card):
 		self.played_by.update_resources()
 		self.played_by.update_mode()
 
+class Workshop(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Workshop"
+		self.description = "Gain a card costing up to $4"
+		self.price = 3
+		self.type = "Action"
+
+	def play(self):
+		Card.play(self)
+		self.played_by.gain_from_supply(4, False)
+		self.played_by.update_resources()
+
 class Bureaucrat(AttackCard):
 	def __init__(self, game, played_by):
 		AttackCard.__init__(self, game, played_by)
@@ -273,7 +286,7 @@ class Bureaucrat(AttackCard):
 
 	def attack(self):
 		for i in self.game.get_opponents(self.played_by):
-			if not AttackCard.is_blocked(i):
+			if not AttackCard.is_blocked(self, i):
 				i_victory_cards = []
 				for title, data in i.hand.items():
 					if "Victory" in data[0].type:
@@ -322,7 +335,7 @@ class Spy(AttackCard):
 		self.fire(self.played_by)
 
 	def fire(self, player):
-		if not AttackCard.is_blocked(player):
+		if not AttackCard.is_blocked(self, player):
 			if (len(player.deck) < 1):
 				player.shuffle_discard_to_deck()
 			revealed_card = player.deck[-1]
@@ -365,7 +378,7 @@ class Militia(AttackCard):
 
 	def attack(self):
 		for i in self.game.get_opponents(self.played_by):
-			if not AttackCard.is_blocked(i):
+			if not AttackCard.is_blocked(self, i):
 				i.select(len(i.hand_array())-3, i.card_list_to_titles(i.hand_array()),
 				 "select 2 cards to discard")
 			
@@ -510,6 +523,6 @@ class Witch(AttackCard):
 
 	def attack(self):
 		for i in self.game.get_opponents(self.played_by):
-			if not AttackCard.is_blocked(i):
+			if not AttackCard.is_blocked(self, i):
 				i.gain("Curse")
 		self.played_by.update_mode()

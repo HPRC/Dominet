@@ -254,7 +254,7 @@
 		};
 
 		// this causes bug with popover overlapping disabled hand cards
-		// $scope.getButtonStyle = cardStyle.getButtonStyle;
+		$scope.getButtonStyle = cardStyle.getButtonStyle;
 	});
 
 	clientModule.controller("supplyController", function($scope, socket, client, cardStyle){

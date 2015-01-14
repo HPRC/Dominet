@@ -27,6 +27,17 @@ class TestCard(unittest.TestCase):
 		Player1Handler.log = []
 		Player2Handler.log = []
 
+	def test_Cellar(self):
+		self.player1.hand["Cellar"] = [crd.Cellar(self.game, self.player1) ,1]
+		self.player1.hand["Cellar"][0].play()
+		self.assertTrue(Player1Handler.log[0]["command"] == "updateMode")
+		self.assertTrue(Player1Handler.log[0]["mode"] == "select")
+		self.assertTrue(self.player1.waiting["cb"] != None)
+		
+		selection = self.player1.card_list_to_titles(self.player1.hand_array())
+		self.player1.waiting["cb"](selection)
+		self.assertTrue(len(self.player1.discard_pile) == 5)
+
 	def test_Militia(self):
 		self.player1.hand["Militia"] = [crd.Militia(self.game, self.player1) ,1]
 		self.player1.hand["Militia"][0].play()

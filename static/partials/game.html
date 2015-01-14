@@ -49,7 +49,6 @@
 				<button id="spendMoney" ng-click="c.spendAllMoney()" ng-show="modeJson.mode === 'action'|| modeJson.mode === 'buy'">+${{spendableMoney}}</button>
 				<button ng-click="c.endTurn()" ng-show="modeJson.mode === 'action' || modeJson.mode === 'buy'">End Turn</button>
 			</div>
-
 			<div id="hand" ng-controller="handController">
 				<span ng-repeat="card in hand">
 					<button ng-disabled="disabled(card)" ng-class="getButtonStyle(card)" ng-click="clickCard(card)">{{card.title}}</button>
