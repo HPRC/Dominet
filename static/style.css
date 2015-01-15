@@ -31,14 +31,10 @@ html, body {
 
 #leftColumn {
 	/*position:fixed;*/
-	width:33%;
-	float:left;
 }
 
 #rightColumn {
-	width:66%;
 	height:100%;
-	float:left;
 }
 
 .scrollChat {
@@ -46,7 +42,14 @@ html, body {
 }
 
 #game-panel {
-	height:70%;
+	display:inline-block;
+	padding-bottom:1em;
+	height:69%;
+	width:100%;
+}
+
+#hand {
+	padding-top:.2em;
 }
 
 #msg {
@@ -55,6 +58,7 @@ html, body {
 }
 
 .chat-container {
+	padding-top:2%;
 	height:30%;
 }
 

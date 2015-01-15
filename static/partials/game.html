@@ -4,23 +4,25 @@
 	</div>
 </div>
 <div id="client-container" class="row" ng-controller="clientController">
-	<div id="leftColumn" ng-controller="supplyController" class="row">
-		<div class="col-md-6">
-			<table class="table">
-				<tr ng-repeat="card in kingdomSupplyArray | orderBy:'price':true">
-					<td><supply-card></supply-card></td>
-				</tr>
-			</table>
-		</div>
-		<div class="col-md-6">
-			<table class="table">
-				<tr ng-repeat="card in baseSupplyArray | orderBy:'price':true">
-					<td><supply-card></supply-card></td>
-				</tr>
-			</table>
+	<div  class="col-xs-4" id="leftColumn" ng-controller="supplyController">
+		<div class="row">
+			<div class="col-md-6">
+				<table class="table">
+					<tr ng-repeat="card in kingdomSupplyArray | orderBy:'price':true">
+						<td><supply-card></supply-card></td>
+					</tr>
+				</table>
+			</div>
+			<div class="col-md-6">
+				<table class="table">
+					<tr ng-repeat="card in baseSupplyArray | orderBy:'price':true">
+						<td><supply-card></supply-card></td>
+					</tr>
+				</table>
+			</div>
 		</div>
 	</div>
-	<div id="rightColumn">
+	<div id="rightColumn" class="col-xs-8">
 		<div id="game-panel">
 			<div id="msg"></div>
 			<div id="gameover" ng-show="modeJson.mode === 'gameover'">
@@ -34,7 +36,7 @@
 					<label class="checkbox-inline" ng-repeat="option in modeJson.select_from track by $index">
 						<input type="checkbox" ng-init="checked=false" ng-click="checked=!checked; check(option,checked)">{{option}}
 					</label>
-					<button ng-disabled="!canBeDone" ng-click="doneSelection()">Done</button>
+					<button ng-disabled="!canBeDone" ng-click="doneSelection()" class="btn btn-default">Done</button>
 				</div>
 				<div ng-if="modeJson.count === 1">
 					<h4>{{modeJson.msg}}</h4>
@@ -46,8 +48,8 @@
 				<span class="resources"><b>actions:</b>{{actions}}</span>
 				<span class="resources"><b>buys:</b>{{buys}}</span>
 				<span class="resources"><b>balance:</b>{{balance}}</span>
-				<button id="spendMoney" ng-click="c.spendAllMoney()" ng-show="modeJson.mode === 'action'|| modeJson.mode === 'buy'">+${{spendableMoney}}</button>
-				<button ng-click="c.endTurn()" ng-show="modeJson.mode === 'action' || modeJson.mode === 'buy'">End Turn</button>
+				<button id="spendMoney" ng-click="c.spendAllMoney()" ng-show="modeJson.mode === 'action'|| modeJson.mode === 'buy'" class="btn btn-default">+${{spendableMoney}}</button>
+				<button ng-click="c.endTurn()" ng-show="modeJson.mode === 'action' || modeJson.mode === 'buy'" class="btn btn-default">End Turn</button>
 			</div>
 			<div id="hand" ng-controller="handController">
 				<span ng-repeat="card in hand">
