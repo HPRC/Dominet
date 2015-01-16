@@ -33,7 +33,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(Player1Handler.log[0]["command"] == "updateMode")
 		self.assertTrue(Player1Handler.log[0]["mode"] == "select")
 		self.assertTrue(self.player1.waiting["cb"] != None)
-		
+
 		selection = self.player1.card_list_to_titles(self.player1.hand_array())
 		self.player1.waiting["cb"](selection)
 		self.assertTrue(len(self.player1.discard_pile) == 5)
@@ -49,6 +49,15 @@ class TestCard(unittest.TestCase):
 		selection = self.player2.card_list_to_titles(self.player2.hand_array())[:2]
 		self.player2.waiting["cb"](selection)
 		self.assertTrue(len(self.player2.hand_array()) == 3)
+
+	def test_Moat_reaction(self):
+		self.player2.hand["Moat"] = [crd.Moat(self.game, self.player2) ,1]
+		self.player1.hand["Witch"] = [crd.Witch(self.game, self.player1) ,1]
+		self.player1.hand["Witch"][0].play()
+		self.assertTrue("Reveal" in Player2Handler.log[0]["select_from"])
+		self.player2.waiting["cb"](["Reveal"])
+		#didn't gain curse
+		self.assertTrue(len(self.player2.discard_pile) == 0)
 		
 if __name__ == '__main__':
 	unittest.main()

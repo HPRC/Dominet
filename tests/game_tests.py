@@ -9,11 +9,14 @@ class DummyHandler():
 		if ("command" in kwargs and kwargs["command"] == "announce"):
 			print(kwargs["msg"])
 		pass
+class SilentHandler():
+	def write_json(self, **kwargs):
+		pass
 
 class TestGame(unittest.TestCase):
 	def setUp(self):
 		self.player1 = c.DmClient("player1", 0, DummyHandler())
-		self.player2 = c.DmClient("player2", 1, DummyHandler())
+		self.player2 = c.DmClient("player2", 1, SilentHandler())
 		self.game = g.DmGame([self.player1, self.player2])
 		for i in self.game.players:
 			i.game = self.game

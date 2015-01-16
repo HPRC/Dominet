@@ -76,6 +76,7 @@ class AttackCard(Card):
 		else:
 			target.protection -= 1
 			self.game.announce(target.name_string() + " is unaffected by the attack")
+			return True
 
 	def attack(self):
 		pass
@@ -519,6 +520,7 @@ class Witch(AttackCard):
 		drawn = self.played_by.draw(2)
 		self.game.announce("-- drawing " + drawn)
 		self.played_by.update_hand()
+		self.played_by.update_resources()
 		AttackCard.check_reactions(self, self.game.get_opponents(self.played_by))
 
 	def attack(self):

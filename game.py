@@ -110,28 +110,21 @@ class DmGame(Game):
 		if (self.supply["Province"][1] == 0 or self.empty_piles >=3):
 			self.announce("GAME OVER")
 			player_vp_list = (list(map(lambda x: (x, x.total_vp()), self.players)))
-			winners = [max(player_vp_list, key=lambda x: x[1])]
-			player_vp_list.remove(winners[0])
-			win_vp = winners[0][1]
-			for p in player_vp_list:
-				if (p[1] == win_vp):
-					winners.append(p)
+			win_vp = max(player_vp_list, key=lambda x: x[1])[1]
+			winners = [p for p in player_vp_list if p[1] == win_vp]
 			if (len(winners) == 1):
-				self.announce(self.construct_end_string(winners, win_vp))
+				for i in player_vp_list:
+					self.announce(self.construct_end_string(i[0], i[1], i in winners))
 			else:
 				last_player_went = self.players.index(self.get_turn_owner())
 				filtered_winners = [p for p in winners if self.players.index(p[0]) > last_player_went]
 				if (len(filtered_winners) == 0):
 					#everyone wins
-					self.announce(self.construct_end_string(winners, win_vp))
 					for i,vp in winners:
-						self.announce(i.name_string() + " with " + self.construct_VP_string(i))
-				elif (len(filtered_winners) == 1):
-					self.announce(self.construct_end_string(filtered_winners, win_vp))
+						self.announce(self.construct_end_string(i, win_vp, True))
 				else:
-					self.announce(self.construct_end_string(filtered_winners, win_vp))
-					for i,vp in filtered_winners:
-						self.announce(i.name_string() + " with " + self.construct_VP_string(i))
+					for i in player_vp_list:
+						self.announce(self.construct_end_string(i[0], i, i[0] in filtered_winners))
 			for i in self.players:
 				i.write_json(command="updateMode", mode="gameover")
 			#net.GameHandler.games.remove(self)
@@ -139,20 +132,18 @@ class DmGame(Game):
 		else:
 			return False
 
-	def construct_end_string(self, winners, winning_vp):
-		if len(winners) == 1:
-			return (winners[0][0].name_string() + " has claimed victory with " + 
-				str(winning_vp) + " points: " + self.construct_VP_string(winners[0][0]))
-		else:
-			return " & ".join(x[0].name_string() for x in winners) + " rejoice in a shared victory with " + str(winning_vp) + " points!"
+	def construct_end_string(self, player, final_vp, is_winner):
+		msg = "claimed victory" if is_winner else "been defeated"
+		return (player.name_string() + " has " + msg + " with " + 
+			str(final_vp) + " points: " + self.construct_VP_string(player))
 
 	def construct_VP_string(self, player):
 		ls = [] 
-		for title, count in player.total_vp(True).items():
-			if (count == 1):
-				ls.append(str(count) + " <span class='label label-success'>" + title + "</span>")
+		for title, data in player.total_vp(True).items():
+			if (data[1] == 1):
+				ls.append(str(data[1]) + " " + data[0].log_string(False))
 			else:
-				ls.append(str(count) + " <span class='label label-success'>" + title + "s</span>")
+				ls.append(str(data[1]) + " " + data[0].log_string(True))
 		return " ".join(ls)
 
 	def players_ready(self):

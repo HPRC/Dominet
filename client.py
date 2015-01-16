@@ -276,23 +276,22 @@ class DmClient(Client):
 
 	def total_vp(self, returnCards = False):
 		total = 0
-		# dictionary of vp source: count Province: 2, Estate:3
+		# dictionary of vp {"Province" : [<card Province>, 2]}
 		vp_dict = {}
 		for card in self.deck + self.discard_pile:
-			if ("Victory" in card.type):
+			if ("Victory" in card.type or "Curse" in card.type):
 				total += card.vp
 				if card.title in vp_dict:
-					vp_dict[card.title] += 1
+					vp_dict[card.title][1] += 1
 				else:
-				 	vp_dict[card.title] = 1
+					vp_dict[card.title] = [card, 1]
 		for title, data in self.hand.items():
-			if ("Victory" in data[0].type):
-				for i in range(0, data[1]):
-					total += data[0].vp
-					if data[0].title in vp_dict:
-						vp_dict[data[0].title] += 1
-					else:
-					 	vp_dict[data[0].title] = 1
+			if ("Victory" in data[0].type or "Curse" in data[0].type):
+				total += (data[0].vp * data[1])
+				if data[0].title in vp_dict:
+					vp_dict[data[0].title][1] += data[1]
+				else:
+				 	vp_dict[data[0].title] = [data[0], data[1]]
 		return total if not returnCards else vp_dict
 
 	def decklist_string(self):
