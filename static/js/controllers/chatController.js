@@ -1,19 +1,18 @@
 clientModule.controller("chatController", function($rootScope, $scope, socket){
     $scope.inputText = "";
 
-	$("#sendChat").click(function(){
-		$scope.inputText = $scope.inputText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-		socket.send(JSON.stringify({"command": "chat", "msg": $scope.inputText}));
-		$("#inputChat").val("");
-	});
-
 	$("#inputChat").keypress(function(e){
 		if(e.which==13){
-			$scope.inputText = $scope.inputText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-			socket.send(JSON.stringify({"command": "chat", "msg": $scope.inputText}))
-			$("#inputChat").val("");
+			$scope.enterChat();
 		}
 	});
+
+	$scope.enterChat = function(){
+		$scope.inputText = $scope.inputText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+		socket.send(JSON.stringify({"command": "chat", "msg": $scope.inputText}))
+		$("#inputChat").val("");	
+		$scope.inputText = "";
+	};
 
 	$scope.$on("$destroy", function(){
 		socketlistener();

@@ -44,9 +44,9 @@ class DmClient(Client):
 	def base_deck(self):
 		deck = []
 		for i in range(0,7):
-			deck.append(crd.Copper(game=self.game, played_by=self))
+			deck.append(crd.Throne_Room(game=self.game, played_by=self))
 		for i in range(0,3):
-			deck.append(crd.Estate(game=self.game, played_by=self))
+			deck.append(crd.Cellar	(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
@@ -148,7 +148,6 @@ class DmClient(Client):
 		elif (cmd == "buyCard"):
 			self.buy_card(data["card"])
 		elif (cmd == "post_selection"):
-			print(self.waiting)
 			self.update_wait()
 			if (self.waiting["cb"] != None):
 				self.waiting["cb"](data["selection"])
@@ -195,8 +194,13 @@ class DmClient(Client):
 			self.update_resources()
 
 	def select(self, num_needed, select_from, msg):
-		self.write_json(command="updateMode", mode="select", count=num_needed, 
-			select_from=select_from, msg=msg)
+		if (len(select_from) > 0):
+			self.write_json(command="updateMode", mode="select", count=num_needed, 
+				select_from=select_from, msg=msg)
+			return True
+		else:
+			self.write_json(command="updateMode", mode="buy")
+			return False
 
 	def wait(self, msg):
 		self.write_json(command="updateMode", mode="wait", msg=msg)
@@ -251,7 +255,7 @@ class DmClient(Client):
 			card = data[0]
 			count = data[1]
 			h.append(str(count))
-			h.append(card.log_string(True)) if count > 1 else h.append(card.log_string)
+			h.append(card.log_string(True)) if count > 1 else h.append(card.log_string())
 		return " ".join(h)
 
 	def spend_all_money(self):
@@ -318,6 +322,8 @@ class DmClient(Client):
 
 	#returns list of card titles from list of card jsons or card objects
 	def card_list_to_titles(self, lst):
+		if len(lst) == 0:
+			return []
 		return list(map(lambda x: x['title'], lst)) if isinstance(lst[0], dict) else list(map(lambda x: x.title, lst))
 
 	def name_string(self):

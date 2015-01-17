@@ -253,7 +253,6 @@
 			client.playCard(card);
 		};
 
-		// this causes bug with popover overlapping disabled hand cards
 		$scope.getButtonStyle = cardStyle.getButtonStyle;
 	});
 

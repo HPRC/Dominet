@@ -47,11 +47,11 @@ class DmGame(Game):
 			card.Duchy(self, None), card.Province(self, None), card.Copper(self,None),
 			card.Silver(self, None), card.Gold(self, None)])
 
-		self.kingdom = self.init_supply([card.Moat(self, None), card.Village(self, None),
+		self.kingdom = self.init_supply([card.Moat(self, None), card.Bureaucrat(self, None),
 			card.Woodcutter(self,None),
-			card.Cellar(self,None), card.Smithy(self, None), card.Council_Room(self,None), 
-			card.Remodel(self, None), card.Moneylender(self, None), card.Witch(self, None),
-			card.Festival(self,None)])
+			card.Cellar(self,None), card.Militia(self, None), card.Council_Room(self,None), 
+			card.Workshop(self, None), card.Throne_Room(self, None), card.Witch(self, None),
+			card.Spy(self,None)])
 
 		self.supply = self.base_supply.copy()
 		self.supply.update(self.kingdom)

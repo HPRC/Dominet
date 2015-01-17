@@ -6,12 +6,14 @@ class Card():
 		self.type = None
 		self.description = None
 		self.price = None
+		self.done = lambda : None
 
-	def play(self):
-		self.game.announce(self.played_by.name_string() + " played " + self.log_string())
-		self.played_by.discard([self.title], self.played_by.played)
-		if ("Action" in self.type):
-			self.played_by.actions -= 1
+	def play(self, skip=False):
+		if not skip:
+			self.game.announce(self.played_by.name_string() + " played " + self.log_string())
+			self.played_by.discard([self.title], self.played_by.played)
+			if ("Action" in self.type):
+				self.played_by.actions -= 1
 
 	def to_json(self):
 		return {
@@ -30,8 +32,8 @@ class Money(Card):
 		self.type = "Money"
 		self.value = None
 
-	def play(self):
-		Card.play(self)
+	def play(self, skip=False):
+		Card.play(self, skip)
 		self.played_by.balance += self.value
 		self.played_by.update_resources(True)
 
@@ -173,8 +175,8 @@ class Cellar(Card):
 		self.price = 2
 		self.type = "Action"
 
-	def play(self):
-		Card.play(self)
+	def play(self, skip=False):
+		Card.play(self, skip)
 		self.played_by.actions += 1
 		self.played_by.select(None, 
 			self.played_by.card_list_to_titles(self.played_by.hand_array()), "select cards to discard")
@@ -186,6 +188,7 @@ class Cellar(Card):
 		self.played_by.discard(selection, self.played_by.discard_pile)
 		self.played_by.draw(len(selection))
 		self.played_by.update_hand()
+		self.done()
 
 
 class Moat(Card):
@@ -198,13 +201,14 @@ class Moat(Card):
 		self.type = "Action|Reaction"
 		self.trigger = "Attack"
 
-	def play(self):
-		Card.play(self)
+	def play(self, skip=False):
+		Card.play(self, skip)
 		drawn = self.played_by.draw(2)
 		self.game.announce(" -- drawing " + drawn)
 		self.played_by.update_resources()
 		self.played_by.update_hand()
 		self.played_by.update_mode()
+		self.done()
 
 	def react(self, react_to_callback):
 		self.played_by.select(1, ["Reveal", "Hide"],  
@@ -234,13 +238,14 @@ class Village(Card):
 		self.price = 3
 		self.type = "Action"
 
-	def play(self):
-		Card.play(self)
+	def play(self, skip=False):
+		Card.play(self, skip)
 		self.played_by.actions += 2
 		drawn = self.played_by.draw(1)
 		self.game.announce("-- gaining 2 actions and drawing " + drawn)
 		self.played_by.update_hand()
 		self.played_by.update_resources()
+		self.done()
 
 class Woodcutter(Card):
 	def __init__(self, game, played_by):
@@ -250,13 +255,14 @@ class Woodcutter(Card):
 		self.price = 3
 		self.type = "Action"
 
-	def play(self):
-		Card.play(self)
+	def play(self, skip=False):
+		Card.play(self, skip)
 		self.played_by.balance += 2
 		self.played_by.buys += 1
 		self.game.announce("-- gaining $2 and 1 buy")
 		self.played_by.update_resources()
 		self.played_by.update_mode()
+		self.done()
 
 class Workshop(Card):
 	def __init__(self, game, played_by):
@@ -266,21 +272,22 @@ class Workshop(Card):
 		self.price = 3
 		self.type = "Action"
 
-	def play(self):
-		Card.play(self)
+	def play(self, skip=False):
+		Card.play(self, skip)
 		self.played_by.gain_from_supply(4, False)
 		self.played_by.update_resources()
+		self.done()
 
 class Bureaucrat(AttackCard):
 	def __init__(self, game, played_by):
 		AttackCard.__init__(self, game, played_by)
 		self.title = "Bureaucrat"
-		self.description = "Gain a Silver, put it on top of your deck. Each other player reveals a Victory card \
-		and puts it on his deck or reveals a hand with no Victory cards."
+		self.description = "Gain a Silver, put it on top of your deck. Each other player reveals a Victory card\
+			and puts it on his deck or reveals a hand with no Victory cards."
 		self.price = 4
 
-	def play(self):
-		Card.play(self)
+	def play(self, skip=False):
+		Card.play(self, skip)
 		self.played_by.gain("Silver")
 		self.played_by.update_resources()
 		AttackCard.check_reactions(self, self.game.get_opponents(self.played_by))
@@ -292,13 +299,15 @@ class Bureaucrat(AttackCard):
 				for title, data in i.hand.items():
 					if "Victory" in data[0].type:
 						i_victory_cards.append(data[0])
-				print(i_victory_cards)
 				if len(i_victory_cards) == 0:
 					self.game.announce(i.name_string() + " has no Victory cards & reveals " + i.hand_string())
+					print(self.done)
+					self.done()
 				elif len(i_victory_cards) == 1:
 					self.game.announce(i.name_string() + " puts " + i_victory_cards[0].log_string() + " back on top of the deck")
 					i.discard([i_victory_cards[0].title], i.deck)
 					i.update_hand()
+					self.done()
 				else:
 					i.select(1, i.card_list_to_titles(i_victory_cards), 
 						"select 2 cards to discard")
@@ -315,6 +324,7 @@ class Bureaucrat(AttackCard):
 		act_on.discard(selection, act_on.deck)
 		self.game.announce(act_on.name_string() + " puts " + self.game.supply[selection[0]][0].log_string() + " back on top of the deck")
 		act_on.update_hand()
+		self.done()
 
 class Spy(AttackCard):
 	def __init__(self, game, played_by):
@@ -323,8 +333,8 @@ class Spy(AttackCard):
 		self.description = "+1 card\n +1 action\n Each player (including you) reveals the top card of his deck and either discards it or puts it back, your choice"
 		self.price = 4
 
-	def play(self):
-		Card.play(self)
+	def play(self, skip=False):
+		Card.play(self, skip)
 		self.played_by.actions += 1
 		drawn = self.played_by.draw(1)
 		self.game.announce("-- getting +1 action and drawing " + drawn)
@@ -339,6 +349,10 @@ class Spy(AttackCard):
 		if not AttackCard.is_blocked(self, player):
 			if (len(player.deck) < 1):
 				player.shuffle_discard_to_deck()
+				if (len(player.deck) <1):
+					self.game.announce(player.name_string() + " has no cards to Spy.")
+					self.get_next(player)
+					return
 			revealed_card = player.deck[-1]
 			self.played_by.select(1, ["discard", "keep"],  
 				player.name + " revealed " + revealed_card.title)
@@ -359,9 +373,14 @@ class Spy(AttackCard):
 			card = act_on.deck[-1]
 			self.game.announce(self.played_by.name_string() + " leaves " + card.log_string() + " on " + 
 				act_on.name_string() + "'s deck")
+			self.get_next(act_on)
+
+	def get_next(self, act_on):
 		next_player_index = (self.game.players.index(act_on) + 1) % len(self.game.players)
 		if (self.game.players[next_player_index] != self.played_by):
 			self.fire(self.game.players[next_player_index])
+		else:
+			self.done()
 
 class Militia(AttackCard):
 	def __init__(self, game, played_by):
@@ -371,8 +390,8 @@ class Militia(AttackCard):
 		self.price = 4
 		self.type = "Action|Attack"
 
-	def play(self):
-		Card.play(self)
+	def play(self, skip=False):
+		Card.play(self, skip)
 		self.played_by.balance += 2
 		self.played_by.update_resources()
 		AttackCard.check_reactions(self, self.game.get_opponents(self.played_by))
@@ -394,6 +413,7 @@ class Militia(AttackCard):
 	def post_select(self, selection, act_on):
 		act_on.discard(selection, act_on.discard_pile)
 		act_on.update_hand()
+		self.done()
 
 class Smithy(Card):
 	def __init__(self, game, played_by):
@@ -403,13 +423,14 @@ class Smithy(Card):
 		self.price = 4
 		self.type = "Action"
 
-	def play(self):
-		Card.play(self)
+	def play(self, skip=False):
+		Card.play(self, skip)
 		drawn = self.played_by.draw(3)
 		self.game.announce("-- drawing " + drawn)
 		self.played_by.update_hand()
 		self.played_by.update_resources()
 		self.played_by.update_mode()
+		self.done()
 
 class Moneylender(Card):
 	def __init__(self, game, played_by):
@@ -419,8 +440,8 @@ class Moneylender(Card):
 		self.price = 4
 		self.type = "Action"
 
-	def play(self):
-		Card.play(self)
+	def play(self, skip=False):
+		Card.play(self, skip)
 		if ("Copper" in self.played_by.hand.keys()):
 			self.played_by.discard(["Copper"], self.played_by.trash_pile)
 			self.played_by.balance += 3
@@ -430,6 +451,7 @@ class Moneylender(Card):
 		self.played_by.update_hand()
 		self.played_by.update_resources()
 		self.played_by.update_mode()
+		self.done()
 
 class Remodel(Card):
 	def __init__(self, game, played_by):
@@ -439,8 +461,8 @@ class Remodel(Card):
 		self.price = 4
 		self.type = "Action"
 
-	def play(self):
-		Card.play(self)
+	def play(self, skip=False):
+		Card.play(self, skip)
 		self.played_by.select(1, self.played_by.card_list_to_titles(self.played_by.hand_array()),
 		 "select card to remodel")
 		self.played_by.update_resources()
@@ -453,6 +475,43 @@ class Remodel(Card):
 		card_trashed = self.game.supply[selection[0]][0]
 		self.played_by.gain_from_supply(card_trashed.price + 2, False)
 		self.played_by.update_hand()
+		self.done()
+
+class Throne_Room(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Throne Room"
+		self.description = "Choose an action card from your hand. Play it twice."
+		self.price = 4
+		self.type = "Action"
+
+	def play(self, skip=False):
+		Card.play(self, skip)
+		self.played_by.select(1, self.played_by.card_list_to_titles(self.played_by.hand_array()),
+		 "select card for Throne Room")
+		self.played_by.update_resources()
+		self.played_by.waiting["on"].append(self.played_by)
+		self.played_by.waiting["cb"] = self.post_select
+
+	def post_select(self, selection):
+		selected_card = self.played_by.hand[selection[0]][0]
+		throne_room_str = self.played_by.name_string() + " " + self.log_string(True) + " " + selected_card.log_string()
+
+		def second_play(card=selected_card):
+			card.game.announce(throne_room_str)
+			card.done = self.done
+			card.play(True)
+			print(card.played_by.actions)
+			card.played_by.update_resources()
+			# card.played_by.update_mode()
+
+		selected_card.done = second_play
+		self.played_by.discard(selection, self.played_by.played)
+		self.played_by.update_hand()
+		self.game.announce(throne_room_str)
+		selected_card.play(True)
+		self.played_by.update_resources()
+		self.played_by.update_hand()
 
 class Festival(Card):
 	def __init__(self, game, played_by):
@@ -462,13 +521,14 @@ class Festival(Card):
 		self.price = 5
 		self.type = "Action"
 
-	def play(self):
-		Card.play(self)
+	def play(self, skip=False):
+		Card.play(self, skip)
 		self.played_by.balance += 2
 		self.played_by.actions += 2
 		self.played_by.buys += 1
 		self.game.announce("-- gaining 2 actions, 1 buy and $2")
 		self.played_by.update_resources()
+		self.done()
 
 class Council_Room(Card):
 	def __init__(self, game, played_by):
@@ -478,8 +538,8 @@ class Council_Room(Card):
 		self.price = 5
 		self.type = "Action"
 
-	def play(self):
-		Card.play(self)
+	def play(self, skip=False):
+		Card.play(self, skip)
 		drawn = self.played_by.draw(4)
 		self.played_by.buys += 1
 		self.played_by.update_hand()
@@ -491,6 +551,7 @@ class Council_Room(Card):
 				i.draw(1)
 				i.update_hand()
 		self.played_by.update_mode()
+		self.done()
 
 class Laboratory(Card):
 	def __init__(self, game, played_by):
@@ -500,13 +561,14 @@ class Laboratory(Card):
 		self.price = 5
 		self.type = "Action"
 
-	def play(self):
-		Card.play(self)
+	def play(self, skip=False):
+		Card.play(self, skip)
 		drawn = self.played_by.draw(2)
 		self.played_by.actions += 1
 		self.game.announce("-- drawing " + drawn + " and gaining +1 action")
 		self.played_by.update_hand()
 		self.played_by.update_resources()
+		self.done()
 
 class Witch(AttackCard):
 	def __init__(self, game, played_by):
@@ -515,8 +577,8 @@ class Witch(AttackCard):
 		self.description = "+2 cards\n Each other player gains a curse card"
 		self.price = 5
 
-	def play(self):
-		Card.play(self)
+	def play(self, skip=False):
+		Card.play(self, skip)
 		drawn = self.played_by.draw(2)
 		self.game.announce("-- drawing " + drawn)
 		self.played_by.update_hand()
@@ -528,3 +590,4 @@ class Witch(AttackCard):
 			if not AttackCard.is_blocked(self, i):
 				i.gain("Curse")
 		self.played_by.update_mode()
+		self.done()
