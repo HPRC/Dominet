@@ -44,9 +44,9 @@ class DmClient(Client):
 	def base_deck(self):
 		deck = []
 		for i in range(0,7):
-			deck.append(crd.Throne_Room(game=self.game, played_by=self))
+			deck.append(crd.Copper(game=self.game, played_by=self))
 		for i in range(0,3):
-			deck.append(crd.Remodel(game=self.game, played_by=self))
+			deck.append(crd.Estate(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 

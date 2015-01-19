@@ -366,6 +366,8 @@ class Spy(AttackCard):
 
 			self.played_by.waiting["on"].append(self.played_by)
 			self.played_by.waiting["cb"] = post_select_on
+		else:
+			self.get_next(player)
 
 	def post_select(self, selection, act_on):
 		if (selection[0] == "discard"):
@@ -384,6 +386,7 @@ class Spy(AttackCard):
 		if (self.game.players[next_player_index] != self.played_by):
 			self.fire(self.game.players[next_player_index])
 		else:
+			print(self.done)
 			Card.on_finished(self, False, False)
 
 class Militia(AttackCard):

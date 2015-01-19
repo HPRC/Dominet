@@ -29,7 +29,11 @@ clientModule.controller("lobbyController", function($rootScope, $scope, socket, 
 	};
 
 	$scope.challenged = function(json){
-		$scope.challengers.push(json.challenger);
+		if ($scope.challenging == json.challenger){
+			socket.send(JSON.stringify({"command": "loadGame", "players": [$scope.name, json.challenger], "challenger": json.challenger}));
+		} else {
+			$scope.challengers.push(json.challenger);	
+		}
 	};
 
 	$scope.gotDeclined = function(json){

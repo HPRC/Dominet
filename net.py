@@ -90,18 +90,25 @@ class GameHandler(websocket.WebSocketHandler):
 		self.client.exec_commands(jsondata)
 		cmd = jsondata["command"]
 		if (cmd == "loadGame"):
-			GameHandler.unattachedClients[jsondata["challenger"]].write_json(
+			if (jsondata["challenger"] in GameHandler.unattachedClients):
+				GameHandler.unattachedClients[jsondata["challenger"]].write_json(
 				command="gotAccepted")
-			self.load_game(*list(map(lambda x: GameHandler.unattachedClients[x], jsondata["players"])))
+				self.load_game(*list(map(lambda x: GameHandler.unattachedClients[x], jsondata["players"])))
+			else:
+				print("\033[95m " + jsondata["challenger"] +" tried to start game but wasn't in lobby \033[0m")
 		elif (cmd == "challenge"):
 			GameHandler.unattachedClients[jsondata["otherPlayer"]].write_json(
 				command="challenged", challenger=jsondata["challenger"])
 		elif (cmd == "cancel"):
-			GameHandler.unattachedClients[jsondata["otherPlayer"]].write_json(
-				command="unchallenged", challenger=jsondata["challenger"])
+			if (jsondata["challenger"] in GameHandler.unattachedClients):
+				GameHandler.unattachedClients[jsondata["otherPlayer"]].write_json(
+					command="unchallenged", challenger=jsondata["challenger"])
+			else:
+				print("\033[95m " + jsondata["challenger"] +" challenge was cancelled but wasn't in lobby \033[0m")
 		elif (cmd == "decline"):
 			GameHandler.unattachedClients[jsondata["challenger"]].write_json(
 				command="gotDeclined")
+
 
 	def announce_lobby(msg):
 		for name, p in GameHandler.unattachedClients.items():
