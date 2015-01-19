@@ -46,7 +46,7 @@ class DmClient(Client):
 		for i in range(0,7):
 			deck.append(crd.Throne_Room(game=self.game, played_by=self))
 		for i in range(0,3):
-			deck.append(crd.Cellar	(game=self.game, played_by=self))
+			deck.append(crd.Remodel(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
@@ -89,7 +89,7 @@ class DmClient(Client):
 		self.VP = 0
 		self.draw(self.hand_size)
 		self.update_hand()
-		#List of players waiting for, callback
+		#List of players waiting for, callback called after select/gain gets response
 		self.waiting = {"on": [], "cb": None}
 		self.protection = 0
 
@@ -110,7 +110,7 @@ class DmClient(Client):
 			l[0].played_by = new_conn
 
 	def update_hand(self):
-		self.write_json(command="updateHand", hand=self.hand_array())
+		self.write_json(command="updateHand", hand=[x.to_json() for x in self.hand_array()])
 
 	#override
 	def take_turn(self):
@@ -148,11 +148,15 @@ class DmClient(Client):
 		elif (cmd == "buyCard"):
 			self.buy_card(data["card"])
 		elif (cmd == "post_selection"):
+			print(self.waiting)
 			self.update_wait()
 			if (self.waiting["cb"] != None):
 				self.waiting["cb"](data["selection"])
 		elif (cmd == "gain"):
-			self.gain(data["card"])
+			print(self.waiting)
+			self.update_wait()
+			if (self.waiting["cb"] != None):
+				self.waiting["cb"](data["card"])
 		elif (cmd == "spendAllMoney"):
 			self.spend_all_money()
 		elif (cmd == "returnToLobby"):
@@ -199,7 +203,7 @@ class DmClient(Client):
 				select_from=select_from, msg=msg)
 			return True
 		else:
-			self.write_json(command="updateMode", mode="buy")
+			self.update_mode()
 			return False
 
 	def wait(self, msg):
@@ -231,9 +235,9 @@ class DmClient(Client):
 			self.discard_pile.append(newCard)
 			self.game.remove_from_supply(card)
 
-	def gain_from_supply(self, price_limit, equal_only, type_constraint = None):
+	def gain_from_supply(self, price_limit, equal_only, type_constraint = None, from_card = None):
 		self.write_json(command="updateMode", mode="gain", price=price_limit, equal_only=equal_only, 
-			type_constraint = type_constraint)
+			type_constraint = type_constraint, from_card=from_card)
 
 	def update_resources(self, playedMoney = False):
 		if (playedMoney):
@@ -246,7 +250,7 @@ class DmClient(Client):
 			card = data[0]
 			count = data[1]
 			for i in range(0, count):
-				h.append(card.to_json())
+				h.append(card)
 		return h
 
 	def hand_string(self):

@@ -15,6 +15,15 @@ class Card():
 			if ("Action" in self.type):
 				self.played_by.actions -= 1
 
+	#called at the end of a card's resolution
+	def on_finished(self, modified_hand = True, modified_resources = True):
+		if modified_resources:
+			self.played_by.update_resources()
+		if modified_hand:
+			self.played_by.update_hand()
+		self.played_by.update_mode()
+		self.done()
+
 	def to_json(self):
 		return {
 			"title": self.title,
@@ -187,8 +196,7 @@ class Cellar(Card):
 		self.played_by.waiting["cb"] = None
 		self.played_by.discard(selection, self.played_by.discard_pile)
 		self.played_by.draw(len(selection))
-		self.played_by.update_hand()
-		self.done()
+		Card.on_finished(self)
 
 
 class Moat(Card):
@@ -205,10 +213,7 @@ class Moat(Card):
 		Card.play(self, skip)
 		drawn = self.played_by.draw(2)
 		self.game.announce(" -- drawing " + drawn)
-		self.played_by.update_resources()
-		self.played_by.update_hand()
-		self.played_by.update_mode()
-		self.done()
+		Card.on_finished(self)
 
 	def react(self, react_to_callback):
 		self.played_by.select(1, ["Reveal", "Hide"],  
@@ -243,9 +248,7 @@ class Village(Card):
 		self.played_by.actions += 2
 		drawn = self.played_by.draw(1)
 		self.game.announce("-- gaining 2 actions and drawing " + drawn)
-		self.played_by.update_hand()
-		self.played_by.update_resources()
-		self.done()
+		Card.on_finished(self)
 
 class Woodcutter(Card):
 	def __init__(self, game, played_by):
@@ -260,9 +263,7 @@ class Woodcutter(Card):
 		self.played_by.balance += 2
 		self.played_by.buys += 1
 		self.game.announce("-- gaining $2 and 1 buy")
-		self.played_by.update_resources()
-		self.played_by.update_mode()
-		self.done()
+		Card.on_finished(self)
 
 class Workshop(Card):
 	def __init__(self, game, played_by):
@@ -274,9 +275,13 @@ class Workshop(Card):
 
 	def play(self, skip=False):
 		Card.play(self, skip)
+		self.played_by.waiting["on"].append(self.played_by)
+		self.played_by.waiting["cb"] = self.post_gain
 		self.played_by.gain_from_supply(4, False)
-		self.played_by.update_resources()
-		self.done()
+
+	def post_gain(self, card_title):
+		self.played_by.gain(card_title)
+		Card.on_finished(self, False, False)
 
 class Bureaucrat(AttackCard):
 	def __init__(self, game, played_by):
@@ -301,7 +306,6 @@ class Bureaucrat(AttackCard):
 						i_victory_cards.append(data[0])
 				if len(i_victory_cards) == 0:
 					self.game.announce(i.name_string() + " has no Victory cards & reveals " + i.hand_string())
-					print(self.done)
 					self.done()
 				elif len(i_victory_cards) == 1:
 					self.game.announce(i.name_string() + " puts " + i_victory_cards[0].log_string() + " back on top of the deck")
@@ -324,7 +328,7 @@ class Bureaucrat(AttackCard):
 		act_on.discard(selection, act_on.deck)
 		self.game.announce(act_on.name_string() + " puts " + self.game.supply[selection[0]][0].log_string() + " back on top of the deck")
 		act_on.update_hand()
-		self.done()
+		Card.on_finished(self, False, False)
 
 class Spy(AttackCard):
 	def __init__(self, game, played_by):
@@ -373,14 +377,14 @@ class Spy(AttackCard):
 			card = act_on.deck[-1]
 			self.game.announce(self.played_by.name_string() + " leaves " + card.log_string() + " on " + 
 				act_on.name_string() + "'s deck")
-			self.get_next(act_on)
+		self.get_next(act_on)
 
 	def get_next(self, act_on):
 		next_player_index = (self.game.players.index(act_on) + 1) % len(self.game.players)
 		if (self.game.players[next_player_index] != self.played_by):
 			self.fire(self.game.players[next_player_index])
 		else:
-			self.done()
+			Card.on_finished(self, False, False)
 
 class Militia(AttackCard):
 	def __init__(self, game, played_by):
@@ -412,8 +416,7 @@ class Militia(AttackCard):
 
 	def post_select(self, selection, act_on):
 		act_on.discard(selection, act_on.discard_pile)
-		act_on.update_hand()
-		self.done()
+		Card.on_finished(self, False, False)
 
 class Smithy(Card):
 	def __init__(self, game, played_by):
@@ -427,10 +430,7 @@ class Smithy(Card):
 		Card.play(self, skip)
 		drawn = self.played_by.draw(3)
 		self.game.announce("-- drawing " + drawn)
-		self.played_by.update_hand()
-		self.played_by.update_resources()
-		self.played_by.update_mode()
-		self.done()
+		Card.on_finished(self)
 
 class Moneylender(Card):
 	def __init__(self, game, played_by):
@@ -448,10 +448,7 @@ class Moneylender(Card):
 			self.game.announce("-- trashing a copper and gaining $3")
 		else:
 			self.game.announce("-- but has no copper to trash")
-		self.played_by.update_hand()
-		self.played_by.update_resources()
-		self.played_by.update_mode()
-		self.done()
+		Card.on_finished(self)
 
 class Remodel(Card):
 	def __init__(self, game, played_by):
@@ -474,8 +471,14 @@ class Remodel(Card):
 		self.game.announce(self.played_by.name_string() + " trashes " + selection[0])
 		card_trashed = self.game.supply[selection[0]][0]
 		self.played_by.gain_from_supply(card_trashed.price + 2, False)
+
+		self.played_by.waiting["on"].append(self.played_by)
+		self.played_by.waiting["cb"] = self.post_gain
 		self.played_by.update_hand()
-		self.done()
+
+	def post_gain(self, card_title):
+		self.played_by.gain(card_title)
+		Card.on_finished(self, False, False)
 
 class Throne_Room(Card):
 	def __init__(self, game, played_by):
@@ -487,27 +490,31 @@ class Throne_Room(Card):
 
 	def play(self, skip=False):
 		Card.play(self, skip)
-		self.played_by.select(1, self.played_by.card_list_to_titles(self.played_by.hand_array()),
-		 "select card for Throne Room")
+		action_cards = [x for x in self.played_by.hand_array() if "Action" in x.type]
+		if not self.played_by.select(1, self.played_by.card_list_to_titles(action_cards),
+		 "select card for Throne Room"):
+			self.done = lambda : None
+		else:
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.post_select
 		self.played_by.update_resources()
-		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = self.post_select
 
 	def post_select(self, selection):
 		selected_card = self.played_by.hand[selection[0]][0]
 		throne_room_str = self.played_by.name_string() + " " + self.log_string(True) + " " + selected_card.log_string()
-
 		def second_play(card=selected_card):
-			card.game.announce(throne_room_str)
-			card.done = self.done
-			card.play(True)
-			print(card.played_by.actions)
-			card.played_by.update_resources()
-			# card.played_by.update_mode()
 
+			def final_done(card=card):
+				#after the second play of card is finished, throne room is done
+				card.done = lambda : None
+				Card.on_finished(self, False, False)
+
+			card.game.announce(throne_room_str)
+			card.done = final_done
+			card.play(True)
+			card.played_by.update_resources()
 		selected_card.done = second_play
 		self.played_by.discard(selection, self.played_by.played)
-		self.played_by.update_hand()
 		self.game.announce(throne_room_str)
 		selected_card.play(True)
 		self.played_by.update_resources()
@@ -527,8 +534,7 @@ class Festival(Card):
 		self.played_by.actions += 2
 		self.played_by.buys += 1
 		self.game.announce("-- gaining 2 actions, 1 buy and $2")
-		self.played_by.update_resources()
-		self.done()
+		Card.on_finished(self, False)
 
 class Council_Room(Card):
 	def __init__(self, game, played_by):
@@ -542,16 +548,13 @@ class Council_Room(Card):
 		Card.play(self, skip)
 		drawn = self.played_by.draw(4)
 		self.played_by.buys += 1
-		self.played_by.update_hand()
-		self.played_by.update_resources()
 		self.game.announce("-- drawing " + drawn + " and getting +1 buy")
 		self.game.announce("-- each other player draws a card")
 		for i in self.game.players:
 			if (i != self.played_by):
 				i.draw(1)
 				i.update_hand()
-		self.played_by.update_mode()
-		self.done()
+		Card.on_finished(self)
 
 class Laboratory(Card):
 	def __init__(self, game, played_by):
@@ -566,9 +569,7 @@ class Laboratory(Card):
 		drawn = self.played_by.draw(2)
 		self.played_by.actions += 1
 		self.game.announce("-- drawing " + drawn + " and gaining +1 action")
-		self.played_by.update_hand()
-		self.played_by.update_resources()
-		self.done()
+		Card.on_finished(self)
 
 class Witch(AttackCard):
 	def __init__(self, game, played_by):
@@ -589,5 +590,4 @@ class Witch(AttackCard):
 		for i in self.game.get_opponents(self.played_by):
 			if not AttackCard.is_blocked(self, i):
 				i.gain("Curse")
-		self.played_by.update_mode()
-		self.done()
+		Card.on_finished(self, False, False)

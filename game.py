@@ -49,8 +49,8 @@ class DmGame(Game):
 
 		self.kingdom = self.init_supply([card.Moat(self, None), card.Bureaucrat(self, None),
 			card.Woodcutter(self,None),
-			card.Cellar(self,None), card.Militia(self, None), card.Council_Room(self,None), 
-			card.Workshop(self, None), card.Throne_Room(self, None), card.Witch(self, None),
+			card.Cellar(self,None), card.Remodel(self, None), card.Council_Room(self,None), 
+			card.Smithy(self, None), card.Throne_Room(self, None), card.Laboratory(self, None),
 			card.Spy(self,None)])
 
 		self.supply = self.base_supply.copy()
