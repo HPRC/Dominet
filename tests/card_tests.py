@@ -59,5 +59,32 @@ class TestCard(unittest.TestCase):
 		#didn't gain curse
 		self.assertTrue(len(self.player2.discard_pile) == 0)
 		
+	def test_Throne_Room_on_Village(self):
+		throneRoomCard = crd.Throne_Room(self.game, self.player1)
+		self.player1.hand["Throne Room"] = [throneRoomCard ,1]
+		self.player1.hand["Village"] = [crd.Village(self.game, self.player1) ,1]
+		throneRoomCard.play()
+		self.assertTrue(Player1Handler.log[0]["select_from"] == ["Village"])
+		throneRoomCard.post_select(["Village"])
+		self.assertTrue(self.player1.actions == 4)
+
+	def test_Throne_Room_on_Workshop(self):
+		throneRoomCard = crd.Throne_Room(self.game, self.player1)
+		self.player1.hand["Throne Room"] = [throneRoomCard ,1]
+		workshopCard = crd.Workshop(self.game, self.player1)
+		self.player1.hand["Workshop"] = [workshopCard ,1]
+		throneRoomCard.play()
+		throneRoomCard.post_select(["Workshop"])
+		self.assertTrue(workshopCard.done.__name__ == "second_play")
+		
+		self.player1.update_wait()
+		self.player1.waiting["cb"]("Silver")
+		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
+		self.assertTrue(workshopCard.done.__name__ == "final_done")
+
+		self.player1.update_wait()
+		self.player1.waiting["cb"]("Estate")
+		self.assertTrue(self.player1.discard_pile[-1].title == "Estate")
+
 if __name__ == '__main__':
 	unittest.main()

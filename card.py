@@ -497,6 +497,7 @@ class Throne_Room(Card):
 		if not self.played_by.select(1, self.played_by.card_list_to_titles(action_cards),
 		 "select card for Throne Room"):
 			self.done = lambda : None
+			self.game.announce(" -- but has no action cards")
 		else:
 			self.played_by.waiting["on"].append(self.played_by)
 			self.played_by.waiting["cb"] = self.post_select
