@@ -288,7 +288,7 @@ class Bureaucrat(AttackCard):
 		AttackCard.__init__(self, game, played_by)
 		self.title = "Bureaucrat"
 		self.description = "Gain a Silver, put it on top of your deck. Each other player reveals a Victory card\
-			and puts it on his deck or reveals a hand with no Victory cards."
+		and puts it on his deck or reveals a hand with no Victory cards."
 		self.price = 4
 
 	def play(self, skip=False):
@@ -471,8 +471,8 @@ class Remodel(Card):
 
 	def post_select(self, selection):
 		self.played_by.discard(selection, self.played_by.trash_pile)
-		self.game.announce(self.played_by.name_string() + " trashes " + selection[0])
 		card_trashed = self.game.supply[selection[0]][0]
+		self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
 		self.played_by.gain_from_supply(card_trashed.price + 2, False)
 
 		self.played_by.waiting["on"].append(self.played_by)
@@ -595,3 +595,55 @@ class Witch(AttackCard):
 			if not AttackCard.is_blocked(self, i):
 				i.gain("Curse")
 		Card.on_finished(self, False, False)
+
+class Market(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Market"
+		self.description = "+1 card\n+1 action\n+1 buy\n+$1"
+		self.price = 5
+		self.type = "Action"
+
+	def play(self, skip=False):
+		Card.play(self, skip)
+		drawn = self.played_by.draw(1)
+		self.played_by.balance += 1
+		self.played_by.buys += 1
+		self.game.announce("-- drawing " + drawn + " and gaining +1 action")
+		Card.on_finished(self)
+
+class Mine(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Mine"
+		self.description = "Trash a Treasure card from your hand. Gain a Treasure card costing up to $3 more;\
+		put it into your hand."
+		self.price = 5
+		self.type = "Action"
+
+	def play(self, skip=False):
+		Card.play(self, skip)
+		treasure_cards = [x for x in self.played_by.hand_array() if "Money" in x.type]
+		self.played_by.select(1, self.played_by.card_list_to_titles(treasure_cards),
+		 "select treasure to trash")
+		self.played_by.waiting["on"].append(self.played_by)
+		self.played_by.waiting["cb"] = self.post_select
+
+	def post_select(self, selection):
+		self.played_by.discard(selection, self.played_by.trash_pile)
+		card_trashed = self.game.supply[selection[0]][0]
+		self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
+		self.played_by.waiting["on"].append(self.played_by)
+		self.played_by.waiting["cb"] = self.post_gain
+		self.played_by.gain_from_supply(card_trashed.price + 3, False, "Money")
+
+	def post_gain(self, card_title):
+		self.played_by.gain(card_title)
+		gained_card = self.played_by.discard_pile.pop()
+		if (gained_card.title in self.played_by.hand):
+			self.played_by.hand[gained_card.title][1] += 1
+		else:
+			self.played_by.hand[gained_card.title] = [gained_card, 1]
+		Card.on_finished(self)
+
+

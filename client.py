@@ -235,9 +235,9 @@ class DmClient(Client):
 			self.discard_pile.append(newCard)
 			self.game.remove_from_supply(card)
 
-	def gain_from_supply(self, price_limit, equal_only, type_constraint = None, from_card = None):
+	def gain_from_supply(self, price_limit, equal_only, type_constraint = None):
 		self.write_json(command="updateMode", mode="gain", price=price_limit, equal_only=equal_only, 
-			type_constraint = type_constraint, from_card=from_card)
+			type_constraint = type_constraint)
 
 	def update_resources(self, playedMoney = False):
 		if (playedMoney):
