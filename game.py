@@ -124,7 +124,7 @@ class DmGame(Game):
 						self.announce(self.construct_end_string(i, win_vp, True))
 				else:
 					for i in player_vp_list:
-						self.announce(self.construct_end_string(i[0], i, i[0] in filtered_winners))
+						self.announce(self.construct_end_string(i[0], i[1], i in filtered_winners))
 			for i in self.players:
 				i.write_json(command="updateMode", mode="gameover")
 			#net.GameHandler.games.remove(self)

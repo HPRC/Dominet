@@ -161,6 +161,7 @@ class DmClient(Client):
 			self.spend_all_money()
 		elif (cmd == "returnToLobby"):
 			self.handler.return_to_lobby()
+			self.ready = False
 
 	def resume(self):
 		self.update_hand()
