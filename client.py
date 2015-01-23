@@ -44,7 +44,7 @@ class DmClient(Client):
 	def base_deck(self):
 		deck = []
 		for i in range(0,7):
-			deck.append(crd.Copper(game=self.game, played_by=self))
+			deck.append(crd.Chapel(game=self.game, played_by=self))
 		for i in range(0,3):
 			deck.append(crd.Estate(game=self.game, played_by=self))
 		random.shuffle(deck)
@@ -162,6 +162,7 @@ class DmClient(Client):
 		elif (cmd == "returnToLobby"):
 			self.handler.return_to_lobby()
 			self.ready = False
+			self.game = None
 
 	def resume(self):
 		self.update_hand()
@@ -198,9 +199,9 @@ class DmClient(Client):
 			self.balance -= newCard.price
 			self.update_resources()
 
-	def select(self, num_needed, select_from, msg):
+	def select(self, min_cards, max_cards, select_from, msg):
 		if (len(select_from) > 0):
-			self.write_json(command="updateMode", mode="select", count=num_needed, 
+			self.write_json(command="updateMode", mode="select", min_cards=min_cards, max_cards=max_cards,
 				select_from=select_from, msg=msg)
 			return True
 		else:

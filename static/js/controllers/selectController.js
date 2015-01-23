@@ -1,6 +1,6 @@
 clientModule.controller("selectController", function($scope, socket){
     $scope.$watch('modeJson', function(newValue, oldValue) {
-		if ($scope.modeJson.count){
+		if ($scope.modeJson.min_cards){
 			$scope.canBeDone = false;
 		} else {
 			$scope.canBeDone = true;
@@ -9,14 +9,21 @@ clientModule.controller("selectController", function($scope, socket){
 
 	$scope.selected = [];
 	$scope.check = function(option, isChecked){
-		if ($scope.modeJson.count != undefined){
+		if ($scope.modeJson.min_cards !== undefined || $scope.modeJson.max_cards !== undefined){
 			var checkedCount = $("input:checkbox:checked").length;
-			if (checkedCount >= $scope.modeJson.count){
-				$("input:checkbox").not(":checked").attr("disabled", true);
-				$scope.canBeDone = true;
-			} else {
-				$("input:checkbox").not(":checked").attr("disabled", false);
-				$scope.canBeDone = false;
+			if ($scope.modeJson.min_cards !== undefined){
+				if (checkedCount >= $scope.modeJson.min_cards){
+					$scope.canBeDone = true;
+				} else {
+					$scope.canBeDone = false;
+				}
+			}
+			if ($scope.modeJson.max_cards !== undefined){
+				if (checkedCount == $scope.modeJson.max_cards){
+					$("input:checkbox").not(":checked").attr("disabled", true);
+				} else {
+					$("input:checkbox").not(":checked").attr("disabled", false);
+				}
 			}
 		}
 

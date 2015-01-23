@@ -187,7 +187,7 @@ class Cellar(Card):
 	def play(self, skip=False):
 		Card.play(self, skip)
 		self.played_by.actions += 1
-		self.played_by.select(None, 
+		self.played_by.select(None, None,
 			self.played_by.card_list_to_titles(self.played_by.hand_array()), "select cards to discard")
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_select
@@ -198,6 +198,25 @@ class Cellar(Card):
 		self.played_by.draw(len(selection))
 		Card.on_finished(self)
 
+class Chapel(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Chapel"
+		self.description = "Trash up to 4 cards from your hand."
+		self.price = 2
+		self.type = "Action"
+
+	def play(self, skip=False):
+		Card.play(self, skip)
+		self.played_by.select(None, 4,
+			self.played_by.card_list_to_titles(self.played_by.hand_array()), "select cards to discard")
+		self.played_by.waiting["on"].append(self.played_by)
+		self.played_by.waiting["cb"] = self.post_select
+
+	def post_select(self, selection):
+		self.played_by.waiting["cb"] = None
+		self.played_by.discard(selection, self.played_by.trash_pile)
+		Card.on_finished(self)
 
 class Moat(Card):
 	def __init__(self, game, played_by):
@@ -216,7 +235,7 @@ class Moat(Card):
 		Card.on_finished(self)
 
 	def react(self, react_to_callback):
-		self.played_by.select(1, ["Reveal", "Hide"],  
+		self.played_by.select(1, 1, ["Reveal", "Hide"],  
 			"Reveal " + self.title + " to prevent attack?")
 
 		def new_cb(selection):
@@ -313,7 +332,7 @@ class Bureaucrat(AttackCard):
 					i.update_hand()
 					self.done()
 				else:
-					i.select(1, i.card_list_to_titles(i_victory_cards), 
+					i.select(1, 1,  i.card_list_to_titles(i_victory_cards), 
 						"select 2 cards to discard")
 
 					def post_select_on(selection, i=i):
@@ -358,7 +377,7 @@ class Spy(AttackCard):
 					self.get_next(player)
 					return
 			revealed_card = player.deck[-1]
-			self.played_by.select(1, ["discard", "keep"],  
+			self.played_by.select(1, 1, ["discard", "keep"],  
 				player.name + " revealed " + revealed_card.title)
 
 			def post_select_on(selection, player=player):
@@ -406,7 +425,7 @@ class Militia(AttackCard):
 	def attack(self):
 		for i in self.game.get_opponents(self.played_by):
 			if not AttackCard.is_blocked(self, i):
-				i.select(len(i.hand_array())-3, i.card_list_to_titles(i.hand_array()),
+				i.select(len(i.hand_array())-3, len(i.hand_array())-3, i.card_list_to_titles(i.hand_array()),
 				 "select 2 cards to discard")
 			
 				def post_select_on(selection, i=i):
@@ -463,7 +482,7 @@ class Remodel(Card):
 
 	def play(self, skip=False):
 		Card.play(self, skip)
-		self.played_by.select(1, self.played_by.card_list_to_titles(self.played_by.hand_array()),
+		self.played_by.select(1, 1, self.played_by.card_list_to_titles(self.played_by.hand_array()),
 		 "select card to remodel")
 		self.played_by.update_resources()
 		self.played_by.waiting["on"].append(self.played_by)
@@ -494,7 +513,7 @@ class Throne_Room(Card):
 	def play(self, skip=False):
 		Card.play(self, skip)
 		action_cards = [x for x in self.played_by.hand_array() if "Action" in x.type]
-		if not self.played_by.select(1, self.played_by.card_list_to_titles(action_cards),
+		if not self.played_by.select(1, 1, self.played_by.card_list_to_titles(action_cards),
 		 "select card for Throne Room"):
 			self.done = lambda : None
 			self.game.announce(" -- but has no action cards")
@@ -624,7 +643,7 @@ class Mine(Card):
 	def play(self, skip=False):
 		Card.play(self, skip)
 		treasure_cards = [x for x in self.played_by.hand_array() if "Money" in x.type]
-		self.played_by.select(1, self.played_by.card_list_to_titles(treasure_cards),
+		self.played_by.select(1, 1, self.played_by.card_list_to_titles(treasure_cards),
 		 "select treasure to trash")
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_select

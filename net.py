@@ -84,6 +84,9 @@ class GameHandler(websocket.WebSocketHandler):
 		self.client.game.players.remove(self.client)
 		if (len(self.client.game.players) == 0):
 			GameHandler.games.remove(self.client.game)
+		else:
+			self.client.game.announce(self.client.name_string() + " has returned to the lobby.")
+
 
 	def on_message(self,data):
 		jsondata = json.loads(data)
