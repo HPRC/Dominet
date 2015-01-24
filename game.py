@@ -1,7 +1,9 @@
 import client as c
+import kingdomGenerator as kg
 import card
 import json
 import net
+
 
 class Game():
 	def __init__(self, players):
@@ -47,11 +49,8 @@ class DmGame(Game):
 			card.Duchy(self, None), card.Province(self, None), card.Copper(self,None),
 			card.Silver(self, None), card.Gold(self, None)])
 
-		self.kingdom = self.init_supply([card.Moat(self, None), card.Bureaucrat(self, None),
-			card.Woodcutter(self,None),
-			card.Cellar(self,None), card.Remodel(self, None), card.Council_Room(self,None), 
-			card.Smithy(self, None), card.Throne_Room(self, None), card.Laboratory(self, None),
-			card.Spy(self,None)])
+		generator = kg.kingdomGenerator(self)
+		self.kingdom = self.init_supply(generator.random_kingdom())
 
 		self.supply = self.base_supply.copy()
 		self.supply.update(self.kingdom)
