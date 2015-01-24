@@ -86,5 +86,13 @@ class TestCard(unittest.TestCase):
 		self.player1.waiting["cb"]("Estate")
 		self.assertTrue(self.player1.discard_pile[-1].title == "Estate")
 
+	def test_Feast(self):
+		feast_card = crd.Feast(self.game, self.player1)
+		self.player1.hand["Feast"] = [feast_card ,1]
+		feast_card.play()
+		
+		self.assertTrue(Player1Handler.log[-1]["mode"] == "gain")
+		self.assertTrue(self.player1.trash_pile[-1] == feast_card)
+
 if __name__ == '__main__':
 	unittest.main()

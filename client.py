@@ -44,7 +44,7 @@ class DmClient(Client):
 	def base_deck(self):
 		deck = []
 		for i in range(0,7):
-			deck.append(crd.Chapel(game=self.game, played_by=self))
+			deck.append(crd.Copper(game=self.game, played_by=self))
 		for i in range(0,3):
 			deck.append(crd.Estate(game=self.game, played_by=self))
 		random.shuffle(deck)
@@ -148,12 +148,10 @@ class DmClient(Client):
 		elif (cmd == "buyCard"):
 			self.buy_card(data["card"])
 		elif (cmd == "post_selection"):
-			print(self.waiting)
 			self.update_wait()
 			if (self.waiting["cb"] != None):
 				self.waiting["cb"](data["selection"])
 		elif (cmd == "gain"):
-			print(self.waiting)
 			self.update_wait()
 			if (self.waiting["cb"] != None):
 				self.waiting["cb"](data["card"])

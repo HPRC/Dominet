@@ -209,7 +209,7 @@ class Chapel(Card):
 	def play(self, skip=False):
 		Card.play(self, skip)
 		self.played_by.select(None, 4,
-			self.played_by.card_list_to_titles(self.played_by.hand_array()), "select cards to discard")
+			self.played_by.card_list_to_titles(self.played_by.hand_array()), "select cards to trash")
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_select
 
@@ -325,15 +325,15 @@ class Bureaucrat(AttackCard):
 						i_victory_cards.append(data[0])
 				if len(i_victory_cards) == 0:
 					self.game.announce(i.name_string() + " has no Victory cards & reveals " + i.hand_string())
-					self.done()
+					Card.on_finished(self, False, False)
 				elif len(i_victory_cards) == 1:
 					self.game.announce(i.name_string() + " puts " + i_victory_cards[0].log_string() + " back on top of the deck")
 					i.discard([i_victory_cards[0].title], i.deck)
 					i.update_hand()
-					self.done()
+					Card.on_finished(self, False, False)
 				else:
 					i.select(1, 1,  i.card_list_to_titles(i_victory_cards), 
-						"select 2 cards to discard")
+						"select Victory card to put back")
 
 					def post_select_on(selection, i=i):
 						self.post_select(selection, i)
@@ -347,6 +347,27 @@ class Bureaucrat(AttackCard):
 		act_on.discard(selection, act_on.deck)
 		self.game.announce(act_on.name_string() + " puts " + self.game.supply[selection[0]][0].log_string() + " back on top of the deck")
 		act_on.update_hand()
+		Card.on_finished(self, False, False)
+
+class Feast(Card):
+	def __init__(self, game, played_by):
+		Card.__init__(self, game, played_by)
+		self.title = "Feast"
+		self.type = "Action"
+		self.description = "Trash this card, gain a card costing up to $5."
+		self.price = 4
+
+	def play(self, skip=False):
+		Card.play(self, skip)
+		if (self.played_by.played[-1] == self):
+			self.played_by.trash_pile.append(self.played_by.played.pop())
+		self.played_by.update_resources()
+		self.played_by.gain_from_supply(5, False)
+		self.played_by.waiting["on"].append(self.played_by)
+		self.played_by.waiting["cb"] = self.post_gain
+
+	def post_gain(self, card_title):
+		self.played_by.gain(card_title)
 		Card.on_finished(self, False, False)
 
 class Spy(AttackCard):
@@ -426,7 +447,7 @@ class Militia(AttackCard):
 		for i in self.game.get_opponents(self.played_by):
 			if not AttackCard.is_blocked(self, i):
 				i.select(len(i.hand_array())-3, len(i.hand_array())-3, i.card_list_to_titles(i.hand_array()),
-				 "select 2 cards to discard")
+				 "discard down to 3 cards")
 			
 				def post_select_on(selection, i=i):
 					self.post_select(selection, i)
@@ -438,6 +459,7 @@ class Militia(AttackCard):
 
 	def post_select(self, selection, act_on):
 		act_on.discard(selection, act_on.discard_pile)
+		act_on.update_hand()
 		Card.on_finished(self, False, False)
 
 class Smithy(Card):
