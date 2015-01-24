@@ -26,6 +26,8 @@ clientModule.controller("clientController", function($rootScope, $scope, socket,
 			$scope.baseSupply = client.getBaseSupply();
 			$scope.spendableMoney = client.getSpendableMoney();
 			$scope.modeJson = client.getModeJson();
+			$scope.deckSize = client.getDeckSize();
+			$scope.discardSize = client.getDiscardSize();
 		});
 	});
 

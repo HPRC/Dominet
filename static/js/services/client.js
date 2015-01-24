@@ -11,6 +11,8 @@ clientModule.factory('client', function(socket) {
 		this.balance = 0;
 		this.played = [];
 		this.spendableMoney = 0;
+		this.deckSize = 5;
+		this.discardSize = 0;
 		//mode overidden by turn
 		this.modeJson = {"mode":"action"}; //.mode = action, buy, select, gain, wait, gameover
 		var that = this;
@@ -153,6 +155,14 @@ clientModule.factory('client', function(socket) {
 		}
 	};
 
+	constructor.prototype.updateDeckSize = function(json){
+		this.deckSize = json.size;
+	};
+
+	constructor.prototype.updateDiscardSize = function(json){
+		this.discardSize = json.size;
+	};
+
 	constructor.prototype.getHand = function(){
 		return this.hand;
 	};
@@ -191,6 +201,18 @@ clientModule.factory('client', function(socket) {
 
 	constructor.prototype.getName = function(){
 		return this.name;
+	};
+
+	constructor.prototype.getName = function(){
+		return this.name;
+	};
+
+	constructor.prototype.getDeckSize = function(){
+		return this.deckSize;
+	};
+
+	constructor.prototype.getDiscardSize = function(){
+		return this.discardSize;
 	};
 
 	return new constructor();

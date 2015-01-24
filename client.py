@@ -52,8 +52,9 @@ class DmClient(Client):
 
 	def draw(self, numCards):
 		num_drawn = 0
-		if (len(self.deck)<5):
+		if (len(self.deck)<numCards):
 			self.shuffle_discard_to_deck()
+			self.update_discard_size()
 		for i in range(0, numCards):
 			if (len(self.deck) >= 1):
 				num_drawn += 1
@@ -65,8 +66,10 @@ class DmClient(Client):
 		if num_drawn == 0:
 			return "nothing"
 		elif num_drawn == 1:
+			self.update_deck_size()
 			return "a card"
 		else:
+			self.update_deck_size()
 			return str(num_drawn) + " cards"
 
 	def shuffle_discard_to_deck(self):
@@ -181,6 +184,8 @@ class DmClient(Client):
 		self.played = []
 		self.draw(self.hand_size)
 		self.update_hand()
+		self.update_discard_size()
+		self.update_deck_size()
 		self.game.change_turn()
 
 	def buy_card(self, card):
@@ -222,9 +227,17 @@ class DmClient(Client):
 			pile.append(self.hand[x][0])
 			if (self.hand[x][1] == 0):
 				del self.hand[x]
+		if (pile == self.discard_pile):
+			self.update_discard_size()
 
 	def update_mode(self):
 		self.write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
+
+	def update_deck_size(self):
+		self.write_json(command="updateDeckSize", size=len(self.deck))
+
+	def update_discard_size(self):
+		self.write_json(command="updateDiscardSize", size=len(self.discard_pile))
 
 	def gain(self, card):
 		self.game.get_turn_owner().update_mode()

@@ -9,7 +9,7 @@ html, body {
 #container {
 	padding-left:2%;
 	padding-right:2%;
-	width:95%;
+	height:100%;
 }
 
 .title-bar {
@@ -33,7 +33,7 @@ html, body {
 	/*position:fixed;*/
 }
 
-#rightColumn {
+#middleColumn {
 	height:100%;
 }
 
@@ -65,3 +65,4 @@ html, body {
 .resources {
 	font-size:1.6em;
 }
+
