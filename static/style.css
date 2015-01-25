@@ -21,13 +21,14 @@ html, body {
 }
 
 .popover {
-	width:100%;
+	width:15em;
 }
 
 .popover-content {
 	text-align: center;
 	white-space: pre-wrap;
 }
+
 
 #leftColumn {
 	/*position:fixed;*/

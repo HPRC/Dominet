@@ -52,7 +52,7 @@
 			</div>
 			<div id="hand" ng-controller="handController">
 				<span ng-repeat="card in hand">
-					<button ng-disabled="disabled(card)" ng-class="getButtonStyle(card)" ng-click="clickCard(card)">{{card.title}}</button>
+					<hand-card></hand-card>
 				</span>
 			</div>
 		</div>

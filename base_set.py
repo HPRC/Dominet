@@ -46,8 +46,7 @@ class Moat(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Moat"
-		self.description = "+2 cards\n Whenever another player plays an Attack card, you may reveal this card from\
-		your hand, if you do, you are unaffected by the Attack."
+		self.description = "+2 cards\n Whenever another player plays an Attack card, you may reveal this card from your hand, if you do, you are unaffected by the Attack."
 		self.price = 2
 		self.type = "Action|Reaction"
 		self.trigger = "Attack"
@@ -393,8 +392,7 @@ class Thief(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Thief"
-		self.description = "Each other player reveals the top 2 cards of his deck. If they revealed any Treasure cards\
-		, they trash one that you choose, you may gain any of the trashed cards. The other revealed cards are discarded."
+		self.description = "Each other player reveals the top 2 cards of his deck. If they revealed any Treasure cards, they trash one that you choose, you may gain any of the trashed cards. The other revealed cards are discarded."
 		self.price = 4
 
 	def play(self, skip=False):
@@ -413,35 +411,36 @@ class Thief(crd.AttackCard):
 					self.get_next(player)
 					return
 			revealed_cards = [player.deck.pop(), player.deck.pop()]
-			treasure_cards_revealed = [x for x in revealed_cards if "Money" in x.type]
+			revealed_treasure = [x for x in revealed_cards if "Money" in x.type]
 			self.game.announce(player.name_string() + " revealed " 
 				+ ", ".join([x.log_string() for x in revealed_cards]))
-			if (len(treasure_cards_revealed) == 1):
-				player.trash_pile.append(treasure_cards_revealed[0])
-				if revealed_cards[0] == treasure_cards_revealed[0]:
-					player.discard_pile.append(revealed_cards[1])
+			if len(revealed_treasure) > 0:
+				if len(revealed_treasure) == 1 or revealed_treasure[0].title == revealed_treasure[1].title:
+					player.trash_pile.append(revealed_treasure[0])
+					if revealed_cards[0] == revealed_treasure[0]:
+						player.discard_pile.append(revealed_cards[1])
+					else:
+						player.discard_pile.append(revealed_cards[0])
+					self.game.announce(player.name_string() + " trashes " 
+					+ revealed_treasure[0].log_string())
+
+					self.played_by.select(1, 1, ["Yes", "No"],  
+						"Gain " + revealed_treasure[0].title + "?")
+					
+					def post_select_gain(selection, thieved=player, card=revealed_treasure[0].title):
+						self.post_select_gain(selection, thieved, card)
+
+					self.played_by.waiting["on"].append(self.played_by)
+					self.played_by.waiting["cb"] = post_select_gain
 				else:
-					player.discard_pile.append(revealed_cards[0])
-				self.game.announce(player.name_string() + " trashes " 
-				+ treasure_cards_revealed[0].log_string())
+					self.played_by.select(1, 1, player.card_list_to_titles(revealed_treasure),  
+						"Choose" + player.name + "'s Treasure to trash")
 
-				self.played_by.select(1, 1, ["Yes", "No"],  
-					"Gain " + treasure_cards_revealed[0].title + "?")
-				
-				def post_select_gain(selection, thieved=player, card=treasure_cards_revealed[0].title):
-					self.post_select_gain(selection, thieved, card)
+					def post_select_trash(selection, thieved=player, cards=revealed_treasure):
+						self.post_select_trash(selection, thieved, cards)
 
-				self.played_by.waiting["on"].append(self.played_by)
-				self.played_by.waiting["cb"] = post_select_gain
-			elif (len(treasure_cards_revealed) == 2):
-				self.played_by.select(1, 1, player.card_list_to_titles(treasure_cards_revealed),  
-					"Choose" + player.name + "'s Treasure to trash")
-
-				def post_select_trash(selection, thieved=player, cards=treasure_cards_revealed):
-					self.post_select_trash(selection, thieved, cards)
-
-				self.played_by.waiting["on"].append(self.played_by)
-				self.played_by.waiting["cb"] = post_select_trash
+					self.played_by.waiting["on"].append(self.played_by)
+					self.played_by.waiting["cb"] = post_select_trash
 			else:
 				crd.Card.on_finished(self, True, True)
 		else:
