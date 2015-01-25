@@ -28,18 +28,18 @@
 			<div id="gameover" ng-show="modeJson.mode === 'gameover'">
 				<a href="#" ng-click="returnLobby()">Return to Lobby</a>
 			</div>
-			<div id="wait" ng-show="modeJson.mode === 'wait'"><h4>{{modeJson.msg}}</h4>
+			<div id="wait" ng-show="modeJson.mode === 'wait'"><span>{{modeJson.msg}}</span>
 			</div>
 			<div id="select" ng-show="modeJson.mode ==='select'" ng-controller="selectController">
 				<div ng-if="modeJson.min_cards > 1 || modeJson.min_cards === null">
-					<h4>{{modeJson.msg}}</h4>
+					<span>{{modeJson.msg}}</span>
 					<label class="checkbox-inline" ng-repeat="option in modeJson.select_from track by $index">
 						<input type="checkbox" ng-init="checked=false" ng-click="checked=!checked; check(option,checked)">{{option}}
 					</label>
 					<button ng-disabled="!canBeDone" ng-click="doneSelection()" class="btn btn-default">Done</button>
 				</div>
 				<div ng-if="modeJson.min_cards === 1">
-					<h4>{{modeJson.msg}}</h4>
+					<span>{{modeJson.msg}}</span>
 					<a href ng-click="selectOne(option)" ng-repeat="option in modeJson.select_from track by $index">  {{option}}  </a>
 				</div>
 			</div>

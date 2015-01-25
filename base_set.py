@@ -236,7 +236,7 @@ class Spy(crd.AttackCard):
 	def post_select(self, selection, act_on):
 		if (selection[0] == "discard"):
 			card = act_on.deck.pop()
-			act_on.discard_pile.append(crd.Card)
+			act_on.discard_pile.append(card)
 			self.game.announce(self.played_by.name_string() + " discards " + card.log_string() + " from " + 
 				act_on.name_string() + "'s deck")
 		else:
@@ -388,6 +388,92 @@ class Throne_Room(crd.Card):
 		selected_card.play(True)
 		self.played_by.update_resources()
 		self.played_by.update_hand()
+
+class Thief(crd.AttackCard):
+	def __init__(self, game, played_by):
+		crd.AttackCard.__init__(self, game, played_by)
+		self.title = "Thief"
+		self.description = "Each other player reveals the top 2 cards of his deck. If they revealed any Treasure cards\
+		, they trash one that you choose, you may gain any of the trashed cards. The other revealed cards are discarded."
+		self.price = 4
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		crd.AttackCard.check_reactions(self, self.game.get_opponents(self.played_by))
+
+	def attack(self):
+		self.get_next(self.played_by)
+
+	def fire(self, player):
+		if not crd.AttackCard.is_blocked(self, player):
+			if (len(player.deck) < 2):
+				player.shuffle_discard_to_deck()
+				if (len(player.deck) <2):
+					self.game.announce(player.name_string() + " has no cards to Thieve.")
+					self.get_next(player)
+					return
+			revealed_cards = [player.deck.pop(), player.deck.pop()]
+			treasure_cards_revealed = [x for x in revealed_cards if "Money" in x.type]
+			self.game.announce(player.name_string() + " revealed " 
+				+ ", ".join([x.log_string() for x in revealed_cards]))
+			if (len(treasure_cards_revealed) == 1):
+				player.trash_pile.append(treasure_cards_revealed[0])
+				if revealed_cards[0] == treasure_cards_revealed[0]:
+					player.discard_pile.append(revealed_cards[1])
+				else:
+					player.discard_pile.append(revealed_cards[0])
+				self.game.announce(player.name_string() + " trashes " 
+				+ treasure_cards_revealed[0].log_string())
+
+				self.played_by.select(1, 1, ["Yes", "No"],  
+					"Gain " + treasure_cards_revealed[0].title + "?")
+				
+				def post_select_gain(selection, thieved=player, card=treasure_cards_revealed[0].title):
+					self.post_select_gain(selection, thieved, card)
+
+				self.played_by.waiting["on"].append(self.played_by)
+				self.played_by.waiting["cb"] = post_select_gain
+			elif (len(treasure_cards_revealed) == 2):
+				self.played_by.select(1, 1, player.card_list_to_titles(treasure_cards_revealed),  
+					"Choose" + player.name + "'s Treasure to trash")
+
+				def post_select_trash(selection, thieved=player, cards=treasure_cards_revealed):
+					self.post_select_trash(selection, thieved, cards)
+
+				self.played_by.waiting["on"].append(self.played_by)
+				self.played_by.waiting["cb"] = post_select_trash
+			else:
+				crd.Card.on_finished(self, True, True)
+		else:
+			self.get_next(player)
+
+	def post_select_gain(self, selection, thieved, card):
+		if (selection[0] == "Yes"):
+			self.played_by.gain(card, False)
+		self.get_next(thieved)
+
+	def post_select_trash(self, selection, thieved, cards):
+		card_to_trash = [x for x in cards if selection[0] == x.title][0]
+		cards.remove(card_to_trash)
+		thieved.trash_pile.append(card_to_trash)
+		thieved.discard_pile.append(cards[0])
+		self.game.announce(self.played_by.name_string() + " trashes " + card_to_trash.log_string() + " from " + 
+				thieved.name_string() + "'s deck")
+		self.game.announce(thieved.name_string() + " discards " + cards[0].log_string() + " from his deck")
+		self.played_by.select(1, 1, ["Yes", "No"], "Gain " + card_to_trash.title + "?")
+
+		def post_select_gain(selection, thieved=thieved, card=card_to_trash.title):
+			self.post_select_gain(selection, thieved, card)
+
+		self.played_by.waiting["on"].append(self.played_by)
+		self.played_by.waiting["cb"] = post_select_gain
+
+	def get_next(self, act_on):
+		next_player_index = (self.game.players.index(act_on) + 1) % len(self.game.players)
+		if (self.game.players[next_player_index] != self.played_by):
+			self.fire(self.game.players[next_player_index])
+		else:
+			crd.Card.on_finished(self, True, True)
 
 class Festival(crd.Card):
 	def __init__(self, game, played_by):

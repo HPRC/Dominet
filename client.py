@@ -2,6 +2,7 @@ import json
 import card as crd
 import random
 import copy
+# import base_set as b
 
 class Client():
 	hand_size = 5
@@ -106,6 +107,7 @@ class DmClient(Client):
 		new_conn.buys = self.buys
 		new_conn.balance = self.balance
 		new_conn.VP = self.VP
+		new_conn.waiting = self.waiting
 		new_conn.last_mode = self.last_mode
 		for card in self.deck + self.discard_pile + self.trash_pile:
 			card.played_by = new_conn
@@ -152,10 +154,12 @@ class DmClient(Client):
 			self.buy_card(data["card"])
 		elif (cmd == "post_selection"):
 			self.update_wait()
+			#parameter to waiting callback here is a list
 			if (self.waiting["cb"] != None):
 				self.waiting["cb"](data["selection"])
 		elif (cmd == "gain"):
 			self.update_wait()
+			#parameter to waiting callback here is a string
 			if (self.waiting["cb"] != None):
 				self.waiting["cb"](data["card"])
 		elif (cmd == "spendAllMoney"):
@@ -239,14 +243,17 @@ class DmClient(Client):
 	def update_discard_size(self):
 		self.write_json(command="updateDiscardSize", size=len(self.discard_pile))
 
-	def gain(self, card):
+	def gain(self, card, from_supply = True):
 		self.game.get_turn_owner().update_mode()
-		if (self.game.supply[card][1] > 0):
-			newCard = copy.copy(self.game.supply[card][0])
-			newCard.played_by = self
-			self.game.announce(self.name_string() + " gains " + newCard.log_string())
-			self.discard_pile.append(newCard)
+		if (self.game.supply[card][1] <= 0 and from_supply):
+			return
+		if (from_supply):
 			self.game.remove_from_supply(card)
+		newCard = copy.copy(self.game.supply[card][0])
+		newCard.played_by = self
+		self.game.announce(self.name_string() + " gains " + newCard.log_string())
+		self.discard_pile.append(newCard)
+		self.update_discard_size()
 
 	def gain_from_supply(self, price_limit, equal_only, type_constraint = None):
 		self.write_json(command="updateMode", mode="gain", price=price_limit, equal_only=equal_only, 
