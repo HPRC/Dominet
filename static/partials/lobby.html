@@ -12,7 +12,7 @@
 		</span>
 	</div>
 	<div class="row">
-		<div class="col-md-4">
+		<div id="lobbyPanel" class="col-md-4">
 			<h3>Lobby</h3>
 			<div ng-repeat="client in lobbyList">
 				{{client}} <button class="btn btn-primary btn-xs" ng-show="client !== name" ng-disabled="challenging || challengers.indexOf(client) !== -1" ng-click="challenge(client)">Challenge</button>

@@ -392,7 +392,7 @@ class Thief(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Thief"
-		self.description = "Each other player reveals the top 2 cards of his deck. If they revealed any Treasure cards, they trash one that you choose, you may gain any of the trashed cards. The other revealed cards are discarded."
+		self.description = "Each other player reveals and discards the top 2 cards of his deck. If they revealed any Treasure cards, they trash one that you choose and you may gain the trashed card."
 		self.price = 4
 
 	def play(self, skip=False):
@@ -448,6 +448,7 @@ class Thief(crd.AttackCard):
 
 	def post_select_gain(self, selection, thieved, card):
 		if (selection[0] == "Yes"):
+			thieved.trash_pile.pop()
 			self.played_by.gain(card, False)
 		self.get_next(thieved)
 
@@ -546,6 +547,9 @@ class Witch(crd.AttackCard):
 				i.gain("Curse")
 		crd.Card.on_finished(self, False, False)
 
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-danger'>", self.title, "es</span>" if plural else "</span>"])
+
 class Market(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -557,6 +561,7 @@ class Market(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		drawn = self.played_by.draw(1)
+		self.played_by.actions += 1
 		self.played_by.balance += 1
 		self.played_by.buys += 1
 		self.game.announce("-- drawing " + drawn + " and gaining +1 action")

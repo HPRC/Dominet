@@ -124,9 +124,14 @@ class DmGame(Game):
 				else:
 					for i in player_vp_list:
 						self.announce(self.construct_end_string(i[0], i[1], i in filtered_winners))
+			decklists = []
 			for i in self.players:
-				i.write_json(command="updateMode", mode="gameover")
-			#net.GameHandler.games.remove(self)
+				decklists.append(i.name_string())
+				decklists.append("'s decklist:<br>")
+				decklists.append(i.decklist_string())
+				decklists.append("<br>")
+			for i in self.players:
+				i.write_json(command="updateMode", mode="gameover", decklists="".join(decklists))
 			return True
 		else:
 			return False

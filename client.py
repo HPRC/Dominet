@@ -45,7 +45,7 @@ class DmClient(Client):
 	def base_deck(self):
 		deck = []
 		for i in range(0,7):
-			deck.append(crd.Copper(game=self.game, played_by=self))
+			deck.append(crd.Gold(game=self.game, played_by=self))
 		for i in range(0,3):
 			deck.append(crd.Estate(game=self.game, played_by=self))
 		random.shuffle(deck)
@@ -176,7 +176,9 @@ class DmClient(Client):
 			self.write_json(**self.last_mode)
 			self.write_json(command="startTurn", actions=self.actions, 
 			buys=self.buys, balance=self.balance)
-			self.game.announce(self.name_string() + " has reconnected!")
+		for i in self.game.get_opponents(self):
+			i.update_mode()
+		self.game.announce(self.name_string() + " has reconnected!")
 
 	def end_turn(self):
 		if self.game.detect_end():
@@ -337,6 +339,7 @@ class DmClient(Client):
 		decklist_str = []
 		for card_title, count in decklist.items():
 			decklist_str.append(str(count))
+			decklist_str.append("-")
 			if count == 1:
 				decklist_str.append(self.game.supply[card_title][0].log_string())
 			else:

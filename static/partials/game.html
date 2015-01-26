@@ -28,18 +28,18 @@
 			<div id="gameover" ng-show="modeJson.mode === 'gameover'">
 				<a href="#" ng-click="returnLobby()">Return to Lobby</a>
 			</div>
-			<div id="wait" ng-show="modeJson.mode === 'wait'"><span>{{modeJson.msg}}</span>
+			<div id="wait" ng-show="modeJson.mode === 'wait'"><h4>{{modeJson.msg}}</h4>
 			</div>
 			<div id="select" ng-show="modeJson.mode ==='select'" ng-controller="selectController">
 				<div ng-if="modeJson.min_cards > 1 || modeJson.min_cards === null">
-					<span>{{modeJson.msg}}</span>
+					<h4>{{modeJson.msg}}</h4>
 					<label class="checkbox-inline" ng-repeat="option in modeJson.select_from track by $index">
 						<input type="checkbox" ng-init="checked=false" ng-click="checked=!checked; check(option,checked)">{{option}}
 					</label>
 					<button ng-disabled="!canBeDone" ng-click="doneSelection()" class="btn btn-default">Done</button>
 				</div>
 				<div ng-if="modeJson.min_cards === 1">
-					<span>{{modeJson.msg}}</span>
+					<h4>{{modeJson.msg}}</h4>
 					<a href ng-click="selectOne(option)" ng-repeat="option in modeJson.select_from track by $index">  {{option}}  </a>
 				</div>
 			</div>
@@ -71,7 +71,7 @@
 			</div>
 		</div>
 	</div>
-		<div id="rightColumn" class="col-xs-2">
+		<div id="rightColumn" class="col-xs-2" ng-controller="infoController">
 			<ul class="list-group">
 				<li class="list-group-item">Deck
 				<span class="badge">{{deckSize}}</span>
@@ -79,7 +79,7 @@
 				<li class="list-group-item">Discard
 					<span class="badge">{{discardSize}}</span>
 				</li>
-				<li class="list-group-item">VP Tokens: 0
+				<li class="list-group-item" ng-bind-html="renderHtml(modeJson.decklists)" ng-show="modeJson.mode === 'gameover'">
 				</li>
 			</ul>
 		</div>
