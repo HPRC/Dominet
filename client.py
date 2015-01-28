@@ -326,7 +326,7 @@ class DmClient(Client):
 
 	def decklist_string(self):
 		decklist = {}
-		for card_title in self.card_list_to_titles(self.deck + self.discard_pile):
+		for card_title in self.card_list_to_titles(self.deck + self.discard_pile + self.played):
 			if card_title in decklist:
 				decklist[card_title] += 1  
 			else:

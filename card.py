@@ -159,7 +159,7 @@ class Duchy(Card):
 		return
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-success'>", self.title, "s</span>" if plural else "</span>"])
+		return "".join(["<span class='label label-success'>", "Duchies</span>" if plural else self.title, "</span>"])
 
 class Province(Card):
 	def __init__(self, game, played_by):

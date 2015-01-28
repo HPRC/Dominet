@@ -526,6 +526,9 @@ class Laboratory(crd.Card):
 		self.game.announce("-- drawing " + drawn + " and gaining +1 action")
 		crd.Card.on_finished(self)
 
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-default'>", "Laboratories" if plural else self.title, "</span>"])
+
 class Witch(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)

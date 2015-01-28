@@ -2,19 +2,6 @@ clientModule.factory('client', function(socket) {
 	var constructor = function() {
 		this.id = null;
 		this.name = null;
-		this.turn = false;
-		this.hand = [];
-		this.kingdom = {};
-		this.baseSupply = {};
-		this.actions = 0;
-		this.buys = 0;
-		this.balance = 0;
-		this.played = [];
-		this.spendableMoney = 0;
-		this.deckSize = 5;
-		this.discardSize = 0;
-		//mode overidden by turn
-		this.modeJson = {"mode":"action"}; //.mode = action, buy, select, gain, wait, gameover
 		var that = this;
 
 		//socket
@@ -30,6 +17,22 @@ clientModule.factory('client', function(socket) {
 	constructor.prototype.init = function(json) {
 			this.id = json.id;
 			this.name = json.name;
+	};
+
+	constructor.prototype.initGameProperties = function(){
+		this.turn = false;
+		this.hand = [];
+		this.kingdom = {};
+		this.baseSupply = {};
+		this.actions = 0;
+		this.buys = 0;
+		this.balance = 0;
+		this.played = [];
+		this.spendableMoney = 0;
+		this.deckSize = 5;
+		this.discardSize = 0;
+		//mode overidden by turn
+		this.modeJson = {"mode":"action"}; //.mode = action, buy, select, gain, wait, gameover
 	};
 
 	constructor.prototype.updateHand = function(json){

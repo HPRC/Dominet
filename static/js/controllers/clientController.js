@@ -1,4 +1,5 @@
 clientModule.controller("clientController", function($rootScope, $scope, socket, client){
+	client.initGameProperties();
 	$scope.c = client;
 	$scope.hand = client.getHand();
 	$scope.turn = client.getTurn();
