@@ -128,50 +128,51 @@ class Curse(Card):
 		self.vp = -1
 		self.type = "Curse"
 
+	def get_vp(self):
+		return self.vp
+		
 	def play(self):
 		return
 
-class Estate(Card):
+class VictoryCard(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
+		self.type = "Victory"
+
+	def get_vp(self):
+		return self.vp
+
+	def play(self):
+		return
+
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-success'>", self.title, "s</span>" if plural else "</span>"])
+
+
+class Estate(VictoryCard):
+	def __init__(self, game, played_by):
+		VictoryCard.__init__(self, game, played_by)
 		self.title = "Estate"
 		self.description = "+1 VP"
 		self.price = 2
 		self.vp = 1
-		self.type = "Victory"
 
-	def play(self):
-		return
-
-	def log_string(self, plural=False):
-		return "".join(["<span class='label label-success'>", self.title, "s</span>" if plural else "</span>"])
-
-class Duchy(Card):
+class Duchy(VictoryCard):
 	def __init__(self, game, played_by):
-		Card.__init__(self, game, played_by)
+		VictoryCard.__init__(self, game, played_by)
 		self.title = "Duchy"
 		self.description = "+3 VP"
 		self.price = 5
 		self.vp = 3
-		self.type = "Victory"
-
-	def play(self):
-		return
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-success'>", "Duchies</span>" if plural else self.title, "</span>"])
 
-class Province(Card):
+class Province(VictoryCard):
 	def __init__(self, game, played_by):
-		Card.__init__(self, game, played_by)
+		VictoryCard.__init__(self, game, played_by)
 		self.title = "Province"
 		self.description = "+6 VP"
 		self.price = 8
 		self.vp = 6
-		self.type = "Victory"
 
-	def play(self):
-		return
-
-	def log_string(self, plural=False):
-		return "".join(["<span class='label label-success'>", self.title, "s</span>" if plural else "</span>"])

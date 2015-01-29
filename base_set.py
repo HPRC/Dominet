@@ -38,6 +38,7 @@ class Chapel(crd.Card):
 		self.played_by.waiting["cb"] = self.post_select
 
 	def post_select(self, selection):
+		self.game.announce(self.played_by.name_string() + " trashes " + ",".join(selection));
 		self.played_by.waiting["cb"] = None
 		self.played_by.discard(selection, self.played_by.trash_pile)
 		crd.Card.on_finished(self)
@@ -193,6 +194,20 @@ class Feast(crd.Card):
 		self.played_by.gain(card_title)
 		crd.Card.on_finished(self, False, False)
 
+class Gardens(crd.VictoryCard):
+	def __init__(self, game, played_by):
+		crd.VictoryCard.__init__(self, game, played_by)
+		self.title = "Gardens"
+		self.description = "+1 VP for every 10 cards in your deck (rounded down)"
+		self.price = 4
+		self.vp = 0
+
+	def get_vp(self):
+		return int(self.played_by.total_deck_size()/10)
+
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-success'>", self.title, "</span>"])
+
 class Spy(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
@@ -281,6 +296,7 @@ class Militia(crd.AttackCard):
 				self.played_by.wait("Waiting for other players to discard")
 
 	def post_select(self, selection, act_on):
+		self.game.announce("-- " + act_on.name_string() + " discards down to 3")
 		act_on.discard(selection, act_on.discard_pile)
 		act_on.update_hand()
 		crd.Card.on_finished(self, False, False)
@@ -474,6 +490,9 @@ class Thief(crd.AttackCard):
 			self.fire(self.game.players[next_player_index])
 		else:
 			crd.Card.on_finished(self, True, True)
+
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-danger'>", "Thieves" if plural else self.title, "</span>"])
 
 class Festival(crd.Card):
 	def __init__(self, game, played_by):

@@ -45,7 +45,7 @@ class DmClient(Client):
 	def base_deck(self):
 		deck = []
 		for i in range(0,7):
-			deck.append(crd.Gold(game=self.game, played_by=self))
+			deck.append(crd.Copper(game=self.game, played_by=self))
 		for i in range(0,3):
 			deck.append(crd.Estate(game=self.game, played_by=self))
 		random.shuffle(deck)
@@ -90,7 +90,6 @@ class DmClient(Client):
 		self.actions = 0
 		self.buys = 0
 		self.balance = 0
-		self.VP = 0
 		self.draw(self.hand_size)
 		self.update_hand()
 		#List of players waiting for, callback called after select/gain gets response
@@ -106,7 +105,6 @@ class DmClient(Client):
 		new_conn.actions = self.actions
 		new_conn.buys = self.buys
 		new_conn.balance = self.balance
-		new_conn.VP = self.VP
 		new_conn.waiting = self.waiting
 		new_conn.last_mode = self.last_mode
 		for card in self.deck + self.discard_pile + self.trash_pile:
@@ -284,6 +282,9 @@ class DmClient(Client):
 			h.append(card.log_string(True)) if count > 1 else h.append(card.log_string())
 		return " ".join(h)
 
+	def total_deck_size(self):
+		return len(self.deck) + len(self.discard_pile) + len(self.played) + len(self.hand_array())
+
 	def spend_all_money(self):
 		to_log = []
 		to_discard = {}
@@ -310,14 +311,14 @@ class DmClient(Client):
 		vp_dict = {}
 		for card in self.deck + self.discard_pile:
 			if ("Victory" in card.type or "Curse" in card.type):
-				total += card.vp
+				total += card.get_vp()
 				if card.title in vp_dict:
 					vp_dict[card.title][1] += 1
 				else:
 					vp_dict[card.title] = [card, 1]
 		for title, data in self.hand.items():
 			if ("Victory" in data[0].type or "Curse" in data[0].type):
-				total += (data[0].vp * data[1])
+				total += (data[0].get_vp() * data[1])
 				if data[0].title in vp_dict:
 					vp_dict[data[0].title][1] += data[1]
 				else:

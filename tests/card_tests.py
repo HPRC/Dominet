@@ -120,6 +120,14 @@ class TestCard(unittest.TestCase):
 		self.player1.waiting["cb"](["Yes"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Gold")
 
+	def test_Gardens(self):
+		for i in range(0,10):
+			self.player1.deck.append(base.Gardens(self.game, self.player1))
+		#decksize = 20
+		self.assertTrue(self.player1.total_vp() == 23)
+		self.player1.deck.append(crd.Copper(self.game, self.player1))
+		self.assertTrue(self.player1.total_vp() == 23)
+
 
 if __name__ == '__main__':
 	unittest.main()
