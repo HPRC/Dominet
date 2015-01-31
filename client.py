@@ -55,7 +55,6 @@ class DmClient(Client):
 		num_drawn = 0
 		if (len(self.deck)<numCards):
 			self.shuffle_discard_to_deck()
-			self.update_discard_size()
 		for i in range(0, numCards):
 			if (len(self.deck) >= 1):
 				num_drawn += 1
@@ -77,6 +76,8 @@ class DmClient(Client):
 		random.shuffle(self.discard_pile)
 		self.deck = self.discard_pile + self.deck
 		self.discard_pile = []
+		self.update_deck_size()
+		self.update_discard_size()
 
 	def setup(self):
 		self.last_mode = {"command":"updateMode", "mode": "action"}
@@ -234,6 +235,12 @@ class DmClient(Client):
 		if (pile == self.discard_pile):
 			self.update_discard_size()
 
+	def insert_card_in_hand(self, card):
+		if (card.title in self.hand):
+			self.hand[card.title][1] += 1
+		else:
+			self.hand[card.title] = [card, 1]
+
 	def update_mode(self):
 		self.write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
 
@@ -353,6 +360,9 @@ class DmClient(Client):
 		if len(lst) == 0:
 			return []
 		return list(map(lambda x: x['title'], lst)) if isinstance(lst[0], dict) else list(map(lambda x: x.title, lst))
+
+	def card_list_log_strings(self, lst):
+		return list(map(lambda x: x.log_string(), lst))
 
 	def name_string(self):
 		return "<b>" + self.name + "</b>"

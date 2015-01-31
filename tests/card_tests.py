@@ -121,12 +121,41 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.player1.discard_pile[-1].title == "Gold")
 
 	def test_Gardens(self):
-		for i in range(0,10):
+		gardens = base.Gardens(self.game, self.player1)
+		self.player1.hand["Gardens"] = [gardens, 1]
+		self.assertTrue(gardens.get_vp() == 1)
+		for i in range(0,9):
 			self.player1.deck.append(base.Gardens(self.game, self.player1))
 		#decksize = 20
 		self.assertTrue(self.player1.total_vp() == 23)
 		self.player1.deck.append(crd.Copper(self.game, self.player1))
 		self.assertTrue(self.player1.total_vp() == 23)
+
+	def test_Chancellor(self):
+		self.player1.discard_pile.append(crd.Copper(self.game, self.player1))
+		chancellor = base.Chancellor(self.game, self.player1)
+		self.player1.hand["Chancellor"] = [chancellor, 1]
+		chancellor.play()
+		self.assertTrue(Player1Handler.log[-1]["command"] == "updateMode")
+		self.assertTrue(len(self.player1.discard_pile) == 1)
+		decksize = len(self.player1.deck)
+		self.player1.waiting["cb"](["Yes"])
+		self.assertTrue(len(self.player1.discard_pile) == 0)
+		self.assertTrue(len(self.player1.deck) == decksize + 1)
+
+	def test_Adventurer(self):
+		estate = crd.Estate(self.game, self.player1)
+		gold = crd.Gold(self.game, self.player1)
+		adventurer = base.Adventurer(self.game, self.player1)
+		self.player1.deck = [estate, estate, estate]
+		self.player1.discard_pile = [gold, gold]
+
+		self.player1.hand["Adventurer"] = [adventurer, 1]
+		adventurer.play()
+		self.assertTrue(self.player1.hand["Gold"][1] == 2)
+		self.assertTrue(len(self.player1.deck) == 0)
+		# print(self.player1.discard_pile)
+		self.assertTrue(len(self.player1.discard_pile) == 3)
 
 
 if __name__ == '__main__':

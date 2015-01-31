@@ -93,6 +93,29 @@ class Village(crd.Card):
 		self.game.announce("-- gaining 2 actions and drawing " + drawn)
 		crd.Card.on_finished(self)
 
+class Chancellor(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Chancellor"
+		self.description = "+$2\nYou may immediately put your deck into your discard pile"
+		self.price = 3
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.balance += 2
+		self.played_by.select(1, 1, ["Yes", "No"],  
+			"Put discard into deck?")
+		self.played_by.waiting["cb"] = self.post_select
+		self.played_by.waiting["on"].append(self.played_by)
+
+	def post_select(self, selection):
+		self.played_by.waiting["cb"] = None
+		if (selection[0] == "Yes"):
+			self.played_by.shuffle_discard_to_deck()
+		crd.Card.on_finished(self)
+
+
 class Woodcutter(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -617,9 +640,53 @@ class Mine(crd.Card):
 	def post_gain(self, card_title):
 		self.played_by.gain(card_title)
 		gained_card = self.played_by.discard_pile.pop()
-		if (gained_card.title in self.played_by.hand):
-			self.played_by.hand[gained_card.title][1] += 1
-		else:
-			self.played_by.hand[gained_card.title] = [gained_card, 1]
+		self.played_by.insert_card_in_hand(gained_card)
 		crd.Card.on_finished(self)
+
+class Adventurer(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Adventurer"
+		self.description = "Reveal cards from your deck until you reveal 2 Treasure cards, put those in your hand and discard the other revealed cards."
+		self.price = 6
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		to_discard = []
+		treasures = []
+		while len(self.played_by.deck) > 0:
+			card = self.played_by.deck.pop()
+			if ("Money" in card.type):
+				treasures.append(card)
+				if len(treasures) == 2:
+					self.game.announce(self.played_by.name_string() + " reveals " + ", ".join(self.played_by.card_list_log_strings(to_discard + treasures)))
+					self.game.announce(self.played_by.name_string() + " puts " + ", ".join(self.played_by.card_list_log_strings(treasures)) + "in hand")
+					self.played_by.discard_pile += to_discard
+					self.played_by.update_discard_size()
+					self.played_by.update_deck_size()
+					for t in treasures:
+						self.played_by.insert_card_in_hand(t)
+					crd.Card.on_finished(self)
+					return
+			else:
+				to_discard.append(card)
+			if len(treasures) < 2 and len(self.played_by.deck) == 0:
+				self.played_by.shuffle_discard_to_deck()
+
+		self.game.announce(self.played_by.name_string() + " reveals " + ", ".join(self.played_by.card_list_log_strings(to_discard + treasures)))
+		if len(treasures) > 0:
+			self.game.announce(self.played_by.name_string() + " puts " + ", ".join(self.played_by.card_list_log_strings(treasures)) + " in hand")
+		else:
+			self.game.announce(self.played_by.name_string() + " finds no treasures to put in hand")
+		self.played_by.discard_pile += to_discard
+		self.played_by.update_discard_size()
+		self.played_by.update_deck_size()
+		for t in treasures:
+			self.played_by.insert_card_in_hand(t)
+		crd.Card.on_finished(self)
+
+
+
+
 
