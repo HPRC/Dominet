@@ -149,7 +149,7 @@ class DmHandler(GameHandler):
 		for i in self.client.game.players:
 			if i != self.client:
 				i.wait(self.client.name + " has disconnected!")
-
+				#todo add disconnected state so if both players leave cannot reconnect
 
 def main():
 	app = web.Application([

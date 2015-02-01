@@ -12,12 +12,14 @@ class Cellar(crd.Card):
 		crd.Card.play(self, skip)
 		self.played_by.actions += 1
 		self.played_by.select(None, None,
-			self.played_by.card_list_to_titles(self.played_by.hand_array()), "select cards to discard")
+			crd.card_list_to_titles(self.played_by.hand_array()), "select cards to discard")
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_select
 
 	def post_select(self, selection):
 		self.played_by.waiting["cb"] = None
+		self.played_by.write_json(command="announce", msg="-- you discard " + " , ".join(list(map(lambda x: self.played_by.hand[x][0].log_string(), selection))))
+		self.played_by.announce_opponents("-- discarding and drawing " + str(len(selection)) + " cards")
 		self.played_by.discard(selection, self.played_by.discard_pile)
 		self.played_by.draw(len(selection))
 		crd.Card.on_finished(self)
@@ -33,14 +35,14 @@ class Chapel(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		self.played_by.select(None, 4,
-			self.played_by.card_list_to_titles(self.played_by.hand_array()), "select cards to trash")
+			crd.card_list_to_titles(self.played_by.hand_array()), "select cards to trash")
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_select
 
 	def post_select(self, selection):
-		self.game.announce(self.played_by.name_string() + " trashes " + ",".join(selection));
+		self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(selection));
 		self.played_by.waiting["cb"] = None
-		self.played_by.discard(selection, self.played_by.trash_pile)
+		self.played_by.discard(selection, self.game.trash_pile)
 		crd.Card.on_finished(self)
 
 class Moat(crd.Card):
@@ -179,7 +181,7 @@ class Bureaucrat(crd.AttackCard):
 					i.update_hand()
 					crd.Card.on_finished(self, False, False)
 				else:
-					i.select(1, 1,  i.card_list_to_titles(i_victory_cards), 
+					i.select(1, 1,  crd.card_list_to_titles(i_victory_cards), 
 						"select Victory card to put back")
 
 					def post_select_on(selection, i=i):
@@ -207,7 +209,9 @@ class Feast(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		if (self.played_by.played[-1] == self):
-			self.played_by.trash_pile.append(self.played_by.played.pop())
+			self.game.trash_pile.append(self.played_by.played.pop())
+			self.game.update_trash_pile()
+			self.game.announce("-- trashing " + self.log_string())
 		self.played_by.update_resources()
 		self.played_by.gain_from_supply(5, False)
 		self.played_by.waiting["on"].append(self.played_by)
@@ -307,7 +311,7 @@ class Militia(crd.AttackCard):
 	def attack(self):
 		for i in self.played_by.get_opponents():
 			if not crd.AttackCard.is_blocked(self, i):
-				i.select(len(i.hand_array())-3, len(i.hand_array())-3, i.card_list_to_titles(i.hand_array()),
+				i.select(len(i.hand_array())-3, len(i.hand_array())-3, crd.card_list_to_titles(i.hand_array()),
 				 "discard down to 3 cards")
 			
 				def post_select_on(selection, i=i):
@@ -349,7 +353,7 @@ class Moneylender(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		if ("Copper" in self.played_by.hand.keys()):
-			self.played_by.discard(["Copper"], self.played_by.trash_pile)
+			self.played_by.discard(["Copper"], self.game.trash_pile)
 			self.played_by.balance += 3
 			self.game.announce("-- trashing a copper and gaining $3")
 		else:
@@ -366,14 +370,14 @@ class Remodel(crd.Card):
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		self.played_by.select(1, 1, self.played_by.card_list_to_titles(self.played_by.hand_array()),
+		self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand_array()),
 		 "select card to remodel")
 		self.played_by.update_resources()
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_select
 
 	def post_select(self, selection):
-		self.played_by.discard(selection, self.played_by.trash_pile)
+		self.played_by.discard(selection, self.game.trash_pile)
 		card_trashed = self.game.supply[selection[0]][0]
 		self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
 		self.played_by.gain_from_supply(card_trashed.price + 2, False)
@@ -397,7 +401,7 @@ class Throne_Room(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		action_cards = [x for x in self.played_by.hand_array() if "Action" in x.type]
-		if not self.played_by.select(1, 1, self.played_by.card_list_to_titles(action_cards),
+		if not self.played_by.select(1, 1, crd.card_list_to_titles(action_cards),
 		 "select card for Throne Room"):
 			self.done = lambda : None
 			self.game.announce(" -- but has no action cards")
@@ -450,12 +454,12 @@ class Thief(crd.AttackCard):
 					self.get_next(player)
 					return
 			revealed_cards = [player.deck.pop(), player.deck.pop()]
-			revealed_treasure = [x for x in revealed_cards if "Money" in x.type]
+			revealed_treasure = [x for x in revealed_cards if "Treasure" in x.type]
 			self.game.announce(player.name_string() + " revealed " 
 				+ ", ".join([x.log_string() for x in revealed_cards]))
 			if len(revealed_treasure) > 0:
 				if len(revealed_treasure) == 1 or revealed_treasure[0].title == revealed_treasure[1].title:
-					player.trash_pile.append(revealed_treasure[0])
+					self.game.trash_pile.append(revealed_treasure[0])
 					if revealed_cards[0] == revealed_treasure[0]:
 						player.discard_pile.append(revealed_cards[1])
 					else:
@@ -472,7 +476,7 @@ class Thief(crd.AttackCard):
 					self.played_by.waiting["on"].append(self.played_by)
 					self.played_by.waiting["cb"] = post_select_gain
 				else:
-					self.played_by.select(1, 1, player.card_list_to_titles(revealed_treasure),  
+					self.played_by.select(1, 1, crd.card_list_to_titles(revealed_treasure),  
 						"Choose" + player.name + "'s Treasure to trash")
 
 					def post_select_trash(selection, thieved=player, cards=revealed_treasure):
@@ -487,14 +491,14 @@ class Thief(crd.AttackCard):
 
 	def post_select_gain(self, selection, thieved, card):
 		if (selection[0] == "Yes"):
-			thieved.trash_pile.pop()
+			self.game.trash_pile.pop()
 			self.played_by.gain(card, False)
 		self.get_next(thieved)
 
 	def post_select_trash(self, selection, thieved, cards):
 		card_to_trash = [x for x in cards if selection[0] == x.title][0]
 		cards.remove(card_to_trash)
-		thieved.trash_pile.append(card_to_trash)
+		self.game.trash_pile.append(card_to_trash)
 		thieved.discard_pile.append(cards[0])
 		self.game.announce(self.played_by.name_string() + " trashes " + card_to_trash.log_string() + " from " + 
 				thieved.name_string() + "'s deck")
@@ -596,7 +600,7 @@ class Library(crd.Card):
 					return
 				else:
 					self.played_by.write_json(command="announce",msg="-- You draw " + top_card.log_string())
-					self.game.announce_to(msg="-- drawing 1 card", listeners=self.played_by.get_opponents())
+					self.played_by.announce_opponents(msg="-- drawing 1 card")
 					self.played_by.insert_card_in_hand(top_card)
 					self.played_by.update_hand()
 			else:
@@ -604,6 +608,7 @@ class Library(crd.Card):
 			self.on_finish()
 
 	def post_select(self, selection, card):
+		self.played_by.waiting["cb"] = None
 		if (selection[0] == "No"):
 			self.played_by.write_json(command="announce",msg="-- You draw " + card.log_string())
 			self.played_by.insert_card_in_hand(card)
@@ -611,7 +616,7 @@ class Library(crd.Card):
 		else:
 			self.played_by.write_json(command="announce",msg="-- You set aside " + card.log_string())
 			self.set_aside.append(card)
-		if (len(self.played_by.hand) < 7):
+		if (len(self.played_by.hand_array()) < 7):
 			self.play(True)
 		else:
 			self.on_finish()
@@ -678,19 +683,19 @@ class Mine(crd.Card):
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		treasure_cards = [x for x in self.played_by.hand_array() if "Money" in x.type]
-		self.played_by.select(1, 1, self.played_by.card_list_to_titles(treasure_cards),
+		treasure_cards = [x for x in self.played_by.hand_array() if "Treasure" in x.type]
+		self.played_by.select(1, 1, crd.card_list_to_titles(treasure_cards),
 		 "select treasure to trash")
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_select
 
 	def post_select(self, selection):
-		self.played_by.discard(selection, self.played_by.trash_pile)
+		self.played_by.discard(selection, self.game.trash_pile)
 		card_trashed = self.game.supply[selection[0]][0]
 		self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_gain
-		self.played_by.gain_from_supply(card_trashed.price + 3, False, "Money")
+		self.played_by.gain_from_supply(card_trashed.price + 3, False, "Treasure")
 
 	def post_gain(self, card_title):
 		self.played_by.gain(card_title)
@@ -712,11 +717,11 @@ class Adventurer(crd.Card):
 		treasures = []
 		while len(self.played_by.deck) > 0:
 			card = self.played_by.deck.pop()
-			if ("Money" in card.type):
+			if ("Treasure" in card.type):
 				treasures.append(card)
 				if len(treasures) == 2:
-					self.game.announce(self.played_by.name_string() + " reveals " + " , ".join(self.played_by.card_list_log_strings(to_discard + treasures)))
-					self.game.announce(self.played_by.name_string() + " puts " + " , ".join(self.played_by.card_list_log_strings(treasures)) + "in hand")
+					self.game.announce(self.played_by.name_string() + " reveals " + " , ".join(crd.card_list_log_strings(to_discard + treasures)))
+					self.game.announce(self.played_by.name_string() + " puts " + " , ".join(crd.card_list_log_strings(treasures)) + "in hand")
 					self.played_by.discard_pile += to_discard
 					self.played_by.update_discard_size()
 					self.played_by.update_deck_size()
@@ -729,9 +734,9 @@ class Adventurer(crd.Card):
 			if len(treasures) < 2 and len(self.played_by.deck) == 0:
 				self.played_by.shuffle_discard_to_deck()
 
-		self.game.announce(self.played_by.name_string() + " reveals " + " , ".join(self.played_by.card_list_log_strings(to_discard + treasures)))
+		self.game.announce(self.played_by.name_string() + " reveals " + " , ".join(crd.card_list_log_strings(to_discard + treasures)))
 		if len(treasures) > 0:
-			self.game.announce(self.played_by.name_string() + " puts " + " , ".join(self.played_by.card_list_log_strings(treasures)) + " in hand")
+			self.game.announce(self.played_by.name_string() + " puts " + " , ".join(crd.card_list_log_strings(treasures)) + " in hand")
 		else:
 			self.game.announce(self.played_by.name_string() + " finds no treasures to put in hand")
 		self.played_by.discard_pile += to_discard

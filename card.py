@@ -38,7 +38,7 @@ class Card():
 class Money(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
-		self.type = "Money"
+		self.type = "Treasure"
 		self.value = None
 
 	def play(self, skip=False):
@@ -175,4 +175,15 @@ class Province(VictoryCard):
 		self.description = "+6 VP"
 		self.price = 8
 		self.vp = 6
+
+#Utility
+#returns list of card titles from list of card jsons or card objects
+def card_list_to_titles(lst):
+	if len(lst) == 0:
+		return []
+	return list(map(lambda x: x['title'], lst)) if isinstance(lst[0], dict) else list(map(lambda x: x.title, lst))
+
+def card_list_log_strings(lst):
+	return list(map(lambda x: x.log_string(), lst))
+
 

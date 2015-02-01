@@ -24,6 +24,7 @@ clientModule.factory('client', function(socket) {
 		this.hand = [];
 		this.kingdom = {};
 		this.baseSupply = {};
+		this.gameTrash = "";
 		this.actions = 0;
 		this.buys = 0;
 		this.balance = 0;
@@ -100,7 +101,7 @@ clientModule.factory('client', function(socket) {
 	constructor.prototype.updateSpendable = function (){
 		this.spendableMoney = 0;
 		for (var i=0; i<this.hand.length; i++){
-			if (this.hand[i].type === "Money"){
+			if (this.hand[i].type === "Treasure"){
 				this.spendableMoney += this.hand[i].value;
 			}
 		}
@@ -126,7 +127,7 @@ clientModule.factory('client', function(socket) {
 			}
 		}
 
-		if (card.type === "Money"){
+		if (card.type === "Treasure"){
 			this.modeJson = {"mode":"buy"};
 			this.updateSpendable();
 		}
@@ -164,6 +165,10 @@ clientModule.factory('client', function(socket) {
 
 	constructor.prototype.updateDiscardSize = function(json){
 		this.discardSize = json.size;
+	};
+
+	constructor.prototype.updateTrash = function(json){
+		this.gameTrash = json.trash;
 	};
 
 	constructor.prototype.getHand = function(){
@@ -216,6 +221,10 @@ clientModule.factory('client', function(socket) {
 
 	constructor.prototype.getDiscardSize = function(){
 		return this.discardSize;
+	};
+
+	constructor.prototype.getGameTrash = function(){
+		return this.gameTrash;
 	};
 
 	return new constructor();

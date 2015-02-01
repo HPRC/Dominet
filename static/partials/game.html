@@ -79,6 +79,8 @@
 				<li class="list-group-item">Discard
 					<span class="badge">{{discardSize}}</span>
 				</li>
+				<li class="list-group-item" ng-bind-html="renderHtml(trashDisplay(gameTrash))">
+				</li>
 				<li class="list-group-item" ng-bind-html="renderHtml(modeJson.decklists)" ng-show="modeJson.mode === 'gameover'">
 				</li>
 			</ul>

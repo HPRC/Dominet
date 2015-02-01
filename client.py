@@ -47,7 +47,7 @@ class DmClient(Client):
 		for i in range(0,7):
 			deck.append(crd.Copper(game=self.game, played_by=self))
 		for i in range(0,3):
-			deck.append(crd.Estate(game=self.game, played_by=self))
+			deck.append(b.Chapel(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
@@ -89,7 +89,6 @@ class DmClient(Client):
 
 	def setup(self):
 		self.last_mode = {"command":"updateMode", "mode": "action"}
-		self.trash_pile = []
 		self.discard_pile = []
 		#deck = [bottom, middle, top] 
 		self.deck = self.base_deck()
@@ -106,7 +105,6 @@ class DmClient(Client):
 		self.protection = 0
 
 	def resume_state(self, new_conn):
-		new_conn.trash_pile = self.trash_pile
 		new_conn.discard_pile = self.discard_pile
 		new_conn.deck = self.deck
 		new_conn.hand = self.hand
@@ -116,7 +114,7 @@ class DmClient(Client):
 		new_conn.balance = self.balance
 		new_conn.waiting = self.waiting
 		new_conn.last_mode = self.last_mode
-		for card in self.deck + self.discard_pile + self.trash_pile:
+		for card in self.deck + self.discard_pile:
 			card.played_by = new_conn
 		for title, l in self.hand.items():
 			l[0].played_by = new_conn
@@ -242,6 +240,8 @@ class DmClient(Client):
 				del self.hand[x]
 		if (pile == self.discard_pile):
 			self.update_discard_size()
+		elif (pile == self.game.trash_pile):
+			self.game.update_trash_pile()
 
 	def insert_card_in_hand(self, card):
 		if (card.title in self.hand):
@@ -303,11 +303,14 @@ class DmClient(Client):
 	def get_opponents(self):
 		return [x for x in self.game.players if x != self]
 
+	def announce_opponents(self, msg):
+		self.game.announce_to(self.get_opponents(), msg)
+
 	def spend_all_money(self):
 		to_log = []
 		to_discard = {}
 		for title, data in self.hand.items():
-			if (data[0].type == "Money"):
+			if (data[0].type == "Treasure"):
 				for count in range(0, data[1]):
 					self.balance += data[0].value
 				if (len(to_log) != 0):
@@ -345,12 +348,12 @@ class DmClient(Client):
 
 	def decklist_string(self):
 		decklist = {}
-		for card_title in self.card_list_to_titles(self.deck + self.discard_pile + self.played):
+		for card_title in crd.card_list_to_titles(self.deck + self.discard_pile + self.played):
 			if card_title in decklist:
 				decklist[card_title] += 1  
 			else:
 				decklist[card_title] = 1
-		for card_title in self.card_list_to_titles(self.hand_array()):
+		for card_title in crd.card_list_to_titles(self.hand_array()):
 			if card_title in decklist:
 				decklist[card_title] += 1
 			else:
@@ -366,14 +369,6 @@ class DmClient(Client):
 			decklist_str.append(" ")
 		return "".join(decklist_str)
 
-	#returns list of card titles from list of card jsons or card objects
-	def card_list_to_titles(self, lst):
-		if len(lst) == 0:
-			return []
-		return list(map(lambda x: x['title'], lst)) if isinstance(lst[0], dict) else list(map(lambda x: x.title, lst))
-
-	def card_list_log_strings(self, lst):
-		return list(map(lambda x: x.log_string(), lst))
 
 	def name_string(self):
 		return "<b>" + self.name + "</b>"

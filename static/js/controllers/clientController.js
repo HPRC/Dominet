@@ -10,6 +10,7 @@ clientModule.controller("clientController", function($rootScope, $scope, socket,
 	$scope.baseSupply = client.getBaseSupply();
 	$scope.spendableMoney = client.getSpendableMoney();
 	$scope.modeJson = client.getModeJson();
+	$scope.gameTrash = client.getGameTrash();
 
 	$scope.$on("$destroy", function(){
 		socketlistener();
@@ -29,6 +30,7 @@ clientModule.controller("clientController", function($rootScope, $scope, socket,
 			$scope.modeJson = client.getModeJson();
 			$scope.deckSize = client.getDeckSize();
 			$scope.discardSize = client.getDiscardSize();
+			$scope.gameTrash = client.getGameTrash();
 		});
 	});
 

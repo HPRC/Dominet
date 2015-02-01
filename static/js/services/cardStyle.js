@@ -2,7 +2,7 @@ clientModule.factory('cardStyle', function(){
 	return {
 		getButtonStyle: function(card){
 			var colorDict = {
-				"Money": "btn btn-warning",
+				"Treasure": "btn btn-warning",
 				"Victory": "btn btn-success",
 				"Action|Attack": "btn btn-danger",
 				"Action|Reaction": "btn btn-info"

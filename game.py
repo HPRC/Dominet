@@ -40,6 +40,7 @@ class Game():
 class DmGame(Game):
 	def __init__(self, players):
 		Game.__init__(self, players)
+		self.trash_pile = []
 		self.empty_piles = 0
 		#kingdom = dictionary {card.title => [card, count]} i.e {"Copper": [card.Copper(self,None),10]}
 		self.base_supply = self.init_supply([card.Curse(self, None), card.Estate(self, None), 
@@ -106,6 +107,10 @@ class DmGame(Game):
 			if (i.name == name):
 				return i
 
+	def update_trash_pile(self):
+		for i in self.players:
+			i.write_json(command="updateTrash", trash=self.trash_string())
+
 	def detect_end(self):
 		if (self.supply["Province"][1] == 0 or self.empty_piles >=3):
 			self.announce("GAME OVER")
@@ -156,3 +161,23 @@ class DmGame(Game):
 			if (not i.ready):
 				return False
 		return True
+
+	def trash_string(self):
+		trash_dict = {}
+		for x in self.trash_pile:
+			if x.title in trash_dict:
+				trash_dict[x.title][1] += 1  
+			else:
+				trash_dict[x.title] = [x,1]
+		to_log = []
+		for title, data in trash_dict.items():
+			if (len(to_log) != 0):
+				to_log.append(",")
+			to_log.append(str(data[1]))
+			to_log.append(data[0].log_string() if data[1] == 1 else data[0].log_string(True))
+		return " ".join(to_log)
+
+
+
+
+

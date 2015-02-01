@@ -37,7 +37,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(Player1Handler.log[0]["mode"] == "select")
 		self.assertTrue(self.player1.waiting["cb"] != None)
 
-		selection = self.player1.card_list_to_titles(self.player1.hand_array())
+		selection = crd.card_list_to_titles(self.player1.hand_array())
 		self.player1.waiting["cb"](selection)
 		self.assertTrue(len(self.player1.discard_pile) == 5)
 
@@ -46,10 +46,10 @@ class TestCard(unittest.TestCase):
 		self.player1.hand["Militia"][0].play()
 		self.assertTrue(Player2Handler.log[0]["command"] == "updateMode")
 		self.assertTrue(Player2Handler.log[0]["mode"] == "select")
-		self.assertTrue(Player2Handler.log[0]["select_from"] == self.player2.card_list_to_titles(self.player2.hand_array()))
+		self.assertTrue(Player2Handler.log[0]["select_from"] == crd.card_list_to_titles(self.player2.hand_array()))
 		self.assertTrue(self.player2.waiting["cb"] != None)
 
-		selection = self.player2.card_list_to_titles(self.player2.hand_array())[:2]
+		selection = crd.card_list_to_titles(self.player2.hand_array())[:2]
 		self.player2.waiting["cb"](selection)
 		self.assertTrue(len(self.player2.hand_array()) == 3)
 
@@ -95,7 +95,7 @@ class TestCard(unittest.TestCase):
 		feast_card.play()
 
 		self.assertTrue(Player1Handler.log[-1]["mode"] == "gain")
-		self.assertTrue(self.player1.trash_pile[-1] == feast_card)
+		self.assertTrue(self.game.trash_pile[-1] == feast_card)
 
 	def test_Thief_2_treasures(self):
 		thief_card = base.Thief(self.game, self.player1)
@@ -106,7 +106,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue("Copper" in Player1Handler.log[-1]['select_from'])
 		self.assertTrue("Silver" in Player1Handler.log[-1]['select_from'])
 		self.player1.waiting["cb"](["Silver"])
-		self.assertTrue(self.player2.trash_pile[-1].title == "Silver")
+		self.assertTrue(self.game.trash_pile[-1].title == "Silver")
 		self.player1.waiting["cb"](["Yes"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
 
@@ -116,7 +116,7 @@ class TestCard(unittest.TestCase):
 		self.player2.deck.append(crd.Estate(self.game, self.player2))
 		self.player2.deck.append(crd.Gold(self.game, self.player2))
 		thief_card.play()
-		self.assertTrue(self.player2.trash_pile[-1].title == "Gold")
+		self.assertTrue(self.game.trash_pile[-1].title == "Gold")
 		self.player1.waiting["cb"](["Yes"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Gold")
 
