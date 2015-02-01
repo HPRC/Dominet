@@ -154,9 +154,20 @@ class TestCard(unittest.TestCase):
 		adventurer.play()
 		self.assertTrue(self.player1.hand["Gold"][1] == 2)
 		self.assertTrue(len(self.player1.deck) == 0)
-		# print(self.player1.discard_pile)
 		self.assertTrue(len(self.player1.discard_pile) == 3)
 
+	def test_Library(self):
+		library = base.Library(self.game, self.player1)
+		village = base.Village(self.game, self.player1)
+		copper = crd.Copper(self.game, self.player1)
+		self.player1.deck = [copper, village, copper]
+		self.player1.hand["Library"] = [library, 1]
+		library.play()
+		self.assertTrue(len(self.player1.hand_array()) == 6)
+		self.assertTrue(Player1Handler.log[-1]["command"] == "updateMode")
+		self.player1.waiting["cb"]("Yes")
+		self.assertTrue(len(self.player1.hand_array()) == 7)
+		self.assertTrue(self.player1.discard_pile[-1] == village)
 
 if __name__ == '__main__':
 	unittest.main()

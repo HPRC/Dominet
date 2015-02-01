@@ -34,9 +34,6 @@ class Game():
 		self.announce("<b>---- " + str(self.players[self.turn].name) + " 's turn " + str(self.turn_count) + " ----</b>")
 		self.players[self.turn].take_turn()
 
-	def get_opponents(self, player):
-		return [x for x in self.players if x != player]
-
 	def get_turn_owner(self):
 		return self.players[self.turn]
 
@@ -99,6 +96,10 @@ class DmGame(Game):
 			else:
 				supply[x.title] = [x,10]
 		return supply
+
+	def announce_to(self, listeners, msg):
+		for i in listeners:
+			i.write_json(command="announce", msg=msg)
 
 	def get_player_from_name(self, name):
 		for i in self.players:

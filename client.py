@@ -2,7 +2,7 @@ import json
 import card as crd
 import random
 import copy
-# import base_set as b
+import base_set as b
 
 class Client():
 	hand_size = 5
@@ -71,6 +71,14 @@ class DmClient(Client):
 		else:
 			self.update_deck_size()
 			return str(num_drawn) + " cards"
+
+	#get top card of deck
+	def topdeck(self):
+		if len(self.deck) == 0:
+			self.shuffle_discard_to_deck()
+			if len(self.deck) == 0:
+				return None
+		return self.deck.pop()
 
 	def shuffle_discard_to_deck(self):
 		random.shuffle(self.discard_pile)
@@ -175,7 +183,7 @@ class DmClient(Client):
 			self.write_json(**self.last_mode)
 			self.write_json(command="startTurn", actions=self.actions, 
 			buys=self.buys, balance=self.balance)
-		for i in self.game.get_opponents(self):
+		for i in self.get_opponents():
 			i.update_mode()
 		self.game.announce(self.name_string() + " has reconnected!")
 
@@ -291,6 +299,9 @@ class DmClient(Client):
 
 	def total_deck_size(self):
 		return len(self.deck) + len(self.discard_pile) + len(self.played) + len(self.hand_array())
+
+	def get_opponents(self):
+		return [x for x in self.game.players if x != self]
 
 	def spend_all_money(self):
 		to_log = []

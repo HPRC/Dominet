@@ -161,10 +161,10 @@ class Bureaucrat(crd.AttackCard):
 		crd.Card.play(self, skip)
 		self.played_by.gain("Silver")
 		self.played_by.update_resources()
-		crd.AttackCard.check_reactions(self, self.game.get_opponents(self.played_by))
+		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	def attack(self):
-		for i in self.game.get_opponents(self.played_by):
+		for i in self.played_by.get_opponents():
 			if not crd.AttackCard.is_blocked(self, i):
 				i_victory_cards = []
 				for title, data in i.hand.items():
@@ -245,7 +245,7 @@ class Spy(crd.AttackCard):
 		self.game.announce("-- getting +1 action and drawing " + drawn)
 		self.played_by.update_resources()
 		self.played_by.update_hand()
-		crd.AttackCard.check_reactions(self, self.game.get_opponents(self.played_by))
+		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	def attack(self):
 		self.fire(self.played_by)
@@ -302,10 +302,10 @@ class Militia(crd.AttackCard):
 		crd.Card.play(self, skip)
 		self.played_by.balance += 2
 		self.played_by.update_resources()
-		crd.AttackCard.check_reactions(self, self.game.get_opponents(self.played_by))
+		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	def attack(self):
-		for i in self.game.get_opponents(self.played_by):
+		for i in self.played_by.get_opponents():
 			if not crd.AttackCard.is_blocked(self, i):
 				i.select(len(i.hand_array())-3, len(i.hand_array())-3, i.card_list_to_titles(i.hand_array()),
 				 "discard down to 3 cards")
@@ -436,7 +436,7 @@ class Thief(crd.AttackCard):
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		crd.AttackCard.check_reactions(self, self.game.get_opponents(self.played_by))
+		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	def attack(self):
 		self.get_next(self.played_by)
@@ -571,6 +571,61 @@ class Laboratory(crd.Card):
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-default'>", "Laboratories" if plural else self.title, "</span>"])
 
+class Library(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Library"
+		self.description = "Draw until you have 7 cards in hand. You may set aside any action cards drawn this way. Discard the set aside cards after drawing"
+		self.price = 5
+		self.type = "Action"
+		self.set_aside = []
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		while len(self.played_by.hand_array()) < 7:
+			top_card = self.played_by.topdeck()
+			if (top_card != None):
+				if ("Action" in top_card.type):
+					self.played_by.select(1,1, ["Yes", "No"], "set aside " + top_card.title + "?")
+
+					def post_select_card(selection, card=top_card):
+						self.post_select(selection, card)
+
+					self.played_by.waiting["cb"] = post_select_card
+					self.played_by.waiting["on"].append(self)
+					return
+				else:
+					self.played_by.write_json(command="announce",msg="-- You draw " + top_card.log_string())
+					self.game.announce_to(msg="-- drawing 1 card", listeners=self.played_by.get_opponents())
+					self.played_by.insert_card_in_hand(top_card)
+					self.played_by.update_hand()
+			else:
+				break
+			self.on_finish()
+
+	def post_select(self, selection, card):
+		if (selection[0] == "No"):
+			self.played_by.write_json(command="announce",msg="-- You draw " + card.log_string())
+			self.played_by.insert_card_in_hand(card)
+			self.played_by.update_hand()
+		else:
+			self.played_by.write_json(command="announce",msg="-- You set aside " + card.log_string())
+			self.set_aside.append(card)
+		if (len(self.played_by.hand) < 7):
+			self.play(True)
+		else:
+			self.on_finish()
+
+	def on_finish(self):
+		self.played_by.discard_pile += self.set_aside
+		self.set_aside = []
+		self.played_by.update_deck_size()
+		self.played_by.update_discard_size()
+		crd.Card.on_finished(self)
+
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-default'>", "Libraries" if plural else self.title, "</span>"])
+
 class Witch(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
@@ -584,10 +639,10 @@ class Witch(crd.AttackCard):
 		self.game.announce("-- drawing " + drawn)
 		self.played_by.update_hand()
 		self.played_by.update_resources()
-		crd.AttackCard.check_reactions(self, self.game.get_opponents(self.played_by))
+		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	def attack(self):
-		for i in self.game.get_opponents(self.played_by):
+		for i in self.played_by.get_opponents():
 			if not crd.AttackCard.is_blocked(self, i):
 				i.gain("Curse")
 		crd.Card.on_finished(self, False, False)
@@ -660,8 +715,8 @@ class Adventurer(crd.Card):
 			if ("Money" in card.type):
 				treasures.append(card)
 				if len(treasures) == 2:
-					self.game.announce(self.played_by.name_string() + " reveals " + ", ".join(self.played_by.card_list_log_strings(to_discard + treasures)))
-					self.game.announce(self.played_by.name_string() + " puts " + ", ".join(self.played_by.card_list_log_strings(treasures)) + "in hand")
+					self.game.announce(self.played_by.name_string() + " reveals " + " , ".join(self.played_by.card_list_log_strings(to_discard + treasures)))
+					self.game.announce(self.played_by.name_string() + " puts " + " , ".join(self.played_by.card_list_log_strings(treasures)) + "in hand")
 					self.played_by.discard_pile += to_discard
 					self.played_by.update_discard_size()
 					self.played_by.update_deck_size()
@@ -674,9 +729,9 @@ class Adventurer(crd.Card):
 			if len(treasures) < 2 and len(self.played_by.deck) == 0:
 				self.played_by.shuffle_discard_to_deck()
 
-		self.game.announce(self.played_by.name_string() + " reveals " + ", ".join(self.played_by.card_list_log_strings(to_discard + treasures)))
+		self.game.announce(self.played_by.name_string() + " reveals " + " , ".join(self.played_by.card_list_log_strings(to_discard + treasures)))
 		if len(treasures) > 0:
-			self.game.announce(self.played_by.name_string() + " puts " + ", ".join(self.played_by.card_list_log_strings(treasures)) + " in hand")
+			self.game.announce(self.played_by.name_string() + " puts " + " , ".join(self.played_by.card_list_log_strings(treasures)) + " in hand")
 		else:
 			self.game.announce(self.played_by.name_string() + " finds no treasures to put in hand")
 		self.played_by.discard_pile += to_discard
@@ -685,8 +740,4 @@ class Adventurer(crd.Card):
 		for t in treasures:
 			self.played_by.insert_card_in_hand(t)
 		crd.Card.on_finished(self)
-
-
-
-
 
