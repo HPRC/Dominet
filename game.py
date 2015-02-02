@@ -10,7 +10,7 @@ class Game():
 		self.players = players
 		self.first = 0
 		self.turn = self.first
-		self.turn_count = 1
+		self.turn_count = 0
 
 	def chat(self, msg, speaker):
 		for i in self.players:

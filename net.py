@@ -138,6 +138,8 @@ class DmHandler(GameHandler):
 					self.client.game.players.pop(index)
 					self.client.game.players.insert(index, self.client)
 					self.write_json(command="resume")
+					for i in self.client.get_opponents():
+						i.update_mode()
 					return
 		GameHandler.open(self)
 	
@@ -146,10 +148,19 @@ class DmHandler(GameHandler):
 		if (self.client.game == None):
 			GameHandler.on_close(self)
 			return
+		self.client.ready = False
+
+		abandoned = True
 		for i in self.client.game.players:
-			if i != self.client:
-				i.wait(self.client.name + " has disconnected!")
-				#todo add disconnected state so if both players leave cannot reconnect
+			if i.ready == True:
+				abandoned = False
+		if abandoned:
+			GameHandler.games.remove(self.client.game)
+			self.client.game = None
+		else:
+			for i in self.client.game.players:
+				if i != self.client:
+					i.wait(self.client.name + " has disconnected!")
 
 def main():
 	app = web.Application([

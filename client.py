@@ -138,7 +138,8 @@ class DmClient(Client):
 		if (cmd == "ready"):
 			self.ready = True
 			# TODO this still restarts games where players disconnect on first turn
-			if (self.game.players_ready() and self.game.turn_count == 1):
+			if (self.game.players_ready() and self.game.turn_count == 0):
+				self.game.turn_count = 1
 				self.game.start_game()
 			elif (self.game.players_ready()):
 				self.game.load_supplies()
@@ -177,6 +178,7 @@ class DmClient(Client):
 	def resume(self):
 		self.update_hand()
 		self.update_resources()
+		self.game.update_trash_pile()
 		if (self.game.get_turn_owner() == self):
 			self.write_json(**self.last_mode)
 			self.write_json(command="startTurn", actions=self.actions, 
