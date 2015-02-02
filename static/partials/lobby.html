@@ -1,5 +1,5 @@
-<div ng-controller="lobbyController">
-	<div>
+<div ng-controller="lobbyController" class="full-height">
+	<div id="userBar">
 		<h4>Welcome {{name}}</h4>
 		<span ng-show="challenging !== null">
 			<i>Waiting for <b>{{challenging}}</b></i>
@@ -11,28 +11,26 @@
 		<a href="#" ng-click="decline(challenger)" style="margin-left:1em">Decline (politely)</a>
 		</span>
 	</div>
-	<div class="row">
+	<div id="lobby-container" class="row">
 		<div id="lobbyPanel" class="col-md-4">
 			<h3>Lobby</h3>
 			<div ng-repeat="client in lobbyList">
 				{{client}} <button class="btn btn-primary btn-xs" ng-show="client !== name" ng-disabled="challenging || challengers.indexOf(client) !== -1" ng-click="challenge(client)">Challenge</button>
 			</div>
 		</div>
-		<div class="col-md-8">
+		<div class="col-md-8 full-height" ng-controller="chatController">
 			<h3>Dominet</h3>
-			<div ng-controller="chatController">
-				<div class="scrollChat" style="height:35em;">
-					<div id="gameChat">
-					</div>
+			<div class="scrollChat" style="height:70%">
+				<div id="gameChat">
 				</div>
-				<div class="row">
-					<div class="col-md-10">
-		  				<label class="sr-only" for="inputChat">inputChat</label>
-						<input type="text" id="inputChat" class="form-control" ng-model="inputText">
-					</div>
-					<div class="col-md-2">
-						<button id="sendChat" class="btn btn-default" ng-click="enterChat()">Send</button>
-					</div>
+			</div>
+			<div class="row">
+				<div class="col-md-10">
+					<label class="sr-only" for="inputChat">inputChat</label>
+					<input type="text" id="inputChat" class="form-control" ng-model="inputText">
+				</div>
+				<div class="col-md-2">
+					<button id="sendChat" class="btn btn-default" ng-click="enterChat()">Send</button>
 				</div>
 			</div>
 		</div>

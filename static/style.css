@@ -68,6 +68,14 @@ html, body {
 	font-size:1.6em;
 }
 
+#userBar {
+	height:10%;
+}
+
 #lobbyPanel {
 	overflow:auto;
+}
+
+#lobby-container {
+	height:90%;
 }

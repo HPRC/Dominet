@@ -177,7 +177,3 @@ class DmGame(Game):
 			to_log.append(data[0].log_string() if data[1] == 1 else data[0].log_string(True))
 		return " ".join(to_log)
 
-
-
-
-
