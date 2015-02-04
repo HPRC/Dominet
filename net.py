@@ -160,7 +160,10 @@ class DmHandler(GameHandler):
 		else:
 			for i in self.client.game.players:
 				if i != self.client:
-					i.wait(self.client.name + " has disconnected!")
+					if (self.client.last_mode["mode"] == "gameover"):
+						i.write_json(command="announce", msg = self.client.name + " has left.")
+					else:
+						i.wait(self.client.name + " has disconnected!")
 
 def main():
 	app = web.Application([

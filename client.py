@@ -47,7 +47,7 @@ class DmClient(Client):
 		for i in range(0,7):
 			deck.append(crd.Copper(game=self.game, played_by=self))
 		for i in range(0,3):
-			deck.append(b.Chapel(game=self.game, played_by=self))
+			deck.append(crd.Estate(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
@@ -137,7 +137,6 @@ class DmClient(Client):
 		print("\033[94m" + json.dumps(data) + "\033[0m")
 		if (cmd == "ready"):
 			self.ready = True
-			# TODO this still restarts games where players disconnect on first turn
 			if (self.game.players_ready() and self.game.turn_count == 0):
 				self.game.turn_count = 1
 				self.game.start_game()
@@ -206,7 +205,7 @@ class DmClient(Client):
 			# alternative to copy but requires module to have all cards
 			# card_class = getattr(crd, card)
 			# newCard = card_class(self.game, self)
-			newCard = copy.copy(self.game.supply[card][0])
+			newCard = copy.copy(self.game.card_from_title(card))
 			newCard.played_by = self
 			self.game.announce("<b>" + self.name + "</b> buys " + newCard.log_string())
 			self.discard_pile.append(newCard)
@@ -266,7 +265,7 @@ class DmClient(Client):
 			return
 		if (from_supply):
 			self.game.remove_from_supply(card)
-		newCard = copy.copy(self.game.supply[card][0])
+		newCard = copy.copy(self.game.card_from_title(card))
 		newCard.played_by = self
 		self.game.announce(self.name_string() + " gains " + newCard.log_string())
 		self.discard_pile.append(newCard)

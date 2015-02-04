@@ -40,7 +40,11 @@ class Chapel(crd.Card):
 		self.played_by.waiting["cb"] = self.post_select
 
 	def post_select(self, selection):
-		self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(selection));
+		selection_string = list(map(lambda x: self.game.card_from_title(x).log_string(), selection))
+		if len(selection_string > 0):
+			self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(selection_string));
+		else:
+			self.game.announce(self.played_by.name_string() + " trashes nothing");
 		self.played_by.waiting["cb"] = None
 		self.played_by.discard(selection, self.game.trash_pile)
 		crd.Card.on_finished(self)
@@ -194,7 +198,7 @@ class Bureaucrat(crd.AttackCard):
 
 	def post_select(self, selection, act_on):
 		act_on.discard(selection, act_on.deck)
-		self.game.announce(act_on.name_string() + " puts " + self.game.supply[selection[0]][0].log_string() + " back on top of the deck")
+		self.game.announce(act_on.name_string() + " puts " + self.game.card_from_title(selection[0]).log_string() + " back on top of the deck")
 		act_on.update_hand()
 		crd.Card.on_finished(self, False, False)
 
@@ -378,7 +382,7 @@ class Remodel(crd.Card):
 
 	def post_select(self, selection):
 		self.played_by.discard(selection, self.game.trash_pile)
-		card_trashed = self.game.supply[selection[0]][0]
+		card_trashed = self.game.card_from_title(selection[0])
 		self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
 		self.played_by.gain_from_supply(card_trashed.price + 2, False)
 
@@ -691,7 +695,7 @@ class Mine(crd.Card):
 
 	def post_select(self, selection):
 		self.played_by.discard(selection, self.game.trash_pile)
-		card_trashed = self.game.supply[selection[0]][0]
+		card_trashed = self.game.card_from_title(selection[0])
 		self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_gain
