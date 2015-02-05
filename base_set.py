@@ -41,7 +41,7 @@ class Chapel(crd.Card):
 
 	def post_select(self, selection):
 		selection_string = list(map(lambda x: self.game.card_from_title(x).log_string(), selection))
-		if len(selection_string > 0):
+		if len(selection_string) > 0:
 			self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(selection_string));
 		else:
 			self.game.announce(self.played_by.name_string() + " trashes nothing");
