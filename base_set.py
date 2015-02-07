@@ -314,7 +314,7 @@ class Militia(crd.AttackCard):
 
 	def attack(self):
 		for i in self.played_by.get_opponents():
-			if not crd.AttackCard.is_blocked(self, i):
+			if not crd.AttackCard.is_blocked(self, i) and len(i.hand_array()) > 3:
 				i.select(len(i.hand_array())-3, len(i.hand_array())-3, crd.card_list_to_titles(i.hand_array()),
 				 "discard down to 3 cards")
 			
@@ -608,8 +608,9 @@ class Library(crd.Card):
 					self.played_by.insert_card_in_hand(top_card)
 					self.played_by.update_hand()
 			else:
+				self.played_by.write_json(command="announce",msg="-- You have no cards left to draw")
 				break
-			self.on_finish()
+		self.on_finish()
 
 	def post_select(self, selection, card):
 		self.played_by.waiting["cb"] = None
@@ -620,6 +621,8 @@ class Library(crd.Card):
 		else:
 			self.played_by.write_json(command="announce",msg="-- You set aside " + card.log_string())
 			self.set_aside.append(card)
+		self.played_by.update_deck_size()
+		self.played_by.update_discard_size()
 		if (len(self.played_by.hand_array()) < 7):
 			self.play(True)
 		else:
