@@ -20,7 +20,7 @@ class Game():
 		self.announce("Starting game with " + str(self.players[0].name) + " and " + str(self.players[1].name))
 		for i in self.players:
 			i.setup()
-		self.announce("<b>---- " + self.players[self.turn].name + " 's turn " + str(self.turn_count) + " ----</b>")
+		self.announce("<b>---- " + self.players[self.turn].name_string() + " 's turn " + str(self.turn_count) + " ----</b>")
 		self.players[self.turn].take_turn()
 
 	def announce(self, msg):
@@ -31,7 +31,7 @@ class Game():
 		self.turn = (self.turn + 1) % len(self.players)
 		if (self.turn == self.first):
 			self.turn_count += 1
-		self.announce("<b>---- " + str(self.players[self.turn].name) + " 's turn " + str(self.turn_count) + " ----</b>")
+		self.announce("<b>---- " + str(self.players[self.turn].name_string()) + " 's turn " + str(self.turn_count) + " ----</b>")
 		self.players[self.turn].take_turn()
 
 	def get_turn_owner(self):

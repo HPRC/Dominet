@@ -1,5 +1,6 @@
 clientModule.controller("chatController", function($rootScope, $scope, socket){
     $scope.inputText = "";
+    $scope.messages = [];
 
 	$("#inputChat").keypress(function(e){
 		if(e.which==13){
@@ -8,7 +9,6 @@ clientModule.controller("chatController", function($rootScope, $scope, socket){
 	});
 
 	$scope.enterChat = function(){
-		$scope.inputText = $scope.inputText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 		socket.send(JSON.stringify({"command": "chat", "msg": $scope.inputText}))
 		$("#inputChat").val("");	
 		$scope.inputText = "";
@@ -21,9 +21,19 @@ clientModule.controller("chatController", function($rootScope, $scope, socket){
 		var jsonres = JSON.parse(event.data);
 		if (jsonres.command === "chat"){
 			if (jsonres.speaker){
-				$("#gameChat").append("<br><b>" + jsonres.speaker + ": </b>" + jsonres.msg);
+				$scope.$apply(function(){
+					$scope.messages.push({
+						speaker: jsonres.speaker,
+						msg: jsonres.msg
+					});
+				});
 			} else {
-				$("#gameChat").append("<br>" + jsonres.msg);
+				$scope.$apply(function(){
+					$scope.messages.push({
+						speaker: "",
+						msg: jsonres.msg
+					});
+				});
 			}
 			$(".scrollChat").scrollTop($(".scrollChat")[0].scrollHeight);
 		}

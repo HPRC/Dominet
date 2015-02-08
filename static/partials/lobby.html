@@ -12,16 +12,35 @@
 		</span>
 	</div>
 	<div id="lobby-container" class="row">
-		<div id="lobbyPanel" class="col-md-4">
+		<div id="lobbyPanel" class="col-md-2">
 			<h3>Lobby</h3>
 			<div ng-repeat="client in lobbyList">
 				{{client}} <button class="btn btn-primary btn-xs" ng-show="client !== name" ng-disabled="challenging || challengers.indexOf(client) !== -1" ng-click="challenge(client)">Challenge</button>
 			</div>
 		</div>
-		<div class="col-md-8 full-height" ng-controller="chatController">
+		<div class="col-md-10 full-height" ng-controller="chatController">
 			<h3>Dominet</h3>
-			<div class="scrollChat" style="height:70%">
-				<div id="gameChat">
+			<div id="games-list">
+				<table class="table">
+					<tr>
+						<td><b>Henry's Game</b></td>
+						<td><b>Players:</b> Henry, Cat, ---, ---</td>
+						<td>Base set</td>
+						<td><button class="btn btn-default">Join</button></td>
+					</tr>
+					<tr>
+						<td><b>Henry's Game</b></td>
+						<td><b>Players:</b> Henry, Cat, ---, ---</td>
+						<td>Base set</td>
+						<td><button class="btn btn-default">Join</button></td>
+					</tr>
+				</table>
+			</div>
+			<button class="btn btn-default">Create Game</button>
+			<hr>
+			<div class="scrollChat">
+				<div ng-repeat="msg in messages">
+					<span ng-show="msg.speaker !== ''"><b>{{msg.speaker}}</b>:</span><span>{{msg.msg}}</span>
 				</div>
 			</div>
 			<div class="row">

@@ -22,7 +22,7 @@
 			</div>
 		</div>
 	</div>
-	<div id="middleColumn" class="col-xs-6">
+	<div id="middleColumn" class="col-xs-5">
 		<div id="game-panel">
 			<div id="msg"></div>
 			<div id="gameover" ng-show="modeJson.mode === 'gameover'">
@@ -57,8 +57,9 @@
 			</div>
 		</div>
 		<div class="chat-container" ng-controller="chatController">
-			<div class="scrollChat" style="height:100px;">
-				<div id="gameChat">
+			<div class="scrollChat">
+				<div ng-repeat="msg in messages">
+					<span ng-show="msg.speaker !== ''"><b>{{msg.speaker}}</b>:</span><span>{{msg.msg}}</span>
 				</div>
 			</div>
 			<hr>
@@ -71,7 +72,7 @@
 			</div>
 		</div>
 	</div>
-		<div id="rightColumn" class="col-xs-2" ng-controller="infoController">
+		<div id="rightColumn" class="col-xs-3" ng-controller="infoController">
 			<ul class="list-group">
 				<li class="list-group-item">Deck
 				<span class="badge">{{deckSize}}</span>

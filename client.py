@@ -3,6 +3,7 @@ import card as crd
 import random
 import copy
 import base_set as b
+import cgi
 
 class Client():
 	hand_size = 5
@@ -372,4 +373,4 @@ class DmClient(Client):
 
 
 	def name_string(self):
-		return "<b>" + self.name + "</b>"
+		return "<b>" + cgi.escape(self.name) + "</b>"
