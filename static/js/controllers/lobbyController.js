@@ -1,61 +1,16 @@
 clientModule.controller("lobbyController", function($rootScope, $scope, socket, client){
 	$scope.lobbyList = [];
+	$scope.gameTables = [];
 	$scope.name = "";
-	$scope.challenging = null;
-	$scope.challengers = [];
-	$scope.challenge = function(otherPlayer){
-		$scope.challenging = otherPlayer;
-		socket.send(JSON.stringify({"command": "challenge", "challenger": $scope.name, "otherPlayer": otherPlayer}));
-	};
+	$scope.atTable = false;
 
-	$scope.cancel = function(){
-		socket.send(JSON.stringify({"command": "cancel", "challenger": $scope.name, "otherPlayer": $scope.challenging}));
-		$scope.challenging = null;
-	};
-
-	$scope.accept = function(challenger){
-		$scope.challengers.splice($scope.challengers.indexOf(challenger),1);
-		socket.send(JSON.stringify({"command": "loadGame", "players": [$scope.name, challenger], "challenger": challenger}));
-		decline_all();
-	};
-
-	$scope.decline = function(challenger){
-		$scope.challengers.splice($scope.challengers.indexOf(challenger),1);
-		socket.send(JSON.stringify({"command": "decline", "challenger": challenger}));
-	};
-
-	$scope.unchallenged = function(json){
-		$scope.challengers.splice($scope.challengers.indexOf(json.challenger),1);
-	};
-
-	$scope.challenged = function(json){
-		if ($scope.challenging == json.challenger){
-			socket.send(JSON.stringify({"command": "loadGame", "players": [$scope.name, json.challenger], "challenger": json.challenger}));
-		} else {
-			$scope.challengers.push(json.challenger);	
-		}
-	};
-
-	$scope.gotDeclined = function(json){
-		$scope.challenging = null;
-	};
-
-	$scope.gotAccepted = function(json){
-		$scope.challenging = null;
-		decline_all();
-
-	};
+	$scope.newGameTable = {title:"", seats:2};
 
 	$scope.lobby = function(json){
+		console.log(json);
 		$scope.name = client.name;
 		$scope.lobbyList = json.lobby_list;
-	};
-
-	var decline_all = function(){
-		for (var i=0; i<$scope.challengers.length; i++){
-			$scope.decline($scope.challengers[i]);
-			i--;
-		}
+		$scope.gameTables = json.game_tables;
 	};
 
 	$scope.resume = function(json){
@@ -67,8 +22,59 @@ clientModule.controller("lobbyController", function($rootScope, $scope, socket, 
 		});
 	};
 
+	$scope.createGameTable = function(){
+		if ($scope.newGameTable.title !== ""){
+			$scope.atTable = true;
+			socket.send(JSON.stringify({
+				"command": "createTable", 
+				"table": $scope.newGameTable
+			}));
+		}
+	};
+
+	$scope.join = function(table){
+	}
+
+	$scope.leaveTable = function(table){
+		$scope.atTable = false;
+		socket.send(JSON.stringify({
+			"command": "leaveTable",
+			"host": table.host,
+			"leaver": $scope.name
+		}));
+	};
+
+	$scope.playersToString = function(table){
+		var array = table.players.slice();
+		for (var i=0; i< table.seats - table.players.length; i++){
+			array.push("----");	
+		}
+		return array.join(", ");
+	};
+
 	$scope.announce = function(json){
 		$("#gameChat").append("<br>" + json.msg);
+	};
+
+	$scope.isAtTable = function(table){
+		return table.players.indexOf($scope.name) !== -1;
+	};
+
+	//string for table button1
+	$scope.joinOrLeaveString = function(table){
+		if ($scope.isAtTable(table)){
+			return "Leave";
+		} else {
+			return "Join"
+		}
+	};
+
+	$scope.joinOrLeave = function(table){
+		if ($scope.isAtTable(table)){
+			$scope.leaveTable(table);			
+		} else {
+			return "Join"
+		}
 	};
 
 	$scope.$on("$destroy", function(){

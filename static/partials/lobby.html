@@ -1,55 +1,56 @@
 <div ng-controller="lobbyController" class="full-height">
 	<div id="userBar">
 		<h4>Welcome {{name}}</h4>
-		<span ng-show="challenging !== null">
-			<i>Waiting for <b>{{challenging}}</b></i>
-			<a href="#" ng-click="cancel()">Cancel</a>
-		</span>
-		<br>
-		<span ng-repeat="challenger in challengers">You have been challenged by: <b>{{challenger}}</b>
-		<a href="#" ng-click="accept(challenger)" style="margin-left:1em">Accept</a>
-		<a href="#" ng-click="decline(challenger)" style="margin-left:1em">Decline (politely)</a>
-		</span>
 	</div>
 	<div id="lobby-container" class="row">
 		<div id="lobbyPanel" class="col-md-2">
 			<h3>Lobby</h3>
 			<div ng-repeat="client in lobbyList">
-				{{client}} <button class="btn btn-primary btn-xs" ng-show="client !== name" ng-disabled="challenging || challengers.indexOf(client) !== -1" ng-click="challenge(client)">Challenge</button>
+				{{client}}
 			</div>
 		</div>
-		<div class="col-md-10 full-height" ng-controller="chatController">
+		<div class="col-md-10 full-height">
 			<h3>Dominet</h3>
 			<div id="games-list">
 				<table class="table">
-					<tr>
-						<td><b>Henry's Game</b></td>
-						<td><b>Players:</b> Henry, Cat, ---, ---</td>
-						<td>Base set</td>
-						<td><button class="btn btn-default">Join</button></td>
-					</tr>
-					<tr>
-						<td><b>Henry's Game</b></td>
-						<td><b>Players:</b> Henry, Cat, ---, ---</td>
-						<td>Base set</td>
-						<td><button class="btn btn-default">Join</button></td>
+					<tr ng-repeat="g in gameTables">
+						<td><b>{{g.title}}</b></td>
+						<td><b>Host:</b> {{g.host}}</td>
+						<td><b>{{g.seats}} Players:</b> {{playersToString(g)}}</td>
+						<td>{{g.sets}}</td>
+						<td><button class="btn btn-default" ng-click="joinOrLeave(g)" ng-disabled="atTable && !isAtTable(g)">{{joinOrLeaveString(g)}}</button></td>
+						<td><button class="btn btn-default" ng-if="name === g.host" ng-disabled="g.players.length < g.seats">Start Game</button></td>
 					</tr>
 				</table>
 			</div>
-			<button class="btn btn-default">Create Game</button>
 			<hr>
-			<div class="scrollChat">
-				<div ng-repeat="msg in messages">
-					<span ng-show="msg.speaker !== ''"><b>{{msg.speaker}}</b>:</span><span>{{msg.msg}}</span>
+			<form class="form-inline" ng-show="!atTable">
+				<div class="form-group">
+					<label for="newGameTitle">Game Title</label>
+					<input type="text" class="form-control" id="newGameTitle" placeholder="Title" maxlength="40" ng-model="newGameTable.title">
+				    <label for="newSeats">Num Players</label>
+					<select class="form-control" id="newSeats" ng-model="newGameTable.seats">
+						<option>2</option>
+						<option>3</option>
+						<option>4</option>
+					</select>
 				</div>
-			</div>
-			<div class="row">
-				<div class="col-md-10">
-					<label class="sr-only" for="inputChat">inputChat</label>
-					<input type="text" id="inputChat" class="form-control" ng-model="inputText">
+				<button class="btn btn-default" ng-click="createGameTable()">Create Game</button>
+			</form>
+			<div ng-controller="chatController">
+				<div class="scrollChat">
+					<div ng-repeat="msg in messages">
+						<span ng-show="msg.speaker !== ''"><b>{{msg.speaker}}</b>:</span><span>{{msg.msg}}</span>
+					</div>
 				</div>
-				<div class="col-md-2">
-					<button id="sendChat" class="btn btn-default" ng-click="enterChat()">Send</button>
+				<div class="row">
+					<div class="col-md-10">
+						<label class="sr-only" for="inputChat">inputChat</label>
+						<input type="text" id="inputChat" class="form-control" ng-model="inputText">
+					</div>
+					<div class="col-md-2">
+						<button id="sendChat" class="btn btn-default" ng-click="enterChat()">Send</button>
+					</div>
 				</div>
 			</div>
 		</div>
