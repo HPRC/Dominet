@@ -18,8 +18,9 @@
 						<td><b>Host:</b> {{g.host}}</td>
 						<td><b>{{g.seats}} Players:</b> {{playersToString(g)}}</td>
 						<td>{{g.sets}}</td>
-						<td><button class="btn btn-default" ng-click="joinOrLeave(g)" ng-disabled="atTable && !isAtTable(g)">{{joinOrLeaveString(g)}}</button></td>
-						<td><button class="btn btn-default" ng-if="name === g.host" ng-disabled="g.players.length < g.seats">Start Game</button></td>
+						<td ng-if="!isAtTable(g)"><button class="btn btn-default" ng-click="joinTable(g)" ng-disabled="atTable && !isAtTable(g) || g.players.length === g.seats">Join</button></td>
+						<td ng-if="isAtTable(g)"><button class="btn btn-default" ng-click="leaveTable(g)" ng-disabled="atTable && !isAtTable(g)">Leave</button></td>
+						<td ng-if="name === g.host"><button class="btn btn-default" ng-disabled="g.players.length < g.seats">Start Game</button></td>
 					</tr>
 				</table>
 			</div>

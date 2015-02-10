@@ -4,12 +4,12 @@ class GameTable():
 		self.host = host
 		self.seats = seats
 		self.sets = sets
-		self.players = [host.name]
+		self.players = [host]
 
 	def to_json(self):
 		return {
 			"title": self.title,
-			"host" : self.host.name,
+			"host" : self.host,
 			"seats" : self.seats,
 			"players": self.players,
 			"sets": self.sets

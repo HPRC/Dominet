@@ -32,8 +32,14 @@ clientModule.controller("lobbyController", function($rootScope, $scope, socket, 
 		}
 	};
 
-	$scope.join = function(table){
-	}
+	$scope.joinTable = function(table){
+		$scope.atTable = true;
+		socket.send(JSON.stringify({
+			"command": "joinTable",
+			"host": table.host,
+			"joiner": $scope.name
+		}));
+	};
 
 	$scope.leaveTable = function(table){
 		$scope.atTable = false;
@@ -58,23 +64,6 @@ clientModule.controller("lobbyController", function($rootScope, $scope, socket, 
 
 	$scope.isAtTable = function(table){
 		return table.players.indexOf($scope.name) !== -1;
-	};
-
-	//string for table button1
-	$scope.joinOrLeaveString = function(table){
-		if ($scope.isAtTable(table)){
-			return "Leave";
-		} else {
-			return "Join"
-		}
-	};
-
-	$scope.joinOrLeave = function(table){
-		if ($scope.isAtTable(table)){
-			$scope.leaveTable(table);			
-		} else {
-			return "Join"
-		}
 	};
 
 	$scope.$on("$destroy", function(){

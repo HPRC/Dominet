@@ -282,6 +282,8 @@ class Spy(crd.AttackCard):
 		if (selection[0] == "discard"):
 			card = act_on.deck.pop()
 			act_on.discard_pile.append(card)
+			self.game.update_deck_size()
+			self.game.update_discard_size()
 			self.game.announce(self.played_by.name_string() + " discards " + card.log_string() + " from " + 
 				act_on.name_string() + "'s deck")
 		else:
