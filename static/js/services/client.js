@@ -73,6 +73,9 @@ clientModule.factory('client', function(socket) {
 	};
 
 	constructor.prototype.endTurn = function(){
+		if (!this.turn){
+			return;
+		}
 		this.turn = false;
 		this.discard(this.hand);
 		this.played = []; //discarded on backend

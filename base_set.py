@@ -464,6 +464,7 @@ class Thief(crd.AttackCard):
 			if len(revealed_treasure) > 0:
 				if len(revealed_treasure) == 1 or revealed_treasure[0].title == revealed_treasure[1].title:
 					self.game.trash_pile.append(revealed_treasure[0])
+					self.game.update_trash_pile()
 					if revealed_cards[0] == revealed_treasure[0]:
 						player.discard_pile.append(revealed_cards[1])
 					else:
@@ -503,6 +504,7 @@ class Thief(crd.AttackCard):
 		card_to_trash = [x for x in cards if selection[0] == x.title][0]
 		cards.remove(card_to_trash)
 		self.game.trash_pile.append(card_to_trash)
+		self.game.update_trash_pile()
 		thieved.discard_pile.append(cards[0])
 		self.game.announce(self.played_by.name_string() + " trashes " + card_to_trash.log_string() + " from " + 
 				thieved.name_string() + "'s deck")
