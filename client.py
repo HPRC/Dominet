@@ -115,6 +115,7 @@ class DmClient(Client):
 		new_conn.balance = self.balance
 		new_conn.waiting = self.waiting
 		new_conn.last_mode = self.last_mode
+		new_conn.protection = self.protection
 		for card in self.deck + self.discard_pile + self.played:
 			card.played_by = new_conn
 		for title, l in self.hand.items():

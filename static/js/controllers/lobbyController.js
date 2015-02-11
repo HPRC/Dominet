@@ -7,16 +7,12 @@ clientModule.controller("lobbyController", function($rootScope, $scope, socket, 
 	$scope.newGameTable = {title:"", seats:2};
 
 	$scope.lobby = function(json){
-		console.log(json);
 		$scope.name = client.name;
 		$scope.lobbyList = json.lobby_list;
 		$scope.gameTables = json.game_tables;
 	};
 
 	$scope.resume = function(json){
-		if ($scope.challenging !== null){
-			$scope.cancel();
-		}
 		$scope.$apply(function(){
 			$scope.main.game = true;
 		});
@@ -30,14 +26,14 @@ clientModule.controller("lobbyController", function($rootScope, $scope, socket, 
 				"table": $scope.newGameTable
 			}));
 		}
+		$scope.newGameTable.title == "";
 	};
 
 	$scope.joinTable = function(table){
 		$scope.atTable = true;
 		socket.send(JSON.stringify({
 			"command": "joinTable",
-			"host": table.host,
-			"joiner": $scope.name
+			"host": table.host
 		}));
 	};
 
@@ -45,8 +41,14 @@ clientModule.controller("lobbyController", function($rootScope, $scope, socket, 
 		$scope.atTable = false;
 		socket.send(JSON.stringify({
 			"command": "leaveTable",
-			"host": table.host,
-			"leaver": $scope.name
+			"host": table.host
+		}));
+	};
+
+	$scope.startGame = function(table){
+		socket.send(JSON.stringify({
+			"command": "startGame",
+			"host": table.host
 		}));
 	};
 

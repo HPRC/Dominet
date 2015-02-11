@@ -9,16 +9,19 @@ class GameTable():
 	def to_json(self):
 		return {
 			"title": self.title,
-			"host" : self.host,
+			"host" : self.host.name,
 			"seats" : self.seats,
-			"players": self.players,
+			"players": self.players_string(),
 			"sets": self.sets
 		}
 
-	def add_player(self, new_player_name):
-		self.players.append(new_player_name)
+	def add_player(self, new_player):
+		self.players.append(new_player)
 
-	def remove_player(self, player_name):
-		self.players.remove(player_name);
+	def remove_player(self, player):
+		self.players.remove(player);
 		if len(self.players) > 0:
 			self.host = self.players[0]
+
+	def players_string(self):
+		return list(map(lambda x: x.name, self.players))

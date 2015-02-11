@@ -82,7 +82,8 @@ class AttackCard(Card):
 			self.attack()
 
 	def is_blocked(self, target):
-		if (target.protection == 0):
+		#shouldnt need to block against own attacks (i.e. spy)
+		if (target.protection == 0 or target == self.played_by):
 			return False
 		else:
 			target.protection -= 1

@@ -41,7 +41,6 @@ class GameHandler(websocket.WebSocketHandler):
 	def initialize(self):
 		self.client = c.DmClient(self.get_cookie("DMTusername"), self.application.unassigned_id, self)
 		self.application.unassigned_id += 1
-		self.unattachedClients[self.client.name] = self.client
 
 	def write_json(self, **kwargs):
 		if not "command" in kwargs:
@@ -53,21 +52,23 @@ class GameHandler(websocket.WebSocketHandler):
 
 
 	def open(self):
+		self.unattachedClients[self.client.name] = self.client
 		#init client
 		self.write_json(command="init", id=self.client.id, name=self.client.name)
 		self.chat(self.client.name + " has joined the lobby", None)
 		GameHandler.update_lobby()
 
-	def load_game(self, *args):
-		game = g.DmGame(list(args))
-		for i in game.players:
+	def start_game(self, table):
+		game = g.DmGame(table.players)
+		for i in table.players:
 			i.write_json(command="resume")
 			i.game = game
 		GameHandler.games.append(game)
-		for x in args:
+		for x in table.players:
 			del GameHandler.unattachedClients[x.name]
+		del GameHandler.game_tables[table.host.name]
 		GameHandler.update_lobby()
-		GameHandler.announce_lobby(" and ".join(list(map(lambda x: x.name, args))) + " started a game.")
+		GameHandler.announce_lobby(" and ".join(list(map(lambda x: x.name, table.players))) + " started a game.")
 
 
 	def chat(self, msg, speaker):
@@ -107,32 +108,35 @@ class GameHandler(websocket.WebSocketHandler):
 				self.load_game(*list(map(lambda x: GameHandler.unattachedClients[x], jsondata["players"])))
 		elif (cmd == "createTable"):
 			tableData = jsondata["table"]
-			newTable = GameHandler.game_tables[self.client.name] = gt.GameTable(tableData["title"], self.client.name, tableData["seats"], "Base")
+			newTable = GameHandler.game_tables[self.client.name] = gt.GameTable(tableData["title"], self.client, tableData["seats"], "Base")
 			GameHandler.update_lobby()
 		elif (cmd == "leaveTable"):
-			GameHandler.leave_table(jsondata)
+			self.leave_table(jsondata)
 		elif (cmd == "joinTable"):
-			GameHandler.join_table(jsondata)
+			self.join_table(jsondata)
+		elif (cmd == "startGame"):
+			table = GameHandler.game_tables[jsondata["host"]]
+			self.start_game(table)
 
-	def leave_table(json):
+	def leave_table(self, json):
 		table = GameHandler.game_tables[json["host"]]
-		if (json["leaver"] == table.host):
+		if (self.client == table.host):
 			#no one left at table
 			if len(table.players) == 1:
 				del GameHandler.game_tables[json["host"]]
 			else:
 			#successor host is chosen
-				table.remove_player(json["leaver"])
+				table.remove_player(self.client)
 				GameHandler.game_tables[table.host] = table
 				del GameHandler.game_tables[json["host"]]
 		else:
-			table.remove_player(json["leaver"])
+			table.remove_player(self.client)
 
 		GameHandler.update_lobby()
 
-	def join_table(json):
+	def join_table(self, json):
 		table = GameHandler.game_tables[json["host"]]
-		table.add_player(json["joiner"])
+		table.add_player(self.client)
 		GameHandler.update_lobby()
 
 	def announce_lobby(msg):
