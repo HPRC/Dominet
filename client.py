@@ -333,7 +333,7 @@ class DmClient(Client):
 		total = 0
 		# dictionary of vp {"Province" : [<card Province>, 2]}
 		vp_dict = {}
-		for card in self.deck + self.discard_pile:
+		for card in self.deck + self.discard_pile + self.played:
 			if ("Victory" in card.type or "Curse" in card.type):
 				total += card.get_vp()
 				if card.title in vp_dict:
