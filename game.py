@@ -29,7 +29,7 @@ class Game():
 
 	def change_turn(self):
 		self.turn = (self.turn + 1) % len(self.players)
-		if (self.turn == self.first):
+		if self.turn == self.first:
 			self.turn_count += 1
 		self.announce("<b>---- " + str(self.players[self.turn].name) + " 's turn " + str(self.turn_count) + " ----</b>")
 		self.players[self.turn].take_turn()
@@ -42,7 +42,7 @@ class DmGame(Game):
 		Game.__init__(self, players)
 		self.trash_pile = []
 		self.empty_piles = 0
-		#kingdom = dictionary {card.title => [card, count]} i.e {"Copper": [card.Copper(self,None),10]}
+		# kingdom = dictionary {card.title => [card, count]} i.e {"Copper": [card.Copper(self,None),10]}
 		self.base_supply = self.init_supply([card.Curse(self, None), card.Estate(self, None), 
 			card.Duchy(self, None), card.Province(self, None), card.Copper(self,None),
 			card.Silver(self, None), card.Gold(self, None)])
@@ -53,8 +53,7 @@ class DmGame(Game):
 		self.supply = self.base_supply.copy()
 		self.supply.update(self.kingdom)
 
-
-	#override
+	# override
 	def start_game(self):
 		self.load_supplies()
 		Game.start_game(self)
@@ -76,24 +75,26 @@ class DmGame(Game):
 
 	def remove_from_supply(self, card):
 		if (card in self.kingdom):
-			self.kingdom[card][1] -=1
+			self.kingdom[card][1] -= 1
 		else:
-			self.base_supply[card][1] -=1
+			self.base_supply[card][1] -= 1
 		for i in self.players:
 			i.write_json(command="updatePiles", card=card, count=self.supply[card][1])
-		if (self.supply[card][1] == 0):
+		if self.supply[card][1] == 0:
 			self.empty_piles += 1
 
 	def init_supply(self, cards):
 		supply = {}
 		for x in cards:
-			if (x.type == "Victory"):
-				if (len(self.players) ==2):
+			if "Victory" in x.type:
+				if len(self.players) == 2:
 					supply[x.title] = [x,8]
 				else:
 					supply[x.title] = [x,12]
-			elif (x.title == "Copper" or x.title=="Silver" or x.title=="Gold"):
+			elif x.title == "Copper" or x.title == "Silver" or x.title == "Gold":
 				supply[x.title] = [x,30]
+			elif x.title == "Curse":
+				supply[x.title] = [x, (len(self.players) - 1) * 10]
 			else:
 				supply[x.title] = [x,10]
 		return supply
@@ -158,7 +159,7 @@ class DmGame(Game):
 
 	def players_ready(self):
 		for i in self.players:
-			if (not i.ready):
+			if not i.ready:
 				return False
 		return True
 
@@ -171,7 +172,7 @@ class DmGame(Game):
 				trash_dict[x.title] = [x,1]
 		to_log = []
 		for title, data in trash_dict.items():
-			if (len(to_log) != 0):
+			if len(to_log) != 0:
 				to_log.append(",")
 			to_log.append(str(data[1]))
 			to_log.append(data[0].log_string() if data[1] == 1 else data[0].log_string(True))
