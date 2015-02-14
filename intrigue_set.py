@@ -118,7 +118,7 @@ class Steward(crd.Card):
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		self.played_by.select(1, 1, ["+$2", "+2 Actions", "Trash 2 cards from hand"], "Choose One:")
+		self.played_by.select(1, 1, ["+$2", "+2 Cards", "Trash 2 cards from hand"], "Choose One:")
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_select
 
@@ -128,10 +128,10 @@ class Steward(crd.Card):
 			self.game.announce("-- gaining +$2")
 			crd.Card.on_finished(self, False)
 
-		elif "+2 Actions" in selection:
-			self.played_by.actions += 2
-			self.game.announce("-- gaining + 2 actions")
-			crd.Card.on_finished(self, False)
+		elif "+2 Cards" in selection:
+			self.played_by.draw(2)
+			self.game.announce("-- drawing 2 cards")
+			crd.Card.on_finished(self)
 		elif "Trash 2 cards from hand" in selection:
 			self.game.announce("-- choosing to trash 2 cards from hand")
 
@@ -179,8 +179,8 @@ class Baron(crd.Card):
 	def post_select(self, selection):
 		if "Yes" in selection:
 			self.played_by.balance += 4
+			self.game.announce("-- discarding an " + self.played_by.hand['Estate'][0].log_string() + " and gaining +$4 ")
 			self.played_by.discard(["Estate"], self.played_by.discard_pile)
-			self.game.announce("-- discarding an Estate and gaining +$4 ")
 			crd.Card.on_finished(self)
 
 		else:
@@ -242,3 +242,6 @@ class Nobles(crd.VictoryCard):
 			self.game.announce("-- drawing " + drawn)
 
 		crd.Card.on_finished(self)
+
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-success'>", "Nobles</span>" if plural else self.title, "</span>"])
