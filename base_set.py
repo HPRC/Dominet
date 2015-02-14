@@ -88,7 +88,7 @@ class Village(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Village"
-		self.description = "+1 draw\n +2 actions"
+		self.description = "+1 card\n +2 actions"
 		self.price = 3
 		self.type = "Action"
 
@@ -297,7 +297,6 @@ class Spy(crd.AttackCard):
 		if (self.game.players[next_player_index] != self.played_by):
 			self.fire(self.game.players[next_player_index])
 		else:
-			print(self.done)
 			crd.Card.on_finished(self, False, False)
 
 class Militia(crd.AttackCard):
@@ -316,23 +315,27 @@ class Militia(crd.AttackCard):
 
 	def attack(self):
 		for i in self.played_by.get_opponents():
-			if not crd.AttackCard.is_blocked(self, i) and len(i.hand_array()) > 3:
-				i.select(len(i.hand_array())-3, len(i.hand_array())-3, crd.card_list_to_titles(i.hand_array()),
-				 "discard down to 3 cards")
-			
-				def post_select_on(selection, i=i):
-					self.post_select(selection, i)
+			if not crd.AttackCard.is_blocked(self, i):
+				if len(i.hand_array()) > 3:
+					i.select(len(i.hand_array())-3, len(i.hand_array())-3, crd.card_list_to_titles(i.hand_array()),
+						"discard down to 3 cards")
 
-				i.waiting["on"].append(i)
-				i.waiting["cb"] = post_select_on
-				self.played_by.waiting["on"].append(i)
-				self.played_by.wait("Waiting for other players to discard")
+					def post_select_on(selection, i=i):
+						self.post_select(selection, i)
+
+					i.waiting["on"].append(i)
+					i.waiting["cb"] = post_select_on
+					self.played_by.waiting["on"].append(i)
+					self.played_by.wait("Waiting for other players to discard")
+				else:
+					self.game.announce("-- " + i.name_string() + " has 3 cards in hand")
 
 	def post_select(self, selection, act_on):
 		self.game.announce("-- " + act_on.name_string() + " discards down to 3")
-		act_on.discard(selection, act_on.discard_pile)
-		act_on.update_hand()
-		crd.Card.on_finished(self, False, False)
+		if len(self.played_by.waiting["on"]) == 0:
+			act_on.discard(selection, act_on.discard_pile)
+			act_on.update_hand()
+			crd.Card.on_finished(self, False, False)
 
 class Smithy(crd.Card):
 	def __init__(self, game, played_by):

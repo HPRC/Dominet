@@ -86,12 +86,15 @@ class DmGame(Game):
 
 	def init_supply(self, cards):
 		supply = {}
+		num_players = len(self.players)
 		for x in cards:
-			if (x.type == "Victory"):
-				if (len(self.players) ==2):
+			if ("Victory" in x.type):
+				if (num_players ==2):
 					supply[x.title] = [x,8]
 				else:
 					supply[x.title] = [x,12]
+			elif (x.type == "Curse"):
+				supply[x.title] = [x, (num_players - 1) * 10]
 			elif (x.title == "Copper" or x.title=="Silver" or x.title=="Gold"):
 				supply[x.title] = [x,30]
 			else:
