@@ -81,6 +81,7 @@ class DmClient(Client):
 		return self.deck.pop()
 
 	def shuffle_discard_to_deck(self):
+		# TODO .. what? shuffle discard pile and add to deck?
 		random.shuffle(self.discard_pile)
 		self.deck = self.discard_pile + self.deck
 		self.discard_pile = []
@@ -259,7 +260,7 @@ class DmClient(Client):
 	def update_discard_size(self):
 		self.write_json(command="updateDiscardSize", size=len(self.discard_pile))
 
-	def gain(self, card, from_supply = True):
+	def gain(self, card, from_supply=True):
 		self.game.get_turn_owner().update_mode()
 		if (self.game.supply[card][1] <= 0 and from_supply):
 			return
@@ -298,6 +299,9 @@ class DmClient(Client):
 			h.append(card.log_string(True)) if count > 1 else h.append(card.log_string())
 		return " ".join(h)
 
+	def homogeneous_hand(self):
+		return len(self.hand) == 1
+
 	def total_deck_size(self):
 		return len(self.deck) + len(self.discard_pile) + len(self.played) + len(self.hand_array())
 
@@ -331,7 +335,7 @@ class DmClient(Client):
 		total = 0
 		# dictionary of vp {"Province" : [<card Province>, 2]}
 		vp_dict = {}
-		for card in self.deck + self.discard_pile:
+		for card in self.deck + self.discard_pile + self.played:
 			if ("Victory" in card.type or "Curse" in card.type):
 				total += card.get_vp()
 				if card.title in vp_dict:
@@ -370,6 +374,13 @@ class DmClient(Client):
 			decklist_str.append(" ")
 		return "".join(decklist_str)
 
-
 	def name_string(self):
 		return "<b>" + self.name + "</b>"
+
+	def remove_x_cards_from_hand(self, x):
+		removed_cards = []
+		hand_array = self.hand_array()
+		while len(hand_array) > 0 and x > 0:
+			removed_cards.append(hand_array.pop().title)
+			x -= 1
+		return removed_cards
