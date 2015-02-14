@@ -22,8 +22,7 @@ class Courtyard(crd.Card):
 	def post_select(self, selection):
 		self.game.announce("-- " + self.game.supply[selection[0]][0].log_string() + " is placed on top of the deck.")
 		self.played_by.discard(selection, self.played_by.deck)
-		self.played_by.update_hand()
-		crd.Card.on_finished(self)
+		crd.Card.on_finished(self, True, False)
 
 
 class Pawn(crd.Card):
@@ -127,12 +126,12 @@ class Steward(crd.Card):
 		if "+$2" in selection:
 			self.played_by.balance += 2
 			self.game.announce("-- gaining +$2")
-			crd.Card.on_finished(self)
+			crd.Card.on_finished(self, False)
 
 		elif "+2 Actions" in selection:
 			self.played_by.actions += 2
 			self.game.announce("-- gaining + 2 actions")
-			crd.Card.on_finished(self)
+			crd.Card.on_finished(self, False)
 		elif "Trash 2 cards from hand" in selection:
 			self.game.announce("-- choosing to trash 2 cards from hand")
 
@@ -153,7 +152,7 @@ class Steward(crd.Card):
 		self.game.announce(self.played_by.name_string() + " trashes " + selection_string)
 		self.played_by.waiting["cb"] = None
 		self.played_by.discard(selection, self.game.trash_pile)
-		crd.Card.on_finished(self)
+		crd.Card.on_finished(self, True, False)
 
 
 class Baron(crd.Card):
@@ -175,7 +174,7 @@ class Baron(crd.Card):
 			self.played_by.waiting["cb"] = self.post_select
 
 		else:
-			self.gain_estate()
+			self.played_by.gain("Estate")
 
 	def post_select(self, selection):
 		if "Yes" in selection:
@@ -185,10 +184,7 @@ class Baron(crd.Card):
 			crd.Card.on_finished(self)
 
 		else:
-			self.gain_estate()
-
-	def gain_estate(self):
-		self.played_by.gain("Estate")
+			self.played_by.gain("Estate")
 
 
 class Conspirator(crd.Card):
@@ -232,7 +228,7 @@ class Nobles(crd.VictoryCard):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 
-		self.played_by.select(1, 1, ["+2 Actions", "+3 Cards"], "Would you like to discard an Estate for +$4?")
+		self.played_by.select(1, 1, ["+2 Actions", "+3 Cards"], "Choose one: +3 Cards; or +2 Actions.")
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_select
 
