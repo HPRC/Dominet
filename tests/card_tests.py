@@ -1,6 +1,7 @@
 import unittest
 import client as c
 import base_set as base
+import intrigue_set as intrigue
 import card as crd
 import game as g
 import kingdomGenerator as kg
@@ -168,6 +169,151 @@ class TestCard(unittest.TestCase):
 		self.player1.waiting["cb"]("Yes")
 		self.assertTrue(len(self.player1.hand_array()) == 7)
 		self.assertTrue(self.player1.discard_pile[-1] == village)
+
+	def test_Pawn(self):
+		pawn = intrigue.Pawn(self.game, self.player1)
+		self.player1.hand["Pawn"] = [pawn, 1]
+		pawn.play()
+		self.player1.waiting["cb"](["+$1", "+1 Action"])
+		self.assertTrue(self.player1.balance == 1)
+		self.assertTrue(self.player1.actions == 1)
+
+	def test_Great_Hall(self):
+		great_hall = intrigue.Great_Hall(self.game, self.player1)
+		player1_vp = self.player1.total_vp()
+		self.player1.hand["Great Hall"] = [great_hall, 1]
+		great_hall.play()
+		self.assertTrue((self.player1.actions == 1))
+		self.assertTrue((self.player1.total_vp()) == player1_vp + 1)
+
+	def test_Steward(self):
+		steward = intrigue.Steward(self.game, self.player1)
+		copper = crd.Copper(self.game, self.player1)
+		estate = crd.Estate(self.game, self.player1)
+		self.player1.hand["Steward"] = [steward, 4]
+		self.player1.hand["Copper"] = [copper, 3]
+		self.player1.hand["Estate"] = [estate, 2]
+
+		# +2 Actions
+		steward.play()
+		self.player1.waiting["cb"](["+2 Actions"])
+		self.assertTrue(self.player1.actions == 2)
+
+		# +$2
+		steward.play()
+		self.player1.waiting["cb"](["+$2"])
+		self.assertTrue(self.player1.balance == 2)
+
+		# Trash 2 with more than 2 in hand
+		steward.play()
+		trash_size = len(self.game.trash_pile)
+		self.player1.waiting["cb"](["Trash 2 cards from hand"])
+		self.player1.waiting["cb"](["Estate", "Estate"])
+		self.assertTrue(len(self.game.trash_pile) == trash_size + 2)
+
+		# Trash 2 with homogeneous hand
+		self.player1.actions += 1
+		steward.play()
+		self.player1.waiting["cb"](["Trash 2 cards from hand"])
+		self.assertTrue(self.player1.hand['Copper'][1] == 1)
+
+		# Trash 2 with 1 in hand
+		self.player1.actions += 1
+		self.player1.hand["Steward"] = [steward, 1]
+		steward.play()
+		self.player1.waiting["cb"](["Trash 2 cards from hand"])
+		self.assertTrue(len(self.player1.hand_array()) == 0)
+
+
+	def test_Baron(self):
+		baron = intrigue.Baron(self.game, self.player1)
+		self.player1.hand["Baron"] = [baron, 3]
+		estate = crd.Estate(self.game, self.player1)
+		# sadly add an estate to hand since no guarantees -- actually overwrites hand
+		self.player1.hand["Estate"] = [estate, 1]
+		self.player1.actions = 3
+
+
+		# decline Estate discard, gain Estate to discard pile.
+		baron.play()
+		self.player1.waiting["cb"](["No"])
+		self.assertTrue(self.player1.buys == 2)
+		self.assertTrue(len(self.player1.discard_pile) == 1)
+
+		# accept Estate discard, do not gain Estate to discard pile, gain $4
+		baron.play()
+		self.player1.waiting["cb"](["Yes"])
+		self.assertTrue(self.player1.buys == 3)
+		self.assertTrue(self.player1.balance == 4)
+		self.assertTrue("Estate" not in self.player1.hand)
+
+		# Not given option because no Estates in hand.
+		baron.play()
+		self.assertTrue(self.player1.buys == 4)
+
+	def test_Shanty_Town(self):
+		shanty_town = intrigue.Shanty_Town(self.game, self.player1)
+		self.player1.hand["Shanty Town"] = [shanty_town, 2]
+
+		# First Play: has an action, should not draw cards.
+		cards_in_hand = len(self.player1.hand_array())
+		shanty_town.play()
+		self.assertTrue(self.player1.actions == 2)
+		self.assertTrue(len(self.player1.hand_array()) == cards_in_hand - 1)
+
+		# Second Play: has no other action cards in hand, should draw cards.
+		shanty_town.play()
+		self.assertTrue(self.player1.actions == 3)
+		self.assertTrue(len(self.player1.hand_array()) == cards_in_hand)
+
+	def test_Conspirator(self):
+		conspirator = intrigue.Conspirator(self.game, self.player1)
+		self.player1.hand["Conspirator"] = [conspirator, 2]
+
+		village = base.Village(self.game, self.player1)
+		self.player1.hand["Village"] = [village, 1]
+
+		village.play()
+
+		conspirator.play()
+		self.assertTrue(self.player1.actions == 1)
+		self.assertTrue(self.player1.balance == 2)
+
+		cards_in_hand = len(self.player1.hand_array())
+		conspirator.play()
+		self.assertTrue(self.player1.actions == 1)
+		self.assertTrue(len(self.player1.hand_array()) == cards_in_hand)
+
+	def test_Courtyard(self):
+		courtyard = intrigue.Courtyard(self.game, self.player1)
+		self.player1.hand["Courtyard"] = [courtyard, 1]
+
+		cards_in_hand = len(self.player1.hand_array())
+
+		courtyard.play()
+		self.player1.waiting["cb"](["Copper"])
+
+		self.assertTrue(len(self.player1.hand_array()) == cards_in_hand + 1)
+		topdeck = self.player1.topdeck()
+		self.assertTrue(topdeck.title == "Copper")
+
+	def test_Nobles(self):
+		nobles = intrigue.Nobles(self.game, self.player1)
+		self.player1.hand["Nobles"] = [nobles, 2]
+
+		nobles.play()
+		self.player1.waiting["cb"](["+2 Actions"])
+		self.assertTrue(self.player1.actions == 2)
+
+		cards_in_hand = len(self.player1.hand_array())
+
+		nobles.play()
+		self.player1.waiting["cb"](["+3 Cards"])
+		self.assertTrue(len(self.player1.hand_array()) == cards_in_hand + 2)
+
+
+
+
 
 if __name__ == '__main__':
 	unittest.main()
