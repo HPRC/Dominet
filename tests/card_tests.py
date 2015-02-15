@@ -52,7 +52,7 @@ class TestCard(unittest.TestCase):
 
 		selection = crd.card_list_to_titles(self.player2.hand.card_array())[:2]
 		self.player2.waiting["cb"](selection)
-		self.assertTrue(self.player2.hand.size() == 3)
+		self.assertTrue(len(self.player2.hand) == 3)
 
 	def test_Moat_reaction(self):
 		self.player2.hand.add(base.Moat(self.game, self.player2))
@@ -164,10 +164,10 @@ class TestCard(unittest.TestCase):
 		self.player1.deck = [copper, village, copper]
 		self.player1.hand.add(library)
 		library.play()
-		self.assertTrue(self.player1.hand.size() == 6)
+		self.assertTrue(len(self.player1.hand) == 6)
 		self.assertTrue(Player1Handler.log[-1]["command"] == "updateMode")
 		self.player1.waiting["cb"]("Yes")
-		self.assertTrue(self.player1.hand.size() == 7)
+		self.assertTrue(len(self.player1.hand) == 7)
 		self.assertTrue(self.player1.discard_pile[-1] == village)
 
 	def test_Pawn(self):
@@ -224,7 +224,7 @@ class TestCard(unittest.TestCase):
 		self.player1.hand.data["Steward"] = [steward, 1]
 		steward.play()
 		self.player1.waiting["cb"](["Trash 2 cards from hand"])
-		self.assertTrue(self.player1.hand.size() == 0)
+		self.assertTrue(len(self.player1.hand) == 0)
 
 
 	def test_Baron(self):
@@ -250,7 +250,7 @@ class TestCard(unittest.TestCase):
 		self.player1.waiting["cb"](["Yes"])
 		self.assertTrue(self.player1.buys == 3)
 		self.assertTrue(self.player1.balance == 4)
-		self.assertFalse(self.player1.hand.has("Estate"))
+		self.assertFalse("Estate" in self.player1.hand)
 
 		# Not given option because no Estates in hand.
 		baron.play()
@@ -262,15 +262,15 @@ class TestCard(unittest.TestCase):
 		self.player1.hand.add(shanty_town)
 
 		# First Play: has an action, should not draw cards.
-		cards_in_hand = self.player1.hand.size()
+		cards_in_hand = len(self.player1.hand)
 		shanty_town.play()
 		self.assertTrue(self.player1.actions == 2)
-		self.assertTrue(self.player1.hand.size() == cards_in_hand - 1)
+		self.assertTrue(len(self.player1.hand) == cards_in_hand - 1)
 
 		# Second Play: has no other action cards in hand, should draw cards.
 		shanty_town.play()
 		self.assertTrue(self.player1.actions == 3)
-		self.assertTrue(self.player1.hand.size() == cards_in_hand)
+		self.assertTrue(len(self.player1.hand) == cards_in_hand)
 
 	def test_Conspirator(self):
 		conspirator = intrigue.Conspirator(self.game, self.player1)
@@ -285,21 +285,21 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.player1.actions == 1)
 		self.assertTrue(self.player1.balance == 2)
 
-		cards_in_hand = self.player1.hand.size()
+		cards_in_hand = len(self.player1.hand)
 		conspirator.play()
 		self.assertTrue(self.player1.actions == 1)
-		self.assertTrue(self.player1.hand.size() == cards_in_hand)
+		self.assertTrue(len(self.player1.hand) == cards_in_hand)
 
 	def test_Courtyard(self):
 		courtyard = intrigue.Courtyard(self.game, self.player1)
 		self.player1.hand.add(courtyard)
 
-		cards_in_hand = self.player1.hand.size()
+		cards_in_hand = len(self.player1.hand)
 
 		courtyard.play()
 		self.player1.waiting["cb"](["Copper"])
 
-		self.assertTrue(self.player1.hand.size() == cards_in_hand + 1)
+		self.assertTrue(len(self.player1.hand) == cards_in_hand + 1)
 		topdeck = self.player1.topdeck()
 		self.assertTrue(topdeck.title == "Copper")
 
@@ -312,15 +312,11 @@ class TestCard(unittest.TestCase):
 		self.player1.waiting["cb"](["+2 Actions"])
 		self.assertTrue(self.player1.actions == 2)
 
-		cards_in_hand = self.player1.hand.size()
+		cards_in_hand = len(self.player1.hand)
 
 		nobles.play()
 		self.player1.waiting["cb"](["+3 Cards"])
-		self.assertTrue(self.player1.hand.size() == cards_in_hand + 2)
-
-
-
-
+		self.assertTrue(len(self.player1.hand) == cards_in_hand + 2)
 
 if __name__ == '__main__':
 	unittest.main()

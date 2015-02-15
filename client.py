@@ -143,7 +143,7 @@ class DmClient(Client):
 				self.game.load_supplies()
 				self.resume()
 		elif (cmd == "play"):
-			if (not self.hand.has(data["card"])):
+			if (not data["card"] in self.hand):
 				print("Error " + data["card"] + " not in " + self.hand)
 			self.hand.play(data["card"])
 		elif (cmd == "discard"):
@@ -249,7 +249,7 @@ class DmClient(Client):
 
 	def gain(self, card, from_supply=True):
 		self.game.get_turn_owner().update_mode()
-		if (self.game.supply[card][1] <= 0 and from_supply):
+		if (self.game.supply.get_count(card) <= 0 and from_supply):
 			return
 		if (from_supply):
 			self.game.remove_from_supply(card)
@@ -269,7 +269,7 @@ class DmClient(Client):
 		self.write_json(command="updateResources", actions=self.actions, buys=self.buys, balance=self.balance)
 
 	def total_deck_size(self):
-		return len(self.deck) + len(self.discard_pile) + len(self.played) + self.hand.size()
+		return len(self.deck) + len(self.discard_pile) + len(self.played) + len(self.hand)
 
 	def get_opponents(self):
 		return [x for x in self.game.players if x != self]
@@ -308,25 +308,17 @@ class DmClient(Client):
 		return total if not returnCards else vp_dict
 
 	def decklist_string(self):
-		decklist = {}
-		for card_title in crd.card_list_to_titles(self.deck + self.discard_pile + self.played):
-			if card_title in decklist:
-				decklist[card_title] += 1  
-			else:
-				decklist[card_title] = 1
-		for card_title in crd.card_list_to_titles(self.hand.card_array()):
-			if card_title in decklist:
-				decklist[card_title] += 1
-			else:
-				decklist[card_title] = 1
+		decklist = cp.CardPile()
+		for card in self.deck + self.discard_pile + self.played + self.hand.card_array():
+			decklist.add(card)
 		decklist_str = []
-		for card_title, count in decklist.items():
-			decklist_str.append(str(count))
+		for card in decklist:
+			decklist_str.append(str(decklist.get_count(card.title)))
 			decklist_str.append("-")
-			if count == 1:
-				decklist_str.append(self.game.supply[card_title][0].log_string())
+			if decklist.get_count(card.title) == 1:
+				decklist_str.append(card.log_string())
 			else:
-				decklist_str.append(self.game.supply[card_title][0].log_string(True))
+				decklist_str.append(card.log_string(True))
 			decklist_str.append(" ")
 		return "".join(decklist_str)
 

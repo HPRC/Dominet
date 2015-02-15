@@ -317,8 +317,8 @@ class Militia(crd.AttackCard):
 	def attack(self):
 		for i in self.played_by.get_opponents():
 			if not crd.AttackCard.is_blocked(self, i):
-				if i.hand.size() > 3:
-					i.select(i.hand.size()-3, i.hand.size()-3, crd.card_list_to_titles(i.hand.card_array()),
+				if len(i.hand) > 3:
+					i.select(len(i.hand)-3, len(i.hand)-3, crd.card_list_to_titles(i.hand.card_array()),
 						"discard down to 3 cards")
 
 					def post_select_on(selection, i=i):
@@ -362,7 +362,7 @@ class Moneylender(crd.Card):
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		if (self.played_by.hand.has("Copper")):
+		if ("Copper" in self.played_by.hand):
 			self.played_by.discard(["Copper"], self.game.trash_pile)
 			self.played_by.balance += 3
 			self.game.announce("-- trashing a " + self.game.log_string_from_title("Copper") + " and gaining $3")
@@ -410,7 +410,7 @@ class Throne_Room(crd.Card):
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		action_cards = [x for x in self.played_by.hand.card_array() if "Action" in x.type]
+		action_cards = self.played_by.hand.get_cards_by_type("Action")
 		if not self.played_by.select(1, 1, crd.card_list_to_titles(action_cards),
 		 "select card for Throne Room"):
 			self.done = lambda : None
@@ -598,7 +598,7 @@ class Library(crd.Card):
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		while self.played_by.hand.size() < 7:
+		while len(self.played_by.hand) < 7:
 			top_card = self.played_by.topdeck()
 			if (top_card != None):
 				if ("Action" in top_card.type):
@@ -631,7 +631,7 @@ class Library(crd.Card):
 			self.set_aside.append(card)
 		self.played_by.update_deck_size()
 		self.played_by.update_discard_size()
-		if (self.played_by.hand.size() < 7):
+		if len(self.played_by.hand) < 7:
 			self.play(True)
 		else:
 			self.on_finish()

@@ -1,5 +1,5 @@
 """
-This is a wrapper structure to abstract the datastructure for hand, supply, deck & discard piles.
+This is a wrapper structure to abstract the datastructure for hand, supply piles.
 """
 
 import random 
@@ -8,12 +8,13 @@ class CardPile():
 	def __init__(self):
 		# The underlying data is a dictionary with key = cardtitle, value = [card object, count]
 		self.data = {}
+		self.index = 0
 
-	def add(self, card):
+	def add(self, card, count=1):
 		if (card.title in self.data):	
-			self.data[card.title] = [card, self.data[card.title][1] + 1]
+			self.data[card.title] = [card, self.data[card.title][1] + count]
 		else:
-			self.data[card.title] = [card, 1]
+			self.data[card.title] = [card, count]
 
 	def extract(self, card_title):
 		if (card_title in self.data):
@@ -39,6 +40,31 @@ class CardPile():
 				arr.append(card)
 		return arr
 
+	def __iter__(self):
+		return self
+
+	def __next__(self):
+		self.index += 1
+		index_counter = self.index
+		for i in self.data:
+			if index_counter <= self.data[i][1]:
+				return self.data[i][0]
+			else:
+				index_counter -= self.data[i][1]
+		raise StopIteration
+
+	def __len__(self):
+		count = 0
+		for title, data in self.data.items():
+			count += data[1]
+		return count
+
+	def __contains__(self, title):
+		return title in self.data
+
+	def combine(self, cardPile):
+		self.data.update(cardPile.data.copy())
+
 class HandPile(CardPile):
 	def __init__(self, player):
 		# The underlying data is a dictionary with key = cardtitle, value = [card object, count]
@@ -52,10 +78,6 @@ class HandPile(CardPile):
 			if (self.data[card.title][1] == 0):
 				del self.data[card.title]
 			return card
-
-
-	def has(self, card_title):
-		return card_title in self.data
 
 	def reveal_string(self):
 		h = []
@@ -81,37 +103,15 @@ class HandPile(CardPile):
 	def is_homogeneous(self):
 		return len(self.data) == 1
 
-	def size(self):
-		return len(self.card_array())
-
 	def auto_select(self, num_options):
 		if self.is_homogeneous():
 			card = self.card_array()[0]
 			return [card for x in range(0, num_options)]
-		if self.size() == num_options:
+		if len(self) == num_options:
 			return list(map(lambda x: x.title, self.card_array()))
 		print("Error auto_select returned []")
 		return []
 
 	def play(self, card_title):
 		self.data[card_title][0].play()
-
-class ListPile():
-	def __init__(self, player):
-		# The underlying data is a list of card objects
-		# order of ListPile is [bottom, middle, top] 
-		self.data = []
-
-	def add(self, card):
-		self.data.append(card)
-
-	def get_cards_from_top(self, num_cards):
-		return self.data[-num_cards:]
-
-	def shuffle(self):
-		random.shuffle(self.data)
-
-	def size(self):
-		return len(self.data)
-
 

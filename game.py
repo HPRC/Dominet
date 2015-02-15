@@ -3,6 +3,7 @@ import kingdomGenerator as kg
 import card
 import json
 import net
+import cardpile as cp
 
 
 class Game():
@@ -50,8 +51,9 @@ class DmGame(Game):
 		generator = kg.kingdomGenerator(self)
 		self.kingdom = self.init_supply(generator.random_kingdom())
 
-		self.supply = self.base_supply.copy()
-		self.supply.update(self.kingdom)
+		self.supply = cp.CardPile()
+		self.supply.combine(self.base_supply)
+		self.supply.combine(self.kingdom)
 
 
 	#override
@@ -74,31 +76,31 @@ class DmGame(Game):
 			supply_list.append(formatCard)
 		return json.dumps(supply_list)
 
-	def remove_from_supply(self, card):
-		if (card in self.kingdom):
-			self.kingdom[card][1] -=1
+	def remove_from_supply(self, card_title):
+		if (card_title in self.kingdom):
+			self.kingdom.extract(card_title)
 		else:
-			self.base_supply[card][1] -=1
+			self.base_supply.extract(card_title)
 		for i in self.players:
-			i.write_json(command="updatePiles", card=card, count=self.supply[card][1])
-		if (self.supply[card][1] == 0):
+			i.write_json(command="updatePiles", card=card_title, count=self.supply.get_count(card_title))
+		if (self.supply.get_count(card_title) == 0):
 			self.empty_piles += 1
 
 	def init_supply(self, cards):
-		supply = {}
+		supply = cp.CardPile()
 		num_players = len(self.players)
 		for x in cards:
 			if ("Victory" in x.type):
 				if (num_players ==2):
-					supply[x.title] = [x,8]
+					supply.add(x, 8)
 				else:
-					supply[x.title] = [x,12]
+					supply.add(x,12)
 			elif (x.type == "Curse"):
-				supply[x.title] = [x, (num_players - 1) * 10]
+				supply.add(x, (num_players - 1) * 10)
 			elif (x.title == "Copper" or x.title=="Silver" or x.title=="Gold"):
-				supply[x.title] = [x,30]
+				supply.add(x,30)
 			else:
-				supply[x.title] = [x,10]
+				supply.add(x,10)
 		return supply
 
 	def announce_to(self, listeners, msg):
@@ -115,7 +117,7 @@ class DmGame(Game):
 			i.write_json(command="updateTrash", trash=self.trash_string())
 
 	def detect_end(self):
-		if (self.supply["Province"][1] == 0 or self.empty_piles >=3):
+		if (self.supply.get_count("Province") == 0 or self.empty_piles >=3):
 			self.announce("GAME OVER")
 			player_vp_list = (list(map(lambda x: (x, x.total_vp()), self.players)))
 			win_vp = max(player_vp_list, key=lambda x: x[1])[1]
@@ -181,8 +183,8 @@ class DmGame(Game):
 		return " ".join(to_log)
 
 	def card_from_title(self, title):
-		return self.supply[title][0]
+		return self.supply.get_card(title)
 
-	def log_string_from_title(self, title):
-		return self.card_from_title(title).log_string()
+	def log_string_from_title(self, title, plural=False):
+		return self.card_from_title(title).log_string(plural)
 

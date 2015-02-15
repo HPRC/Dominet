@@ -20,7 +20,7 @@ class Courtyard(crd.Card):
 		self.played_by.waiting["cb"] = self.post_select
 
 	def post_select(self, selection):
-		self.game.announce("-- " + self.game.supply[selection[0]][0].log_string() + " is placed on top of the deck.")
+		self.game.announce("-- " + self.game.log_string_from_title(selection[0]) + " is placed on top of the deck.")
 		self.played_by.discard(selection, self.played_by.deck)
 		crd.Card.on_finished(self, True, False)
 
@@ -135,7 +135,7 @@ class Steward(crd.Card):
 		elif "Trash 2 cards from hand" in selection:
 			self.game.announce("-- choosing to trash 2 cards from hand")
 
-			if self.played_by.hand.size() > 2 and not self.played_by.hand.is_homogeneous():
+			if len(self.played_by.hand) > 2 and not self.played_by.hand.is_homogeneous():
 				self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "select cards to trash")
 				self.played_by.waiting["on"].append(self.played_by)
 				self.played_by.waiting["cb"] = self.trash_select
@@ -167,7 +167,7 @@ class Baron(crd.Card):
 		self.played_by.buys += 1
 		self.game.announce("-- gaining +1 buy")
 
-		if self.played_by.hand.has("Estate"):
+		if "Estate" in self.played_by.hand:
 			self.played_by.select(1, 1, ["Yes", "No"], "Would you like to discard an Estate for +$4?")
 			self.played_by.waiting["on"].append(self.played_by)
 			self.played_by.waiting["cb"] = self.post_select
