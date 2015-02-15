@@ -172,7 +172,7 @@ class DmHandler(GameHandler):
 					self.client.game.players.insert(index, self.client)
 					self.write_json(command="resume")
 					for i in self.client.get_opponents():
-						i.update_mode()
+						i.write_json(**i.last_mode)
 					return
 		GameHandler.open(self)
 	
@@ -194,7 +194,7 @@ class DmHandler(GameHandler):
 			for i in self.client.game.players:
 				if i != self.client:
 					if (self.client.last_mode["mode"] == "gameover"):
-						i.write_json(command="announce", msg = self.client.name + " has left.")
+						i.write_json(command="announce", msg = self.client.name_string() + " has left.")
 					else:
 						i.wait(self.client.name + " has disconnected!")
 

@@ -40,6 +40,14 @@ class CardPile():
 				arr.append(card)
 		return arr
 
+	def to_json(self):
+		result = []
+		for title, lst in self.data.items():
+			formatCard = lst[0].to_json()
+			formatCard["count"] = lst[1]
+			result.append(formatCard)
+		return result
+
 	def __iter__(self):
 		return self
 

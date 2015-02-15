@@ -173,12 +173,10 @@ class DmClient(Client):
 		self.update_hand()
 		self.update_resources()
 		self.game.update_trash_pile()
-		if (self.game.get_turn_owner() == self):
-			self.write_json(**self.last_mode)
+		self.write_json(**self.last_mode)
+		if (self.game.get_turn_owner() == self and self.last_mode["mode"] != "gameover"):
 			self.write_json(command="startTurn", actions=self.actions, 
 			buys=self.buys, balance=self.balance)
-		for i in self.get_opponents():
-			i.update_mode()
 		self.game.announce(self.name_string() + " has reconnected!")
 
 	def end_turn(self):
@@ -195,16 +193,16 @@ class DmClient(Client):
 		self.update_deck_size()
 		self.game.change_turn()
 
-	def buy_card(self, card):
-		if (self.buys > 0 and self.game.supply[card][1] > 0):
+	def buy_card(self, card_title):
+		if (self.buys > 0 and self.game.supply.get_count(card_title) > 0):
 			# alternative to copy but requires module to have all cards
 			# card_class = getattr(crd, card)
 			# newCard = card_class(self.game, self)
-			newCard = copy.copy(self.game.card_from_title(card))
+			newCard = copy.copy(self.game.card_from_title(card_title))
 			newCard.played_by = self
 			self.game.announce("<b>" + self.name + "</b> buys " + newCard.log_string())
 			self.discard_pile.append(newCard)
-			self.game.remove_from_supply(card)
+			self.game.remove_from_supply(card_title)
 			self.buys -= 1
 			self.balance -= newCard.price
 			self.update_resources()

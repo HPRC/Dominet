@@ -63,18 +63,9 @@ class DmGame(Game):
 
 	def load_supplies(self):
 		for i in self.players:
-			i.write_json(command="kingdomCards", data=self.supply_json(self.kingdom))
-			i.write_json(command="baseCards", data=self.supply_json(self.base_supply))
+			i.write_json(command="kingdomCards", data=json.dumps(self.kingdom.to_json()))
+			i.write_json(command="baseCards", data=json.dumps(self.base_supply.to_json()))
 
-	def supply_json(self, supply):
-		supply_list = []
-		for title, data in supply.items():
-			card = data[0]
-			count = data[1]
-			formatCard = card.to_json()
-			formatCard["count"] = count
-			supply_list.append(formatCard)
-		return json.dumps(supply_list)
 
 	def remove_from_supply(self, card_title):
 		if (card_title in self.kingdom):
@@ -92,7 +83,7 @@ class DmGame(Game):
 		for x in cards:
 			if ("Victory" in x.type):
 				if (num_players ==2):
-					supply.add(x, 8)
+					supply.add(x, 1)
 				else:
 					supply.add(x,12)
 			elif (x.type == "Curse"):
