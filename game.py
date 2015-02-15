@@ -82,8 +82,8 @@ class DmGame(Game):
 		num_players = len(self.players)
 		for x in cards:
 			if ("Victory" in x.type):
-				if (num_players ==2):
-					supply.add(x, 1)
+				if (num_players == 2):
+					supply.add(x, 8)
 				else:
 					supply.add(x,12)
 			elif (x.type == "Curse"):
