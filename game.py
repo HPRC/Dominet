@@ -183,3 +183,6 @@ class DmGame(Game):
 	def card_from_title(self, title):
 		return self.supply[title][0]
 
+	def log_string_from_title(self, title):
+		return self.card_from_title(title).log_string()
+

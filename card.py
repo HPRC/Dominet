@@ -73,10 +73,11 @@ class AttackCard(Card):
 
 	def check_reactions(self, targets):
 		for i in targets:
-			for name, card in i.hand.items():
-				if (card[0].type == "Action|Reaction" and card[0].trigger == "Attack"):
+			reaction_cards = i.hand.get_cards_by_type("Reaction")
+			for card in reaction_cards:
+				if card.trigger == "Attack":
 					self.reactions += 1
-					card[0].react(self.reacted)
+					card.react(self.reacted)
 					self.played_by.wait("Waiting for " + i.name + " to react")
 		if not self.reactions:
 			self.attack()

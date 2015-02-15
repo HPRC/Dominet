@@ -15,7 +15,7 @@ class Courtyard(crd.Card):
 		self.game.announce("-- drawing 3 cards")
 		self.played_by.update_resources()
 		self.played_by.update_hand()
-		self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand_array()), "Choose a card to put back on top of your deck.")
+		self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Choose a card to put back on top of your deck.")
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_select
 
@@ -93,13 +93,13 @@ class Shanty_Town(crd.Card):
 
 		self.game.announce("-- gaining 2 actions")
 
-		revealed_cards = self.played_by.hand.items()
+		revealed_cards = self.played_by.hand.card_array()
 		action_cards = 0
-		for title, data in revealed_cards:
-			if "Action" in data[0].type:
+		for card in revealed_cards:
+			if "Action" in card.type:
 				action_cards += 1
 
-		self.game.announce(self.played_by.name_string() + " reveals " + str(self.played_by.hand_string())
+		self.game.announce(self.played_by.name_string() + " reveals " + str(self.played_by.hand.reveal_string())
 								+ " containing " + str(action_cards) + " action cards.")
 		if action_cards == 0:
 			self.played_by.draw(2)
@@ -135,20 +135,19 @@ class Steward(crd.Card):
 		elif "Trash 2 cards from hand" in selection:
 			self.game.announce("-- choosing to trash 2 cards from hand")
 
-			if len(self.played_by.hand_array()) > 2 and not self.played_by.homogeneous_hand():
-				self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand_array()), "select cards to trash")
+			if self.played_by.hand.size() > 2 and not self.played_by.hand.is_homogeneous():
+				self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "select cards to trash")
 				self.played_by.waiting["on"].append(self.played_by)
 				self.played_by.waiting["cb"] = self.trash_select
 			else:
-				card_selection = self.played_by.remove_x_cards_from_hand(2)
+				card_selection = crd.card_list_to_titles(self.played_by.hand.auto_select(2))
 				self.trash_select(card_selection)
 
 	def trash_select(self, selection):
 		if len(selection) == 0:
 			selection_string = "nothing"
 		else:
-			selection_string = ", ".join(list(map(lambda x: self.game.card_from_title(x).log_string(), selection)))
-
+			selection_string = ", ".join(list(map(lambda x: self.game.log_string_from_title(x), selection)))
 		self.game.announce(self.played_by.name_string() + " trashes " + selection_string)
 		self.played_by.waiting["cb"] = None
 		self.played_by.discard(selection, self.game.trash_pile)
@@ -168,7 +167,7 @@ class Baron(crd.Card):
 		self.played_by.buys += 1
 		self.game.announce("-- gaining +1 buy")
 
-		if "Estate" in self.played_by.hand:
+		if self.played_by.hand.has("Estate"):
 			self.played_by.select(1, 1, ["Yes", "No"], "Would you like to discard an Estate for +$4?")
 			self.played_by.waiting["on"].append(self.played_by)
 			self.played_by.waiting["cb"] = self.post_select
@@ -181,10 +180,9 @@ class Baron(crd.Card):
 			self.played_by.balance += 4
 			self.played_by.discard(["Estate"], self.played_by.discard_pile)
 			self.game.announce("-- discarding an Estate and gaining +$4 ")
-			crd.Card.on_finished(self)
-
 		else:
 			self.played_by.gain("Estate")
+		crd.Card.on_finished(self)
 
 
 class Conspirator(crd.Card):

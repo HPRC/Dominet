@@ -3,6 +3,7 @@ import net
 import client as c
 import game as g
 import card as crd
+import cardpile as cp
 
 class DummyHandler():
 	def write_json(self, **kwargs):
@@ -57,11 +58,20 @@ class TestGame(unittest.TestCase):
 
 	def test_spend_all_money(self):
 		self.player1.balance = 0
-		self.player1.hand = {"Copper" : [crd.Copper(self.game, self.player1), 5]}
+		self.player1.hand = cp.HandPile(self.player1)
+		copper = crd.Copper(self.game, self.player1)
+		for i in range(0,5):
+			self.player1.hand.add(copper)
 		self.player1.spend_all_money()
 		self.assertTrue(self.player1.balance == 5)
-		self.assertTrue(len(self.player1.hand.items()) == 0)
+		self.assertTrue(self.player1.hand.size() == 0)
 		self.assertTrue(len(self.player1.played) == 5)
+
+	def test_discard(self):
+		self.player1.hand = cp.HandPile(self.player1)
+		self.player1.hand.add(crd.Copper(self.game, self.player1))
+		self.player1.discard(["Copper"], self.player1.discard_pile)
+		self.assertTrue(self.player1.hand.size() == 0)
 
 
 if __name__ == '__main__':
