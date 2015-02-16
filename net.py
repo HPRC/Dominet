@@ -3,6 +3,7 @@ import json
 import os
 from tornado import httpserver, ioloop, web, websocket	
 import game as g
+import gametable as gt
 
 HOST = ''
 PORT_NUMBER = 9999
@@ -34,11 +35,13 @@ class GameHandler(websocket.WebSocketHandler):
 	#name => client obj
 	unattachedClients = {}
 	games = []
+	#host => gametable obj
+	game_tables = {}
 
 	def initialize(self):
 		self.client = c.DmClient(self.get_cookie("DMTusername"), self.application.unassigned_id, self)
 		self.application.unassigned_id += 1
-		self.unattachedClients[self.client.name] = self.client
+		self.table = None
 
 	def write_json(self, **kwargs):
 		if not "command" in kwargs:
@@ -50,21 +53,24 @@ class GameHandler(websocket.WebSocketHandler):
 
 
 	def open(self):
+		self.unattachedClients[self.client.name] = self.client
 		#init client
 		self.write_json(command="init", id=self.client.id, name=self.client.name)
 		self.chat(self.client.name + " has joined the lobby", None)
 		GameHandler.update_lobby()
 
-	def load_game(self, *args):
-		game = g.DmGame(list(args))
-		for i in game.players:
+	def start_game(self, table):
+		game = g.DmGame(table.players)
+		for i in table.players:
 			i.write_json(command="resume")
 			i.game = game
 		GameHandler.games.append(game)
-		for x in args:
+		for x in table.players:
 			del GameHandler.unattachedClients[x.name]
+			x.handler.table = None
+		del GameHandler.game_tables[table.host.name]
 		GameHandler.update_lobby()
-		GameHandler.announce_lobby(" and ".join(list(map(lambda x: x.name, args))) + " started a game.")
+		GameHandler.announce_lobby(" and ".join(list(map(lambda x: x.name, table.players))) + " started a game.")
 
 
 	def chat(self, msg, speaker):
@@ -73,10 +79,16 @@ class GameHandler(websocket.WebSocketHandler):
 
 	def update_lobby():
 		for name, p in GameHandler.unattachedClients.items():
-			p.write_json(command="lobby", lobby_list=GameHandler.get_lobby_names())
+			p.write_json(command="lobby", lobby_list=GameHandler.get_lobby_names(), game_tables=GameHandler.get_game_tables())
 
 	def get_lobby_names():
 		return list(GameHandler.unattachedClients.keys())
+
+	def get_game_tables():
+		tablelist = []
+		for host, table in GameHandler.game_tables.items():
+			tablelist.append(table)
+		return list(map(lambda x: x.to_json(), tablelist))
 
 	def return_to_lobby(self):
 		GameHandler.unattachedClients[self.client.name] = self.client
@@ -87,31 +99,48 @@ class GameHandler(websocket.WebSocketHandler):
 		else:
 			self.client.game.announce(self.client.name_string() + " has returned to the lobby.")
 
-
 	def on_message(self,data):
 		jsondata = json.loads(data)
 		self.client.exec_commands(jsondata)
 		cmd = jsondata["command"]
-		if (cmd == "loadGame"):
-			if (jsondata["challenger"] in GameHandler.unattachedClients):
-				GameHandler.unattachedClients[jsondata["challenger"]].write_json(
-				command="gotAccepted")
-				self.load_game(*list(map(lambda x: GameHandler.unattachedClients[x], jsondata["players"])))
-			else:
-				print("\033[95m " + jsondata["challenger"] +" tried to start game but wasn't in lobby \033[0m")
-		elif (cmd == "challenge"):
-			GameHandler.unattachedClients[jsondata["otherPlayer"]].write_json(
-				command="challenged", challenger=jsondata["challenger"])
-		elif (cmd == "cancel"):
-			if (jsondata["challenger"] in GameHandler.unattachedClients):
-				GameHandler.unattachedClients[jsondata["otherPlayer"]].write_json(
-					command="unchallenged", challenger=jsondata["challenger"])
-			else:
-				print("\033[95m " + jsondata["challenger"] +" challenge was cancelled but wasn't in lobby \033[0m")
-		elif (cmd == "decline"):
-			GameHandler.unattachedClients[jsondata["challenger"]].write_json(
-				command="gotDeclined")
+		if (cmd == "createTable"):
+			self.create_table(jsondata)
+		elif (cmd == "leaveTable"):
+			self.leave_table(jsondata)
+		elif (cmd == "joinTable"):
+			self.join_table(jsondata)
+		elif (cmd == "startGame"):
+			table = GameHandler.game_tables[jsondata["host"]]
+			self.start_game(table)
 
+	def create_table(self, json):
+		tableData = json["table"]
+		newTable = GameHandler.game_tables[self.client.name] = gt.GameTable(tableData["title"], self.client, tableData["seats"], "Base")
+		self.table = newTable
+		GameHandler.update_lobby()
+
+	def leave_table(self, json):
+		table = GameHandler.game_tables[json["host"]]
+		self.table = None
+		if (self.client == table.host):
+			#no one left at table
+			if len(table.players) == 1:
+				del GameHandler.game_tables[json["host"]]
+			else:
+			#successor host is chosen
+				table.remove_player(self.client)
+				GameHandler.game_tables[table.host.name] = table
+				del GameHandler.game_tables[json["host"]]
+		else:
+			table.remove_player(self.client)
+
+		GameHandler.update_lobby()
+
+	def join_table(self, json):
+		table = GameHandler.game_tables[json["host"]]
+		self.table = table
+		table.add_player(self.client)
+		GameHandler.update_lobby()
 
 	def announce_lobby(msg):
 		for name, p in GameHandler.unattachedClients.items():
@@ -120,6 +149,10 @@ class GameHandler(websocket.WebSocketHandler):
 	def on_close(self):
 		if (self.client.name in GameHandler.unattachedClients):
 			del GameHandler.unattachedClients[self.client.name]
+		print(self.table)
+		if self.table != None:
+			self.leave_table({"host":self.table.host.name})
+			GameHandler.update_lobby()
 		print("\033[94m Socket Closed HELP!\033[0m")
 
 class DmHandler(GameHandler):
@@ -139,7 +172,7 @@ class DmHandler(GameHandler):
 					self.client.game.players.insert(index, self.client)
 					self.write_json(command="resume")
 					for i in self.client.get_opponents():
-						i.update_mode()
+						i.write_json(**i.last_mode)
 					return
 		GameHandler.open(self)
 	
@@ -161,7 +194,7 @@ class DmHandler(GameHandler):
 			for i in self.client.game.players:
 				if i != self.client:
 					if (self.client.last_mode["mode"] == "gameover"):
-						i.write_json(command="announce", msg = self.client.name + " has left.")
+						i.write_json(command="announce", msg = self.client.name_string() + " has left.")
 					else:
 						i.wait(self.client.name + " has disconnected!")
 
