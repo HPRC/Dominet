@@ -1,9 +1,10 @@
 import json
 import card as crd
+import cardpile as cp
 import random
 import copy
 import base_set as b
-import cgi
+import html
 
 class Client():
 	hand_size = 5
@@ -60,10 +61,7 @@ class DmClient(Client):
 			if (len(self.deck) >= 1):
 				num_drawn += 1
 				card = self.deck.pop()
-				if (card.title in self.hand):	
-					self.hand[card.title] = [card, self.hand[card.title][1] + 1]
-				else:
-					self.hand[card.title] = [card, 1]
+				self.hand.add(card)
 		if num_drawn == 0:
 			return "nothing"
 		elif num_drawn == 1:
@@ -82,7 +80,6 @@ class DmClient(Client):
 		return self.deck.pop()
 
 	def shuffle_discard_to_deck(self):
-		# TODO .. what? shuffle discard pile and add to deck?
 		random.shuffle(self.discard_pile)
 		self.deck = self.discard_pile + self.deck
 		self.discard_pile = []
@@ -94,8 +91,7 @@ class DmClient(Client):
 		self.discard_pile = []
 		#deck = [bottom, middle, top] 
 		self.deck = self.base_deck()
-		#dictionary of card title => [card object, count]
-		self.hand = {}
+		self.hand = cp.HandPile(self)
 		self.played = []
 		self.actions = 0
 		self.buys = 0
@@ -119,11 +115,11 @@ class DmClient(Client):
 		new_conn.protection = self.protection
 		for card in self.deck + self.discard_pile + self.played:
 			card.played_by = new_conn
-		for title, l in self.hand.items():
+		for title, l in self.hand.data.items():
 			l[0].played_by = new_conn
 
 	def update_hand(self):
-		self.write_json(command="updateHand", hand=[x.to_json() for x in self.hand_array()])
+		self.write_json(command="updateHand", hand=[x.to_json() for x in self.hand.card_array()])
 
 	#override
 	def take_turn(self):
@@ -147,13 +143,9 @@ class DmClient(Client):
 				self.game.load_supplies()
 				self.resume()
 		elif (cmd == "play"):
-			if (data["card"] not in self.hand):
-				print(self.hand)
-			handtuple = self.hand[data["card"]]
-			if (handtuple[1] - 1 < 0 ):
-				print ("error, tried to play a card no longer in hand")
-			else:
-				handtuple[0].play()
+			if (not data["card"] in self.hand):
+				print("Error " + data["card"] + " not in " + self.hand)
+			self.hand.play(data["card"])
 		elif (cmd == "discard"):
 			self.discard(data["cards"], self.discard_pile)
 		elif (cmd == "endTurn"):
@@ -181,12 +173,10 @@ class DmClient(Client):
 		self.update_hand()
 		self.update_resources()
 		self.game.update_trash_pile()
-		if (self.game.get_turn_owner() == self):
-			self.write_json(**self.last_mode)
+		self.write_json(**self.last_mode)
+		if (self.game.get_turn_owner() == self and self.last_mode["mode"] != "gameover"):
 			self.write_json(command="startTurn", actions=self.actions, 
 			buys=self.buys, balance=self.balance)
-		for i in self.get_opponents():
-			i.update_mode()
 		self.game.announce(self.name_string() + " has reconnected!")
 
 	def end_turn(self):
@@ -203,16 +193,16 @@ class DmClient(Client):
 		self.update_deck_size()
 		self.game.change_turn()
 
-	def buy_card(self, card):
-		if (self.buys > 0 and self.game.supply[card][1] > 0):
+	def buy_card(self, card_title):
+		if (self.buys > 0 and self.game.supply.get_count(card_title) > 0):
 			# alternative to copy but requires module to have all cards
 			# card_class = getattr(crd, card)
 			# newCard = card_class(self.game, self)
-			newCard = copy.copy(self.game.card_from_title(card))
+			newCard = copy.copy(self.game.card_from_title(card_title))
 			newCard.played_by = self
 			self.game.announce("<b>" + self.name + "</b> buys " + newCard.log_string())
 			self.discard_pile.append(newCard)
-			self.game.remove_from_supply(card)
+			self.game.remove_from_supply(card_title)
 			self.buys -= 1
 			self.balance -= newCard.price
 			self.update_resources()
@@ -238,20 +228,13 @@ class DmClient(Client):
 
 	def discard(self, cards, pile):
 		for x in cards:
-			self.hand[x][1] -= 1
-			pile.append(self.hand[x][0])
-			if (self.hand[x][1] == 0):
-				del self.hand[x]
+			card = self.hand.extract(x)
+			if (card != None):
+				pile.append(card)
 		if (pile == self.discard_pile):
 			self.update_discard_size()
 		elif (pile == self.game.trash_pile):
 			self.game.update_trash_pile()
-
-	def insert_card_in_hand(self, card):
-		if (card.title in self.hand):
-			self.hand[card.title][1] += 1
-		else:
-			self.hand[card.title] = [card, 1]
 
 	def update_mode(self):
 		self.write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
@@ -264,7 +247,7 @@ class DmClient(Client):
 
 	def gain(self, card, from_supply=True):
 		self.game.get_turn_owner().update_mode()
-		if (self.game.supply[card][1] <= 0 and from_supply):
+		if (self.game.supply.get_count(card) <= 0 and from_supply):
 			return
 		if (from_supply):
 			self.game.remove_from_supply(card)
@@ -283,29 +266,8 @@ class DmClient(Client):
 			self.write_json(command="updateMode", mode="buy")
 		self.write_json(command="updateResources", actions=self.actions, buys=self.buys, balance=self.balance)
 
-	def hand_array(self):
-		h = []
-		for title, data in self.hand.items():
-			card = data[0]
-			count = data[1]
-			for i in range(0, count):
-				h.append(card)
-		return h
-
-	def hand_string(self):
-		h = []
-		for title, data in self.hand.items():
-			card = data[0]
-			count = data[1]
-			h.append(str(count))
-			h.append(card.log_string(True)) if count > 1 else h.append(card.log_string())
-		return " ".join(h)
-
-	def homogeneous_hand(self):
-		return len(self.hand) == 1
-
 	def total_deck_size(self):
-		return len(self.deck) + len(self.discard_pile) + len(self.played) + len(self.hand_array())
+		return len(self.deck) + len(self.discard_pile) + len(self.played) + len(self.hand)
 
 	def get_opponents(self):
 		return [x for x in self.game.players if x != self]
@@ -315,19 +277,16 @@ class DmClient(Client):
 
 	def spend_all_money(self):
 		to_log = []
-		to_discard = {}
-		for title, data in self.hand.items():
-			if (data[0].type == "Treasure"):
-				for count in range(0, data[1]):
-					self.balance += data[0].value
-				if (len(to_log) != 0):
-					to_log.append(",")
-				to_discard[data[0].title] = data[1]
-				to_log.append(str(data[1]))
-				to_log.append(data[0].log_string() if data[1] == 1 else data[0].log_string(True))
-		for title, count in to_discard.items():
-			for i in range(0, count):
-				self.discard([title], self.played)
+		to_discard = []
+		for card in set(self.hand.get_cards_by_type("Treasure", False)):
+			count = self.hand.get_count(card.title)
+			self.balance += card.value * count
+			if (len(to_log) != 0):
+				to_log.append(",")
+			to_discard += [card for x in range(0, count)]
+			to_log.append(str(count))
+			to_log.append(card.log_string() if count == 1 else card.log_string(True))
+		self.discard(list(map(lambda x: x.title, to_discard)), self.played)
 		if (len(to_log) > 0):
 			self.game.announce(self.name_string() + " played " + " ".join(to_log))
 			self.update_resources(True)
@@ -337,52 +296,30 @@ class DmClient(Client):
 		total = 0
 		# dictionary of vp {"Province" : [<card Province>, 2]}
 		vp_dict = {}
-		for card in self.deck + self.discard_pile + self.played:
+		for card in self.deck + self.discard_pile + self.played + self.hand.card_array():
 			if ("Victory" in card.type or "Curse" in card.type):
 				total += card.get_vp()
 				if card.title in vp_dict:
 					vp_dict[card.title][1] += 1
 				else:
 					vp_dict[card.title] = [card, 1]
-		for title, data in self.hand.items():
-			if ("Victory" in data[0].type or "Curse" in data[0].type):
-				total += (data[0].get_vp() * data[1])
-				if data[0].title in vp_dict:
-					vp_dict[data[0].title][1] += data[1]
-				else:
-				 	vp_dict[data[0].title] = [data[0], data[1]]
 		return total if not returnCards else vp_dict
 
 	def decklist_string(self):
-		decklist = {}
-		for card_title in crd.card_list_to_titles(self.deck + self.discard_pile + self.played):
-			if card_title in decklist:
-				decklist[card_title] += 1  
-			else:
-				decklist[card_title] = 1
-		for card_title in crd.card_list_to_titles(self.hand_array()):
-			if card_title in decklist:
-				decklist[card_title] += 1
-			else:
-				decklist[card_title] = 1
+		decklist = cp.CardPile()
+		for card in self.deck + self.discard_pile + self.played + self.hand.card_array():
+			decklist.add(card)
 		decklist_str = []
-		for card_title, count in decklist.items():
-			decklist_str.append(str(count))
+		for card in decklist:
+			decklist_str.append(str(decklist.get_count(card.title)))
 			decklist_str.append("-")
-			if count == 1:
-				decklist_str.append(self.game.supply[card_title][0].log_string())
+			if decklist.get_count(card.title) == 1:
+				decklist_str.append(card.log_string())
 			else:
-				decklist_str.append(self.game.supply[card_title][0].log_string(True))
+				decklist_str.append(card.log_string(True))
 			decklist_str.append(" ")
 		return "".join(decklist_str)
 
 	def name_string(self):
-		return "<b>" + cgi.escape(self.name) + "</b>"
+		return "<b>" + html.escape(self.name) + "</b>"
 
-	def remove_x_cards_from_hand(self, x):
-		removed_cards = []
-		hand_array = self.hand_array()
-		while len(hand_array) > 0 and x > 0:
-			removed_cards.append(hand_array.pop().title)
-			x -= 1
-		return removed_cards

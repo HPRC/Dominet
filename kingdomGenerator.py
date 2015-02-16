@@ -31,5 +31,9 @@ def all_cards(game):
 			all_cards.append(obj(game, None))
 	for name, obj in inspect.getmembers(crd):
 		if inspect.isclass(obj):
+			if (obj.__name__ != "Card"):
+				all_cards.append(obj(game, None))
+	for name, obj in inspect.getmembers(intrigue):
+		if inspect.isclass(obj):
 			all_cards.append(obj(game, None))
 	return all_cards
