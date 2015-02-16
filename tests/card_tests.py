@@ -8,14 +8,17 @@ import kingdomGenerator as kg
 
 class Player1Handler():
 	log = []
+
 	def write_json(self, **kwargs):
-		if (kwargs["command"] != "announce"):
+		if kwargs["command"] != "announce":
 			Player1Handler.log.append(kwargs)
+
 
 class Player2Handler():
 	log = []
+
 	def write_json(self, **kwargs):
-		if (kwargs["command"] != "announce"):
+		if kwargs["command"] != "announce":
 			Player2Handler.log.append(kwargs)
 
 class TestCard(unittest.TestCase):
@@ -30,6 +33,10 @@ class TestCard(unittest.TestCase):
 		self.player1.take_turn()
 		Player1Handler.log = []
 		Player2Handler.log = []
+
+	# --------------------------------------------------------
+	# ------------------------- Base -------------------------
+	# --------------------------------------------------------
 
 	def test_Cellar(self):
 		self.player1.hand.add(base.Cellar(self.game, self.player1))
@@ -60,7 +67,7 @@ class TestCard(unittest.TestCase):
 		self.player1.hand.play("Witch")
 		self.assertTrue("Reveal" in Player2Handler.log[0]["select_from"])
 		self.player2.waiting["cb"](["Reveal"])
-		#didn't gain curse
+		# didn't gain curse
 		self.assertTrue(len(self.player2.discard_pile) == 0)
 		
 	def test_Throne_Room_on_Village(self):
@@ -127,7 +134,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(gardens.get_vp() == 1)
 		for i in range(0,9):
 			self.player1.deck.append(base.Gardens(self.game, self.player1))
-		#decksize = 20
+		# decksize = 20
 		self.assertTrue(self.player1.total_vp() == 23)
 		self.player1.deck.append(crd.Copper(self.game, self.player1))
 		self.assertTrue(self.player1.total_vp() == 23)
@@ -191,15 +198,12 @@ class TestCard(unittest.TestCase):
 		copper = crd.Copper(self.game, self.player1)
 		estate = crd.Estate(self.game, self.player1)
 		self.player1.hand.data = {
-			"Steward": [steward,4],
+			"Steward": [steward, 3],
 			"Copper": [copper, 3],
 			"Estate": [estate, 2]
-			}
+		}
 
-		# +2 Actions
-		steward.play()
-		self.player1.waiting["cb"](["+2 Actions"])
-		self.assertTrue(self.player1.actions == 2)
+		self.player1.actions = 5
 
 		# +$2
 		steward.play()
@@ -214,30 +218,30 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(len(self.game.trash_pile) == trash_size + 2)
 
 		# Trash 2 with homogeneous hand
-		self.player1.actions += 1
 		steward.play()
 		self.player1.waiting["cb"](["Trash 2 cards from hand"])
 		self.assertTrue(self.player1.hand.get_count("Copper") == 1)
 
+		self.player1.hand.add(steward, 1)
+
 		# Trash 2 with 1 in hand
-		self.player1.actions += 1
 		self.player1.hand.data["Steward"] = [steward, 1]
 		steward.play()
 		self.player1.waiting["cb"](["Trash 2 cards from hand"])
 		self.assertTrue(len(self.player1.hand) == 0)
 
+	# --------------------------------------------------------
+	# ----------------------- Intrigue -----------------------
+	# --------------------------------------------------------
 
 	def test_Baron(self):
 		baron = intrigue.Baron(self.game, self.player1)
 		self.player1.hand.data = {}
-		self.player1.hand.add(baron)
-		self.player1.hand.add(baron)
-		self.player1.hand.add(baron)
+		self.player1.hand.add(baron, 3)
 		estate = crd.Estate(self.game, self.player1)
 		# sadly add an estate to hand since no guarantees -- actually overwrites hand
 		self.player1.hand.add(estate)
 		self.player1.actions = 3
-
 
 		# decline Estate discard, gain Estate to discard pile.
 		baron.play()
@@ -258,8 +262,7 @@ class TestCard(unittest.TestCase):
 
 	def test_Shanty_Town(self):
 		shanty_town = intrigue.Shanty_Town(self.game, self.player1)
-		self.player1.hand.add(shanty_town)
-		self.player1.hand.add(shanty_town)
+		self.player1.hand.add(shanty_town, 2)
 
 		# First Play: has an action, should not draw cards.
 		cards_in_hand = len(self.player1.hand)
@@ -274,8 +277,7 @@ class TestCard(unittest.TestCase):
 
 	def test_Conspirator(self):
 		conspirator = intrigue.Conspirator(self.game, self.player1)
-		self.player1.hand.add(conspirator)
-		self.player1.hand.add(conspirator)
+		self.player1.hand.add(conspirator, 2)
 
 		village = base.Village(self.game, self.player1)
 		self.player1.hand.add(village)
@@ -305,8 +307,7 @@ class TestCard(unittest.TestCase):
 
 	def test_Nobles(self):
 		nobles = intrigue.Nobles(self.game, self.player1)
-		self.player1.hand.add(nobles)
-		self.player1.hand.add(nobles)
+		self.player1.hand.add(nobles, 2)
 
 		nobles.play()
 		self.player1.waiting["cb"](["+2 Actions"])

@@ -38,6 +38,7 @@ class Game():
 	def get_turn_owner(self):
 		return self.players[self.turn]
 
+
 class DmGame(Game):
 	def __init__(self, players):
 		Game.__init__(self, players)
@@ -62,27 +63,17 @@ class DmGame(Game):
 
 	def load_supplies(self):
 		for i in self.players:
-			i.write_json(command="kingdomCards", data=self.supply_json(self.kingdom))
-			i.write_json(command="baseCards", data=self.supply_json(self.base_supply))
+			i.write_json(command="kingdomCards", data=json.dumps(self.kingdom.to_json()))
+			i.write_json(command="baseCards", data=json.dumps(self.base_supply.to_json()))
 
-	def supply_json(self, supply):
-		supply_list = []
-		for title, data in supply.items():
-			card = data[0]
-			count = data[1]
-			formatCard = card.to_json()
-			formatCard["count"] = count
-			supply_list.append(formatCard)
-		return json.dumps(supply_list)
-
-	def remove_from_supply(self, card):
-		if card in self.kingdom:
-			self.kingdom[card][1] -= 1
+	def remove_from_supply(self, card_title):
+		if card_title in self.kingdom:
+			self.kingdom.extract(card_title)
 		else:
-			self.base_supply[card][1] -= 1
+			self.base_supply.extract(card_title)
 		for i in self.players:
-			i.write_json(command="updatePiles", card=card, count=self.supply[card][1])
-		if self.supply[card][1] == 0:
+			i.write_json(command="updatePiles", card=card_title, count=self.supply.get_count(card_title))
+		if self.supply.get_count(card_title) == 0:
 			self.empty_piles += 1
 
 	def init_supply(self, cards):
@@ -97,9 +88,9 @@ class DmGame(Game):
 			elif x.type == "Curse":
 				supply.add(x, (num_players - 1) * 10)
 			elif x.title == "Copper" or x.title == "Silver" or x.title == "Gold":
-				supply.add(x,30)
+				supply.add(x, 30)
 			else:
-				supply.add(x,10)
+				supply.add(x, 10)
 		return supply
 
 	def announce_to(self, listeners, msg):
@@ -186,4 +177,3 @@ class DmGame(Game):
 
 	def log_string_from_title(self, title, plural=False):
 		return self.card_from_title(title).log_string(plural)
-
