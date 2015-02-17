@@ -6,8 +6,10 @@ import copy
 import base_set as b
 import html
 
+
 class Client():
 	hand_size = 5
+
 	def __init__(self, name, c_id, handler):
 		self.name = name
 		self.id = c_id
@@ -15,7 +17,7 @@ class Client():
 		self.game = None
 		self.ready = False
 
-	#called before players take their turns
+	# called before players take their turns
 	def setup(self):
 		pass
 
@@ -29,36 +31,36 @@ class Client():
 		cmd = data["command"]
 
 		if self.game == None:
-			if (cmd == "chat"):
+			if cmd == "chat":
 				self.handler.chat(data["msg"], self.name)
 			return
-		#else do game commands
-		if (cmd == "chat"):
+		# else do game commands
+		if cmd == "chat":
 			self.game.chat(data["msg"], self.name)
 
 class DmClient(Client):
 
 	def write_json(self, **kwargs):
 		if kwargs["command"] == "updateMode":
-			#callback used to resume mode if reconnect
+			# callback used to resume mode if reconnect
 			self.last_mode = kwargs
 		Client.write_json(self, **kwargs)
 
 	def base_deck(self):
 		deck = []
-		for i in range(0,7):
+		for i in range(0, 7):
 			deck.append(crd.Copper(game=self.game, played_by=self))
-		for i in range(0,3):
+		for i in range(0, 3):
 			deck.append(crd.Estate(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
 	def draw(self, numCards):
 		num_drawn = 0
-		if (len(self.deck)<numCards):
+		if len(self.deck) < numCards:
 			self.shuffle_discard_to_deck()
 		for i in range(0, numCards):
-			if (len(self.deck) >= 1):
+			if len(self.deck) >= 1:
 				num_drawn += 1
 				card = self.deck.pop()
 				self.hand.add(card)
@@ -71,7 +73,7 @@ class DmClient(Client):
 			self.update_deck_size()
 			return str(num_drawn) + " cards"
 
-	#get top card of deck
+	# get top card of deck
 	def topdeck(self):
 		if len(self.deck) == 0:
 			self.shuffle_discard_to_deck()
@@ -89,7 +91,7 @@ class DmClient(Client):
 	def setup(self):
 		self.last_mode = {"command":"updateMode", "mode": "action"}
 		self.discard_pile = []
-		#deck = [bottom, middle, top] 
+		# deck = [bottom, middle, top]
 		self.deck = self.base_deck()
 		self.hand = cp.HandPile(self)
 		self.played = []
@@ -98,7 +100,7 @@ class DmClient(Client):
 		self.balance = 0
 		self.draw(self.hand_size)
 		self.update_hand()
-		#List of players waiting for, callback called after select/gain gets response
+		# List of players waiting for, callback called after select/gain gets response
 		self.waiting = {"on": [], "cb": None}
 		self.protection = 0
 
@@ -121,7 +123,7 @@ class DmClient(Client):
 	def update_hand(self):
 		self.write_json(command="updateHand", hand=[x.to_json() for x in self.hand.card_array()])
 
-	#override
+	# override
 	def take_turn(self):
 		self.actions = 1
 		self.buys = 1
@@ -129,42 +131,42 @@ class DmClient(Client):
 		self.write_json(command="startTurn", actions=self.actions, buys=self.buys, 
 			balance=self.balance)
 
-	#override
+	# override
 	def exec_commands(self, data):
 		Client.exec_commands(self, data)
 		cmd = data["command"]
 		print("\033[94m" + json.dumps(data) + "\033[0m")
-		if (cmd == "ready"):
+		if cmd == "ready":
 			self.ready = True
-			if (self.game.players_ready() and self.game.turn_count == 0):
+			if self.game.players_ready() and self.game.turn_count == 0:
 				self.game.turn_count = 1
 				self.game.start_game()
-			elif (self.game.players_ready()):
+			elif self.game.players_ready():
 				self.game.load_supplies()
 				self.resume()
-		elif (cmd == "play"):
-			if (not data["card"] in self.hand):
+		elif cmd == "play":
+			if not data["card"] in self.hand:
 				print("Error " + data["card"] + " not in " + self.hand)
 			self.hand.play(data["card"])
-		elif (cmd == "discard"):
+		elif cmd == "discard":
 			self.discard(data["cards"], self.discard_pile)
-		elif (cmd == "endTurn"):
+		elif cmd == "endTurn":
 			self.end_turn()
-		elif (cmd == "buyCard"):
+		elif cmd == "buyCard":
 			self.buy_card(data["card"])
-		elif (cmd == "post_selection"):
+		elif cmd == "post_selection":
 			self.update_wait()
-			#parameter to waiting callback here is a list
-			if (self.waiting["cb"] != None):
+			# parameter to waiting callback here is a list
+			if self.waiting["cb"] != None:
 				self.waiting["cb"](data["selection"])
-		elif (cmd == "gain"):
+		elif cmd == "selectSupply":
 			self.update_wait()
-			#parameter to waiting callback here is a string
-			if (self.waiting["cb"] != None):
+			# parameter to waiting callback here is a string
+			if self.waiting["cb"] != None:
 				self.waiting["cb"](data["card"])
-		elif (cmd == "spendAllMoney"):
+		elif cmd == "spendAllMoney":
 			self.spend_all_money()
-		elif (cmd == "returnToLobby"):
+		elif cmd == "returnToLobby":
 			self.handler.return_to_lobby()
 			self.ready = False
 			self.game = None
@@ -174,7 +176,7 @@ class DmClient(Client):
 		self.update_resources()
 		self.game.update_trash_pile()
 		self.write_json(**self.last_mode)
-		if (self.game.get_turn_owner() == self and self.last_mode["mode"] != "gameover"):
+		if self.game.get_turn_owner() == self and self.last_mode["mode"] != "gameover":
 			self.write_json(command="startTurn", actions=self.actions, 
 			buys=self.buys, balance=self.balance)
 		self.game.announce(self.name_string() + " has reconnected!")
@@ -194,7 +196,7 @@ class DmClient(Client):
 		self.game.change_turn()
 
 	def buy_card(self, card_title):
-		if (self.buys > 0 and self.game.supply.get_count(card_title) > 0):
+		if self.buys > 0 and self.game.supply.get_count(card_title) > 0:
 			# alternative to copy but requires module to have all cards
 			# card_class = getattr(crd, card)
 			# newCard = card_class(self.game, self)
@@ -208,7 +210,7 @@ class DmClient(Client):
 			self.update_resources()
 
 	def select(self, min_cards, max_cards, select_from, msg):
-		if (len(select_from) > 0):
+		if len(select_from) > 0:
 			self.write_json(command="updateMode", mode="select", min_cards=min_cards, max_cards=max_cards,
 				select_from=select_from, msg=msg)
 			return True
@@ -229,11 +231,11 @@ class DmClient(Client):
 	def discard(self, cards, pile):
 		for x in cards:
 			card = self.hand.extract(x)
-			if (card != None):
+			if card != None:
 				pile.append(card)
-		if (pile == self.discard_pile):
+		if pile == self.discard_pile:
 			self.update_discard_size()
-		elif (pile == self.game.trash_pile):
+		elif pile == self.game.trash_pile:
 			self.game.update_trash_pile()
 
 	def update_mode(self):
@@ -246,23 +248,22 @@ class DmClient(Client):
 		self.write_json(command="updateDiscardSize", size=len(self.discard_pile))
 
 	def gain(self, card, from_supply=True):
-		self.game.get_turn_owner().update_mode()
-		if (self.game.supply.get_count(card) <= 0 and from_supply):
+		if self.game.supply.get_count(card) <= 0 and from_supply:
 			return
-		if (from_supply):
+		if from_supply:
 			self.game.remove_from_supply(card)
 		newCard = copy.copy(self.game.card_from_title(card))
 		newCard.played_by = self
-		self.game.announce(self.name_string() + " gains " + newCard.log_string())
+		self.game.announce(self.name_string() + " gains " + newCard.log_string()) # TODO perhaps delete to customize gains messages (for attacks etc.)
 		self.discard_pile.append(newCard)
 		self.update_discard_size()
 
-	def gain_from_supply(self, price_limit, equal_only, type_constraint = None):
-		self.write_json(command="updateMode", mode="gain", price=price_limit, equal_only=equal_only, 
-			type_constraint = type_constraint)
+	def select_from_supply(self, price_limit, equal_only, type_constraint=None):
+		self.write_json(command="updateMode", mode="selectSupply", price=price_limit, equal_only=equal_only,
+			type_constraint=type_constraint)
 
 	def update_resources(self, playedMoney = False):
-		if (playedMoney):
+		if playedMoney:
 			self.write_json(command="updateMode", mode="buy")
 		self.write_json(command="updateResources", actions=self.actions, buys=self.buys, balance=self.balance)
 
@@ -281,13 +282,13 @@ class DmClient(Client):
 		for card in set(self.hand.get_cards_by_type("Treasure", False)):
 			count = self.hand.get_count(card.title)
 			self.balance += card.value * count
-			if (len(to_log) != 0):
+			if len(to_log) != 0:
 				to_log.append(",")
 			to_discard += [card for x in range(0, count)]
 			to_log.append(str(count))
 			to_log.append(card.log_string() if count == 1 else card.log_string(True))
 		self.discard(list(map(lambda x: x.title, to_discard)), self.played)
-		if (len(to_log) > 0):
+		if len(to_log) > 0:
 			self.game.announce(self.name_string() + " played " + " ".join(to_log))
 			self.update_resources(True)
 		self.update_hand()
@@ -297,7 +298,7 @@ class DmClient(Client):
 		# dictionary of vp {"Province" : [<card Province>, 2]}
 		vp_dict = {}
 		for card in self.deck + self.discard_pile + self.played + self.hand.card_array():
-			if ("Victory" in card.type or "Curse" in card.type):
+			if "Victory" in card.type or "Curse" in card.type:
 				total += card.get_vp()
 				if card.title in vp_dict:
 					vp_dict[card.title][1] += 1

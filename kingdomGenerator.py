@@ -13,8 +13,8 @@ class kingdomGenerator():
 
 	def random_kingdom(self):
 		kingdom = []
-		for i in range(0, 10):
-			selected_index = random.randint(0,len(self.avail_cards)-1)
+		for i in range(0, 8):
+			selected_index = random.randint(0, len(self.avail_cards) - 1)
 			kingdom.append(self.avail_cards.pop(selected_index))
 		return kingdom
 
@@ -31,7 +31,7 @@ def all_cards(game):
 			all_cards.append(obj(game, None))
 	for name, obj in inspect.getmembers(crd):
 		if inspect.isclass(obj):
-			if (obj.__name__ != "Card"):
+			if obj.__name__ != "Card":
 				all_cards.append(obj(game, None))
 	for name, obj in inspect.getmembers(intrigue):
 		if inspect.isclass(obj):
