@@ -214,6 +214,42 @@ class Swindler(crd.AttackCard):
 			crd.Card.on_finished(self, False, False)
 
 
+class Wishing_Well(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Wishing Well"
+		self.description = "+1 Card; +1 Action\n Name a card, then reveal the top card of your deck. If it is the named card, put it in your hand."
+		self.price = 3
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.actions += 1
+		self.played_by.draw(1)
+		self.played_by.update_resources()
+		self.played_by.update_hand()
+		self.game.announce("-- gaining +1 action and drawing a card")
+
+		self.played_by.select_from_supply()
+		self.played_by.waiting["on"].append(self.played_by)
+		self.played_by.waiting["cb"] = self.post_select
+
+	def post_select(self, selection):
+		topdeck = self.played_by.topdeck()
+		if topdeck.title == selection:
+			self.played_by.hand.add(topdeck)
+			announcement = " adding it to their hand."
+		else:
+			self.played_by.deck.append(topdeck)
+			announcement = " returning it to the top of their deck."
+		self.game.announce("-- revealing " + topdeck.log_string() + announcement)
+		crd.Card.on_finished(self)
+
+
+
+
+
+
 # --------------------------------------------------------
 # ------------------------ 4 Cost ------------------------
 # --------------------------------------------------------
@@ -281,6 +317,64 @@ class Conspirator(crd.Card):
 # --------------------------------------------------------
 # ------------------------ 5 Cost ------------------------
 # --------------------------------------------------------
+
+
+class Duke(crd.VictoryCard):
+	def __init__(self, game, played_by):
+		crd.VictoryCard.__init__(self, game, played_by)
+		self.title = "Duke"
+		self.description = "Worth 1 Victory Point per Duchy you have."
+		self.price = 5
+		self.vp = 0
+		self.type = "Victory"
+
+	def get_vp(self):
+		hand_count = self.played_by.hand.get_count('Duchy')
+		deck_count = self.played_by.get_card_count_in_pile('Duchy', self.played_by.deck)
+		discard_count = self.played_by.get_card_count_in_pile('Duchy', self.played_by.discard_pile)
+		return int(hand_count + deck_count + discard_count)
+
+
+class Upgrade(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Upgrade"
+		self.description = "+1 Card; +1 Action\n Trash a card from your hand. Gain a card costing exactly $1 more than it."
+		self.price = 5
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.actions += 1
+		self.played_by.draw(1)
+		self.played_by.update_hand()
+		self.game.announce("-- gaining +1 action and drawing a card.")
+
+		selection = self.played_by.hand.auto_select(1)
+		if selection:
+			self.trash_select(selection[0])
+		else:
+			self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Choose a card to trash:")
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.trash_select
+
+	def trash_select(self, selection):
+		card = self.played_by.hand.get_card(selection[0])
+		self.played_by.discard([card.title], self.game.trash_pile)
+		self.game.announce("-- trashing " + card.log_string() + " to gain a card with cost " + str(card.price + 1))
+		self.played_by.update_hand()
+
+		if self.game.supply.pile_contains(card.price + 1):
+			self.played_by.select_from_supply(card.price + 1, True)
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.post_select
+		else:
+			self.game.announce(" however there are no cards with cost " + str(card.price + 1))
+
+	def post_select(self, selection):
+		self.played_by.gain(selection)
+		crd.Card.on_finished(self)
+
 
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------

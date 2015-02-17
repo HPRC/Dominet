@@ -30,9 +30,10 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 			} else {
 				if ($scope.modeJson.equal_only){
 					return card.price !== $scope.modeJson.price;
-				} else {
+				} else if ($scope.modeJson.price){
 					return card.price > $scope.modeJson.price;
 				}
+
 			}
 		}
 		return (!$scope.turn || $scope.modeJson.mode === "wait" ||  $scope.modeJson.mode === "select" || $scope.modeJson.mode === "action");

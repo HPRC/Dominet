@@ -258,7 +258,7 @@ class DmClient(Client):
 		self.discard_pile.append(newCard)
 		self.update_discard_size()
 
-	def select_from_supply(self, price_limit, equal_only, type_constraint=None):
+	def select_from_supply(self, price_limit=None, equal_only=False, type_constraint=None):
 		self.write_json(command="updateMode", mode="selectSupply", price=price_limit, equal_only=equal_only,
 			type_constraint=type_constraint)
 
@@ -323,4 +323,11 @@ class DmClient(Client):
 
 	def name_string(self):
 		return "<b>" + html.escape(self.name) + "</b>"
+
+	def get_card_count_in_pile(self, card_title, pile):
+		count = 0
+		for x in pile:
+			if x.title == card_title:
+				count += 1
+		return count
 

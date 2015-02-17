@@ -326,7 +326,43 @@ class TestCard(unittest.TestCase):
 
 		swindler.play()
 
-		self.player1.waiting["cb"](["Curse"])
+		self.player1.waiting["cb"]("Curse")
+
+	def test_Duke(self):
+		duke = intrigue.Duke(self.game, self.player1)
+		self.player1.hand.add(duke, 1)
+
+		duchy = crd.Duchy(self.game, self.player1)
+		self.player1.hand.add(duchy, 1)
+		self.player1.deck.append(duchy)
+		self.player1.discard_pile.append(duchy)
+
+		self.assertTrue(duke.get_vp(), 3)
+
+	def test_Wishing_Well(self):
+		wishing_well = intrigue.Wishing_Well(self.game, self.player1)
+		self.player1.hand.add(wishing_well, 2)
+		province = crd.Province(self.game, self.player1)
+		self.player1.deck.append(province)
+		self.player1.deck.append(province)
+
+		wishing_well.play()
+		self.player1.waiting["cb"]("Province")
+		self.assertTrue(self.player1.hand.get_count('Province'), 1)
+
+		wishing_well.play()
+		self.player1.waiting["cb"]("Copper")
+		self.assertTrue(self.player1.hand.get_count('Province'), 1)
+
+	def test_Upgrade(self):
+		upgrade = intrigue.Upgrade(self.game, self.player1)
+		self.player1.hand.add(upgrade, 2)
+
+		upgrade.play()
+		self.player1.waiting["cb"](["Copper"])
+
+		upgrade.play()
+		self.player1.waiting["cb"](["Estate"])
 
 if __name__ == '__main__':
 	unittest.main()
