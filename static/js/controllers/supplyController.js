@@ -24,7 +24,7 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 		if ($scope.turn && $scope.modeJson.mode === "buy"){
 			return card.price > $scope.balance;
 		}
-		if ($scope.modeJson.mode === "gain"){
+		if ($scope.modeJson.mode === "selectSupply"){
 			if ($scope.modeJson.type_constraint !== null && card.type.indexOf($scope.modeJson.type_constraint) == -1){
 				return true;
 			} else {
@@ -39,9 +39,9 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 	};
 
 	$scope.clickCard = function(card){
-		if ($scope.modeJson.mode === "gain"){
+		if ($scope.modeJson.mode === "selectSupply"){
 			//refactor into method (?)
-			socket.send(JSON.stringify({"command": "gain", "card": card.title}));
+			socket.send(JSON.stringify({"command": "selectSupply", "card": card.title}));
 		} else {
 			client.buyCard(card);
 		}

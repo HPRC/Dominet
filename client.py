@@ -57,7 +57,7 @@ class DmClient(Client):
 
 	def draw(self, numCards):
 		num_drawn = 0
-		if len(self.deck)<numCards:
+		if len(self.deck) < numCards:
 			self.shuffle_discard_to_deck()
 		for i in range(0, numCards):
 			if len(self.deck) >= 1:
@@ -159,7 +159,7 @@ class DmClient(Client):
 			# parameter to waiting callback here is a list
 			if self.waiting["cb"] != None:
 				self.waiting["cb"](data["selection"])
-		elif cmd == "gain":
+		elif cmd == "selectSupply":
 			self.update_wait()
 			# parameter to waiting callback here is a string
 			if self.waiting["cb"] != None:
@@ -248,19 +248,18 @@ class DmClient(Client):
 		self.write_json(command="updateDiscardSize", size=len(self.discard_pile))
 
 	def gain(self, card, from_supply=True):
-		self.game.get_turn_owner().update_mode()
 		if self.game.supply.get_count(card) <= 0 and from_supply:
 			return
 		if from_supply:
 			self.game.remove_from_supply(card)
 		newCard = copy.copy(self.game.card_from_title(card))
 		newCard.played_by = self
-		self.game.announce(self.name_string() + " gains " + newCard.log_string())
+		self.game.announce(self.name_string() + " gains " + newCard.log_string()) # TODO perhaps delete to customize gains messages (for attacks etc.)
 		self.discard_pile.append(newCard)
 		self.update_discard_size()
 
-	def gain_from_supply(self, price_limit, equal_only, type_constraint=None):
-		self.write_json(command="updateMode", mode="gain", price=price_limit, equal_only=equal_only, 
+	def select_from_supply(self, price_limit, equal_only, type_constraint=None):
+		self.write_json(command="updateMode", mode="selectSupply", price=price_limit, equal_only=equal_only,
 			type_constraint=type_constraint)
 
 	def update_resources(self, playedMoney = False):

@@ -178,9 +178,40 @@ class Swindler(crd.AttackCard):
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	def attack(self):
-		for i in self.played_by.get_opponents():
-			if not crd.AttackCard.is_blocked(self, i):
-				topdeck = i.topdeck()
+		self.get_next(self.played_by)
+
+	def fire(self, player):
+		if not crd.AttackCard.is_blocked(self, player):
+			if len(player.deck) < 1:
+				player.shuffle_discard_to_deck()
+				if len(player.deck) < 1:
+					self.game.announce(player.name_string() + " has no cards to Swindle.")
+					self.get_next(player)
+					return
+			topdeck = player.topdeck()
+			self.played_by.discard([topdeck.title], self.game.trash_pile)
+			self.game.announce(self.played_by.name_string() + " trashes " + self.game.log_string_from_title(topdeck.title)
+			                   + " from the top of " + player.name_string() + "'s deck.")
+
+			def post_select_on(selection, player=player):
+				self.post_select(selection, player)
+
+			self.played_by.select_from_supply(topdeck.price, True)
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = post_select_on
+		else:
+			self.get_next(player)
+
+	def post_select(self, selection, victim):
+		victim.gain(selection)
+		self.get_next(victim)
+
+	def get_next(self, victim):
+		next_player_index = (self.game.players.index(victim) + 1) % len(self.game.players)
+		if self.game.players[next_player_index] != self.played_by:
+			self.fire(self.game.players[next_player_index])
+		else:
+			crd.Card.on_finished(self, False, False)
 
 
 # --------------------------------------------------------
@@ -259,7 +290,7 @@ class Nobles(crd.VictoryCard):
 	def __init__(self, game, played_by):
 		crd.VictoryCard.__init__(self, game, played_by)
 		self.title = "Nobles"
-		self.description = "2 Victory Points\n Choose one: +3 Cards; or +2 Actions."
+		self.description = "+2 VP\n Choose one: +3 Cards, or +2 Actions."
 		self.price = 6
 		self.vp = 2
 		self.type = "Victory|Action"

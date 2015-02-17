@@ -102,7 +102,7 @@ class TestCard(unittest.TestCase):
 		self.player1.hand.add(feast_card)
 		feast_card.play()
 
-		self.assertTrue(Player1Handler.log[-1]["mode"] == "gain")
+		self.assertTrue(Player1Handler.log[-1]["mode"] == "selectSupply")
 		self.assertTrue(self.game.trash_pile[-1] == feast_card)
 
 	def test_Thief_2_treasures(self):
@@ -318,6 +318,15 @@ class TestCard(unittest.TestCase):
 		nobles.play()
 		self.player1.waiting["cb"](["+3 Cards"])
 		self.assertTrue(len(self.player1.hand) == cards_in_hand + 2)
+
+	def test_Swindler(self):
+		swindler = intrigue.Swindler(self.game, self.player1)
+		self.player2.deck.append(crd.Copper(self, self.player2))
+		self.player1.hand.add(swindler, 1)
+
+		swindler.play()
+
+		self.player1.waiting["cb"](["Curse"])
 
 if __name__ == '__main__':
 	unittest.main()

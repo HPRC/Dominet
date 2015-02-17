@@ -1,5 +1,5 @@
 """
-This is a wrapper structure to abstract the datastructure for hand, supply piles.
+This is a wrapper structure to abstract the data structure for hand, supply piles.
 """
 
 import random 

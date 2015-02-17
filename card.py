@@ -6,7 +6,7 @@ class Card():
 		self.type = None
 		self.description = None
 		self.price = None
-		self.done = lambda : None
+		self.done = lambda: None
 
 	def play(self, skip=False):
 		if not skip:
@@ -16,7 +16,7 @@ class Card():
 				self.played_by.actions -= 1
 
 	# called at the end of a card's resolution
-	def on_finished(self, modified_hand = True, modified_resources = True):
+	def on_finished(self, modified_hand=True, modified_resources=True):
 		if modified_resources:
 			self.played_by.update_resources()
 		if modified_hand:

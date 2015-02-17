@@ -164,7 +164,7 @@ class Workshop(crd.Card):
 		crd.Card.play(self, skip)
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_gain
-		self.played_by.gain_from_supply(4, False)
+		self.played_by.select_from_supply(4, False)
 
 	def post_gain(self, card_title):
 		self.played_by.gain(card_title)
@@ -188,7 +188,7 @@ class Bureaucrat(crd.AttackCard):
 		# create silver and add to top of deck
 		silver = crd.Silver(self.game, self.played_by)
 		self.game.announce(" -- gaining a " + silver.log_string())
-		self.deck.append(silver)		
+		self.played_by.deck.append(silver)		
 		self.played_by.update_resources()
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
@@ -205,7 +205,7 @@ class Bureaucrat(crd.AttackCard):
 					i.update_hand()
 					crd.Card.on_finished(self, False, False)
 				else:
-					i.select(1, 1,  crd.card_list_to_titles(i_victory_cards), 
+					i.select(1, 1, crd.card_list_to_titles(i_victory_cards),
 						"select Victory card to put back")
 
 					def post_select_on(selection, i=i):
@@ -238,7 +238,7 @@ class Feast(crd.Card):
 			self.game.update_trash_pile()
 			self.game.announce("-- trashing " + self.log_string())
 		self.played_by.update_resources()
-		self.played_by.gain_from_supply(5, False)
+		self.played_by.select_from_supply(5, False)
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_gain
 
@@ -280,7 +280,7 @@ class Militia(crd.AttackCard):
 		for i in self.played_by.get_opponents():
 			if not crd.AttackCard.is_blocked(self, i):
 				if len(i.hand) > 3:
-					i.select(len(i.hand)-3, len(i.hand)-3, crd.card_list_to_titles(i.hand.card_array()),
+					i.select(len(i.hand) - 3, len(i.hand) - 3, crd.card_list_to_titles(i.hand.card_array()),
 						"discard down to 3 cards")
 
 					def post_select_on(selection, i=i):
@@ -340,7 +340,7 @@ class Remodel(crd.Card):
 		self.played_by.discard(selection, self.game.trash_pile)
 		card_trashed = self.game.card_from_title(selection[0])
 		self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
-		self.played_by.gain_from_supply(card_trashed.price + 2, False)
+		self.played_by.select_from_supply(card_trashed.price + 2, False)
 
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_gain
@@ -374,7 +374,7 @@ class Spy(crd.AttackCard):
 		if not crd.AttackCard.is_blocked(self, player):
 			if len(player.deck) < 1:
 				player.shuffle_discard_to_deck()
-				if len(player.deck) <1:
+				if len(player.deck) < 1:
 					self.game.announce(player.name_string() + " has no cards to Spy.")
 					self.get_next(player)
 					return
@@ -724,7 +724,7 @@ class Mine(crd.Card):
 		self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_gain
-		self.played_by.gain_from_supply(card_trashed.price + 3, False, "Treasure")
+		self.played_by.select_from_supply(card_trashed.price + 3, False, "Treasure")
 
 	def post_gain(self, card_title):
 		self.played_by.gain(card_title)
