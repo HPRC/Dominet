@@ -74,7 +74,7 @@ class Great_Hall(crd.VictoryCard):
 	def __init__(self, game, played_by):
 		crd.VictoryCard.__init__(self, game, played_by)
 		self.title = "Great Hall"
-		self.description = "+1 Card\n +1 Action\n +1 VP\n"
+		self.description = "+1 Card\n +1 Action\n 1 VP\n"
 		self.price = 3
 		self.vp = 1
 		self.type = "Victory|Action"
@@ -246,10 +246,6 @@ class Wishing_Well(crd.Card):
 		crd.Card.on_finished(self)
 
 
-
-
-
-
 # --------------------------------------------------------
 # ------------------------ 4 Cost ------------------------
 # --------------------------------------------------------
@@ -314,6 +310,41 @@ class Conspirator(crd.Card):
 		crd.Card.on_finished(self)
 
 
+class Ironworks(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Ironworks"
+		self.description = "Gain a card costing up to $4.\n If it is an… Action card, +1 Action. Treasure card, +$1. Victory card, +1 Card."
+		self.price = 4
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.game.announce("Gain a card costing up to $4")
+
+		self.played_by.select_from_supply(4)
+		self.played_by.waiting["on"].append(self.played_by)
+		self.played_by.waiting["cb"] = self.post_select
+
+	def post_select(self, selection):
+		card = self.played_by.get_card_from_supply(selection)
+		self.game.announce(self.played_by.name_string() + " gains " + card.log_string())  # TODO perhaps delete to customize gains messages (for attacks etc.)
+		self.played_by.discard_pile.append(card)
+
+		effects = []
+		if "Action" in card.type:
+			self.played_by.actions += 1
+			effects.append("gaining 1 action")
+		if "Treasure" in card.type:
+			self.played_by.balance += 1
+			effects.append("gaining +$1")
+		if "Victory" in card.type:
+			self.played_by.draw(1)
+			effects.append("drawing a card")
+
+		self.game.announce("-- " + " and ".join(effects))
+		crd.Card.on_finished(self)
+
 # --------------------------------------------------------
 # ------------------------ 5 Cost ------------------------
 # --------------------------------------------------------
@@ -333,6 +364,74 @@ class Duke(crd.VictoryCard):
 		deck_count = self.played_by.get_card_count_in_pile('Duchy', self.played_by.deck)
 		discard_count = self.played_by.get_card_count_in_pile('Duchy', self.played_by.discard_pile)
 		return int(hand_count + deck_count + discard_count)
+
+
+class Torturer(crd.AttackCard):
+	def __init__(self, game, played_by):
+		crd.AttackCard.__init__(self, game, played_by)
+		self.title = "Torturer"
+		self.description = "+3 Cards\n Each other player chooses one: he discards 2 cards; or he gains a Curse card, putting it in his hand."
+		self.price = 5
+		self.type = "Action|Attack"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.draw(3)
+		self.played_by.update_hand()
+		self.played_by.update_resources()
+		self.game.announce("-- drawing 3 cards.")
+		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+
+	def attack(self):
+		self.get_next(self.played_by)
+
+	def fire(self, player):
+		if not crd.AttackCard.is_blocked(self, player):
+
+			def post_select_on(selection, player=player):
+				self.post_select(selection, player)
+
+			if len(player.hand) < 2:
+				self.post_select(["Gain a Curse"], player)
+			else:
+				player.select(1, 1, ["Discard 2 cards", "Gain a Curse"], "Choose one:")
+				self.played_by.wait("Waiting for other players to choose")
+				player.waiting["on"].append(player)
+				player.waiting["cb"] = post_select_on
+		else:
+			self.get_next(player)
+
+	def post_select(self, selection, victim):
+		if selection[0] == 'Gain a Curse':
+			victim.gain_to_hand('Curse')
+			victim.update_hand()
+		else:
+			discard_selection = victim.hand.auto_select(2)
+			if discard_selection:
+				victim.discard(crd.card_list_to_titles(discard_selection), victim.discard_pile)
+				victim.update_hand()
+			else:
+				def post_discard_select_on(discard_selection, victim=victim):
+					self.post_discard_select(discard_selection, victim)
+
+				victim.select(2, 2, crd.card_list_to_titles(victim.hand.card_array()), "Discard two cards from hand")
+				self.played_by.wait("Waiting for other players to discard")
+				victim.waiting["on"].append(victim)
+				victim.waiting["cb"] = post_discard_select_on
+
+		self.get_next(victim)
+
+	def post_discard_select(self, selection, victim):
+		victim.discard(selection, victim.discard_pile)
+		victim.update_hand()
+		crd.Card.on_finished(self)
+
+	def get_next(self, victim):
+		next_player_index = (self.game.players.index(victim) + 1) % len(self.game.players)
+		if self.game.players[next_player_index] != self.played_by:
+			self.fire(self.game.players[next_player_index])
+		else:
+			crd.Card.on_finished(self, False, False)
 
 
 class Upgrade(crd.Card):
@@ -376,15 +475,59 @@ class Upgrade(crd.Card):
 		crd.Card.on_finished(self)
 
 
+class Trading_Post(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Trading Post"
+		self.description = "Trash 2 cards from your hand.\n If you do, gain a silver card; put it into your hand."
+		self.price = 5
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+
+		selection = self.played_by.hand.auto_select(2)
+
+		if selection:
+			self.post_select(crd.card_list_to_titles(selection))
+		else:
+			self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "Trash 2 cards from your hand")
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.post_select
+
+	def post_select(self, selection):
+		if len(selection) == 0:
+			self.game.announce("But there was nothing to trash")
+		else:
+			self.game.announce("Trashing " + ", ".join(list(map(lambda x: self.game.log_string_from_title(x), selection))))
+			self.played_by.discard(selection, self.game.trash_pile)
+
+		if len(selection) >= 2:
+			self.played_by.gain_to_hand("Silver")
+
+		crd.Card.on_finished(self)
+
+
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------
 # --------------------------------------------------------
+
+class Harem(crd.Money):
+	def __init__(self, game, played_by):
+		crd.Money.__init__(self, game, played_by)
+		self.title = "Harem"
+		self.description = "$2\n 2 VP"
+		self.price = 6
+		self.value = 2
+		self.vp = 2
+		self.type = "Victory|Treasure"
+
 
 class Nobles(crd.VictoryCard):
 	def __init__(self, game, played_by):
 		crd.VictoryCard.__init__(self, game, played_by)
 		self.title = "Nobles"
-		self.description = "+2 VP\n Choose one: +3 Cards, or +2 Actions."
+		self.description = "2 VP\n Choose one: +3 Cards, or +2 Actions."
 		self.price = 6
 		self.vp = 2
 		self.type = "Victory|Action"

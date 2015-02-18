@@ -6,6 +6,7 @@ import card as crd
 import game as g
 import kingdomGenerator as kg
 
+
 class Player1Handler():
 	log = []
 
@@ -20,6 +21,7 @@ class Player2Handler():
 	def write_json(self, **kwargs):
 		if kwargs["command"] != "announce":
 			Player2Handler.log.append(kwargs)
+
 
 class TestCard(unittest.TestCase):
 	def setUp(self):
@@ -69,7 +71,7 @@ class TestCard(unittest.TestCase):
 		self.player2.waiting["cb"](["Reveal"])
 		# didn't gain curse
 		self.assertTrue(len(self.player2.discard_pile) == 0)
-		
+
 	def test_Throne_Room_on_Village(self):
 		throne_room_card = base.Throne_Room(self.game, self.player1)
 		self.player1.hand.add(throne_room_card)
@@ -87,7 +89,7 @@ class TestCard(unittest.TestCase):
 		throne_room_card.play()
 		throne_room_card.post_select(["Workshop"])
 		self.assertTrue(workshopCard.done.__name__ == "second_play")
-		
+
 		self.player1.update_wait()
 		self.player1.waiting["cb"]("Silver")
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
@@ -132,7 +134,7 @@ class TestCard(unittest.TestCase):
 		gardens = base.Gardens(self.game, self.player1)
 		self.player1.hand.add(gardens)
 		self.assertTrue(gardens.get_vp() == 1)
-		for i in range(0,9):
+		for i in range(0, 9):
 			self.player1.deck.append(base.Gardens(self.game, self.player1))
 		# decksize = 20
 		self.assertTrue(self.player1.total_vp() == 23)
@@ -363,6 +365,72 @@ class TestCard(unittest.TestCase):
 
 		upgrade.play()
 		self.player1.waiting["cb"](["Estate"])
+
+	def test_Torturer(self):
+		torturer = intrigue.Torturer(self.game, self.player1)
+		self.player1.hand.add(torturer, 2)
+		self.player1.actions = 2
+
+		torturer.play()
+		# choosing to discard 2
+		self.player2.waiting["cb"](["Discard 2 cards"])
+		self.player2.waiting["cb"](['Copper', 'Copper'])
+
+		torturer.play()
+		self.player2.waiting["cb"](["Gain a Curse"])
+		self.assertTrue(self.player2.hand.get_count('Curse'), 1)
+
+		self.player1.actions = 1
+		copper = crd.Copper(self.game, self.player1)
+		self.player2.hand.data = {
+			"Copper": [copper, 3]
+		}
+		torturer.play()
+		self.player2.waiting["cb"](["Discard 2 cards"])
+
+	def test_Trading_Post(self):
+		trading_post = intrigue.Trading_Post(self.game, self.player1)
+		copper = crd.Copper(self.game, self.player1)
+		self.player1.hand.data = {
+			"Copper": [copper, 1],
+			"Trading Post": [trading_post, 1]
+		}
+		self.player1.actions = 3
+
+		trading_post.play()
+		self.assertTrue(len(self.player1.hand.data) == 0, True)
+
+		self.player1.hand.data = {
+			"Copper": [copper, 2],
+			"Trading Post": [trading_post, 1]
+		}
+		trading_post.play()
+		self.assertTrue(self.player1.hand.get_count("Silver"), 1)
+
+		self.player1.hand.add(trading_post, 3)
+		trading_post.play()
+		self.player1.waiting["cb"](["Trading Post", "Trading Post"])
+		self.assertTrue(self.player1.hand.get_count("Silver"), 2)
+
+	def test_Ironworks(self):
+		ironworks = intrigue.Ironworks(self.game, self.player1)
+		self.player1.hand.add(ironworks, 4)
+		self.player1.actions = 2
+
+		ironworks.play()
+		self.player1.waiting["cb"]("Steward")
+		self.assertTrue(self.player1.actions, 2)
+
+		ironworks.play()
+		self.player1.waiting["cb"]("Silver")
+		self.assertTrue(self.player1.balance, 1)
+
+		ironworks.play()
+		cards_in_hand = len(self.player1.hand.card_array())
+		self.player1.waiting["cb"]("Great Hall")
+		self.assertTrue(self.player1.actions, 1)
+		self.assertTrue(self.player1.hand, cards_in_hand + 1)
+
 
 if __name__ == '__main__':
 	unittest.main()
