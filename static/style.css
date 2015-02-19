@@ -90,3 +90,7 @@ html, body {
 	overflow:auto;
 	height:60%;
 }
+
+#modeContainer {
+	min-height:3em;
+}

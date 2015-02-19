@@ -142,6 +142,8 @@ class Curse(Card):
 	def play(self):
 		return
 
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-curse'>", self.title, "s</span>" if plural else "</span>"])
 
 class VictoryCard(Card):
 	def __init__(self, game, played_by):
