@@ -32,7 +32,9 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 					return card.price !== $scope.modeJson.price;
 				} else if ($scope.modeJson.price){
 					return card.price > $scope.modeJson.price;
-				}
+				} else {
+                    return false
+                }
 
 			}
 		}

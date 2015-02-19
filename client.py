@@ -334,9 +334,9 @@ class DmClient(Client):
 	def name_string(self):
 		return "<b>" + html.escape(self.name) + "</b>"
 
-	def get_card_count_in_pile(self, card_title, pile):
+	def get_card_count_in_list(self, card_title, card_list):
 		count = 0
-		for x in pile:
+		for x in card_list:
 			if x.title == card_title:
 				count += 1
 		return count
