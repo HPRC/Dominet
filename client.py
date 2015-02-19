@@ -247,18 +247,28 @@ class DmClient(Client):
 	def update_discard_size(self):
 		self.write_json(command="updateDiscardSize", size=len(self.discard_pile))
 
-	def gain(self, card, from_supply=True):
+	def get_card_from_supply(self, card, from_supply=True):
 		if self.game.supply.get_count(card) <= 0 and from_supply:
 			return
 		if from_supply:
 			self.game.remove_from_supply(card)
-		newCard = copy.copy(self.game.card_from_title(card))
-		newCard.played_by = self
-		self.game.announce(self.name_string() + " gains " + newCard.log_string()) # TODO perhaps delete to customize gains messages (for attacks etc.)
-		self.discard_pile.append(newCard)
+		new_card = copy.copy(self.game.card_from_title(card))
+		new_card.played_by = self
+		return new_card
+
+	def gain(self, card, from_supply=True):
+		new_card = self.get_card_from_supply(card, from_supply)
+		self.game.announce(self.name_string() + " gains " + new_card.log_string()) # TODO perhaps delete to customize gains messages (for attacks etc.)
+		self.discard_pile.append(new_card)
 		self.update_discard_size()
 
-	def select_from_supply(self, price_limit, equal_only, type_constraint=None):
+	def gain_to_hand(self, card, from_supply=True):
+		new_card = self.get_card_from_supply(card, from_supply)
+		self.game.announce(self.name_string() + " gains " + new_card.log_string() + " to their hand.")
+		self.hand.add(new_card)
+		self.update_hand()
+
+	def select_from_supply(self, price_limit=None, equal_only=False, type_constraint=None):
 		self.write_json(command="updateMode", mode="selectSupply", price=price_limit, equal_only=equal_only,
 			type_constraint=type_constraint)
 
@@ -279,7 +289,7 @@ class DmClient(Client):
 	def spend_all_money(self):
 		to_log = []
 		to_discard = []
-		for card in set(self.hand.get_cards_by_type("Treasure", False)):
+		for card in set(self.hand.get_cards_by_type("Treasure", True)):
 			count = self.hand.get_count(card.title)
 			self.balance += card.value * count
 			if len(to_log) != 0:
@@ -323,4 +333,11 @@ class DmClient(Client):
 
 	def name_string(self):
 		return "<b>" + html.escape(self.name) + "</b>"
+
+	def get_card_count_in_list(self, card_title, card_list):
+		count = 0
+		for x in card_list:
+			if x.title == card_title:
+				count += 1
+		return count
 

@@ -8,12 +8,12 @@ class kingdomGenerator():
 	def __init__(self, game):
 		self.game = game
 		self.avail_cards = []
-		self.load_set(base)
+		# self.load_set(base)
 		self.load_set(intrigue)
 
 	def random_kingdom(self):
 		kingdom = []
-		for i in range(0, 8):
+		for i in range(0, 15):
 			selected_index = random.randint(0, len(self.avail_cards) - 1)
 			kingdom.append(self.avail_cards.pop(selected_index))
 		return kingdom
