@@ -256,7 +256,7 @@ class Gardens(crd.VictoryCard):
 		self.vp = 0
 
 	def get_vp(self):
-		return int(self.played_by.total_deck_size()/10)
+		return int(self.played_by.total_deck_size() / 10)
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-success'>", self.title, "</span>"])
@@ -379,7 +379,7 @@ class Spy(crd.AttackCard):
 					self.get_next(player)
 					return
 			revealed_card = player.deck[-1]
-			self.played_by.select(1, 1, ["discard", "keep"],  
+			self.played_by.select(1, 1, ["discard", "keep"],
 				player.name + " revealed " + revealed_card.title)
 
 			def post_select_on(selection, player=player):

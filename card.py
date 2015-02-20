@@ -202,3 +202,4 @@ def card_list_log_strings(lst):
 	return list(map(lambda x: x.log_string(), lst))
 
 
+
