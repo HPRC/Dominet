@@ -77,7 +77,7 @@ class Great_Hall(crd.VictoryCard):
 		self.description = "+1 Card\n +1 Action\n 1 VP\n"
 		self.price = 3
 		self.vp = 1
-		self.type = "Victory|Action"
+		self.type = "Action|Victory"
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
@@ -86,6 +86,8 @@ class Great_Hall(crd.VictoryCard):
 		self.game.announce("-- gaining +1 action and drawing " + drawn)
 		crd.Card.on_finished(self)
 
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-default-success'>", self.title + "s</span>" if plural else self.title, "</span>"])
 
 class Shanty_Town(crd.Card):
 	def __init__(self, game, played_by):
@@ -520,7 +522,7 @@ class Harem(crd.Money):
 		self.price = 6
 		self.value = 2
 		self.vp = 2
-		self.type = "Victory|Treasure"
+		self.type = "Treasure|Victory"
 
 
 class Nobles(crd.VictoryCard):
@@ -530,7 +532,7 @@ class Nobles(crd.VictoryCard):
 		self.description = "2 VP\n Choose one: +3 Cards, or +2 Actions."
 		self.price = 6
 		self.vp = 2
-		self.type = "Victory|Action"
+		self.type = "Action|Victory"
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
@@ -551,4 +553,4 @@ class Nobles(crd.VictoryCard):
 		crd.Card.on_finished(self)
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-success'>", "Nobles</span>" if plural else self.title, "</span>"])
+		return "".join(["<span class='label label-default-success'>", "Nobles</span>" if plural else self.title, "</span>"])

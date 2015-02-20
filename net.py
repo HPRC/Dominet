@@ -177,8 +177,6 @@ class DmHandler(GameHandler):
 	
 	#override
 	def on_close(self):
-		print(self.close_code)
-		print(self.close_reason)
 		if (self.client.game == None):
 			GameHandler.on_close(self)
 			return
