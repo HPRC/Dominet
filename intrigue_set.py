@@ -488,6 +488,49 @@ class Torturer(crd.AttackCard):
 			crd.Card.on_finished(self, False, False)
 
 
+class Tribute(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Tribute"
+		self.description = ""
+		self.price = 5
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		opponents = self.played_by.get_opponents()
+		left_opponent = opponents[0]
+
+		tributes = []
+		tributes.append(left_opponent.topdeck())
+		tributes.append(left_opponent.topdeck())
+		self.game.announce("-- revealing " + ", ".join(crd.card_list_log_strings(tributes)) + " as a tribute.")
+
+		self.tribute_card(left_opponent, tributes)
+
+		crd.Card.on_finished(self)
+
+	def tribute_card(self, opponent, tributes):
+		for x in tributes:
+			gaining = []
+			if "Action" in x.type:
+				self.played_by.actions += 1
+				gaining.append("gaining 1 action")
+			if "Treasure" in x.type:
+				self.played_by.balance += 1
+				gaining.append("gaining +$1")
+			if "Victory" in x.type:
+				self.played_by.draw(1)
+				gaining.append("drawing 1 card")
+
+			self.game.announce("-- " + " and ".join(gaining) + " for " + x.log_string())
+			opponent.discard_pile.append(x)
+
+
+
+
+
+
 class Upgrade(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)

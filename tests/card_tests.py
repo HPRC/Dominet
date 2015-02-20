@@ -458,6 +458,29 @@ class TestCard(unittest.TestCase):
 		self.player1.draw(2)
 		self.assertTrue(self.player1.hand.get_count("Estate"), estates + 2)
 
+	def test_Tribute(self):
+		tribute = intrigue.Tribute(self.game, self.player1)
+		self.player1.hand.add(tribute, 2)
+		estate = crd.Estate(self.game, self.player2)
+		copper = crd.Copper(self.game, self.player2)
+		great_hall = intrigue.Great_Hall(self.game, self.player2)
+		swindler = intrigue.Swindler(self.game, self.player2)
+
+		self.player2.deck.append(estate)
+		self.player2.deck.append(copper)
+		self.player2.deck.append(great_hall)
+		self.player2.deck.append(swindler)
+
+		cards_in_hand = len(self.player1.hand.card_array())
+		tribute.play()
+		self.assertTrue(self.player1.actions, 2)
+		self.assertTrue(len(self.player1.hand.card_array()), cards_in_hand)
+		self.assertTrue(len(self.player2.discard_pile), 2)
+
+		tribute.play()
+		self.assertTrue(self.player1.balance, 1)
+
+
 
 if __name__ == '__main__':
 	unittest.main()
