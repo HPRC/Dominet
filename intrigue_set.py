@@ -66,6 +66,60 @@ class Pawn(crd.Card):
 		crd.Card.on_finished(self)
 
 
+class Secret_Chamber(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Secret Chamber"
+		self.description = "Discard any number of cards. +$1 per card discarded.\n When another player plays an Attack card, you may reveal this from your hand. If you do, +2 cards, then put 2 cards from your hand on top of your deck."
+		self.price = 2
+		self.type = "Action|Reaction"
+		self.trigger = "Attack"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+
+		self.played_by.select(None, None,
+		                      crd.card_list_to_titles(self.played_by.hand.card_array()), "select cards to discard")
+		self.played_by.waiting["on"].append(self.played_by)
+		self.played_by.waiting["cb"] = self.post_select
+
+	def post_select(self, selection):
+		self.played_by.discard(selection, self.played_by.discard_pile)
+		self.played_by.balance += len(selection)
+		self.game.announce(self.played_by.name_string() + " discarding " + str(len(selection)) + " gaining +$" + str(len(selection)) + ".")
+		crd.Card.on_finished(self)
+
+	# below is reaction code
+	def react(self, react_to_callback):
+		self.played_by.select(1, 1, ["Reveal", "Hide"],
+		                      "Reveal " + self.title + " to draw 2 cards and discard 2 cards to the top of your deck?")
+
+		def new_cb(selection):
+			self.post_react_select(selection, react_to_callback)
+
+		self.played_by.waiting["on"].append(self.played_by)
+		self.played_by.waiting["cb"] = new_cb
+
+	def post_react_select(self, selection, react_to_callback):
+		def post_react_draw_select_callback(selection):
+			self.post_react_draw_select(selection)
+			react_to_callback()
+
+		if selection[0] == "Reveal":
+			self.played_by.draw(2)
+			self.played_by.update_hand()
+			self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "Put two cards to the top of your deck")
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = post_react_draw_select_callback
+
+	def post_react_draw_select(self, selection):
+		self.played_by.deck.append(self.played_by.hand.extract(selection[0]))
+		self.played_by.deck.append(self.played_by.hand.extract(selection[1]))
+		self.game.announce("-- drawing two cards, putting two of them on the top of their deck.")
+
+		crd.Card.on_finished(self)
+
+
 # --------------------------------------------------------
 # ------------------------ 3 Cost ------------------------
 # --------------------------------------------------------
@@ -361,8 +415,8 @@ class Duke(crd.VictoryCard):
 
 	def get_vp(self):
 		hand_count = self.played_by.hand.get_count('Duchy')
-		deck_count = self.played_by.get_card_count_in_pile('Duchy', self.played_by.deck)
-		discard_count = self.played_by.get_card_count_in_pile('Duchy', self.played_by.discard_pile)
+		deck_count = self.played_by.get_card_count_in_list('Duchy', self.played_by.deck)
+		discard_count = self.played_by.get_card_count_in_list('Duchy', self.played_by.discard_pile)
 		return int(hand_count + deck_count + discard_count)
 
 

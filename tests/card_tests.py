@@ -431,6 +431,33 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.player1.actions, 1)
 		self.assertTrue(self.player1.hand, cards_in_hand + 1)
 
+	def test_Secret_Chamber(self):
+		secret_chamber = intrigue.Secret_Chamber(self.game, self.player1)
+		estate = crd.Estate(self.game, self.player1)
+		self.player1.hand.data = {
+			"Estate": [estate, 4],
+			"Secret Chamber": [secret_chamber, 1]
+		}
+
+		secret_chamber.play()
+		self.player1.waiting["cb"](["Estate", "Estate", "Estate", "Estate"])
+		self.assertTrue(self.player1.balance, 4)
+
+		self.player1.hand.data = {
+			"Estate": [estate, 4],
+			"Secret Chamber": [secret_chamber, 1]
+		}
+		self.player2.hand.add(base.Militia(self.game, self.player2))
+		self.player2.hand.play("Militia")
+		self.player1.waiting["cb"](["Reveal"])
+		self.player1.waiting["cb"](["Estate", "Estate"])
+		self.player1.waiting["cb"](["Estate", "Estate"])
+		self.assertTrue(len(self.player1.hand.card_array()), 3)
+
+		estates = self.player1.hand.get_count("Estate")
+		self.player1.draw(2)
+		self.assertTrue(self.player1.hand.get_count("Estate"), estates + 2)
+
 
 if __name__ == '__main__':
 	unittest.main()
