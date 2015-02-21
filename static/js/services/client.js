@@ -104,7 +104,7 @@ clientModule.factory('client', function(socket) {
 	constructor.prototype.updateSpendable = function (){
 		this.spendableMoney = 0;
 		for (var i=0; i<this.hand.length; i++){
-			if (this.hand[i].type === "Treasure"){
+			if (this.hand[i].type.indexOf("Treasure") > -1){
 				this.spendableMoney += this.hand[i].value;
 			}
 		}

@@ -7,7 +7,8 @@ clientModule.factory('cardStyle', function(){
 				"Curse": "btn btn-curse",
 				"Action|Attack": "btn btn-danger",
 				"Action|Reaction": "btn btn-info",
-				"Action|Victory": "btn btn-default-success"
+				"Action|Victory": "btn btn-default-success",
+				"Treasure|Victory": "btn btn-danger-success"
 			};
 
 			if (card.type in colorDict){

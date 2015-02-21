@@ -238,9 +238,10 @@ class Wishing_Well(crd.Card):
 
 	def post_select(self, selection):
 		topdeck = self.played_by.topdeck()
+		self.game.announce("-- wishing for a " + self.game.log_string_from_title(selection))
 		if topdeck.title == selection:
 			self.played_by.hand.add(topdeck)
-			announcement = " adding it to their hand."
+			announcement = ", adding it to their hand."
 		else:
 			self.played_by.deck.append(topdeck)
 			announcement = " returning it to the top of their deck."
@@ -524,6 +525,11 @@ class Harem(crd.Money):
 		self.vp = 2
 		self.type = "Treasure|Victory"
 
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-danger-success'>", self.title + "s</span>" if plural else self.title, "</span>"])
+
+	def get_vp(self):
+		return self.vp
 
 class Nobles(crd.VictoryCard):
 	def __init__(self, game, played_by):
