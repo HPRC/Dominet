@@ -191,7 +191,7 @@ class Swindler(crd.AttackCard):
 					self.get_next(player)
 					return
 			topdeck = player.topdeck()
-			self.played_by.discard([topdeck.title], self.game.trash_pile)
+			player.discard([topdeck.title], self.game.trash_pile)
 			self.game.announce(self.played_by.name_string() + " trashes " + self.game.log_string_from_title(topdeck.title)
 			                   + " from the top of " + player.name_string() + "'s deck.")
 
@@ -232,7 +232,7 @@ class Wishing_Well(crd.Card):
 		self.played_by.update_hand()
 		self.game.announce("-- gaining +1 action and drawing a card")
 
-		self.played_by.select_from_supply()
+		self.played_by.select_from_supply(allow_empty=True)
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_select
 
@@ -344,8 +344,8 @@ class Ironworks(crd.Card):
 		if "Victory" in card.type:
 			self.played_by.draw(1)
 			effects.append("drawing a card")
-
-		self.game.announce("-- " + " and ".join(effects))
+		if not card.type == "Curse":
+			self.game.announce("-- " + " and ".join(effects))
 		crd.Card.on_finished(self)
 
 # --------------------------------------------------------
@@ -364,8 +364,8 @@ class Duke(crd.VictoryCard):
 
 	def get_vp(self):
 		hand_count = self.played_by.hand.get_count('Duchy')
-		deck_count = self.played_by.get_card_count_in_pile('Duchy', self.played_by.deck)
-		discard_count = self.played_by.get_card_count_in_pile('Duchy', self.played_by.discard_pile)
+		deck_count = self.played_by.get_card_count_in_list('Duchy', self.played_by.deck)
+		discard_count = self.played_by.get_card_count_in_list('Duchy', self.played_by.discard_pile)
 		return int(hand_count + deck_count + discard_count)
 
 
@@ -472,6 +472,7 @@ class Upgrade(crd.Card):
 			self.played_by.waiting["cb"] = self.post_select
 		else:
 			self.game.announce(" however there are no cards with cost " + str(card.price + 1))
+			crd.Card.on_finished(self)
 
 	def post_select(self, selection):
 		self.played_by.gain(selection)

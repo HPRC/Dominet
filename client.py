@@ -269,9 +269,9 @@ class DmClient(Client):
 		self.hand.add(new_card)
 		self.update_hand()
 
-	def select_from_supply(self, price_limit=None, equal_only=False, type_constraint=None):
+	def select_from_supply(self, price_limit=None, equal_only=False, type_constraint=None, allow_empty=False):
 		self.write_json(command="updateMode", mode="selectSupply", price=price_limit, equal_only=equal_only,
-			type_constraint=type_constraint)
+			type_constraint=type_constraint, allow_empty=allow_empty)
 
 	def update_resources(self, playedMoney = False):
 		if playedMoney:
