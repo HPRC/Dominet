@@ -399,6 +399,30 @@ class Ironworks(crd.Card):
 		self.game.announce("-- " + " and ".join(effects))
 		crd.Card.on_finished(self)
 
+
+class Mining_Village(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Mining Village"
+		self.description = ""
+		self.price = 4
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+
+		self.played_by.draw(1)
+		self.played_by.actions += 2
+		self.played_by.update_hand()
+		self.played_by.update_resources()
+		self.game.announce("-- gaining 2 actions and drawing 1 card")
+
+
+
+	def post_select(self, selection):
+		if selection[0] == "Yes":
+			self.played_by.balance += 2
+
 # --------------------------------------------------------
 # ------------------------ 5 Cost ------------------------
 # --------------------------------------------------------
@@ -525,10 +549,6 @@ class Tribute(crd.Card):
 
 			self.game.announce("-- " + " and ".join(gaining) + " for " + x.log_string())
 			opponent.discard_pile.append(x)
-
-
-
-
 
 
 class Upgrade(crd.Card):
