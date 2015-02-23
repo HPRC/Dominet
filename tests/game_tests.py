@@ -73,6 +73,5 @@ class TestGame(unittest.TestCase):
 		self.player1.discard(["Copper"], self.player1.discard_pile)
 		self.assertTrue(len(self.player1.hand) == 0)
 
-
 if __name__ == '__main__':
 	unittest.main()

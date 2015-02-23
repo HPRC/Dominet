@@ -176,6 +176,7 @@ class DmClient(Client):
 		self.update_resources()
 		self.game.update_trash_pile()
 		self.write_json(**self.last_mode)
+		print(self.last_mode["mode"])
 		if self.game.get_turn_owner() == self and self.last_mode["mode"] != "gameover":
 			self.write_json(command="startTurn", actions=self.actions, 
 			buys=self.buys, balance=self.balance)
@@ -268,9 +269,9 @@ class DmClient(Client):
 		self.hand.add(new_card)
 		self.update_hand()
 
-	def select_from_supply(self, price_limit=None, equal_only=False, type_constraint=None):
+	def select_from_supply(self, price_limit=None, equal_only=False, type_constraint=None, allow_empty=False):
 		self.write_json(command="updateMode", mode="selectSupply", price=price_limit, equal_only=equal_only,
-			type_constraint=type_constraint)
+			type_constraint=type_constraint, allow_empty=allow_empty)
 
 	def update_resources(self, playedMoney = False):
 		if playedMoney:
@@ -321,13 +322,13 @@ class DmClient(Client):
 		for card in self.deck + self.discard_pile + self.played + self.hand.card_array():
 			decklist.add(card)
 		decklist_str = []
-		for card in decklist:
-			decklist_str.append(str(decklist.get_count(card.title)))
+		for card_title in decklist.data.keys():
+			decklist_str.append(str(decklist.get_count(card_title)))
 			decklist_str.append("-")
-			if decklist.get_count(card.title) == 1:
-				decklist_str.append(card.log_string())
+			if decklist.get_count(card_title) == 1:
+				decklist_str.append(decklist.get_card(card_title).log_string())
 			else:
-				decklist_str.append(card.log_string(True))
+				decklist_str.append(decklist.get_card(card_title).log_string(True))
 			decklist_str.append(" ")
 		return "".join(decklist_str)
 

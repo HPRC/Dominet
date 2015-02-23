@@ -177,3 +177,5 @@ class DmGame(Game):
 
 	def log_string_from_title(self, title, plural=False):
 		return self.card_from_title(title).log_string(plural)
+
+
