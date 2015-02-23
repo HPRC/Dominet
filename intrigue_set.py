@@ -399,6 +399,7 @@ class Torturer(crd.AttackCard):
 			else:
 				player.select(1, 1, ["Discard 2 cards", "Gain a Curse"], "Choose one:")
 				self.played_by.wait("Waiting for other players to choose")
+				self.played_by.waiting["on"].append(player)
 				player.waiting["on"].append(player)
 				player.waiting["cb"] = post_select_on
 		else:
@@ -408,25 +409,29 @@ class Torturer(crd.AttackCard):
 		if selection[0] == 'Gain a Curse':
 			victim.gain_to_hand('Curse')
 			victim.update_hand()
+			self.get_next(victim)
 		else:
 			discard_selection = victim.hand.auto_select(2)
 			if discard_selection:
 				victim.discard(crd.card_list_to_titles(discard_selection), victim.discard_pile)
 				victim.update_hand()
+				self.get_next(victim)
 			else:
+				self.played_by.waiting["on"].append(victim)
+				self.played_by.wait("Waiting for other players to discard")
+
 				def post_discard_select_on(discard_selection, victim=victim):
 					self.post_discard_select(discard_selection, victim)
 
 				victim.select(2, 2, crd.card_list_to_titles(victim.hand.card_array()), "Discard two cards from hand")
-				self.played_by.wait("Waiting for other players to discard")
 				victim.waiting["on"].append(victim)
 				victim.waiting["cb"] = post_discard_select_on
 
-		self.get_next(victim)
 
 	def post_discard_select(self, selection, victim):
 		victim.discard(selection, victim.discard_pile)
 		victim.update_hand()
+		self.get_next(victim)
 		crd.Card.on_finished(self)
 
 	def get_next(self, victim):
