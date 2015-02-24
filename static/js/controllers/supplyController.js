@@ -16,8 +16,9 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 	}, true);
 
 	$scope.disabled = function(card){
-		if (card.title in $scope.kingdom && $scope.kingdom[card.title].count === 0 || 
-			card.title in $scope.baseSupply && $scope.baseSupply[card.title].count === 0){
+		if ((card.title in $scope.kingdom && $scope.kingdom[card.title].count === 0 || 
+			card.title in $scope.baseSupply && $scope.baseSupply[card.title].count === 0) 
+			&& ($scope.modeJson.allow_empty === undefined || $scope.modeJson.allow_empty === false)){
 			return true;
 		}
 
@@ -25,7 +26,7 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 			return card.price > $scope.balance;
 		}
 		if ($scope.modeJson.mode === "selectSupply"){
-			if ($scope.modeJson.type_constraint !== null && card.type.indexOf($scope.modeJson.type_constraint) == -1){
+			if ($scope.modeJson.type_constraint !== null && card.type.indexOf($scope.modeJson.type_constraint) === -1){
 				return true;
 			} else {
 				if ($scope.modeJson.equal_only){

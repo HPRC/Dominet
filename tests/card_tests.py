@@ -339,7 +339,7 @@ class TestCard(unittest.TestCase):
 		self.player1.deck.append(duchy)
 		self.player1.discard_pile.append(duchy)
 
-		self.assertTrue(duke.get_vp(), 3)
+		self.assertTrue(duke.get_vp() == 3)
 
 	def test_Wishing_Well(self):
 		wishing_well = intrigue.Wishing_Well(self.game, self.player1)
@@ -350,11 +350,11 @@ class TestCard(unittest.TestCase):
 
 		wishing_well.play()
 		self.player1.waiting["cb"]("Province")
-		self.assertTrue(self.player1.hand.get_count('Province'), 1)
+		self.assertTrue(self.player1.hand.get_count('Province') == 1)
 
 		wishing_well.play()
 		self.player1.waiting["cb"]("Copper")
-		self.assertTrue(self.player1.hand.get_count('Province'), 1)
+		self.assertTrue(self.player1.hand.get_count('Province') == 1)
 
 	def test_Upgrade(self):
 		upgrade = intrigue.Upgrade(self.game, self.player1)
@@ -378,7 +378,7 @@ class TestCard(unittest.TestCase):
 
 		torturer.play()
 		self.player2.waiting["cb"](["Gain a Curse"])
-		self.assertTrue(self.player2.hand.get_count('Curse'), 1)
+		self.assertTrue(self.player2.hand.get_count('Curse') == 1)
 
 		self.player1.actions = 1
 		copper = crd.Copper(self.game, self.player1)
@@ -398,19 +398,19 @@ class TestCard(unittest.TestCase):
 		self.player1.actions = 3
 
 		trading_post.play()
-		self.assertTrue(len(self.player1.hand.data) == 0, True)
+		self.assertTrue(len(self.player1.hand.data) == 0)
 
 		self.player1.hand.data = {
 			"Copper": [copper, 2],
 			"Trading Post": [trading_post, 1]
 		}
 		trading_post.play()
-		self.assertTrue(self.player1.hand.get_count("Silver"), 1)
+		self.assertTrue(self.player1.hand.get_count("Silver") == 1)
 
 		self.player1.hand.add(trading_post, 3)
 		trading_post.play()
 		self.player1.waiting["cb"](["Trading Post", "Trading Post"])
-		self.assertTrue(self.player1.hand.get_count("Silver"), 2)
+		self.assertTrue(self.player1.hand.get_count("Silver") == 2)
 
 	def test_Ironworks(self):
 		ironworks = intrigue.Ironworks(self.game, self.player1)
@@ -419,17 +419,17 @@ class TestCard(unittest.TestCase):
 
 		ironworks.play()
 		self.player1.waiting["cb"]("Steward")
-		self.assertTrue(self.player1.actions, 2)
+		self.assertTrue(self.player1.actions == 2)
 
 		ironworks.play()
 		self.player1.waiting["cb"]("Silver")
-		self.assertTrue(self.player1.balance, 1)
+		self.assertTrue(self.player1.balance == 1)
 
 		ironworks.play()
 		cards_in_hand = len(self.player1.hand.card_array())
 		self.player1.waiting["cb"]("Great Hall")
-		self.assertTrue(self.player1.actions, 1)
-		self.assertTrue(self.player1.hand, cards_in_hand + 1)
+		self.assertTrue(self.player1.actions == 1)
+		self.assertTrue(self.player1.hand == cards_in_hand + 1)
 
 	def test_Secret_Chamber(self):
 		secret_chamber = intrigue.Secret_Chamber(self.game, self.player1)
@@ -441,7 +441,7 @@ class TestCard(unittest.TestCase):
 
 		secret_chamber.play()
 		self.player1.waiting["cb"](["Estate", "Estate", "Estate", "Estate"])
-		self.assertTrue(self.player1.balance, 4)
+		self.assertTrue(self.player1.balance == 4)
 
 		self.player1.hand.data = {
 			"Estate": [estate, 4],
@@ -452,11 +452,11 @@ class TestCard(unittest.TestCase):
 		self.player1.waiting["cb"](["Reveal"])
 		self.player1.waiting["cb"](["Estate", "Estate"])
 		self.player1.waiting["cb"](["Estate", "Estate"])
-		self.assertTrue(len(self.player1.hand.card_array()), 3)
+		self.assertTrue(len(self.player1.hand.card_array()) == 3)
 
 		estates = self.player1.hand.get_count("Estate")
 		self.player1.draw(2)
-		self.assertTrue(self.player1.hand.get_count("Estate"), estates + 2)
+		self.assertTrue(self.player1.hand.get_count("Estate") == estates + 2)
 
 	def test_Tribute(self):
 		tribute = intrigue.Tribute(self.game, self.player1)
@@ -473,12 +473,27 @@ class TestCard(unittest.TestCase):
 
 		cards_in_hand = len(self.player1.hand.card_array())
 		tribute.play()
-		self.assertTrue(self.player1.actions, 2)
-		self.assertTrue(len(self.player1.hand.card_array()), cards_in_hand)
-		self.assertTrue(len(self.player2.discard_pile), 2)
+		self.assertTrue(self.player1.actions == 2)
+		self.assertTrue(len(self.player1.hand.card_array()) == cards_in_hand)
+		self.assertTrue(len(self.player2.discard_pile) == 2)
 
 		tribute.play()
-		self.assertTrue(self.player1.balance, 1)
+		self.assertTrue(self.player1.balance == 1)
+
+	def test_Mining_Village(self):
+		mining_village = intrigue.Mining_Village(self.game, self.player1)
+		self.player1.hand.add(mining_village, 2)
+		mining_village.play()
+
+		self.assertTrue(self.player1.actions == 2)
+
+		self.player1.waiting["cb"](["No"])
+		self.assertTrue(self.player1.balance == 0)
+
+		mining_village.play()
+		self.player1.waiting["cb"](["Yes"])
+		self.assertTrue(self.player1.balance == 2)
+		self.assertTrue(len(self.game.trash_pile) == 1)
 
 
 

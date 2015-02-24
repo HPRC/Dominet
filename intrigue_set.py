@@ -131,7 +131,7 @@ class Great_Hall(crd.VictoryCard):
 		self.description = "+1 Card\n +1 Action\n 1 VP\n"
 		self.price = 3
 		self.vp = 1
-		self.type = "Victory|Action"
+		self.type = "Action|Victory"
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
@@ -140,6 +140,8 @@ class Great_Hall(crd.VictoryCard):
 		self.game.announce("-- gaining +1 action and drawing " + drawn)
 		crd.Card.on_finished(self)
 
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-default-success'>", self.title + "s</span>" if plural else self.title, "</span>"])
 
 class Shanty_Town(crd.Card):
 	def __init__(self, game, played_by):
@@ -243,7 +245,7 @@ class Swindler(crd.AttackCard):
 					self.get_next(player)
 					return
 			topdeck = player.topdeck()
-			self.played_by.discard([topdeck.title], self.game.trash_pile)
+			player.discard([topdeck.title], self.game.trash_pile)
 			self.game.announce(self.played_by.name_string() + " trashes " + self.game.log_string_from_title(topdeck.title)
 			                   + " from the top of " + player.name_string() + "'s deck.")
 
@@ -284,15 +286,16 @@ class Wishing_Well(crd.Card):
 		self.played_by.update_hand()
 		self.game.announce("-- gaining +1 action and drawing a card")
 
-		self.played_by.select_from_supply()
+		self.played_by.select_from_supply(allow_empty=True)
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_select
 
 	def post_select(self, selection):
 		topdeck = self.played_by.topdeck()
+		self.game.announce("-- wishing for a " + self.game.log_string_from_title(selection))
 		if topdeck.title == selection:
 			self.played_by.hand.add(topdeck)
-			announcement = " adding it to their hand."
+			announcement = ", adding it to their hand."
 		else:
 			self.played_by.deck.append(topdeck)
 			announcement = " returning it to the top of their deck."
@@ -395,8 +398,8 @@ class Ironworks(crd.Card):
 		if "Victory" in card.type:
 			self.played_by.draw(1)
 			effects.append("drawing a card")
-
-		self.game.announce("-- " + " and ".join(effects))
+		if not card.type == "Curse":
+			self.game.announce("-- " + " and ".join(effects))
 		crd.Card.on_finished(self)
 
 
@@ -417,11 +420,25 @@ class Mining_Village(crd.Card):
 		self.played_by.update_resources()
 		self.game.announce("-- gaining 2 actions and drawing 1 card")
 
-
+		self.played_by.select(1, 1, ["Yes", "No"], "Do you want to trash Mining Village for +$2?")
+		self.played_by.waiting["on"].append(self.played_by)
+		self.played_by.waiting["cb"] = self.post_select
 
 	def post_select(self, selection):
 		if selection[0] == "Yes":
+			counter = 0
+			for x in self.played_by.played:
+				if id(x) == id(self):
+					self.played_by.played.pop(counter)
+					break
+				counter += 1
+
 			self.played_by.balance += 2
+			self.game.trash_pile.append(self)
+			self.game.announce('-- trashing mining village for +$2')
+			self.game.update_trash_pile()
+
+		crd.Card.on_finished(self, False, True)
 
 # --------------------------------------------------------
 # ------------------------ 5 Cost ------------------------
@@ -586,6 +603,7 @@ class Upgrade(crd.Card):
 			self.played_by.waiting["cb"] = self.post_select
 		else:
 			self.game.announce(" however there are no cards with cost " + str(card.price + 1))
+			crd.Card.on_finished(self)
 
 	def post_select(self, selection):
 		self.played_by.gain(selection)
@@ -637,8 +655,13 @@ class Harem(crd.Money):
 		self.price = 6
 		self.value = 2
 		self.vp = 2
-		self.type = "Victory|Treasure"
+		self.type = "Treasure|Victory"
 
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-danger-success'>", self.title + "s</span>" if plural else self.title, "</span>"])
+
+	def get_vp(self):
+		return self.vp
 
 class Nobles(crd.VictoryCard):
 	def __init__(self, game, played_by):
@@ -647,7 +670,7 @@ class Nobles(crd.VictoryCard):
 		self.description = "2 VP\n Choose one: +3 Cards, or +2 Actions."
 		self.price = 6
 		self.vp = 2
-		self.type = "Victory|Action"
+		self.type = "Action|Victory"
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
@@ -668,4 +691,4 @@ class Nobles(crd.VictoryCard):
 		crd.Card.on_finished(self)
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-success'>", "Nobles</span>" if plural else self.title, "</span>"])
+		return "".join(["<span class='label label-default-success'>", "Nobles</span>" if plural else self.title, "</span>"])

@@ -13,7 +13,7 @@ class kingdomGenerator():
 
 	def random_kingdom(self):
 		kingdom = []
-		for i in range(0, 15):
+		for i in range(0, 17):
 			selected_index = random.randint(0, len(self.avail_cards) - 1)
 			kingdom.append(self.avail_cards.pop(selected_index))
 		return kingdom
