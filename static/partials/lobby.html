@@ -13,15 +13,7 @@
 			<h3>Dominet</h3>
 			<div id="games-list">
 				<table class="table">
-					<tr ng-repeat="g in gameTables">
-						<td class="vert-mid"><b>{{g.title}}</b></td>
-						<td class="vert-mid"><b>Host:</b> {{g.host}}</td>
-						<td class="vert-mid"><b>{{g.seats}} Players:</b> {{playersToString(g)}}</td>
-						<td class="vert-mid">{{g.sets}}</td>
-						<td class="vert-mid" ng-if="!isAtTable(g)"><button class="btn btn-default" ng-click="joinTable(g)" ng-disabled="atTable && !isAtTable(g) || g.players.length === g.seats">Join</button></td>
-						<td class="vert-mid" ng-if="isAtTable(g)"><button class="btn btn-default" ng-click="leaveTable(g)" ng-disabled="atTable && !isAtTable(g)">Leave</button></td>
-						<td class="vert-mid" ng-if="name === g.host"><button class="btn btn-default" ng-disabled="g.players.length < g.seats" ng-click="startGame(g)">Start Game</button></td>
-					</tr>
+					<tr ng-repeat="g in gameTables" game-table-row></tr>
 				</table>
 			</div>
 			<hr>

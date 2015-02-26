@@ -191,7 +191,8 @@ class Swindler(crd.AttackCard):
 					self.get_next(player)
 					return
 			topdeck = player.topdeck()
-			player.discard([topdeck.title], self.game.trash_pile)
+			player.game.trash_pile.append(topdeck)
+			player.game.update_trash_pile()
 			self.game.announce(self.played_by.name_string() + " trashes " + self.game.log_string_from_title(topdeck.title)
 			                   + " from the top of " + player.name_string() + "'s deck.")
 

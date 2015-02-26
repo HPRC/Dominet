@@ -3,7 +3,7 @@ clientModule.controller("advGameModalController", function(gameTable, $scope, $m
 	$scope.inputRequired = "";
 
 	$scope.createGame = function(){
-		$scope.newGameTable.requiredCards = $scope.inputRequired.split(',');
+		$scope.newGameTable.required = $scope.inputRequired.split(',');
 		$modalInstance.close($scope.newGameTable);
 	};
 

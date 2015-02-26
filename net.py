@@ -115,7 +115,8 @@ class GameHandler(websocket.WebSocketHandler):
 
 	def create_table(self, json):
 		tableData = json["table"]
-		newTable = GameHandler.game_tables[self.client.name] = gt.GameTable(tableData["title"], self.client, tableData["seats"], "Base")
+		newTable = GameHandler.game_tables[self.client.name] = gt.GameTable(
+			tableData["title"], self.client, tableData["seats"], tableData["required"], "Base")
 		self.table = newTable
 		GameHandler.update_lobby()
 

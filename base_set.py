@@ -697,7 +697,7 @@ class Market(crd.Card):
 		self.played_by.actions += 1
 		self.played_by.balance += 1
 		self.played_by.buys += 1
-		self.game.announce("-- drawing " + drawn + " and gaining +1 action")
+		self.game.announce("-- drawing " + drawn + " , gaining +1 action and $1")
 		crd.Card.on_finished(self)
 
 
