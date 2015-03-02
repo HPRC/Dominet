@@ -195,7 +195,7 @@ class Bureaucrat(crd.AttackCard):
 	def attack(self):
 		for i in self.played_by.get_opponents():
 			if not crd.AttackCard.is_blocked(self, i):
-				i_victory_cards = set(i.hand.get_cards_by_type("Victory"))
+				i_victory_cards = list(set(i.hand.get_cards_by_type("Victory")))
 				if len(i_victory_cards) == 0:
 					self.game.announce(i.name_string() + " has no Victory cards & reveals " + i.hand.reveal_string())
 					crd.Card.on_finished(self, False, False)
@@ -394,8 +394,8 @@ class Spy(crd.AttackCard):
 		if selection[0] == "discard":
 			card = victim.deck.pop()
 			victim.discard_pile.append(card)
-			self.played_by.update_deck_size()
-			self.played_by.update_discard_size()
+			victim.update_deck_size()
+			victim.update_discard_size()
 			self.game.announce(self.played_by.name_string() + " discards " + card.log_string() + " from " +
 				victim.name_string() + "'s deck")
 		else:
@@ -482,6 +482,8 @@ class Thief(crd.AttackCard):
 					self.played_by.waiting["on"].append(self.played_by)
 					self.played_by.waiting["cb"] = post_select_trash
 			else:
+				#if no treasure, add the revealed cards to the discard
+				player.discard_pile += revealed_cards
 				crd.Card.on_finished(self, True, True)
 		else:
 			self.get_next(player)
@@ -490,6 +492,7 @@ class Thief(crd.AttackCard):
 		if selection[0] == "Yes":
 			self.game.trash_pile.pop()
 			self.played_by.gain(card, False)
+			self.game.update_trash_pile()
 		self.get_next(thieved)
 
 	def post_select_trash(self, selection, thieved, cards):
@@ -644,7 +647,7 @@ class Library(crd.Card):
 						self.post_select(selection, card)
 
 					self.played_by.waiting["cb"] = post_select_card
-					self.played_by.waiting["on"].append(self)
+					self.played_by.waiting["on"].append(self.played_by)
 					return
 				else:
 					self.played_by.write_json(command="announce",msg="-- You draw " + top_card.log_string())

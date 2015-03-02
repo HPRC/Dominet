@@ -9,14 +9,14 @@
 			<div class="col-md-6">
 				<table class="table">
 					<tr ng-repeat="card in kingdomSupplyArray | orderBy:'price':true">
-						<td><supply-card></supply-card></td>
+						<td class="supplyCardContainer"><supply-card></supply-card></td>
 					</tr>
 				</table>
 			</div>
 			<div class="col-md-6">
 				<table class="table">
 					<tr ng-repeat="card in baseSupplyArray | orderBy:'price':true">
-						<supply-card></supply-card>
+						<td class="supplyCardContainer"><supply-card></supply-card></td>
 					</tr>
 				</table>
 			</div>

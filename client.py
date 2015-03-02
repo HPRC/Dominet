@@ -125,6 +125,13 @@ class DmClient(Client):
 
 	# override
 	def take_turn(self):
+		for x in self.deck + self.discard_pile + self.hand.card_array() + self.played:
+			if x.played_by != self:
+				print(x)
+				print(self.played)
+				print(self.hand.card_array())
+				print(self.deck)
+				print(self.discard_pile)
 		self.actions = 1
 		self.buys = 1
 		self.write_json(command="updateMode", mode="action")
@@ -183,6 +190,13 @@ class DmClient(Client):
 		self.game.announce(self.name_string() + " has reconnected!")
 
 	def end_turn(self):
+		for x in self.deck + self.discard_pile + self.hand.card_array() + self.played:
+			if x.played_by != self:
+				print(x)
+				print(self.played)
+				print(self.hand.card_array())
+				print(self.deck)
+				print(self.discard_pile)
 		if self.game.detect_end():
 			return
 		self.actions = 0
@@ -259,15 +273,21 @@ class DmClient(Client):
 
 	def gain(self, card, from_supply=True):
 		new_card = self.get_card_from_supply(card, from_supply)
-		self.game.announce(self.name_string() + " gains " + new_card.log_string()) # TODO perhaps delete to customize gains messages (for attacks etc.)
-		self.discard_pile.append(new_card)
-		self.update_discard_size()
+		if new_card != None:
+			self.game.announce(self.name_string() + " gains " + new_card.log_string()) # TODO perhaps delete to customize gains messages (for attacks etc.)
+			self.discard_pile.append(new_card)
+			self.update_discard_size()
+		else:
+			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + "but it is out of supply.")
 
 	def gain_to_hand(self, card, from_supply=True):
 		new_card = self.get_card_from_supply(card, from_supply)
-		self.game.announce(self.name_string() + " gains " + new_card.log_string() + " to their hand.")
-		self.hand.add(new_card)
-		self.update_hand()
+		if new_card != None:
+			self.game.announce(self.name_string() + " gains " + new_card.log_string() + " to their hand.")
+			self.hand.add(new_card)
+			self.update_hand()
+		else:
+			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + "but it is out of supply.")
 
 	def select_from_supply(self, price_limit=None, equal_only=False, type_constraint=None, allow_empty=False):
 		self.write_json(command="updateMode", mode="selectSupply", price=price_limit, equal_only=equal_only,

@@ -40,7 +40,7 @@ class Game():
 
 
 class DmGame(Game):
-	def __init__(self, players):
+	def __init__(self, players, required_cards):
 		Game.__init__(self, players)
 		self.trash_pile = []
 		self.empty_piles = 0
@@ -49,8 +49,8 @@ class DmGame(Game):
 			card.Duchy(self, None), card.Province(self, None), card.Copper(self, None),
 			card.Silver(self, None), card.Gold(self, None)])
 
-		generator = kg.kingdomGenerator(self)
-		self.kingdom = self.init_supply(generator.random_kingdom())
+		generator = kg.kingdomGenerator(self, required_cards)
+		self.kingdom = self.init_supply(generator.gen_kingdom())
 
 		self.supply = cp.CardPile()
 		self.supply.combine(self.base_supply)

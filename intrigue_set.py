@@ -58,8 +58,8 @@ class Pawn(crd.Card):
 			announcements.append("+1 buy")
 
 		if "+1 Card" in selection:
-			self.played_by.draw(1)
-			announcements.append("drawing 1 card")
+			drawn = self.played_by.draw(1)
+			announcements.append("drawing " + drawn)
 
 		self.game.announce("-- gaining " + " and ".join(announcements))
 
@@ -184,24 +184,22 @@ class Swindler(crd.AttackCard):
 
 	def fire(self, player):
 		if not crd.AttackCard.is_blocked(self, player):
-			if len(player.deck) < 1:
-				player.shuffle_discard_to_deck()
-				if len(player.deck) < 1:
-					self.game.announce(player.name_string() + " has no cards to Swindle.")
-					self.get_next(player)
-					return
 			topdeck = player.topdeck()
-			player.game.trash_pile.append(topdeck)
-			player.game.update_trash_pile()
-			self.game.announce(self.played_by.name_string() + " trashes " + self.game.log_string_from_title(topdeck.title)
-			                   + " from the top of " + player.name_string() + "'s deck.")
+			if topdeck != None:
+				player.game.trash_pile.append(topdeck)
+				player.game.update_trash_pile()
+				self.game.announce(self.played_by.name_string() + " trashes " + self.game.log_string_from_title(topdeck.title)
+				                   + " from the top of " + player.name_string() + "'s deck.")
 
-			def post_select_on(selection, player=player):
-				self.post_select(selection, player)
+				def post_select_on(selection, player=player):
+					self.post_select(selection, player)
 
-			self.played_by.select_from_supply(topdeck.price, True)
-			self.played_by.waiting["on"].append(self.played_by)
-			self.played_by.waiting["cb"] = post_select_on
+				self.played_by.select_from_supply(topdeck.price, True)
+				self.played_by.waiting["on"].append(self.played_by)
+				self.played_by.waiting["cb"] = post_select_on
+			else:
+				self.game.announce(player.name_string() + " has no cards to Swindle.")
+				self.get_next(player)
 		else:
 			self.get_next(player)
 
@@ -240,7 +238,7 @@ class Wishing_Well(crd.Card):
 	def post_select(self, selection):
 		topdeck = self.played_by.topdeck()
 		self.game.announce("-- wishing for a " + self.game.log_string_from_title(selection))
-		if topdeck.title == selection:
+		if topdeck and topdeck.title == selection:
 			self.played_by.hand.add(topdeck)
 			announcement = ", adding it to their hand."
 		else:
@@ -274,6 +272,7 @@ class Baron(crd.Card):
 
 		else:
 			self.played_by.gain("Estate")
+			crd.Card.on_finished(self, False)
 
 	def post_select(self, selection):
 		if "Yes" in selection:
@@ -400,6 +399,9 @@ class Torturer(crd.AttackCard):
 			else:
 				player.select(1, 1, ["Discard 2 cards", "Gain a Curse"], "Choose one:")
 				self.played_by.wait("Waiting for other players to choose")
+				#Here we add the player to our waiting list twice so that we keep waiting between
+				#choices (if they choose discard 2 it'll keep waiting)
+				self.played_by.waiting["on"].append(player)
 				self.played_by.waiting["on"].append(player)
 				player.waiting["on"].append(player)
 				player.waiting["cb"] = post_select_on
@@ -408,6 +410,8 @@ class Torturer(crd.AttackCard):
 
 	def post_select(self, selection, victim):
 		if selection[0] == 'Gain a Curse':
+			#we call update_wait manually to update the torturer and override the second wait
+			victim.update_wait()
 			victim.gain_to_hand('Curse')
 			victim.update_hand()
 			self.get_next(victim)
@@ -418,9 +422,7 @@ class Torturer(crd.AttackCard):
 				victim.update_hand()
 				self.get_next(victim)
 			else:
-				self.played_by.waiting["on"].append(victim)
 				self.played_by.wait("Waiting for other players to discard")
-
 				def post_discard_select_on(discard_selection, victim=victim):
 					self.post_discard_select(discard_selection, victim)
 
@@ -430,10 +432,10 @@ class Torturer(crd.AttackCard):
 
 
 	def post_discard_select(self, selection, victim):
+		self.game.announce(victim.name_string() + " discards " + len(selection) + " cards")
 		victim.discard(selection, victim.discard_pile)
 		victim.update_hand()
 		self.get_next(victim)
-		crd.Card.on_finished(self)
 
 	def get_next(self, victim):
 		next_player_index = (self.game.players.index(victim) + 1) % len(self.game.players)
