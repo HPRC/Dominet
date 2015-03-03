@@ -150,7 +150,7 @@ class Steward(crd.Card):
 				self.played_by.waiting["on"].append(self.played_by)
 				self.played_by.waiting["cb"] = self.trash_select
 			else:
-				card_selection = self.played_by.hand.auto_select(2)
+				card_selection = self.played_by.hand.auto_select(2, True)
 				self.trash_select(card_selection)
 
 	def trash_select(self, selection):
@@ -400,9 +400,10 @@ class Torturer(crd.AttackCard):
 			victim.update_hand()
 			crd.AttackCard.get_next(self, victim)
 		else:
-			discard_selection = victim.hand.auto_select(2)
+			discard_selection = victim.hand.auto_select(2, True)
 			if discard_selection:
 				victim.discard(discard_selection, victim.discard_pile)
+				self.game.announce(victim.name_string() + " discards " + str(len(discard_selection)) + " cards")
 				victim.update_hand()
 				crd.AttackCard.get_next(self, victim)
 			else:
@@ -436,7 +437,7 @@ class Upgrade(crd.Card):
 		self.played_by.update_hand()
 		self.game.announce("-- gaining +1 action and drawing a card.")
 
-		selection = self.played_by.hand.auto_select(1)
+		selection = self.played_by.hand.auto_select(1, False)
 		if selection:
 			self.trash_select(selection[0])
 		else:
@@ -474,7 +475,7 @@ class Trading_Post(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 
-		selection = self.played_by.hand.auto_select(2)
+		selection = self.played_by.hand.auto_select(2, True)
 
 		if selection:
 			self.post_select(selection)

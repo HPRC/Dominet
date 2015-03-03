@@ -131,7 +131,12 @@ class HandPile(CardPile):
 	def is_homogeneous(self):
 		return len(self.data) == 1
 
-	def auto_select(self, num_options):
+	def auto_select(self, num_options, allow_less):
+		if len(self) < num_options:
+			if allow_less:
+				return [card.title for card in self]
+			else:
+				return []
 		if self.is_homogeneous():
 			card = self.card_array()[0]
 			return [card.title for x in range(0, min(len(self.card_array()), num_options))]
