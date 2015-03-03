@@ -150,7 +150,7 @@ class Steward(crd.Card):
 				self.played_by.waiting["on"].append(self.played_by)
 				self.played_by.waiting["cb"] = self.trash_select
 			else:
-				card_selection = crd.card_list_to_titles(self.played_by.hand.auto_select(2))
+				card_selection = self.played_by.hand.auto_select(2)
 				self.trash_select(card_selection)
 
 	def trash_select(self, selection):
@@ -180,10 +180,10 @@ class Swindler(crd.AttackCard):
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	def attack(self):
-		self.get_next(self.played_by)
+		crd.AttackCard.get_next(self, self.played_by)
 
 	def fire(self, player):
-		if not crd.AttackCard.is_blocked(self, player):
+		if crd.AttackCard.fire(self, player):
 			topdeck = player.topdeck()
 			if topdeck != None:
 				player.game.trash_pile.append(topdeck)
@@ -199,21 +199,11 @@ class Swindler(crd.AttackCard):
 				self.played_by.waiting["cb"] = post_select_on
 			else:
 				self.game.announce(player.name_string() + " has no cards to Swindle.")
-				self.get_next(player)
-		else:
-			self.get_next(player)
+				crd.AttackCard.get_next(self, player)
 
 	def post_select(self, selection, victim):
 		victim.gain(selection)
-		self.get_next(victim)
-
-	def get_next(self, victim):
-		next_player_index = (self.game.players.index(victim) + 1) % len(self.game.players)
-		if self.game.players[next_player_index] != self.played_by:
-			self.fire(self.game.players[next_player_index])
-		else:
-			crd.Card.on_finished(self, False, False)
-
+		crd.AttackCard.get_next(self, victim)
 
 class Wishing_Well(crd.Card):
 	def __init__(self, game, played_by):
@@ -386,27 +376,21 @@ class Torturer(crd.AttackCard):
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	def attack(self):
-		self.get_next(self.played_by)
+		crd.AttackCard.get_next(self, self.played_by)
 
 	def fire(self, player):
-		if not crd.AttackCard.is_blocked(self, player):
-
+		if crd.AttackCard.fire(self, player):
 			def post_select_on(selection, player=player):
 				self.post_select(selection, player)
 
-			if len(player.hand) < 2:
-				self.post_select(["Gain a Curse"], player)
-			else:
-				player.select(1, 1, ["Discard 2 cards", "Gain a Curse"], "Choose one:")
-				self.played_by.wait("Waiting for other players to choose")
-				#Here we add the player to our waiting list twice so that we keep waiting between
-				#choices (if they choose discard 2 it'll keep waiting)
-				self.played_by.waiting["on"].append(player)
-				self.played_by.waiting["on"].append(player)
-				player.waiting["on"].append(player)
-				player.waiting["cb"] = post_select_on
-		else:
-			self.get_next(player)
+			player.select(1, 1, ["Discard 2 cards", "Gain a Curse"], "Choose one:")
+			self.played_by.wait("Waiting for other players to choose")
+			#Here we add the player to our waiting list twice so that we keep waiting between
+			#choices (if they choose discard 2 it'll keep waiting)
+			self.played_by.waiting["on"].append(player)
+			self.played_by.waiting["on"].append(player)
+			player.waiting["on"].append(player)
+			player.waiting["cb"] = post_select_on
 
 	def post_select(self, selection, victim):
 		if selection[0] == 'Gain a Curse':
@@ -414,13 +398,13 @@ class Torturer(crd.AttackCard):
 			victim.update_wait()
 			victim.gain_to_hand('Curse')
 			victim.update_hand()
-			self.get_next(victim)
+			crd.AttackCard.get_next(self, victim)
 		else:
 			discard_selection = victim.hand.auto_select(2)
 			if discard_selection:
-				victim.discard(crd.card_list_to_titles(discard_selection), victim.discard_pile)
+				victim.discard(discard_selection, victim.discard_pile)
 				victim.update_hand()
-				self.get_next(victim)
+				crd.AttackCard.get_next(self, victim)
 			else:
 				self.played_by.wait("Waiting for other players to discard")
 				def post_discard_select_on(discard_selection, victim=victim):
@@ -432,18 +416,10 @@ class Torturer(crd.AttackCard):
 
 
 	def post_discard_select(self, selection, victim):
-		self.game.announce(victim.name_string() + " discards " + len(selection) + " cards")
+		self.game.announce(victim.name_string() + " discards " + str(len(selection)) + " cards")
 		victim.discard(selection, victim.discard_pile)
 		victim.update_hand()
-		self.get_next(victim)
-
-	def get_next(self, victim):
-		next_player_index = (self.game.players.index(victim) + 1) % len(self.game.players)
-		if self.game.players[next_player_index] != self.played_by:
-			self.fire(self.game.players[next_player_index])
-		else:
-			crd.Card.on_finished(self, False, False)
-
+		crd.AttackCard.get_next(self, victim)
 
 class Upgrade(crd.Card):
 	def __init__(self, game, played_by):
@@ -501,7 +477,7 @@ class Trading_Post(crd.Card):
 		selection = self.played_by.hand.auto_select(2)
 
 		if selection:
-			self.post_select(crd.card_list_to_titles(selection))
+			self.post_select(selection)
 		else:
 			self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "Trash 2 cards from your hand")
 			self.played_by.waiting["on"].append(self.played_by)

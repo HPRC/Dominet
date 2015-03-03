@@ -152,7 +152,7 @@ class GameHandler(websocket.WebSocketHandler):
 			del GameHandler.unattachedClients[self.client.name]
 		if self.table != None:
 			self.leave_table({"host":self.table.host.name})
-			GameHandler.update_lobby()
+		GameHandler.update_lobby()
 		print("\033[94m " + self.client.name + " has closed the SOCKET! \033[0m")
 
 class DmHandler(GameHandler):

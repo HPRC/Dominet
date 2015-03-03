@@ -277,8 +277,10 @@ class Militia(crd.AttackCard):
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	def attack(self):
+		attacking = False
 		for i in self.played_by.get_opponents():
 			if not crd.AttackCard.is_blocked(self, i):
+				attacking = True
 				if len(i.hand) > 3:
 					i.select(len(i.hand) - 3, len(i.hand) - 3, crd.card_list_to_titles(i.hand.card_array()),
 						"discard down to 3 cards")
@@ -292,6 +294,8 @@ class Militia(crd.AttackCard):
 					self.played_by.wait("Waiting for other players to discard")
 				else:
 					self.game.announce("-- " + i.name_string() + " has 3 cards in hand")
+		if not attacking:
+			crd.Card.on_finished(self, False, False)
 
 	def post_select(self, selection, victim):
 		self.game.announce("-- " + victim.name_string() + " discards down to 3")
@@ -371,12 +375,12 @@ class Spy(crd.AttackCard):
 		self.fire(self.played_by)
 
 	def fire(self, player):
-		if not crd.AttackCard.is_blocked(self, player):
+		if crd.AttackCard.fire(self, player):
 			if len(player.deck) < 1:
 				player.shuffle_discard_to_deck()
 				if len(player.deck) < 1:
 					self.game.announce(player.name_string() + " has no cards to Spy.")
-					self.get_next(player)
+					crd.AttackCard.get_next(self, player)
 					return
 			revealed_card = player.deck[-1]
 			self.played_by.select(1, 1, ["discard", "keep"],
@@ -387,8 +391,6 @@ class Spy(crd.AttackCard):
 
 			self.played_by.waiting["on"].append(self.played_by)
 			self.played_by.waiting["cb"] = post_select_on
-		else:
-			self.get_next(player)
 
 	def post_select(self, selection, victim):
 		if selection[0] == "discard":
@@ -402,15 +404,7 @@ class Spy(crd.AttackCard):
 			card = victim.deck[-1]
 			self.game.announce(self.played_by.name_string() + " leaves " + card.log_string() + " on " +
 				victim.name_string() + "'s deck")
-		self.get_next(victim)
-
-	def get_next(self, victim):
-		next_player_index = (self.game.players.index(victim) + 1) % len(self.game.players)
-		if self.game.players[next_player_index] != self.played_by:
-			self.fire(self.game.players[next_player_index])
-		else:
-			crd.Card.on_finished(self, False, False)
-
+		crd.AttackCard.get_next(self, victim)
 
 class Smithy(crd.Card):
 	def __init__(self, game, played_by):
@@ -439,7 +433,7 @@ class Thief(crd.AttackCard):
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	def attack(self):
-		self.get_next(self.played_by)
+		crd.AttackCard.get_next(self, self.played_by)
 
 	def fire(self, player):
 		if not crd.AttackCard.is_blocked(self, player):
@@ -447,7 +441,7 @@ class Thief(crd.AttackCard):
 				player.shuffle_discard_to_deck()
 				if len(player.deck) < 2:
 					self.game.announce(player.name_string() + " has no cards to Thieve.")
-					self.get_next(player)
+					crd.AttackCard.get_next(self, player)
 					return
 			revealed_cards = [player.deck.pop(), player.deck.pop()]
 			revealed_treasure = [x for x in revealed_cards if "Treasure" in x.type]
@@ -486,14 +480,14 @@ class Thief(crd.AttackCard):
 				player.discard_pile += revealed_cards
 				crd.Card.on_finished(self, True, True)
 		else:
-			self.get_next(player)
+			crd.AttackCard.get_next(self, player)
 
 	def post_select_gain(self, selection, thieved, card):
 		if selection[0] == "Yes":
 			self.game.trash_pile.pop()
 			self.played_by.gain(card, False)
 			self.game.update_trash_pile()
-		self.get_next(thieved)
+		crd.AttackCard.get_next(self, thieved)
 
 	def post_select_trash(self, selection, thieved, cards):
 		card_to_trash = [x for x in cards if selection[0] == x.title][0]
@@ -511,13 +505,6 @@ class Thief(crd.AttackCard):
 
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = post_select_gain
-
-	def get_next(self, victim):
-		next_player_index = (self.game.players.index(victim) + 1) % len(self.game.players)
-		if self.game.players[next_player_index] != self.played_by:
-			self.fire(self.game.players[next_player_index])
-		else:
-			crd.Card.on_finished(self, True, True)
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-danger'>", "Thieves" if plural else self.title, "</span>"])

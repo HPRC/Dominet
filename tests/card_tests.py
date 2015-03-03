@@ -27,7 +27,7 @@ class TestCard(unittest.TestCase):
 	def setUp(self):
 		self.player1 = c.DmClient("player1", 0, Player1Handler())
 		self.player2 = c.DmClient("player2", 1, Player2Handler())
-		self.game = g.DmGame([self.player1, self.player2])
+		self.game = g.DmGame([self.player1, self.player2], [])
 		self.game.supply = self.game.init_supply(kg.all_cards(self.game))
 		for i in self.game.players:
 			i.game = self.game
