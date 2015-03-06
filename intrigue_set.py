@@ -228,13 +228,14 @@ class Wishing_Well(crd.Card):
 	def post_select(self, selection):
 		topdeck = self.played_by.topdeck()
 		self.game.announce("-- wishing for a " + self.game.log_string_from_title(selection))
-		if topdeck and topdeck.title == selection:
-			self.played_by.hand.add(topdeck)
-			announcement = ", adding it to their hand."
-		else:
-			self.played_by.deck.append(topdeck)
-			announcement = " returning it to the top of their deck."
-		self.game.announce("-- revealing " + topdeck.log_string() + announcement)
+		if topdeck:
+			if topdeck.title == selection:
+				self.played_by.hand.add(topdeck)
+				announcement = ", adding it to their hand."
+			else:
+				self.played_by.deck.append(topdeck)
+				announcement = " returning it to the top of their deck."
+			self.game.announce("-- revealing " + topdeck.log_string() + announcement)
 		crd.Card.on_finished(self)
 
 

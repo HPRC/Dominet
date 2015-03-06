@@ -97,7 +97,8 @@ class GameHandler(websocket.WebSocketHandler):
 		if (len(self.client.game.players) == 0):
 			GameHandler.games.remove(self.client.game)
 		else:
-			self.client.game.announce(self.client.name_string() + " has returned to the lobby.")
+			for p in self.client.get_opponents():
+				p.write_json(command="chat", msg = self.client.name + " has returned to the lobby.", speaker=None)
 
 	def on_message(self,data):
 		jsondata = json.loads(data)
@@ -171,8 +172,13 @@ class DmHandler(GameHandler):
 					self.client.game.players.pop(index)
 					self.client.game.players.insert(index, self.client)
 					self.write_json(command="resume")
-					for i in self.client.get_opponents():
-						i.write_json(**i.last_mode)
+					turn_owner = self.client.game.get_turn_owner()
+					if self.client.last_mode["mode"] != "gameover":
+						for i in self.client.get_opponents():
+							if i == turn_owner:
+								turn_owner.write_json(command="startTurn", actions=turn_owner.actions, 
+								buys=turn_owner.buys, balance=turn_owner.balance)
+							i.write_json(**i.last_mode)
 					return
 		GameHandler.open(self)
 	
@@ -183,6 +189,7 @@ class DmHandler(GameHandler):
 			return
 		self.client.ready = False
 
+		#abandoned if everyone left game
 		abandoned = True
 		for i in self.client.game.players:
 			if i.ready == True:

@@ -198,12 +198,10 @@ class Bureaucrat(crd.AttackCard):
 				i_victory_cards = list(set(i.hand.get_cards_by_type("Victory")))
 				if len(i_victory_cards) == 0:
 					self.game.announce(i.name_string() + " has no Victory cards & reveals " + i.hand.reveal_string())
-					crd.Card.on_finished(self, False, False)
 				elif len(i_victory_cards) == 1:
 					self.game.announce(i.name_string() + " puts " + i_victory_cards[0].log_string() + " back on top of the deck")
 					i.discard([i_victory_cards[0].title], i.deck)
 					i.update_hand()
-					crd.Card.on_finished(self, False, False)
 				else:
 					i.select(1, 1, crd.card_list_to_titles(i_victory_cards),
 						"select Victory card to put back")
@@ -215,12 +213,15 @@ class Bureaucrat(crd.AttackCard):
 					i.waiting["cb"] = post_select_on
 					self.played_by.waiting["on"].append(i)
 					self.played_by.wait("Waiting for other players to choose a Victory card to put back")
+		if len(self.played_by.waiting["on"]) == 0:
+			crd.Card.on_finished(self, False, False)
 
 	def post_select(self, selection, victim):
 		victim.discard(selection, victim.deck)
 		self.game.announce(victim.name_string() + " puts " + self.game.card_from_title(selection[0]).log_string() + " back on top of the deck")
 		victim.update_hand()
-		crd.Card.on_finished(self, False, False)
+		if len(self.played_by.waiting["on"]) == 0:
+			crd.Card.on_finished(self, False, False)
 
 
 class Feast(crd.Card):
@@ -436,7 +437,7 @@ class Thief(crd.AttackCard):
 		crd.AttackCard.get_next(self, self.played_by)
 
 	def fire(self, player):
-		if not crd.AttackCard.is_blocked(self, player):
+		if crd.AttackCard.fire(self, player):
 			if len(player.deck) < 2:
 				player.shuffle_discard_to_deck()
 				if len(player.deck) < 2:
@@ -478,9 +479,8 @@ class Thief(crd.AttackCard):
 			else:
 				#if no treasure, add the revealed cards to the discard
 				player.discard_pile += revealed_cards
-				crd.Card.on_finished(self, True, True)
-		else:
-			crd.AttackCard.get_next(self, player)
+				player.update_discard_size()
+				crd.AttackCard.get_next(self, player)
 
 	def post_select_gain(self, selection, thieved, card):
 		if selection[0] == "Yes":

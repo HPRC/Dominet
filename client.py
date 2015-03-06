@@ -42,8 +42,10 @@ class DmClient(Client):
 
 	def write_json(self, **kwargs):
 		if kwargs["command"] == "updateMode":
-			# callback used to resume mode if reconnect
-			self.last_mode = kwargs
+			#ignore the last_mode if it was a wait for disconnecting
+			if not ("msg" in kwargs and "disconnected" in kwargs["msg"]):
+				# callback used to resume mode if reconnect
+				self.last_mode = kwargs
 		Client.write_json(self, **kwargs)
 
 	def base_deck(self):
@@ -183,13 +185,10 @@ class DmClient(Client):
 		self.update_resources()
 		self.game.update_trash_pile()
 		self.write_json(**self.last_mode)
-		print(self.last_mode["mode"])
-		if self.game.get_turn_owner() == self and self.last_mode["mode"] != "gameover":
-			self.write_json(command="startTurn", actions=self.actions, 
-			buys=self.buys, balance=self.balance)
 		self.game.announce(self.name_string() + " has reconnected!")
 
 	def end_turn(self):
+		# temp debug print
 		for x in self.deck + self.discard_pile + self.hand.card_array() + self.played:
 			if x.played_by != self:
 				print(x)
@@ -278,7 +277,7 @@ class DmClient(Client):
 			self.discard_pile.append(new_card)
 			self.update_discard_size()
 		else:
-			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + "but it is out of supply.")
+			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 
 	def gain_to_hand(self, card, from_supply=True):
 		new_card = self.get_card_from_supply(card, from_supply)
