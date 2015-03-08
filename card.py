@@ -10,8 +10,8 @@ class Card():
 
 	def play(self, skip=False):
 		if not skip:
-			self.game.announce(self.played_by.name_string() + " played " + self.log_string())
 			self.played_by.discard([self.title], self.played_by.played)
+			self.game.announce(self.played_by.name_string() + " played " + self.log_string())
 			if "Action" in self.type:
 				self.played_by.actions -= 1
 

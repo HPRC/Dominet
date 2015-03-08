@@ -79,15 +79,13 @@ class Moat(crd.Card):
 		def new_cb(selection):
 			self.post_select(selection)
 			react_to_callback()
-
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = new_cb
 
 	def post_select(self, selection):
-		self.played_by.waiting["cb"] = None
 		if selection[0] == "Reveal":
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
-			self.played_by.protection += 1
+			self.played_by.protection = 1
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
@@ -703,10 +701,14 @@ class Mine(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		treasure_cards = self.played_by.hand.get_cards_by_type("Treasure")
-		self.played_by.select(1, 1, crd.card_list_to_titles(treasure_cards),
-		 "select treasure to trash")
-		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = self.post_select
+		if len(treasure_cards) > 0
+			self.played_by.select(1, 1, crd.card_list_to_titles(treasure_cards),
+			 "select treasure to trash")
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.post_select
+		else:
+			self.game.announce("-- but has no treasure cards to trash")
+			crd.Card.on_finished(self)
 
 	def post_select(self, selection):
 		self.played_by.discard(selection, self.game.trash_pile)

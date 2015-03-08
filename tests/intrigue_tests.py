@@ -226,6 +226,37 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.actions, 1)
 		self.assertTrue(self.player1.hand, cards_in_hand + 1)
 
+	def test_Mining_Village(self):
+		mining_village = intrigue.Mining_Village(self.game, self.player1)
+		self.player1.hand.add(mining_village, 2)
+
+		mining_village.play()
+		self.player1.waiting["cb"]("No")
+		self.assertTrue(self.player1.actions, 2)
+		self.assertTrue(mining_village not in self.game.trash_pile)
+
+		mining_village.play()
+		self.player1.waiting["cb"]("Yes")
+		self.assertTrue(self.player1.actions, 2)
+		self.assertTrue(mining_village in self.game.trash_pile)
+		self.assertTrue(self.player1.balance == 2)
+
+	def test_Mining_Village_Throne_Room(self):
+		mining_village = intrigue.Mining_Village(self.game, self.player1)
+		throne_room = base.Throne_Room(self.game, self.player1)
+		self.player1.hand.add(mining_village, 1)
+		self.player1.hand.add(throne_room, 1)
+
+		throne_room.play()
+		self.player1.waiting["cb"](["Mining Village"])
+		self.assertTrue(self.player1.actions, 2)
+		self.player1.waiting["cb"]("Yes")
+		self.assertTrue(self.player1.balance == 2)
+		self.assertTrue(mining_village in self.game.trash_pile)
+		self.player1.waiting["cb"]("Yes")
+		self.player1.waiting["cb"]("Yes")
+		self.assertTrue(self.player1.balance == 2)
+		self.assertTrue(mining_village not in self.player1.played)
 
 if __name__ == '__main__':
 	unittest.main()

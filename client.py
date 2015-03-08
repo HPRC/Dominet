@@ -235,6 +235,9 @@ class DmClient(Client):
 			self.game.update_trash_pile()
 
 	def update_mode(self):
+		# if we have no actions or no action cards and no money cards, buy mode
+		if (len(self.hand.get_cards_by_type("Action")) == 0 or self.actions == 0) and len(self.hand.get_cards_by_type("Treasure")) == 0:
+			self.write_json(command="updateMode", mode="buy")
 		self.write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
 
 	def update_deck_size(self):

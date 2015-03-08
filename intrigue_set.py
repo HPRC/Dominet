@@ -231,7 +231,7 @@ class Wishing_Well(crd.Card):
 		if topdeck:
 			if topdeck.title == selection:
 				self.played_by.hand.add(topdeck)
-				announcement = ", adding it to their hand."
+				announcement = ", adding it to their hand."	
 			else:
 				self.played_by.deck.append(topdeck)
 				announcement = " returning it to the top of their deck."
@@ -322,8 +322,7 @@ class Ironworks(crd.Card):
 
 	def post_select(self, selection):
 		card = self.played_by.get_card_from_supply(selection)
-		self.game.announce(self.played_by.name_string() + " gains " + card.log_string())  # TODO perhaps delete to customize gains messages (for attacks etc.)
-		self.played_by.discard_pile.append(card)
+		self.played_by.gain(card.title, True)
 
 		effects = []
 		if "Action" in card.type:
@@ -337,6 +336,36 @@ class Ironworks(crd.Card):
 			effects.append("drawing a card")
 		if not card.type == "Curse":
 			self.game.announce("-- " + " and ".join(effects))
+		crd.Card.on_finished(self)
+
+class Mining_Village(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Mining Village"
+		self.description = "+1 Card, +2 Actions\n You may trash this card immediately to gain $2."
+		self.price = 4
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.actions += 2
+		drawn = self.played_by.draw(1)
+		self.game.announce("-- gaining 2 actions and drawing " + drawn)
+		self.played_by.update_hand()
+		self.played_by.select(1, 1, ["Yes", "No"], "Trash Mining Village for $2?")
+
+		self.played_by.waiting["on"].append(self.played_by)
+		self.played_by.waiting["cb"] = self.post_select
+
+	def post_select(self, selection):
+		if "Yes" in selection:
+			if len(self.game.trash_pile) > 0 and self.game.trash_pile[-1] == self:
+				self.game.announce("-- tries to trash " + self.log_string() + " but it was already trashed")
+			elif self.played_by.played[-1] == self:
+				self.game.announce("-- trashing " + self.log_string() + " to gain $2")
+				self.played_by.balance += 2
+				self.game.trash_pile.append(self.played_by.played.pop())
+				self.game.update_trash_pile()
 		crd.Card.on_finished(self)
 
 # --------------------------------------------------------

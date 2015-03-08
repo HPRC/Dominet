@@ -22,7 +22,6 @@ class Player2Handler():
 		if kwargs["command"] != "announce":
 			Player2Handler.log.append(kwargs)
 
-
 class TestCard(unittest.TestCase):
 	def setUp(self):
 		self.player1 = c.DmClient("player1", 0, Player1Handler())
