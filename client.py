@@ -2,7 +2,6 @@ import json
 import card as crd
 import cardpile as cp
 import random
-import copy
 import base_set as b
 import html
 
@@ -127,13 +126,6 @@ class DmClient(Client):
 
 	# override
 	def take_turn(self):
-		for x in self.deck + self.discard_pile + self.hand.card_array() + self.played:
-			if x.played_by != self:
-				print(x)
-				print(self.played)
-				print(self.hand.card_array())
-				print(self.deck)
-				print(self.discard_pile)
 		self.actions = 1
 		self.buys = 1
 		self.write_json(command="updateMode", mode="action")
@@ -188,14 +180,6 @@ class DmClient(Client):
 		self.game.announce(self.name_string() + " has reconnected!")
 
 	def end_turn(self):
-		# temp debug print
-		for x in self.deck + self.discard_pile + self.hand.card_array() + self.played:
-			if x.played_by != self:
-				print(x)
-				print(self.played)
-				print(self.hand.card_array())
-				print(self.deck)
-				print(self.discard_pile)
 		if self.game.detect_end():
 			return
 		self.actions = 0
@@ -211,11 +195,9 @@ class DmClient(Client):
 
 	def buy_card(self, card_title):
 		if self.buys > 0 and self.game.supply.get_count(card_title) > 0:
-			# alternative to copy but requires module to have all cards
-			# card_class = getattr(crd, card)
-			# newCard = card_class(self.game, self)
-			newCard = copy.copy(self.game.card_from_title(card_title))
-			newCard.played_by = self
+			# we instantiate a new card by getting the class from the kingdom instance 
+			# and instantiating it
+			newCard = type(self.game.card_from_title(card_title))(self.game, self)
 			self.game.announce("<b>" + self.name + "</b> buys " + newCard.log_string())
 			self.discard_pile.append(newCard)
 			self.game.remove_from_supply(card_title)
@@ -266,8 +248,7 @@ class DmClient(Client):
 			return
 		if from_supply:
 			self.game.remove_from_supply(card)
-		new_card = copy.copy(self.game.card_from_title(card))
-		new_card.played_by = self
+		new_card = type(self.game.card_from_title(card))(self.game, self)
 		return new_card
 
 	def gain(self, card, from_supply=True):

@@ -31,7 +31,7 @@ class kingdomGenerator():
 				card = obj(self.game, None)
 				self.avail_cards[card.title] = card
 
-#replaces strips spaces to single spcae and changes to camelcase
+#replaces strips spaces to single space and changes to camelcase
 def card_title_to_class_name(lst):
 	result = []
 	for x in lst:
