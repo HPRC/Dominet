@@ -20,8 +20,7 @@ class mainHandler(web.RequestHandler):
 			self.render(INDEX)
 
 	def post(self):
-		#expire_days ~ 30min
-		self.set_cookie("DMTusername", str(self.get_argument("username")), expires_days=.02)
+		self.set_cookie("DMTusername", str(self.get_argument("username")), expires_days=None)
 		self.render("main.html")
 
 	def in_game(self):

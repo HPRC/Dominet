@@ -701,7 +701,7 @@ class Mine(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		treasure_cards = self.played_by.hand.get_cards_by_type("Treasure")
-		if len(treasure_cards) > 0
+		if len(treasure_cards) > 0:
 			self.played_by.select(1, 1, crd.card_list_to_titles(treasure_cards),
 			 "select treasure to trash")
 			self.played_by.waiting["on"].append(self.played_by)
