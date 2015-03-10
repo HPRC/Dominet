@@ -143,6 +143,20 @@ class Great_Hall(crd.VictoryCard):
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-default-success'>", self.title + "s</span>" if plural else self.title, "</span>"])
 
+
+# class Masquerade(crd.Card):
+# 	def __init__(self, game, played_by):
+# 		crd.Card.__init__(self, game, played_by)
+# 		self.title = "Masquerade"
+# 		self.description = ""
+# 		self.price = 3
+# 		self.type = "Action"
+#
+# 	def play(self, skip=False):
+# 		crd.Card.play(self, skip)
+# 		self.played_by.draw(2)
+
+
 class Shanty_Town(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -533,21 +547,23 @@ class Tribute(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Tribute"
-		self.description = ""
+		self.description = "The player to your left reveals then discards the top 2 cards of his deck.\n" \
+		                   " For each differently named card revealed, if it is an… Action Card; +2 Actions;" \
+		                   " Treasure Card; +$2; Victory Card; +2 Cards."
 		self.price = 5
 		self.type = "Action"
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		opponents = self.played_by.get_opponents()
-		left_opponent = opponents[0]
 
 		tributes = []
-		tributes.append(left_opponent.topdeck())
-		tributes.append(left_opponent.topdeck())
-		self.game.announce("-- revealing " + ", ".join(crd.card_list_log_strings(tributes)) + " as a tribute.")
+		for opponent in opponents:
+			tributes.append(opponent.topdeck())
+			tributes.append(opponent.topdeck())
+			self.game.announce("-- revealing " + ", ".join(crd.card_list_log_strings(tributes)) + " as a tribute.")
 
-		self.tribute_card(left_opponent, tributes)
+			self.tribute_card(opponent, tributes)
 
 		crd.Card.on_finished(self)
 
@@ -555,14 +571,14 @@ class Tribute(crd.Card):
 		for x in tributes:
 			gaining = []
 			if "Action" in x.type:
-				self.played_by.actions += 1
-				gaining.append("gaining 1 action")
+				self.played_by.actions += 2
+				gaining.append("gaining 2 actions")
 			if "Treasure" in x.type:
-				self.played_by.balance += 1
-				gaining.append("gaining +$1")
+				self.played_by.balance += 2
+				gaining.append("gaining +$2")
 			if "Victory" in x.type:
-				self.played_by.draw(1)
-				gaining.append("drawing 1 card")
+				self.played_by.draw(2)
+				gaining.append("drawing 2 cards")
 
 			self.game.announce("-- " + " and ".join(gaining) + " for " + x.log_string())
 			opponent.discard_pile.append(x)
@@ -608,6 +624,42 @@ class Upgrade(crd.Card):
 	def post_select(self, selection):
 		self.played_by.gain(selection)
 		crd.Card.on_finished(self)
+
+
+# class Saboteur(crd.AttackCard):
+# 	def __init__(self, game, played_by):
+# 		crd.AttackCard.__init__(self, game, played_by)
+# 		self.title = "Saboteur"
+# 		self.description = "Each other player reveals cards from the top of his deck until revealing one costing $3 or more.\n" \
+# 		                   "He trashes that card and may gain a card costing at most $2 less than it.\n" \
+# 		                   "He discards the other revealed cards."
+# 		self.price = 5
+# 		self.type = "Action|Attack"
+#
+# 	def play(self, skip=False):
+# 		crd.Card.play(self, skip)
+#
+# 	def attack(self):
+# 		opponents = self.played_by.get_opponents()
+#
+# 		for opponent in opponents:
+# 			sabotaged = False
+#
+# 			cost = 0
+# 			total_deck_count = len(opponent.discard_pile) + len(opponent.deck)
+# 			while sabotaged is False:
+# 				topdeck = opponent.topdeck()
+# 				if topdeck.price >= 3:
+# 					opponent.discard([topdeck.title], self.game.trash_pile)
+# 					self.game.announce(self.played_by.name_string() + " trashes " + self.game.log_string_from_title(topdeck.title)
+# 						+ " from the top of " + opponent.name_string() + "'s deck.")
+# 					sabotaged = True
+# 				else:
+# 					opponent.discard([topdeck.title], opponent.discard_pile)
+#
+#
+#
+#
 
 
 class Trading_Post(crd.Card):
