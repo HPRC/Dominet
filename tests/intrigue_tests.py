@@ -30,10 +30,71 @@ class TestIntrigue(unittest.TestCase):
 	# ----------------------- Intrigue -----------------------
 	# --------------------------------------------------------
 
+	def test_Pawn(self):
+		pawn = intrigue.Pawn(self.game, self.player1)
+		self.player1.hand.add(pawn)
+		pawn.play()
+		self.player1.waiting["cb"](["+$1", "+1 Action"])
+		self.assertTrue(self.player1.balance == 1)
+		self.assertTrue(self.player1.actions == 1)
+
+	def test_Great_Hall(self):
+		great_hall = intrigue.Great_Hall(self.game, self.player1)
+		player1_vp = self.player1.total_vp()
+		self.player1.hand.add(great_hall)
+		great_hall.play()
+		self.assertTrue((self.player1.actions == 1))
+		self.assertTrue((self.player1.total_vp()) == player1_vp + 1)
+
+	def test_Steward(self):
+		steward = intrigue.Steward(self.game, self.player1)
+		steward2 = intrigue.Steward(self.game, self.player1)
+		steward3 = intrigue.Steward(self.game, self.player1)
+
+		copper = crd.Copper(self.game, self.player1)
+		estate = crd.Estate(self.game, self.player1)
+		self.player1.hand.data = {}
+		self.player1.hand.add(steward)
+		self.player1.hand.add(steward2)
+		self.player1.hand.add(steward3)
+		self.player1.hand.add(copper)
+		self.player1.hand.add(copper)
+		self.player1.hand.add(copper)
+		self.player1.hand.add(estate)
+		self.player1.hand.add(estate)
+
+		self.player1.actions = 5
+		# +$2
+		steward.play()
+		self.player1.waiting["cb"](["+$2"])
+		self.assertTrue(self.player1.balance == 2)
+
+		# Trash 2 with more than 2 in hand
+		steward2.play()
+		trash_size = len(self.game.trash_pile)
+		self.player1.waiting["cb"](["Trash 2 cards from hand"])
+		self.player1.waiting["cb"](["Estate", "Estate"])
+		self.assertTrue(len(self.game.trash_pile) == trash_size + 2)
+
+		# Trash 2 with homogeneous hand
+		steward3.play()
+		self.player1.waiting["cb"](["Trash 2 cards from hand"])
+		self.assertTrue(self.player1.hand.get_count("Copper") == 1)
+
+		self.player1.hand.add(steward)
+
+		# Trash 2 with 1 in hand
+		self.player1.hand.data["Steward"] = [intrigue.Steward(self.game, self.player1)]
+		steward.play()
+		self.player1.waiting["cb"](["Trash 2 cards from hand"])
+		self.assertTrue(len(self.player1.hand) == 0)
+
 	def test_Baron(self):
 		baron = intrigue.Baron(self.game, self.player1)
 		self.player1.hand.data = {}
-		self.player1.hand.add(baron, 3)
+		self.player1.hand.add(baron)
+		self.player1.hand.add(baron)
+		self.player1.hand.add(baron)
 		estate = crd.Estate(self.game, self.player1)
 		# sadly add an estate to hand since no guarantees -- actually overwrites hand
 		self.player1.hand.add(estate)
@@ -59,7 +120,8 @@ class TestIntrigue(unittest.TestCase):
 
 	def test_Shanty_Town(self):
 		shanty_town = intrigue.Shanty_Town(self.game, self.player1)
-		self.player1.hand.add(shanty_town, 2)
+		self.player1.hand.add(shanty_town)
+		self.player1.hand.add(shanty_town)
 
 		# First Play: has an action, should not draw cards.
 		cards_in_hand = len(self.player1.hand)
@@ -74,7 +136,8 @@ class TestIntrigue(unittest.TestCase):
 
 	def test_Conspirator(self):
 		conspirator = intrigue.Conspirator(self.game, self.player1)
-		self.player1.hand.add(conspirator, 2)
+		self.player1.hand.add(conspirator)
+		self.player1.hand.add(conspirator)
 
 		village = base.Village(self.game, self.player1)
 		self.player1.hand.add(village)
@@ -104,7 +167,8 @@ class TestIntrigue(unittest.TestCase):
 
 	def test_Nobles(self):
 		nobles = intrigue.Nobles(self.game, self.player1)
-		self.player1.hand.add(nobles, 2)
+		self.player1.hand.add(nobles)
+		self.player1.hand.add(nobles)
 
 		nobles.play()
 		self.player1.waiting["cb"](["+2 Actions"])
@@ -119,7 +183,7 @@ class TestIntrigue(unittest.TestCase):
 	def test_Swindler(self):
 		swindler = intrigue.Swindler(self.game, self.player1)
 		self.player2.deck.append(crd.Copper(self, self.player2))
-		self.player1.hand.add(swindler, 1)
+		self.player1.hand.add(swindler)
 
 		swindler.play()
 
@@ -127,10 +191,10 @@ class TestIntrigue(unittest.TestCase):
 
 	def test_Duke(self):
 		duke = intrigue.Duke(self.game, self.player1)
-		self.player1.hand.add(duke, 1)
+		self.player1.hand.add(duke)
 
 		duchy = crd.Duchy(self.game, self.player1)
-		self.player1.hand.add(duchy, 1)
+		self.player1.hand.add(duchy)
 		self.player1.deck.append(duchy)
 		self.player1.discard_pile.append(duchy)
 
@@ -138,7 +202,8 @@ class TestIntrigue(unittest.TestCase):
 
 	def test_Wishing_Well(self):
 		wishing_well = intrigue.Wishing_Well(self.game, self.player1)
-		self.player1.hand.add(wishing_well, 2)
+		self.player1.hand.add(wishing_well)
+		self.player1.hand.add(wishing_well)
 		province = crd.Province(self.game, self.player1)
 		self.player1.deck.append(province)
 		self.player1.deck.append(province)
@@ -153,7 +218,8 @@ class TestIntrigue(unittest.TestCase):
 
 	def test_Upgrade(self):
 		upgrade = intrigue.Upgrade(self.game, self.player1)
-		self.player1.hand.add(upgrade, 2)
+		self.player1.hand.add(upgrade)
+		self.player1.hand.add(upgrade)
 
 		upgrade.play()
 		self.player1.waiting["cb"](["Copper"])
@@ -163,7 +229,8 @@ class TestIntrigue(unittest.TestCase):
 
 	def test_Torturer(self):
 		torturer = intrigue.Torturer(self.game, self.player1)
-		self.player1.hand.add(torturer, 2)
+		self.player1.hand.add(torturer)
+		self.player1.hand.add(torturer)
 		self.player1.actions = 2
 
 		torturer.play()
@@ -177,39 +244,45 @@ class TestIntrigue(unittest.TestCase):
 
 		self.player1.actions = 1
 		copper = crd.Copper(self.game, self.player1)
-		self.player2.hand.data = {
-			"Copper": [copper, 3]
-		}
+		self.player2.hand.add(copper)
+		self.player2.hand.add(copper)
+		self.player2.hand.add(copper)
+
 		torturer.play()
 		self.player2.waiting["cb"](["Discard 2 cards"])
 
 	def test_Trading_Post(self):
 		trading_post = intrigue.Trading_Post(self.game, self.player1)
 		copper = crd.Copper(self.game, self.player1)
-		self.player1.hand.data = {
-			"Copper": [copper, 1],
-			"Trading Post": [trading_post, 1]
-		}
+		self.player1.hand.data = {}
+		self.player1.hand.add(copper)
+		self.player1.hand.add(trading_post)
 		self.player1.actions = 3
 
 		trading_post.play()
 		self.assertTrue(len(self.player1.hand.data) == 0, True)
 
-		self.player1.hand.data = {
-			"Copper": [copper, 2],
-			"Trading Post": [trading_post, 1]
-		}
+		self.player1.hand.data = {}
+		self.player1.hand.add(copper)
+		self.player1.hand.add(copper)
+		self.player1.hand.add(trading_post)
+
 		trading_post.play()
 		self.assertTrue(self.player1.hand.get_count("Silver"), 1)
 
-		self.player1.hand.add(trading_post, 3)
+		self.player1.hand.add(trading_post)
+		self.player1.hand.add(trading_post)
+		self.player1.hand.add(trading_post)
 		trading_post.play()
 		self.player1.waiting["cb"](["Trading Post", "Trading Post"])
 		self.assertTrue(self.player1.hand.get_count("Silver"), 2)
 
 	def test_Ironworks(self):
 		ironworks = intrigue.Ironworks(self.game, self.player1)
-		self.player1.hand.add(ironworks, 4)
+		self.player1.hand.add(ironworks)
+		self.player1.hand.add(ironworks)
+		self.player1.hand.add(ironworks)
+		self.player1.hand.add(ironworks)
 		self.player1.actions = 2
 
 		ironworks.play()
@@ -228,35 +301,38 @@ class TestIntrigue(unittest.TestCase):
 
 	def test_Mining_Village(self):
 		mining_village = intrigue.Mining_Village(self.game, self.player1)
-		self.player1.hand.add(mining_village, 2)
+		mining_village2 = intrigue.Mining_Village(self.game, self.player1)
+		self.player1.hand.add(mining_village)
+		self.player1.hand.add(mining_village2)
 
 		mining_village.play()
-		self.player1.waiting["cb"]("No")
-		self.assertTrue(self.player1.actions, 2)
+		self.player1.waiting["cb"](["No"])
+		self.assertTrue(self.player1.actions == 2)
 		self.assertTrue(mining_village not in self.game.trash_pile)
 
-		mining_village.play()
-		self.player1.waiting["cb"]("Yes")
-		self.assertTrue(self.player1.actions, 2)
-		self.assertTrue(mining_village in self.game.trash_pile)
+		#note discard takes in a string as a parameter so the trashed mining village
+		# could be mining_village or mining_village2 it is not guaranteed to be the same
+		mining_village2.play()
+		self.player1.waiting["cb"](["Yes"])
+		self.assertTrue(self.player1.actions == 3)
+		self.assertTrue(self.game.trash_pile[-1].title == "Mining Village")
 		self.assertTrue(self.player1.balance == 2)
 
 	def test_Mining_Village_Throne_Room(self):
 		mining_village = intrigue.Mining_Village(self.game, self.player1)
+		mining_village2 = intrigue.Mining_Village(self.game, self.player1)
 		throne_room = base.Throne_Room(self.game, self.player1)
-		self.player1.hand.add(mining_village, 1)
-		self.player1.hand.add(throne_room, 1)
+		self.player1.hand.add(mining_village)
+		self.player1.hand.add(mining_village2)
+		self.player1.hand.add(throne_room)
 
 		throne_room.play()
 		self.player1.waiting["cb"](["Mining Village"])
 		self.assertTrue(self.player1.actions, 2)
+		self.player1.waiting["cb"](["Yes"])
+		self.assertTrue(self.player1.balance == 2)
 		self.player1.waiting["cb"]("Yes")
 		self.assertTrue(self.player1.balance == 2)
-		self.assertTrue(mining_village in self.game.trash_pile)
-		self.player1.waiting["cb"]("Yes")
-		self.player1.waiting["cb"]("Yes")
-		self.assertTrue(self.player1.balance == 2)
-		self.assertTrue(mining_village not in self.player1.played)
 
 if __name__ == '__main__':
 	unittest.main()

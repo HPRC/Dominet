@@ -60,6 +60,7 @@ class CardPile():
 				return self.data[i][0]
 			else:
 				index_counter -= self.data[i][1]
+		self.index = 0
 		raise StopIteration
 
 	def __len__(self):
@@ -93,25 +94,57 @@ class CardPile():
 
 
 
-class HandPile(CardPile):
+class HandPile():
 	def __init__(self, player):
-		# The underlying data is a dictionary with key = cardtitle, value = [card object, count]
+		# The underlying data is a dictionary with key = cardtitle, value = [card object, card object, etc...]
 		CardPile.__init__(self)
 		self.player = player
+		self.data = {}
+		self.index = -1
+
+	def add(self, card):
+		if card.title in self.data:
+			self.data[card.title].append(card)
+		else:
+			self.data[card.title] = [card]
 
 	def extract(self, card_title):
 		if card_title in self.data:
-			card = self.data[card_title][0]
-			self.data[card_title][1] -= 1
-			if self.data[card.title][1] == 0:
+			card = self.data[card_title].pop()
+			if self.get_count(card.title) == 0:
 				del self.data[card.title]
 			return card
+
+	def get_count(self, card_title):
+		if card_title not in self.data:
+			return 0
+		return len(self.data[card_title])
+
+	def get_card(self, card_title):
+		return self.data[card_title][-1]
+
+	def get_all(self, card_title):
+		return self.data[card_title]
+
+	def card_array(self):
+		arr = []
+		for title, lst in self.data.items():
+			arr += lst
+		return arr
+
+	def to_json(self):
+		result = []
+		for title, lst in self.data.items():
+			formatCard = lst[0].to_json()
+			formatCard["count"] = len(lst)
+			result.append(formatCard)
+		return result
 
 	def reveal_string(self):
 		h = []
 		for title, lst in self.data.items():
 			card = lst[0]
-			count = lst[1]
+			count = len(lst)
 			h.append(str(count))
 			h.append(card.log_string(True)) if count > 1 else h.append(card.log_string())
 		return ", ".join(h)
@@ -145,4 +178,14 @@ class HandPile(CardPile):
 		return []
 
 	def play(self, card_title):
-		self.data[card_title][0].play()
+		self.data[card_title][-1].play()
+
+	def __iter__(self):
+		return self.card_array().__iter__()
+
+	def __len__(self):
+		return len(self.card_array())
+
+	def __contains__(self, title):
+		return title in self.data
+

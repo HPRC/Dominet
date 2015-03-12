@@ -178,58 +178,6 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(len(self.player1.hand) == 7)
 		self.assertTrue(self.player1.discard_pile[-1] == village)
 
-	def test_Pawn(self):
-		pawn = intrigue.Pawn(self.game, self.player1)
-		self.player1.hand.add(pawn)
-		pawn.play()
-		self.player1.waiting["cb"](["+$1", "+1 Action"])
-		self.assertTrue(self.player1.balance == 1)
-		self.assertTrue(self.player1.actions == 1)
-
-	def test_Great_Hall(self):
-		great_hall = intrigue.Great_Hall(self.game, self.player1)
-		player1_vp = self.player1.total_vp()
-		self.player1.hand.add(great_hall)
-		great_hall.play()
-		self.assertTrue((self.player1.actions == 1))
-		self.assertTrue((self.player1.total_vp()) == player1_vp + 1)
-
-	def test_Steward(self):
-		steward = intrigue.Steward(self.game, self.player1)
-		copper = crd.Copper(self.game, self.player1)
-		estate = crd.Estate(self.game, self.player1)
-		self.player1.hand.data = {
-			"Steward": [steward, 3],
-			"Copper": [copper, 3],
-			"Estate": [estate, 2]
-		}
-
-		self.player1.actions = 5
-
-		# +$2
-		steward.play()
-		self.player1.waiting["cb"](["+$2"])
-		self.assertTrue(self.player1.balance == 2)
-
-		# Trash 2 with more than 2 in hand
-		steward.play()
-		trash_size = len(self.game.trash_pile)
-		self.player1.waiting["cb"](["Trash 2 cards from hand"])
-		self.player1.waiting["cb"](["Estate", "Estate"])
-		self.assertTrue(len(self.game.trash_pile) == trash_size + 2)
-
-		# Trash 2 with homogeneous hand
-		steward.play()
-		self.player1.waiting["cb"](["Trash 2 cards from hand"])
-		self.assertTrue(self.player1.hand.get_count("Copper") == 1)
-
-		self.player1.hand.add(steward, 1)
-
-		# Trash 2 with 1 in hand
-		self.player1.hand.data["Steward"] = [steward, 1]
-		steward.play()
-		self.player1.waiting["cb"](["Trash 2 cards from hand"])
-		self.assertTrue(len(self.player1.hand) == 0)
 
 if __name__ == '__main__':
 	unittest.main()

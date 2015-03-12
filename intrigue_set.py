@@ -321,9 +321,7 @@ class Ironworks(crd.Card):
 		self.played_by.waiting["cb"] = self.post_select
 
 	def post_select(self, selection):
-		card = self.played_by.get_card_from_supply(selection)
 		self.played_by.gain(card.title, True)
-
 		effects = []
 		if "Action" in card.type:
 			self.played_by.actions += 1
@@ -361,7 +359,7 @@ class Mining_Village(crd.Card):
 		if "Yes" in selection:
 			if len(self.game.trash_pile) > 0 and self.game.trash_pile[-1] == self:
 				self.game.announce("-- tries to trash " + self.log_string() + " but it was already trashed")
-			elif self.played_by.played[-1] == self:
+			elif self in self.played_by.played:
 				self.game.announce("-- trashing " + self.log_string() + " to gain $2")
 				self.played_by.balance += 2
 				self.game.trash_pile.append(self.played_by.played.pop())
@@ -430,6 +428,8 @@ class Torturer(crd.AttackCard):
 			victim.update_hand()
 			crd.AttackCard.get_next(self, victim)
 		else:
+			print("printing torturer victim's waiting on --- debugging")
+			print(list(map(lambda x: x.name, victim.waiting["on"])))
 			discard_selection = victim.hand.auto_select(2, True)
 			if discard_selection:
 				victim.discard(discard_selection, victim.discard_pile)

@@ -238,7 +238,8 @@ class DmClient(Client):
 		# if we have no actions or no action cards and no money cards, buy mode
 		if (len(self.hand.get_cards_by_type("Action")) == 0 or self.actions == 0) and len(self.hand.get_cards_by_type("Treasure")) == 0:
 			self.write_json(command="updateMode", mode="buy")
-		self.write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
+		else:
+			self.write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
 
 	def update_deck_size(self):
 		self.write_json(command="updateDeckSize", size=len(self.deck))
@@ -293,12 +294,15 @@ class DmClient(Client):
 	def spend_all_money(self):
 		to_log = []
 		to_discard = []
-		for card in set(self.hand.get_cards_by_type("Treasure", True)):
-			count = self.hand.get_count(card.title)
+		treasure_cards = self.hand.get_cards_by_type("Treasure", True)
+		unique_treasure_titles = set(map(lambda x: x.title, treasure_cards))
+		for card_title in unique_treasure_titles:
+			card = self.hand.get_card(card_title)
+			count = self.hand.get_count(card_title)
 			self.balance += card.value * count
 			if len(to_log) != 0:
 				to_log.append(",")
-			to_discard += [card for x in range(0, count)]
+			to_discard += self.hand.get_all(card_title)
 			to_log.append(str(count))
 			to_log.append(card.log_string() if count == 1 else card.log_string(True))
 		self.discard(list(map(lambda x: x.title, to_discard)), self.played)
