@@ -6,34 +6,26 @@ import card as crd
 import game as g
 import kingdomGenerator as kg
 
-
-class Player1Handler():
-	log = []
-
-	def write_json(self, **kwargs):
-		if kwargs["command"] != "announce":
-			Player1Handler.log.append(kwargs)
-
-
-class Player2Handler():
-	log = []
+class PlayerHandler():
+	def __init__(self):
+		self.log = []
 
 	def write_json(self, **kwargs):
 		if kwargs["command"] != "announce":
-			Player2Handler.log.append(kwargs)
+			self.log.append(kwargs)
 
 class TestCard(unittest.TestCase):
 	def setUp(self):
-		self.player1 = c.DmClient("player1", 0, Player1Handler())
-		self.player2 = c.DmClient("player2", 1, Player2Handler())
-		self.game = g.DmGame([self.player1, self.player2], [])
+		self.player1 = c.DmClient("player1", 0, PlayerHandler())
+		self.player2 = c.DmClient("player2", 1, PlayerHandler())
+		self.player3 = c.DmClient("player3", 2, PlayerHandler())
+		self.game = g.DmGame([self.player1, self.player2, self.player3], [])
 		self.game.supply = self.game.init_supply(kg.all_cards(self.game))
 		for i in self.game.players:
 			i.game = self.game
 			i.setup()
+			i.handler.log = []
 		self.player1.take_turn()
-		Player1Handler.log = []
-		Player2Handler.log = []
 
 	# --------------------------------------------------------
 	# ------------------------- Base -------------------------
@@ -42,8 +34,8 @@ class TestCard(unittest.TestCase):
 	def test_Cellar(self):
 		self.player1.hand.add(base.Cellar(self.game, self.player1))
 		self.player1.hand.play("Cellar")
-		self.assertTrue(Player1Handler.log[0]["command"] == "updateMode")
-		self.assertTrue(Player1Handler.log[0]["mode"] == "select")
+		self.assertTrue(self.player1.handler.log[-1]["command"] == "updateMode")
+		self.assertTrue(self.player1.handler.log[-1]["mode"] == "select")
 		self.assertTrue(self.player1.waiting["cb"] != None)
 
 		selection = crd.card_list_to_titles(self.player1.hand.card_array())
@@ -53,9 +45,9 @@ class TestCard(unittest.TestCase):
 	def test_Militia(self):
 		self.player1.hand.add(base.Militia(self.game, self.player1))
 		self.player1.hand.play("Militia")
-		self.assertTrue(Player2Handler.log[0]["command"] == "updateMode")
-		self.assertTrue(Player2Handler.log[0]["mode"] == "select")
-		self.assertTrue(Player2Handler.log[0]["select_from"] == crd.card_list_to_titles(self.player2.hand.card_array()))
+		self.assertTrue(self.player2.handler.log[0]["command"] == "updateMode")
+		self.assertTrue(self.player2.handler.log[0]["mode"] == "select")
+		self.assertTrue(self.player2.handler.log[0]["select_from"] == crd.card_list_to_titles(self.player2.hand.card_array()))
 		self.assertTrue(self.player2.waiting["cb"] != None)
 
 		selection = crd.card_list_to_titles(self.player2.hand.card_array())[:2]
@@ -66,7 +58,7 @@ class TestCard(unittest.TestCase):
 		self.player2.hand.add(base.Moat(self.game, self.player2))
 		self.player1.hand.add(base.Witch(self.game, self.player1))
 		self.player1.hand.play("Witch")
-		self.assertTrue("Reveal" in Player2Handler.log[0]["select_from"])
+		self.assertTrue("Reveal" in self.player2.handler.log[0]["select_from"])
 		self.player2.waiting["cb"](["Reveal"])
 		# didn't gain curse
 		self.assertTrue(len(self.player2.discard_pile) == 0)
@@ -76,7 +68,6 @@ class TestCard(unittest.TestCase):
 		self.player1.hand.add(throne_room_card)
 		self.player1.hand.add(base.Village(self.game, self.player1))
 		throne_room_card.play()
-		self.assertTrue(Player1Handler.log[0]["select_from"] == ["Village"])
 		throne_room_card.post_select(["Village"])
 		self.assertTrue(self.player1.actions == 4)
 
@@ -103,7 +94,7 @@ class TestCard(unittest.TestCase):
 		self.player1.hand.add(feast_card)
 		feast_card.play()
 
-		self.assertTrue(Player1Handler.log[-1]["mode"] == "selectSupply")
+		self.assertTrue(self.player1.handler.log[-1]["mode"] == "selectSupply")
 		self.assertTrue(self.game.trash_pile[-1] == feast_card)
 
 	def test_Thief_2_treasures(self):
@@ -112,8 +103,8 @@ class TestCard(unittest.TestCase):
 		self.player2.deck.append(crd.Copper(self.game, self.player2))
 		self.player2.deck.append(crd.Silver(self.game, self.player2))
 		thief_card.play()
-		self.assertTrue("Copper" in Player1Handler.log[-1]['select_from'])
-		self.assertTrue("Silver" in Player1Handler.log[-1]['select_from'])
+		self.assertTrue("Copper" in self.player1.handler.log[-1]['select_from'])
+		self.assertTrue("Silver" in self.player1.handler.log[-1]['select_from'])
 		self.player1.waiting["cb"](["Silver"])
 		self.assertTrue(self.game.trash_pile[-1].title == "Silver")
 		self.player1.waiting["cb"](["Yes"])
@@ -128,6 +119,20 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.game.trash_pile[-1].title == "Gold")
 		self.player1.waiting["cb"](["Yes"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Gold")
+
+	def test_Thief_3_players(self):
+		thief_card = base.Thief(self.game, self.player1)
+		self.player1.hand.add(thief_card)
+		self.player2.deck.append(crd.Estate(self.game, self.player2))
+		self.player2.deck.append(crd.Gold(self.game, self.player2))
+		self.player3.deck.append(crd.Copper(self.game, self.player2))
+		self.player3.deck.append(crd.Estate(self.game, self.player2))
+		thief_card.play()
+		self.player1.waiting["cb"](["Yes"])
+		self.assertTrue(self.player1.discard_pile[-1].title == "Gold")
+		self.player1.waiting["cb"](["Yes"])
+		self.assertTrue(self.player1.discard_pile[-1].title == "Copper")
+		thief_card.play()
 
 	def test_Gardens(self):
 		gardens = base.Gardens(self.game, self.player1)
@@ -145,7 +150,7 @@ class TestCard(unittest.TestCase):
 		chancellor = base.Chancellor(self.game, self.player1)
 		self.player1.hand.add(chancellor)
 		chancellor.play()
-		self.assertTrue(Player1Handler.log[-1]["command"] == "updateMode")
+		self.assertTrue(self.player1.handler.log[-1]["command"] == "updateMode")
 		self.assertTrue(len(self.player1.discard_pile) == 1)
 		decksize = len(self.player1.deck)
 		self.player1.waiting["cb"](["Yes"])
@@ -173,7 +178,7 @@ class TestCard(unittest.TestCase):
 		self.player1.hand.add(library)
 		library.play()
 		self.assertTrue(len(self.player1.hand) == 6)
-		self.assertTrue(Player1Handler.log[-1]["command"] == "updateMode")
+		self.assertTrue(self.player1.handler.log[-1]["command"] == "updateMode")
 		self.player1.waiting["cb"]("Yes")
 		self.assertTrue(len(self.player1.hand) == 7)
 		self.assertTrue(self.player1.discard_pile[-1] == village)

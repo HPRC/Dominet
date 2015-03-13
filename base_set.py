@@ -467,7 +467,7 @@ class Thief(crd.AttackCard):
 					self.played_by.waiting["cb"] = post_select_gain
 				else:
 					self.played_by.select(1, 1, crd.card_list_to_titles(revealed_treasure),
-						"Choose" + player.name + "'s Treasure to trash")
+						"Choose " + player.name + "'s Treasure to trash")
 
 					def post_select_trash(selection, thieved=player, cards=revealed_treasure):
 						self.post_select_trash(selection, thieved, cards)

@@ -26,6 +26,7 @@ class Courtyard(crd.Card):
 	def post_select(self, selection):
 		self.game.announce("-- " + self.game.log_string_from_title(selection[0]) + " is placed on top of the deck.")
 		self.played_by.discard(selection, self.played_by.deck)
+		self.played_by.update_deck_size()
 		crd.Card.on_finished(self, True, False)
 
 
@@ -321,7 +322,8 @@ class Ironworks(crd.Card):
 		self.played_by.waiting["cb"] = self.post_select
 
 	def post_select(self, selection):
-		self.played_by.gain(card.title, True)
+		card = self.game.card_from_title(selection)
+		self.played_by.gain(selection, True)
 		effects = []
 		if "Action" in card.type:
 			self.played_by.actions += 1

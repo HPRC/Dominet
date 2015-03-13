@@ -14,16 +14,16 @@ import base_tests as bt
 
 class TestIntrigue(unittest.TestCase):
 	def setUp(self):
-		self.player1 = c.DmClient("player1", 0, bt.Player1Handler())
-		self.player2 = c.DmClient("player2", 1, bt.Player2Handler())
-		self.game = g.DmGame([self.player1, self.player2], [])
+		self.player1 = c.DmClient("player1", 0, bt.PlayerHandler())
+		self.player2 = c.DmClient("player2", 1, bt.PlayerHandler())
+		self.player3 = c.DmClient("player3", 2, bt.PlayerHandler())
+		self.game = g.DmGame([self.player1, self.player2, self.player3], [])
 		self.game.supply = self.game.init_supply(kg.all_cards(self.game))
 		for i in self.game.players:
 			i.game = self.game
 			i.setup()
+			i.handler.log = []
 		self.player1.take_turn()
-		bt.Player1Handler.log = []
-		bt.Player2Handler.log = []
 
 
 	# --------------------------------------------------------
