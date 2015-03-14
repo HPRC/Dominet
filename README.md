@@ -7,4 +7,5 @@ Python Server
 
 Tests
 * python3 -m tests.game_tests
-* python3 -m tests.card_tests
+* python3 -m tests.base_tests
+* python3 -m tests.intrigue_tests

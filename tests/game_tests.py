@@ -18,7 +18,7 @@ class TestGame(unittest.TestCase):
 	def setUp(self):
 		self.player1 = c.DmClient("player1", 0, DummyHandler())
 		self.player2 = c.DmClient("player2", 1, SilentHandler())
-		self.game = g.DmGame([self.player1, self.player2])
+		self.game = g.DmGame([self.player1, self.player2], [])
 		for i in self.game.players:
 			i.game = self.game
 			i.setup()

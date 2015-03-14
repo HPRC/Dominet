@@ -2,7 +2,6 @@ import json
 import card as crd
 import cardpile as cp
 import random
-import copy
 import base_set as b
 import html
 
@@ -42,8 +41,10 @@ class DmClient(Client):
 
 	def write_json(self, **kwargs):
 		if kwargs["command"] == "updateMode":
-			# callback used to resume mode if reconnect
-			self.last_mode = kwargs
+			#ignore the last_mode if it was a wait for disconnecting
+			if not ("msg" in kwargs and "disconnected" in kwargs["msg"]):
+				# callback used to resume mode if reconnect
+				self.last_mode = kwargs
 		Client.write_json(self, **kwargs)
 
 	def base_deck(self):
@@ -176,10 +177,6 @@ class DmClient(Client):
 		self.update_resources()
 		self.game.update_trash_pile()
 		self.write_json(**self.last_mode)
-		print(self.last_mode["mode"])
-		if self.game.get_turn_owner() == self and self.last_mode["mode"] != "gameover":
-			self.write_json(command="startTurn", actions=self.actions, 
-			buys=self.buys, balance=self.balance)
 		self.game.announce(self.name_string() + " has reconnected!")
 
 	def end_turn(self):
@@ -198,11 +195,9 @@ class DmClient(Client):
 
 	def buy_card(self, card_title):
 		if self.buys > 0 and self.game.supply.get_count(card_title) > 0:
-			# alternative to copy but requires module to have all cards
-			# card_class = getattr(crd, card)
-			# newCard = card_class(self.game, self)
-			newCard = copy.copy(self.game.card_from_title(card_title))
-			newCard.played_by = self
+			# we instantiate a new card by getting the class from the kingdom instance 
+			# and instantiating it
+			newCard = type(self.game.card_from_title(card_title))(self.game, self)
 			self.game.announce("<b>" + self.name + "</b> buys " + newCard.log_string())
 			self.discard_pile.append(newCard)
 			self.game.remove_from_supply(card_title)
@@ -240,7 +235,11 @@ class DmClient(Client):
 			self.game.update_trash_pile()
 
 	def update_mode(self):
-		self.write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
+		# if we have no actions or no action cards and no money cards, buy mode
+		if (len(self.hand.get_cards_by_type("Action")) == 0 or self.actions == 0) and len(self.hand.get_cards_by_type("Treasure")) == 0:
+			self.write_json(command="updateMode", mode="buy")
+		else:
+			self.write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
 
 	def update_deck_size(self):
 		self.write_json(command="updateDeckSize", size=len(self.deck))
@@ -253,21 +252,26 @@ class DmClient(Client):
 			return
 		if from_supply:
 			self.game.remove_from_supply(card)
-		new_card = copy.copy(self.game.card_from_title(card))
-		new_card.played_by = self
+		new_card = type(self.game.card_from_title(card))(self.game, self)
 		return new_card
 
 	def gain(self, card, from_supply=True):
 		new_card = self.get_card_from_supply(card, from_supply)
-		self.game.announce(self.name_string() + " gains " + new_card.log_string()) # TODO perhaps delete to customize gains messages (for attacks etc.)
-		self.discard_pile.append(new_card)
-		self.update_discard_size()
+		if new_card != None:
+			self.game.announce(self.name_string() + " gains " + new_card.log_string()) # TODO perhaps delete to customize gains messages (for attacks etc.)
+			self.discard_pile.append(new_card)
+			self.update_discard_size()
+		else:
+			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 
 	def gain_to_hand(self, card, from_supply=True):
 		new_card = self.get_card_from_supply(card, from_supply)
-		self.game.announce(self.name_string() + " gains " + new_card.log_string() + " to their hand.")
-		self.hand.add(new_card)
-		self.update_hand()
+		if new_card != None:
+			self.game.announce(self.name_string() + " gains " + new_card.log_string() + " to their hand.")
+			self.hand.add(new_card)
+			self.update_hand()
+		else:
+			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + "but it is out of supply.")
 
 	def select_from_supply(self, price_limit=None, equal_only=False, type_constraint=None, allow_empty=False):
 		self.write_json(command="updateMode", mode="selectSupply", price=price_limit, equal_only=equal_only,
@@ -290,12 +294,15 @@ class DmClient(Client):
 	def spend_all_money(self):
 		to_log = []
 		to_discard = []
-		for card in set(self.hand.get_cards_by_type("Treasure", True)):
-			count = self.hand.get_count(card.title)
+		treasure_cards = self.hand.get_cards_by_type("Treasure", True)
+		unique_treasure_titles = set(map(lambda x: x.title, treasure_cards))
+		for card_title in unique_treasure_titles:
+			card = self.hand.get_card(card_title)
+			count = self.hand.get_count(card_title)
 			self.balance += card.value * count
 			if len(to_log) != 0:
 				to_log.append(",")
-			to_discard += [card for x in range(0, count)]
+			to_discard += self.hand.get_all(card_title)
 			to_log.append(str(count))
 			to_log.append(card.log_string() if count == 1 else card.log_string(True))
 		self.discard(list(map(lambda x: x.title, to_discard)), self.played)
