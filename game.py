@@ -55,6 +55,7 @@ class DmGame(Game):
 		self.supply = cp.CardPile()
 		self.supply.combine(self.base_supply)
 		self.supply.combine(self.kingdom)
+		self.price_modifier = 0
 
 	# override
 	def start_game(self):
@@ -75,6 +76,10 @@ class DmGame(Game):
 			i.write_json(command="updatePiles", card=card_title, count=self.supply.get_count(card_title))
 		if self.supply.get_count(card_title) == 0:
 			self.empty_piles += 1
+
+	def update_all_prices(self):
+		for i in self.players:
+			i.write_json(command="updateAllPrices", modifier=self.price_modifier)
 
 	def init_supply(self, cards):
 		supply = cp.CardPile()

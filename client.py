@@ -188,6 +188,9 @@ class DmClient(Client):
 		self.discard_pile = self.discard_pile + self.played
 		self.played = []
 		self.draw(self.hand_size)
+		if (self.game.price_modifier != 0):
+			self.game.price_modifier = 0
+			self.game.update_all_prices()
 		self.update_hand()
 		self.update_discard_size()
 		self.update_deck_size()
@@ -202,7 +205,7 @@ class DmClient(Client):
 			self.discard_pile.append(newCard)
 			self.game.remove_from_supply(card_title)
 			self.buys -= 1
-			self.balance -= newCard.price
+			self.balance -= newCard.get_price()
 			self.update_resources()
 
 	def select(self, min_cards, max_cards, select_from, msg):

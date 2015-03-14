@@ -275,6 +275,22 @@ class Baron(crd.Card):
 			self.played_by.gain("Estate")
 		crd.Card.on_finished(self)
 
+class Bridge(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Bridge"
+		self.description = "+1 Buy, +$1,\n All cards (including ones in player's hands) cost $1 less this turn, but not less than $0."
+		self.price = 4
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.buys += 1
+		self.played_by.balance += 1
+		self.game.price_modifier -= 1
+		self.game.update_all_prices()
+		self.game.announce("-- gaining 1 buy, $1")
+		crd.Card.on_finished(self, False, True)
 
 class Conspirator(crd.Card):
 	def __init__(self, game, played_by):

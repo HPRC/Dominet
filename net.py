@@ -9,8 +9,6 @@ HOST = ''
 PORT_NUMBER = 9999
 ROOT = "/"
 INDEX = "index.html"
-NUM_PLAYERS = 2
-
 
 class mainHandler(web.RequestHandler):
 	def get(self):

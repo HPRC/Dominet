@@ -334,5 +334,14 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.waiting["cb"]("Yes")
 		self.assertTrue(self.player1.balance == 2)
 
+	def test_bridge(self):
+		bridge = intrigue.Bridge(self.game, self.player1)
+		self.player1.hand.add(bridge)
+		bridge.play()
+		self.assertTrue(self.player1.balance == 1)
+		self.player1.buy_card("Estate")
+		self.assertTrue(self.player1.balance == 0)
+		self.assertTrue(self.player1.buys == 1)
+
 if __name__ == '__main__':
 	unittest.main()

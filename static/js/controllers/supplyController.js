@@ -23,16 +23,16 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 		}
 
 		if ($scope.turn && $scope.modeJson.mode === "buy"){
-			return card.price > $scope.balance;
+			return $scope.getPrice(card) > $scope.balance;
 		}
 		if ($scope.modeJson.mode === "selectSupply"){
 			if ($scope.modeJson.type_constraint !== null && card.type.indexOf($scope.modeJson.type_constraint) === -1){
 				return true;
 			} else {
 				if ($scope.modeJson.equal_only){
-					return card.price !== $scope.modeJson.price;
+					return $scope.getPrice(card) !== $scope.modeJson.price;
 				} else if ($scope.modeJson.price){
-					return card.price > $scope.modeJson.price;
+					return $scope.getPrice(card) > $scope.modeJson.price;
 				} else {
                     return false
                 }
@@ -48,6 +48,15 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 			socket.send(JSON.stringify({"command": "selectSupply", "card": card.title}));
 		} else {
 			client.buyCard(card);
+		}
+	};
+
+
+	$scope.getPrice = function(card){
+		if (card.price + client.getPriceModifier() <= 0){
+			return 0;	
+		} else {
+			return card.price + client.getPriceModifier();
 		}
 	};
 

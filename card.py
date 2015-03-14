@@ -15,6 +15,9 @@ class Card():
 			if "Action" in self.type:
 				self.played_by.actions -= 1
 
+	def get_price(self):
+		return self.price + self.game.price_modifier
+
 	# called at the end of a card's resolution
 	def on_finished(self, modified_hand=True, modified_resources=True):
 		if modified_resources:
@@ -29,7 +32,7 @@ class Card():
 			"title": self.title,
 			"type": self.type,
 			"description": self.description,
-			"price": self.price
+			"price": self.get_price()
 		}
 
 	def log_string(self, plural=False):
