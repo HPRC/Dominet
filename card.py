@@ -35,6 +35,10 @@ class Card():
 			"price": self.get_price()
 		}
 
+	#called at the end of turn if this card was played
+	def cleanup(self):
+		pass
+
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-default'>", self.title, "s</span>" if plural else "</span>"])
 

@@ -116,10 +116,8 @@ class DmClient(Client):
 		new_conn.waiting = self.waiting
 		new_conn.last_mode = self.last_mode
 		new_conn.protection = self.protection
-		for card in self.deck + self.discard_pile + self.played:
+		for card in self.all_cards():
 			card.played_by = new_conn
-		for title, l in self.hand.data.items():
-			l[0].played_by = new_conn
 
 	def update_hand(self):
 		self.write_json(command="updateHand", hand=[x.to_json() for x in self.hand.card_array()])
@@ -178,6 +176,9 @@ class DmClient(Client):
 		self.game.update_trash_pile()
 		self.write_json(**self.last_mode)
 		self.game.announce(self.name_string() + " has reconnected!")
+		if self.game.get_turn_owner() == self:
+			self.write_json(command="startTurn", actions=self.actions, 
+				buys=self.buys, balance=self.balance)
 
 	def end_turn(self):
 		if self.game.detect_end():
@@ -185,6 +186,8 @@ class DmClient(Client):
 		self.actions = 0
 		self.buys = 0
 		self.balance = 0
+		for played_card in self.played:
+			played_card.cleanup()
 		self.discard_pile = self.discard_pile + self.played
 		self.played = []
 		self.draw(self.hand_size)
@@ -318,7 +321,7 @@ class DmClient(Client):
 		total = 0
 		# dictionary of vp {"Province" : [<card Province>, 2]}
 		vp_dict = {}
-		for card in self.deck + self.discard_pile + self.played + self.hand.card_array():
+		for card in self.all_cards():
 			if "Victory" in card.type or "Curse" in card.type:
 				total += card.get_vp()
 				if card.title in vp_dict:
@@ -329,7 +332,7 @@ class DmClient(Client):
 
 	def decklist_string(self):
 		decklist = cp.CardPile()
-		for card in self.deck + self.discard_pile + self.played + self.hand.card_array():
+		for card in self.all_cards():
 			decklist.add(card)
 		decklist_str = []
 		for card_title in decklist.data.keys():
@@ -351,4 +354,8 @@ class DmClient(Client):
 			if x.title == card_title:
 				count += 1
 		return count
+
+	def all_cards(self):
+		return self.deck + self.discard_pile + self.played + self.hand.card_array()
+
 

@@ -152,6 +152,19 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.actions == 1)
 		self.assertTrue(len(self.player1.hand) == cards_in_hand)
 
+	def test_Conspirator_Throne_Room(self):
+		conspirator = intrigue.Conspirator(self.game, self.player1)
+		throne_room = base.Throne_Room(self.game, self.player1)
+		self.player1.hand.add(conspirator)
+		self.player1.hand.add(throne_room)
+		throne_room.play()
+		handsize = len(self.player1.hand)
+		self.player1.waiting["cb"](["Conspirator"])
+		self.assertTrue(self.player1.actions == 1)
+		self.assertTrue(self.player1.balance == 4)
+		#discard conspirator, draw 1 card should have same handsize
+		self.assertTrue(handsize == len(self.player1.hand))
+
 	def test_Courtyard(self):
 		courtyard = intrigue.Courtyard(self.game, self.player1)
 		self.player1.hand.add(courtyard)
@@ -331,10 +344,10 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.actions, 2)
 		self.player1.waiting["cb"](["Yes"])
 		self.assertTrue(self.player1.balance == 2)
-		self.player1.waiting["cb"]("Yes")
+		self.player1.waiting["cb"](["Yes"])
 		self.assertTrue(self.player1.balance == 2)
 
-	def test_bridge(self):
+	def test_Bridge(self):
 		bridge = intrigue.Bridge(self.game, self.player1)
 		self.player1.hand.add(bridge)
 		bridge.play()
@@ -342,6 +355,19 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.buy_card("Estate")
 		self.assertTrue(self.player1.balance == 0)
 		self.assertTrue(self.player1.buys == 1)
+
+	def test_Coppersmith(self):
+		coppersmith = intrigue.Coppersmith(self.game, self.player1)
+		copper = crd.Copper(self.game, self.player1)
+		self.player1.hand.add(coppersmith)
+		self.player1.hand.add(copper)
+
+		coppersmith.play()
+		copper.play()
+		self.assertTrue(self.player1.balance == 2)
+		#copper should be back to $1 after turn
+		self.player1.end_turn()
+		self.assertTrue(copper.value == 1)
 
 if __name__ == '__main__':
 	unittest.main()

@@ -310,16 +310,32 @@ class Conspirator(crd.Card):
 		for data in played_cards:
 			if "Action" in data.type:
 				played_action_cards += 1
-
 		if played_action_cards >= 3:
 			self.played_by.actions += 1
 			self.played_by.draw(1)
 			announcement += " and drawing a card and gaining +1 action"
-
 		self.game.announce(announcement)
-
 		crd.Card.on_finished(self)
 
+class Coppersmith(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Coppersmith"
+		self.description = "Coppers produce an extra $1 this turn."
+		self.price = 4
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		for card in self.played_by.all_cards():
+			if card.title == "Copper":
+				card.value += 1
+		crd.Card.on_finished(self)
+
+	def cleanup(self):
+		for card in self.played_by.all_cards():
+			if card.title == "Copper":
+				card.value -= 1
 
 class Ironworks(crd.Card):
 	def __init__(self, game, played_by):
@@ -446,8 +462,6 @@ class Torturer(crd.AttackCard):
 			victim.update_hand()
 			crd.AttackCard.get_next(self, victim)
 		else:
-			print("printing torturer victim's waiting on --- debugging")
-			print(list(map(lambda x: x.name, victim.waiting["on"])))
 			discard_selection = victim.hand.auto_select(2, True)
 			if discard_selection:
 				victim.discard(discard_selection, victim.discard_pile)
