@@ -81,12 +81,12 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(workshopCard.done.__name__ == "second_play")
 
 		self.player1.update_wait()
-		self.player1.waiting["cb"]("Silver")
+		self.player1.waiting["cb"](["Silver"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
 		self.assertTrue(workshopCard.done.__name__ == "final_done")
 
 		self.player1.update_wait()
-		self.player1.waiting["cb"]("Estate")
+		self.player1.waiting["cb"](["Estate"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Estate")
 
 	def test_Feast(self):
@@ -179,7 +179,7 @@ class TestCard(unittest.TestCase):
 		library.play()
 		self.assertTrue(len(self.player1.hand) == 6)
 		self.assertTrue(self.player1.handler.log[-1]["command"] == "updateMode")
-		self.player1.waiting["cb"]("Yes")
+		self.player1.waiting["cb"](["Yes"])
 		self.assertTrue(len(self.player1.hand) == 7)
 		self.assertTrue(self.player1.discard_pile[-1] == village)
 

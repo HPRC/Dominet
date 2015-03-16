@@ -98,3 +98,17 @@ html, body {
 #modeContainer {
 	min-height:3em;
 }
+
+.reorder-ul {
+	padding: 0;
+}
+
+.reorder-li {
+	display: inline-block;
+	margin-right:2%;
+}
+
+.reorder-li-button {
+	display: inline-block;
+	margin-right:2%;
+}

@@ -39,13 +39,13 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 
 			}
 		}
-		return (!$scope.turn || $scope.modeJson.mode === "wait" ||  $scope.modeJson.mode === "select" || $scope.modeJson.mode === "action");
+		return (!$scope.turn || $scope.modeJson.mode === "wait" ||  $scope.modeJson.mode === "select" || $scope.modeJson.mode === "reorder" || $scope.modeJson.mode === "action");
 	};
 
 	$scope.clickCard = function(card){
 		if ($scope.modeJson.mode === "selectSupply"){
 			//refactor into method (?)
-			socket.send(JSON.stringify({"command": "selectSupply", "card": card.title}));
+			socket.send(JSON.stringify({"command": "selectSupply", "card": [card.title]}));
 		} else {
 			client.buyCard(card);
 		}

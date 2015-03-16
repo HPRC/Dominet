@@ -164,8 +164,8 @@ class Workshop(crd.Card):
 		self.played_by.waiting["cb"] = self.post_gain
 		self.played_by.select_from_supply(4, False)
 
-	def post_gain(self, card_title):
-		self.played_by.gain(card_title)
+	def post_gain(self, selected):
+		self.played_by.gain(selected[0])
 		crd.Card.on_finished(self, False, False)
 
 
@@ -241,8 +241,8 @@ class Feast(crd.Card):
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_gain
 
-	def post_gain(self, card_title):
-		self.played_by.gain(card_title)
+	def post_gain(self, selected):
+		self.played_by.gain(selected[0])
 		crd.Card.on_finished(self, False, False)
 
 
@@ -349,8 +349,8 @@ class Remodel(crd.Card):
 		self.played_by.waiting["cb"] = self.post_gain
 		self.played_by.update_hand()
 
-	def post_gain(self, card_title):
-		self.played_by.gain(card_title)
+	def post_gain(self, selected):
+		self.played_by.gain(selected[0])
 		crd.Card.on_finished(self, False, False)
 
 
@@ -554,6 +554,8 @@ class Throne_Room(crd.Card):
 
 		#remove throne roomed card from being added to played twice
 		def removeCardFromPlayed():
+			#cleanup the throneroomed card since it will be skipped when calling cleanups after being removed
+			selected_card.cleanup()
 			self.played_by.played.remove(selected_card)
 			#reset cleanup after it finishes
 			self.cleanup = lambda : None
@@ -729,8 +731,8 @@ class Mine(crd.Card):
 		self.played_by.waiting["cb"] = self.post_gain
 		self.played_by.select_from_supply(card_trashed.price + 3, False, "Treasure")
 
-	def post_gain(self, card_title):
-		self.played_by.gain(card_title)
+	def post_gain(self, selected_cards):
+		self.played_by.gain(selected_cards[0])
 		gained_card = self.played_by.discard_pile.pop()
 		self.played_by.hand.add(gained_card)
 		crd.Card.on_finished(self)

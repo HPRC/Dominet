@@ -160,9 +160,13 @@ class DmClient(Client):
 				self.waiting["cb"](data["selection"])
 		elif cmd == "selectSupply":
 			self.update_wait()
-			# parameter to waiting callback here is a string
+			# parameter to waiting callback here is a list
 			if self.waiting["cb"] != None:
 				self.waiting["cb"](data["card"])
+		elif cmd == "reorder":
+			self.update_wait()
+			if self.waiting["cb"] != None:
+				self.waiting["cb"](data["ordering"])
 		elif cmd == "spendAllMoney":
 			self.spend_all_money()
 		elif cmd == "returnToLobby":
@@ -219,6 +223,9 @@ class DmClient(Client):
 		else:
 			self.update_mode()
 			return False
+
+	def reorder(self, options, msg):
+		self.write_json(command="updateMode", mode="reorder", options=options, msg=msg)
 
 	def wait(self, msg):
 		self.write_json(command="updateMode", mode="wait", msg=msg)

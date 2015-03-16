@@ -200,7 +200,7 @@ class TestIntrigue(unittest.TestCase):
 
 		swindler.play()
 
-		self.player1.waiting["cb"]("Curse")
+		self.player1.waiting["cb"](["Curse"])
 
 	def test_Duke(self):
 		duke = intrigue.Duke(self.game, self.player1)
@@ -222,18 +222,17 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.deck.append(province)
 
 		wishing_well.play()
-		self.player1.waiting["cb"]("Province")
+		self.player1.waiting["cb"](["Province"])
 		self.assertTrue(self.player1.hand.get_count('Province'), 1)
 
 		wishing_well.play()
-		self.player1.waiting["cb"]("Copper")
+		self.player1.waiting["cb"](["Copper"])
 		self.assertTrue(self.player1.hand.get_count('Province'), 1)
 
 	def test_Upgrade(self):
 		upgrade = intrigue.Upgrade(self.game, self.player1)
 		self.player1.hand.add(upgrade)
 		self.player1.hand.add(upgrade)
-
 		upgrade.play()
 		self.player1.waiting["cb"](["Copper"])
 
@@ -299,16 +298,16 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.actions = 2
 
 		ironworks.play()
-		self.player1.waiting["cb"]("Steward")
+		self.player1.waiting["cb"](["Steward"])
 		self.assertTrue(self.player1.actions, 2)
 
 		ironworks.play()
-		self.player1.waiting["cb"]("Silver")
+		self.player1.waiting["cb"](["Silver"])
 		self.assertTrue(self.player1.balance, 1)
 
 		ironworks.play()
 		cards_in_hand = len(self.player1.hand.card_array())
-		self.player1.waiting["cb"]("Great Hall")
+		self.player1.waiting["cb"](["Great Hall"])
 		self.assertTrue(self.player1.actions, 1)
 		self.assertTrue(self.player1.hand, cards_in_hand + 1)
 
@@ -368,6 +367,51 @@ class TestIntrigue(unittest.TestCase):
 		#copper should be back to $1 after turn
 		self.player1.end_turn()
 		self.assertTrue(copper.value == 1)
+
+	def test_Coppersmith_Throne_Room(self):
+		coppersmith = intrigue.Coppersmith(self.game, self.player1)
+		throneroom = base.Throne_Room(self.game, self.player1)
+		copper = crd.Copper(self.game, self.player1)
+		self.player1.hand.add(coppersmith)
+		self.player1.hand.add(throneroom)
+		self.player1.hand.add(copper)
+
+		throneroom.play()
+		self.player1.waiting["cb"](["Coppersmith"])
+		copper.play()
+		self.assertTrue(self.player1.balance == 3)
+		#we played throne room, coppersmith, coppersmith, copper
+		self.assertTrue(len(self.player1.played) == 4)
+		self.player1.end_turn()
+		self.assertTrue(copper.value == 1)
+		#make sure we only have 1 coppersmith in our deck
+		coppersmiths = [x for x in self.player1.all_cards() if x.title == "Coppersmith"]
+		self.assertTrue(len(coppersmiths) == 1)
+
+	def test_Scout(self):
+		scout = intrigue.Scout(self.game, self.player1)
+		scout2 = intrigue.Scout(self.game, self.player1)
+		province = crd.Province(self.game, self.player1)
+		greathall = intrigue.Great_Hall(self.game, self.player1)
+		silver = crd.Silver(self.game, self.player1)
+		self.player1.hand.add(scout)
+		self.player1.deck.append(province)
+		self.player1.deck.append(greathall)
+		self.player1.deck.append(scout2)
+		self.player1.deck.append(silver)
+		decklength = len(self.player1.deck)
+		scout.play()
+
+		self.assertTrue(greathall.title in self.player1.hand)
+		self.assertTrue(province.title in self.player1.hand)
+		self.assertFalse(silver.title in self.player1.hand)
+		self.assertFalse(scout2.title in self.player1.hand)
+
+		self.player1.waiting["cb"](["Silver", "Scout"])
+		self.assertTrue(self.player1.deck[-1].title == "Silver")
+		self.assertTrue(self.player1.deck[-2].title == "Scout")
+		#decksize should be 2 less since we took province and great hall out
+		self.assertTrue(len(self.player1.deck) == decklength - 2)
 
 if __name__ == '__main__':
 	unittest.main()
