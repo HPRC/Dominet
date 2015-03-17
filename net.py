@@ -31,10 +31,10 @@ class mainHandler(web.RequestHandler):
 
 
 class GameHandler(websocket.WebSocketHandler):
-	#name => client obj
+	# name => client obj
 	unattachedClients = {}
 	games = []
-	#host => gametable obj
+	# host => gametable obj
 	game_tables = {}
 
 	def initialize(self):
@@ -50,16 +50,15 @@ class GameHandler(websocket.WebSocketHandler):
 		except websocket.WebSocketClosedError:
 			print("Tried to write to closed socket")
 
-
 	def open(self):
 		self.unattachedClients[self.client.name] = self.client
-		#init client
+		# init client
 		self.write_json(command="init", id=self.client.id, name=self.client.name)
 		self.chat(self.client.name + " has joined the lobby", None)
 		GameHandler.update_lobby()
 
 	def start_game(self, table):
-		game = g.DmGame(table.players, table.required)
+		game = g.DmGame(table.players, table.required, table.excluded)
 		for i in table.players:
 			i.write_json(command="resume")
 			i.game = game
@@ -116,7 +115,7 @@ class GameHandler(websocket.WebSocketHandler):
 	def create_table(self, json):
 		tableData = json["table"]
 		newTable = GameHandler.game_tables[self.client.name] = gt.GameTable(
-			tableData["title"], self.client, tableData["seats"], tableData["required"], "Base")
+			tableData["title"], self.client, tableData["seats"], tableData["required"], tableData["excluded"], "Base")
 		self.table = newTable
 		GameHandler.update_lobby()
 
@@ -148,24 +147,25 @@ class GameHandler(websocket.WebSocketHandler):
 			p.write_json(command="announce", msg= msg)
 
 	def on_close(self):
-		if (self.client.name in GameHandler.unattachedClients):
+		if self.client.name in GameHandler.unattachedClients:
 			del GameHandler.unattachedClients[self.client.name]
 		if self.table != None:
 			self.leave_table({"host":self.table.host.name})
 		GameHandler.update_lobby()
 		print("\033[94m " + self.client.name + " has closed the SOCKET! \033[0m")
 
+
 class DmHandler(GameHandler):
 
-	#override
+	# override
 	def open(self):
-		#resume on player reconnect
+		# resume on player reconnect
 		for each_game in self.games:
 			for p in each_game.players:
-				if (self.client.name == p.name):
+				if self.client.name == p.name:
 					p.resume_state(self.client)
 					self.client.game = p.game
-					#update game players
+					# update game players
 					self.write_json(command="init", id=p.id, name=p.name)
 					index = self.client.game.players.index(p)
 					self.client.game.players.pop(index)
@@ -181,14 +181,14 @@ class DmHandler(GameHandler):
 					return
 		GameHandler.open(self)
 	
-	#override
+	# override
 	def on_close(self):
-		if (self.client.game == None):
+		if self.client.game == None:
 			GameHandler.on_close(self)
 			return
 		self.client.ready = False
 
-		#abandoned if everyone left game
+		# abandoned if everyone left game
 		abandoned = True
 		for i in self.client.game.players:
 			if i.ready == True:
@@ -199,7 +199,7 @@ class DmHandler(GameHandler):
 		else:
 			for i in self.client.game.players:
 				if i != self.client:
-					if (self.client.last_mode["mode"] == "gameover"):
+					if self.client.last_mode["mode"] == "gameover":
 						i.write_json(command="announce", msg = self.client.name_string() + " has left.")
 					else:
 						i.wait(self.client.name + " has disconnected!")
