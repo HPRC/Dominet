@@ -144,6 +144,15 @@ class Gold(Money):
 		self.description = "+$3"
 
 
+class Platinum(Money):
+	def __init__(self, game, played_by):
+		Money.__init__(self, game, played_by)
+		self.title = "Platinum"
+		self.value = 5
+		self.price = 9
+		self.description = "+$5"
+
+
 class Curse(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
@@ -205,6 +214,15 @@ class Province(VictoryCard):
 		self.description = "+6 VP"
 		self.price = 8
 		self.vp = 6
+
+
+class Colony(VictoryCard):
+	def __init__(self, game, played_by):
+		VictoryCard.__init__(self, game, played_by)
+		self.title = "Colony"
+		self.description = "+10 VP"
+		self.price = 11
+		self.vp = 10
 
 
 # Utility

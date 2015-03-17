@@ -7,11 +7,12 @@ import cardpile as cp
 
 
 class Game():
-	def __init__(self, players):
+	def __init__(self, players, prosperity_supply=False):
 		self.players = players
 		self.first = 0
 		self.turn = self.first
 		self.turn_count = 0
+		self.prosperity_supply = prosperity_supply
 
 	def chat(self, msg, speaker):
 		for i in self.players:
@@ -40,14 +41,20 @@ class Game():
 
 
 class DmGame(Game):
-	def __init__(self, players, required_cards, excluded_cards):
-		Game.__init__(self, players)
+	def __init__(self, players, required_cards, excluded_cards, prosperity_supply):
+		Game.__init__(self, players, prosperity_supply)
 		self.trash_pile = []
 		self.empty_piles = 0
 		# kingdom = dictionary {card.title => [card, count]} i.e {"Copper": [card.Copper(self,None),10]}
-		self.base_supply = self.init_supply([card.Curse(self, None), card.Estate(self, None), 
-			card.Duchy(self, None), card.Province(self, None), card.Copper(self, None),
-			card.Silver(self, None), card.Gold(self, None)])
+		base_supply = [card.Curse(self, None), card.Estate(self, None),
+		               card.Duchy(self, None), card.Province(self, None), card.Copper(self, None),
+		               card.Silver(self, None), card.Gold(self, None)]
+
+		if prosperity_supply:
+			base_supply.append(card.Colony(self, None))
+			base_supply.append(card.Platinum(self, None))
+
+		self.base_supply = self.init_supply(base_supply)
 
 		generator = kg.kingdomGenerator(self, required_cards, excluded_cards)
 		self.kingdom = self.init_supply(generator.gen_kingdom())
@@ -84,11 +91,13 @@ class DmGame(Game):
 				if num_players == 2:
 					supply.add(x, 8)
 				else:
-					supply.add(x,12)
+					supply.add(x, 12)
 			elif x.type == "Curse":
 				supply.add(x, (num_players - 1) * 10)
 			elif x.title == "Copper" or x.title == "Silver" or x.title == "Gold":
 				supply.add(x, 30)
+			elif x.title == "Platinum":
+				supply.add(x, 12)
 			else:
 				supply.add(x, 10)
 		return supply
@@ -107,7 +116,11 @@ class DmGame(Game):
 			i.write_json(command="updateTrash", trash=self.trash_string())
 
 	def detect_end(self):
-		if self.supply.get_count("Province") == 0 or self.empty_piles >= 3:
+		end_victory_pile = "Province"
+		if self.prosperity_supply:
+			end_victory_pile = "Colony"
+
+		if self.supply.get_count(end_victory_pile) == 0 or self.empty_piles >= 3:
 			self.announce("GAME OVER")
 			player_vp_list = (list(map(lambda x: (x, x.total_vp()), self.players)))
 			win_vp = max(player_vp_list, key=lambda x: x[1])[1]
