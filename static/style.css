@@ -74,6 +74,10 @@ html, body {
 	font-size:1.6em;
 }
 
+.supplyCardContainer {
+	white-space: nowrap;
+}
+
 #userBar {
 	height:5%;
 }

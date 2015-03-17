@@ -119,6 +119,7 @@ clientModule.factory('client', function(socket) {
 	constructor.prototype.playCard = function(card){
 
 		if (this.actions > 0 || card.type.indexOf("Action") === -1){
+			this.actions -=1;
 			socket.send(JSON.stringify({"command":"play", "card": card.title}));
 			this.played.push(card);
 			//remove from hand

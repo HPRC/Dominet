@@ -1,10 +1,10 @@
-clientModule.controller("lobbyController", function($rootScope, $scope, socket, client){
+clientModule.controller("lobbyController", function($rootScope, $scope, $modal, gameTable, socket, client){
 	$scope.lobbyList = [];
 	$scope.gameTables = [];
 	$scope.name = "";
 	$scope.atTable = false;
 
-	$scope.newGameTable = {title:"", seats:2};
+	$scope.newGameTable = gameTable;
 
 	$scope.lobby = function(json){
 		$scope.name = client.name;
@@ -68,6 +68,27 @@ clientModule.controller("lobbyController", function($rootScope, $scope, socket, 
 		return table.players.indexOf($scope.name) !== -1;
 	};
 
+
+
+	$scope.openAdvGameModal = function () {
+		var modal = $modal.open({
+			templateUrl: '/static/js/directives/advGameModal.html',
+			controller: 'advGameModalController',
+			resolve: {
+				advGame: function(){
+					return $scope.newGameTable;
+				}
+			}
+		});
+
+		modal.result.then( function (newGameTable) {
+			$scope.newGameTable = newGameTable;
+			$scope.createGameTable();
+		});
+	};
+
+
+
 	$scope.$on("$destroy", function(){
 		socketlistener();
 	});
@@ -85,3 +106,5 @@ clientModule.controller("lobbyController", function($rootScope, $scope, socket, 
 		$scope.$digest();
 	});
 });
+
+

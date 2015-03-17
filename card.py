@@ -10,8 +10,8 @@ class Card():
 
 	def play(self, skip=False):
 		if not skip:
-			self.game.announce(self.played_by.name_string() + " played " + self.log_string())
 			self.played_by.discard([self.title], self.played_by.played)
+			self.game.announce(self.played_by.name_string() + " played " + self.log_string())
 			if "Action" in self.type:
 				self.played_by.actions -= 1
 
@@ -92,6 +92,23 @@ class AttackCard(Card):
 			target.protection -= 1
 			self.game.announce(target.name_string() + " is unaffected by the attack")
 			return True
+
+	#used in cards where we have to wait on each player to make a selection or something
+	#if not blocked then continue the attack and a post_select or choice will trigger the get_next
+	def fire(self, player):
+		if not self.is_blocked(player):
+			return True
+		else:
+			self.get_next(player)
+	
+	#should call get next of player of the attack first (or player if inclusive)
+	#chooses the next person from the last until we reach the player to stop
+	def get_next(self, victim):
+		next_player_index = (self.game.players.index(victim) + 1) % len(self.game.players)
+		if self.game.players[next_player_index] != self.played_by:
+			self.fire(self.game.players[next_player_index])
+		else:
+			Card.on_finished(self)
 
 	def attack(self):
 		pass

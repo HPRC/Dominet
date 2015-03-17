@@ -18,7 +18,7 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 	$scope.disabled = function(card){
 		if ((card.title in $scope.kingdom && $scope.kingdom[card.title].count === 0 || 
 			card.title in $scope.baseSupply && $scope.baseSupply[card.title].count === 0) 
-			&& ($scope.modeJson.allow_empty === undefined || $scope.modeJson.allow_empty === false)){
+			&& $scope.modeJson.allow_empty !== true){
 			return true;
 		}
 

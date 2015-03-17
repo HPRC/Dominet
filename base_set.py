@@ -79,15 +79,13 @@ class Moat(crd.Card):
 		def new_cb(selection):
 			self.post_select(selection)
 			react_to_callback()
-
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = new_cb
 
 	def post_select(self, selection):
-		self.played_by.waiting["cb"] = None
 		if selection[0] == "Reveal":
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
-			self.played_by.protection += 1
+			self.played_by.protection = 1
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
@@ -195,15 +193,13 @@ class Bureaucrat(crd.AttackCard):
 	def attack(self):
 		for i in self.played_by.get_opponents():
 			if not crd.AttackCard.is_blocked(self, i):
-				i_victory_cards = set(i.hand.get_cards_by_type("Victory"))
+				i_victory_cards = list(set(i.hand.get_cards_by_type("Victory")))
 				if len(i_victory_cards) == 0:
 					self.game.announce(i.name_string() + " has no Victory cards & reveals " + i.hand.reveal_string())
-					crd.Card.on_finished(self, False, False)
 				elif len(i_victory_cards) == 1:
 					self.game.announce(i.name_string() + " puts " + i_victory_cards[0].log_string() + " back on top of the deck")
 					i.discard([i_victory_cards[0].title], i.deck)
 					i.update_hand()
-					crd.Card.on_finished(self, False, False)
 				else:
 					i.select(1, 1, crd.card_list_to_titles(i_victory_cards),
 						"select Victory card to put back")
@@ -215,12 +211,15 @@ class Bureaucrat(crd.AttackCard):
 					i.waiting["cb"] = post_select_on
 					self.played_by.waiting["on"].append(i)
 					self.played_by.wait("Waiting for other players to choose a Victory card to put back")
+		if len(self.played_by.waiting["on"]) == 0:
+			crd.Card.on_finished(self, False, False)
 
 	def post_select(self, selection, victim):
 		victim.discard(selection, victim.deck)
 		self.game.announce(victim.name_string() + " puts " + self.game.card_from_title(selection[0]).log_string() + " back on top of the deck")
 		victim.update_hand()
-		crd.Card.on_finished(self, False, False)
+		if len(self.played_by.waiting["on"]) == 0:
+			crd.Card.on_finished(self, False, False)
 
 
 class Feast(crd.Card):
@@ -277,8 +276,10 @@ class Militia(crd.AttackCard):
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	def attack(self):
+		attacking = False
 		for i in self.played_by.get_opponents():
 			if not crd.AttackCard.is_blocked(self, i):
+				attacking = True
 				if len(i.hand) > 3:
 					i.select(len(i.hand) - 3, len(i.hand) - 3, crd.card_list_to_titles(i.hand.card_array()),
 						"discard down to 3 cards")
@@ -292,6 +293,8 @@ class Militia(crd.AttackCard):
 					self.played_by.wait("Waiting for other players to discard")
 				else:
 					self.game.announce("-- " + i.name_string() + " has 3 cards in hand")
+		if not attacking:
+			crd.Card.on_finished(self, False, False)
 
 	def post_select(self, selection, victim):
 		self.game.announce("-- " + victim.name_string() + " discards down to 3")
@@ -371,12 +374,12 @@ class Spy(crd.AttackCard):
 		self.fire(self.played_by)
 
 	def fire(self, player):
-		if not crd.AttackCard.is_blocked(self, player):
+		if crd.AttackCard.fire(self, player):
 			if len(player.deck) < 1:
 				player.shuffle_discard_to_deck()
 				if len(player.deck) < 1:
 					self.game.announce(player.name_string() + " has no cards to Spy.")
-					self.get_next(player)
+					crd.AttackCard.get_next(self, player)
 					return
 			revealed_card = player.deck[-1]
 			self.played_by.select(1, 1, ["discard", "keep"],
@@ -387,30 +390,20 @@ class Spy(crd.AttackCard):
 
 			self.played_by.waiting["on"].append(self.played_by)
 			self.played_by.waiting["cb"] = post_select_on
-		else:
-			self.get_next(player)
 
 	def post_select(self, selection, victim):
 		if selection[0] == "discard":
 			card = victim.deck.pop()
 			victim.discard_pile.append(card)
-			self.played_by.update_deck_size()
-			self.played_by.update_discard_size()
+			victim.update_deck_size()
+			victim.update_discard_size()
 			self.game.announce(self.played_by.name_string() + " discards " + card.log_string() + " from " +
 				victim.name_string() + "'s deck")
 		else:
 			card = victim.deck[-1]
 			self.game.announce(self.played_by.name_string() + " leaves " + card.log_string() + " on " +
 				victim.name_string() + "'s deck")
-		self.get_next(victim)
-
-	def get_next(self, victim):
-		next_player_index = (self.game.players.index(victim) + 1) % len(self.game.players)
-		if self.game.players[next_player_index] != self.played_by:
-			self.fire(self.game.players[next_player_index])
-		else:
-			crd.Card.on_finished(self, False, False)
-
+		crd.AttackCard.get_next(self, victim)
 
 class Smithy(crd.Card):
 	def __init__(self, game, played_by):
@@ -439,15 +432,15 @@ class Thief(crd.AttackCard):
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	def attack(self):
-		self.get_next(self.played_by)
+		crd.AttackCard.get_next(self, self.played_by)
 
 	def fire(self, player):
-		if not crd.AttackCard.is_blocked(self, player):
+		if crd.AttackCard.fire(self, player):
 			if len(player.deck) < 2:
 				player.shuffle_discard_to_deck()
 				if len(player.deck) < 2:
 					self.game.announce(player.name_string() + " has no cards to Thieve.")
-					self.get_next(player)
+					crd.AttackCard.get_next(self, player)
 					return
 			revealed_cards = [player.deck.pop(), player.deck.pop()]
 			revealed_treasure = [x for x in revealed_cards if "Treasure" in x.type]
@@ -474,7 +467,7 @@ class Thief(crd.AttackCard):
 					self.played_by.waiting["cb"] = post_select_gain
 				else:
 					self.played_by.select(1, 1, crd.card_list_to_titles(revealed_treasure),
-						"Choose" + player.name + "'s Treasure to trash")
+						"Choose " + player.name + "'s Treasure to trash")
 
 					def post_select_trash(selection, thieved=player, cards=revealed_treasure):
 						self.post_select_trash(selection, thieved, cards)
@@ -482,15 +475,17 @@ class Thief(crd.AttackCard):
 					self.played_by.waiting["on"].append(self.played_by)
 					self.played_by.waiting["cb"] = post_select_trash
 			else:
-				crd.Card.on_finished(self, True, True)
-		else:
-			self.get_next(player)
+				#if no treasure, add the revealed cards to the discard
+				player.discard_pile += revealed_cards
+				player.update_discard_size()
+				crd.AttackCard.get_next(self, player)
 
 	def post_select_gain(self, selection, thieved, card):
 		if selection[0] == "Yes":
 			self.game.trash_pile.pop()
 			self.played_by.gain(card, False)
-		self.get_next(thieved)
+			self.game.update_trash_pile()
+		crd.AttackCard.get_next(self, thieved)
 
 	def post_select_trash(self, selection, thieved, cards):
 		card_to_trash = [x for x in cards if selection[0] == x.title][0]
@@ -508,13 +503,6 @@ class Thief(crd.AttackCard):
 
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = post_select_gain
-
-	def get_next(self, victim):
-		next_player_index = (self.game.players.index(victim) + 1) % len(self.game.players)
-		if self.game.players[next_player_index] != self.played_by:
-			self.fire(self.game.players[next_player_index])
-		else:
-			crd.Card.on_finished(self, True, True)
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-danger'>", "Thieves" if plural else self.title, "</span>"])
@@ -644,7 +632,7 @@ class Library(crd.Card):
 						self.post_select(selection, card)
 
 					self.played_by.waiting["cb"] = post_select_card
-					self.played_by.waiting["on"].append(self)
+					self.played_by.waiting["on"].append(self.played_by)
 					return
 				else:
 					self.played_by.write_json(command="announce",msg="-- You draw " + top_card.log_string())
@@ -697,7 +685,7 @@ class Market(crd.Card):
 		self.played_by.actions += 1
 		self.played_by.balance += 1
 		self.played_by.buys += 1
-		self.game.announce("-- drawing " + drawn + " and gaining +1 action")
+		self.game.announce("-- drawing " + drawn + " , gaining +1 action and $1")
 		crd.Card.on_finished(self)
 
 
@@ -712,11 +700,15 @@ class Mine(crd.Card):
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		treasure_cards = self.hand.get_cards_by_type("Treasure")
-		self.played_by.select(1, 1, crd.card_list_to_titles(treasure_cards),
-		 "select treasure to trash")
-		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = self.post_select
+		treasure_cards = self.played_by.hand.get_cards_by_type("Treasure")
+		if len(treasure_cards) > 0:
+			self.played_by.select(1, 1, crd.card_list_to_titles(treasure_cards),
+			 "select treasure to trash")
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.post_select
+		else:
+			self.game.announce("-- but has no treasure cards to trash")
+			crd.Card.on_finished(self)
 
 	def post_select(self, selection):
 		self.played_by.discard(selection, self.game.trash_pile)
