@@ -23,8 +23,11 @@ class Cellar(crd.Card):
 
 	def post_select(self, selection):
 		self.played_by.waiting["cb"] = None
-		self.played_by.write_json(command="announce", msg="-- you discard " + 
-			" , ".join(list(map(lambda x: self.game.card_from_title(x).log_string(), selection))))
+		if len(selection) > 0:
+			self.played_by.write_json(command="announce", msg="-- you discard " + 
+				" , ".join(list(map(lambda x: self.game.card_from_title(x).log_string(), selection))))
+		else:
+			self.played_by.write_json(command="announce", msg="-- you discard nothing")
 		self.played_by.announce_opponents("-- discarding and drawing " + str(len(selection)) + " cards")
 		self.played_by.discard(selection, self.played_by.discard_pile)
 		self.played_by.draw(len(selection))

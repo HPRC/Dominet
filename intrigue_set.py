@@ -423,12 +423,13 @@ class Scout(crd.Card):
 		#removed the revealed cards from deck
 		num_truncate = len(revealed)
 		del self.played_by.deck[-num_truncate:]
-		
+
 		self.game.announce("-- revealing " + " ,".join(list(map(lambda x: x.log_string(), revealed))))
 		victory_cards = [x for x in revealed if "Victory" in x.type]
 		for vc in victory_cards:
 			self.played_by.hand.add(vc)
 		self.played_by.update_hand()
+		self.played_by.update_deck_size()
 
 		cards_left = [x for x in revealed if "Victory" not in x.type]
 		if len(cards_left) == 0:
@@ -437,26 +438,28 @@ class Scout(crd.Card):
 			self.played_by.deck.append(cards_left[0])
 			crd.Card.on_finished(self, False, False)
 		else:
+			if len(set(map(lambda x: x.title, cards_left))) == 1:
+				self.played_by.deck.append(cards_left)
+				crd.Card(self, False, False)
+			else:
+				def post_reorder_with(order, cards_left=cards_left):
+					self.post_reorder(order, cards_left)
 
-			def post_reorder_with(order, cards_left=cards_left):
-				self.post_reorder(order, cards_left)
-
-			self.played_by.reorder(list(map(lambda x: x.title, cards_left)), "Rearrange the cards to put back on top of deck (left is topmost)")
-			self.played_by.waiting["on"].append(self.played_by)
-			self.played_by.waiting["cb"] = post_reorder_with
+				self.played_by.reorder(list(map(lambda x: x.title, cards_left)), "Rearrange the cards to put back on top of deck (left is topmost)")
+				self.played_by.waiting["on"].append(self.played_by)
+				self.played_by.waiting["cb"] = post_reorder_with
 
 	def post_reorder(self, order, cards_to_reorder):
-		num_revealed = len(order)
-		ordered_arrangement = []
+		#reverse the order because on frontend the leftmost is the top so we add the rightmost to the end of the
+		#deck first
+		order = reversed(order)
 		#we check naively to match the revealed cards to the new order O(N^2) is ok since max N = 4
 		for x in order:
 			for y in cards_to_reorder:
 				if x == y.title:
-					ordered_arrangement.append(y)
-		#reverse the order because on frontend the leftmost is the top so we add the rightmost to the end of the
-		#deck first
-		for i in reversed(ordered_arrangement):
-			self.played_by.deck.append(i)
+					self.played_by.deck.append(y)
+					break
+
 		crd.Card.on_finished(self, False, False)
 
 # --------------------------------------------------------
