@@ -19,7 +19,7 @@ class Game():
 			i.write_json(command="chat", msg=msg, speaker=speaker)
 
 	def start_game(self):
-		self.announce("Starting game with " + str(self.players[0].name) + " and " + str(self.players[1].name))
+		self.announce("Starting game with " + " and ".join(map(lambda x: str(x.name), self.players)))
 		for i in self.players:
 			i.setup()
 		self.announce("<b>---- " + self.players[self.turn].name_string() + " 's turn " + str(self.turn_count) + " ----</b>")
