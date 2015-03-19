@@ -24,7 +24,7 @@ clientModule.controller("chatController", function($rootScope, $scope, socket){
 				$scope.$apply(function(){
 					$scope.messages.push({
 						speaker: jsonres.speaker,
-						msg: jsonres.msg
+						msg: " " + jsonres.msg
 					});
 				});
 			} else {
