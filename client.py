@@ -29,7 +29,7 @@ class Client():
 	def exec_commands(self, data):
 		cmd = data["command"]
 
-		if self.game == None:
+		if self.game is None:
 			if cmd == "chat":
 				self.handler.chat(data["msg"], self.name)
 			return
@@ -37,11 +37,12 @@ class Client():
 		if cmd == "chat":
 			self.game.chat(data["msg"], self.name)
 
+
 class DmClient(Client):
 
 	def write_json(self, **kwargs):
 		if kwargs["command"] == "updateMode":
-			#ignore the last_mode if it was a wait for disconnecting
+			# ignore the last_mode if it was a wait for disconnecting
 			if not ("msg" in kwargs and "disconnected" in kwargs["msg"]):
 				# callback used to resume mode if reconnect
 				self.last_mode = kwargs
@@ -257,7 +258,7 @@ class DmClient(Client):
 
 	def gain(self, card, from_supply=True):
 		new_card = self.get_card_from_supply(card, from_supply)
-		if new_card != None:
+		if new_card is not None:
 			self.game.announce(self.name_string() + " gains " + new_card.log_string()) # TODO perhaps delete to customize gains messages (for attacks etc.)
 			self.discard_pile.append(new_card)
 			self.update_discard_size()
@@ -266,7 +267,7 @@ class DmClient(Client):
 
 	def gain_to_hand(self, card, from_supply=True):
 		new_card = self.get_card_from_supply(card, from_supply)
-		if new_card != None:
+		if new_card is not None:
 			self.game.announce(self.name_string() + " gains " + new_card.log_string() + " to their hand.")
 			self.hand.add(new_card)
 			self.update_hand()
@@ -277,7 +278,7 @@ class DmClient(Client):
 		self.write_json(command="updateMode", mode="selectSupply", price=price_limit, equal_only=equal_only,
 			type_constraint=type_constraint, allow_empty=allow_empty)
 
-	def update_resources(self, playedMoney = False):
+	def update_resources(self, playedMoney=False):
 		if playedMoney:
 			self.write_json(command="updateMode", mode="buy")
 		self.write_json(command="updateResources", actions=self.actions, buys=self.buys, balance=self.balance)
@@ -287,6 +288,15 @@ class DmClient(Client):
 
 	def get_opponents(self):
 		return [x for x in self.game.players if x != self]
+
+	def get_left_opponent(self):
+		counter = 0
+		for x in self.game.players:
+			if x == self:
+				break
+			counter += 1
+
+		return self.game.players[(counter + 1) % len(self.game.players)]
 
 	def announce_opponents(self, msg):
 		self.game.announce_to(self.get_opponents(), msg)
@@ -311,7 +321,7 @@ class DmClient(Client):
 			self.update_resources(True)
 		self.update_hand()
 
-	def total_vp(self, returnCards = False):
+	def total_vp(self, returnCards=False):
 		total = 0
 		# dictionary of vp {"Province" : [<card Province>, 2]}
 		vp_dict = {}
