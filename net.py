@@ -160,7 +160,7 @@ class DmHandler(GameHandler):
 		#resume on player reconnect
 		for each_game in self.games:
 			for p in each_game.players:
-				if (self.client.name == p.name):
+				if self.client.name == p.name:
 					p.resume_state(self.client)
 					self.client.game = p.game
 					#update game players

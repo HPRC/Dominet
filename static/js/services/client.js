@@ -142,7 +142,9 @@ clientModule.factory('client', function(socket) {
 	constructor.prototype.buyCard = function(card){
 		if (this.balance >= card.price + this.priceModifier){
 			this.buys -= 1;
-			this.balance -= card.price + this.priceModifier;
+			if (card.price + this.priceModifier > 0){
+				this.balance -= card.price + this.priceModifier;
+			}
 			socket.send(JSON.stringify({"command":"buyCard", "card": card.title}));
 		}
 	};

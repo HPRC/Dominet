@@ -142,6 +142,8 @@ class DmClient(Client):
 				self.game.start_game()
 			elif self.game.players_ready():
 				self.game.load_supplies()
+				if self.game.price_modifier != 0:
+					self.game.update_all_prices()
 				self.resume()
 		elif cmd == "play":
 			if not data["card"] in self.hand:

@@ -562,7 +562,7 @@ class Upgrade(crd.Card):
 
 		selection = self.played_by.hand.auto_select(1, False)
 		if selection:
-			self.trash_select(selection[0])
+			self.trash_select(selection)
 		else:
 			self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Choose a card to trash:")
 			self.played_by.waiting["on"].append(self.played_by)

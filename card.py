@@ -32,7 +32,7 @@ class Card():
 			"title": self.title,
 			"type": self.type,
 			"description": self.description,
-			"price": self.get_price()
+			"price": self.price
 		}
 
 	#called at the end of turn if this card was played
