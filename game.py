@@ -41,7 +41,7 @@ class Game():
 
 
 class DmGame(Game):
-	def __init__(self, players, required_cards, excluded_cards, prosperity_supply):
+	def __init__(self, players, required_cards, excluded_cards, prosperity_supply=False):
 		Game.__init__(self, players, prosperity_supply)
 		self.trash_pile = []
 		self.empty_piles = 0
