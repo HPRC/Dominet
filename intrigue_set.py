@@ -482,6 +482,48 @@ class Duke(crd.VictoryCard):
 		discard_count = self.played_by.get_card_count_in_list('Duchy', self.played_by.discard_pile)
 		return int(hand_count + deck_count + discard_count)
 
+class Minion(crd.AttackCard):
+	def __init__(self, game, played_by):
+		crd.AttackCard.__init__(self, game, played_by)
+		self.title = "Minion"
+		self.description = "+1 Action\n Choose one: +$2 or discard your hand, draw 4 cards and each other player\
+		with at least 5 cards in hand discards his hand and draws 4 cards."
+		self.price = 5
+		self.type = "Action|Attack"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.actions += 1
+		self.played_by.update_resources()
+		self.game.announce("-- gaining 1 action")
+		self.played_by.select(1, 1, ["+$2", "discard hand and draw 4 cards"], "Choose one:")
+		self.played_by.waiting["on"].append(self.played_by)
+		self.played_by.waiting["cb"] = self.post_selection
+
+	def post_selection(self, selection):
+		if "+$2" in selection[0]:
+			self.played_by.balance += 2
+			self.game.announce("-- gaining $2")
+			crd.Card.on_finished(self, False, True)
+		else:
+			self.played_by.discard(crd.card_list_to_titles(self.played_by.hand.card_array()), self.played_by.discard_pile)
+			drawn = self.played_by.draw(4)
+			self.game.announce("-- drawing " + drawn + " cards")
+			self.played_by.update_hand()
+			crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+
+	def attack(self):
+		for i in self.played_by.get_opponents():
+			if not crd.AttackCard.is_blocked(self, i):
+				if len(i.hand) >= 5:
+					self.game.announce("-- " + i.name_string() + " discards hand and draws 4")
+					i.discard(crd.card_list_to_titles(i.hand.card_array()), i.discard_pile)
+					i.draw(4)
+					i.update_hand()
+				else:
+					self.game.announce("-- " + i.name_string() + " has less than 5 cards in hand")
+		crd.Card.on_finished(self, False, False)
+
 class Torturer(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)

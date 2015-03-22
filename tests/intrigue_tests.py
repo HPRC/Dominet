@@ -233,11 +233,16 @@ class TestIntrigue(unittest.TestCase):
 		upgrade = intrigue.Upgrade(self.game, self.player1)
 		self.player1.hand.add(upgrade)
 		self.player1.hand.add(upgrade)
+		self.player1.hand.add(crd.Copper(self.game, self.player1))
+		self.player1.hand.add(crd.Estate(self.game, self.player1))
+
 		upgrade.play()
 		self.player1.waiting["cb"](["Copper"])
 
 		upgrade.play()
 		self.player1.waiting["cb"](["Estate"])
+		self.player1.waiting["cb"](["Silver"])
+		self.assertTrue("Silver" == self.player1.discard_pile[-1].title)
 
 	def test_Torturer(self):
 		torturer = intrigue.Torturer(self.game, self.player1)
@@ -412,6 +417,37 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.deck[-2].title == "Scout")
 		#decksize should be 2 less since we took province and great hall out
 		self.assertTrue(len(self.player1.deck) == decklength - 2)
+
+	def test_Minion(self):
+			minion = intrigue.Minion(self.game, self.player1)
+			self.player1.hand.add(minion)
+			moat = base.Moat(self.game, self.player3)
+			self.player3.hand.add(moat)
+			#top 4 cards of player2's deck will be drawn
+			top4 = self.player2.deck[-4:]
+			discard_size = len(self.player2.discard_pile)
+			minion.play()
+			self.player1.exec_commands({"command": "post_selection", "selection": ["discard hand and draw 4 cards"]})
+			self.player3.exec_commands({"command": "post_selection", "selection": ["Reveal"]})
+			self.assertTrue(len(self.player1.hand) == 4)
+			self.assertTrue(len(self.player2.hand) == 4)
+			for x in top4:
+				self.assertTrue(x in self.player2.hand.card_array())
+			self.assertTrue(discard_size + 5 == len(self.player2.discard_pile))
+			self.assertTrue(len(self.player3.hand) > 4)
+
+
+	def test_Minion_Throne_Room(self):
+			minion = intrigue.Minion(self.game, self.player1)
+			throneroom = base.Throne_Room(self.game, self.player1)
+			self.player1.hand.add(minion)
+			self.player1.hand.add(throneroom)
+			throneroom.play()
+			self.player1.exec_commands({"command": "post_selection", "selection": ["Minion"]})
+			self.player1.exec_commands({"command": "post_selection", "selection": ["+$2"]})
+			self.player1.exec_commands({"command": "post_selection", "selection": ["discard hand and draw 4 cards"]})
+			self.assertTrue(len(self.player1.hand) == 4)
+			self.assertTrue(self.player1.balance == 2)
 
 if __name__ == '__main__':
 	unittest.main()
