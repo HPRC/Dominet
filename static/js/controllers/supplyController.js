@@ -51,5 +51,9 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 		}
 	};
 
+    $scope.selectNone = function() {
+        socket.send(JSON.stringify({"command": "selectSupply", "card": "None"}));
+    };
+
 	$scope.getButtonStyle = cardStyle.getButtonStyle;
 });

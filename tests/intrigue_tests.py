@@ -12,19 +12,19 @@ import os
 sys.path.append(os.path.dirname(__file__))
 import base_tests as bt
 
+
 class TestIntrigue(unittest.TestCase):
 	def setUp(self):
 		self.player1 = c.DmClient("player1", 0, bt.PlayerHandler())
 		self.player2 = c.DmClient("player2", 1, bt.PlayerHandler())
 		self.player3 = c.DmClient("player3", 2, bt.PlayerHandler())
-		self.game = g.DmGame([self.player1, self.player2, self.player3], [])
+		self.game = g.DmGame([self.player1, self.player2, self.player3], [], [])
 		self.game.supply = self.game.init_supply(kg.all_cards(self.game))
 		for i in self.game.players:
 			i.game = self.game
 			i.setup()
 			i.handler.log = []
 		self.player1.take_turn()
-
 
 	# --------------------------------------------------------
 	# ----------------------- Intrigue -----------------------
@@ -99,7 +99,6 @@ class TestIntrigue(unittest.TestCase):
 		# sadly add an estate to hand since no guarantees -- actually overwrites hand
 		self.player1.hand.add(estate)
 		self.player1.actions = 3
-
 
 		# decline Estate discard, gain Estate to discard pile.
 		baron.play()
@@ -328,41 +327,24 @@ class TestIntrigue(unittest.TestCase):
 
 	def test_Tribute(self):
 		tribute = intrigue.Tribute(self.game, self.player1)
-		self.player1.hand.add(tribute, 2)
-		estate = crd.Estate(self.game, self.player2)
+		self.player1.hand.add(tribute)
+		self.player1.hand.add(tribute)
 		copper = crd.Copper(self.game, self.player2)
 		great_hall = intrigue.Great_Hall(self.game, self.player2)
 		swindler = intrigue.Swindler(self.game, self.player2)
 
-		self.player2.deck.append(estate)
+		self.player2.deck.append(copper)
 		self.player2.deck.append(copper)
 		self.player2.deck.append(great_hall)
 		self.player2.deck.append(swindler)
 
 		cards_in_hand = len(self.player1.hand.card_array())
 		tribute.play()
-		self.assertTrue(self.player1.actions == 2)
-		self.assertTrue(len(self.player1.hand.card_array()) == cards_in_hand)
+		self.assertTrue(self.player1.actions == 4)
 		self.assertTrue(len(self.player2.discard_pile) == 2)
 
 		tribute.play()
-		self.assertTrue(self.player1.balance == 1)
-
-	def test_Mining_Village(self):
-		mining_village = intrigue.Mining_Village(self.game, self.player1)
-		self.player1.hand.add(mining_village, 2)
-		mining_village.play()
-
-		self.assertTrue(self.player1.actions == 2)
-
-		self.player1.waiting["cb"](["No"])
-		self.assertTrue(self.player1.balance == 0)
-
-		mining_village.play()
-		self.player1.waiting["cb"](["Yes"])
 		self.assertTrue(self.player1.balance == 2)
-		self.assertTrue(len(self.game.trash_pile) == 1)
-
 
 	def test_Mining_Village(self):
 		mining_village = intrigue.Mining_Village(self.game, self.player1)
@@ -375,7 +357,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.actions == 2)
 		self.assertTrue(mining_village not in self.game.trash_pile)
 
-		#note discard takes in a string as a parameter so the trashed mining village
+		# note discard takes in a string as a parameter so the trashed mining village
 		# could be mining_village or mining_village2 it is not guaranteed to be the same
 		mining_village2.play()
 		self.player1.waiting["cb"](["Yes"])
@@ -398,6 +380,52 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.balance == 2)
 		self.player1.waiting["cb"]("Yes")
 		self.assertTrue(self.player1.balance == 2)
+
+	def test_Masquerade(self):
+		masquerade = intrigue.Masquerade(self.game, self.player1)
+		curse = crd.Curse(self.game, self.player1)
+		baron = intrigue.Baron(self.game, self.player2)
+		tribute = intrigue.Tribute(self.game, self.player3)
+
+		self.player1.hand.add(masquerade)
+		self.player1.hand.add(curse)
+		self.player2.hand.add(baron)
+		self.player3.hand.add(tribute)
+
+		masquerade.play()
+		self.assertTrue(self.player1.hand.get_count("Curse") == 1)
+		self.player1.waiting["cb"](["Curse"])
+		self.assertTrue(self.player1.hand.get_count("Curse") == 0)
+		self.assertTrue(self.player2.hand.get_count("Curse") == 1)
+
+		self.assertTrue(self.player2.hand.get_count("Baron") == 1)
+		self.player2.waiting["cb"](["Baron"])
+		self.assertTrue(self.player2.hand.get_count("Baron") == 0)
+		self.assertTrue(self.player3.hand.get_count("Baron") == 1)
+
+		self.assertTrue(self.player3.hand.get_count("Tribute") == 1)
+		self.player3.waiting["cb"](["Tribute"])
+		self.assertTrue(self.player3.hand.get_count("Tribute") == 0)
+		self.assertTrue(self.player1.hand.get_count("Tribute") == 1)
+
+		self.player1.waiting["cb"](["Tribute"])
+		self.assertTrue(self.player1.hand.get_count("Tribute") == 0)
+
+	def test_Saboteur(self):
+		saboteur = intrigue.Saboteur(self.game, self.player1)
+		steward = intrigue.Steward(self.game, self.player2)
+		copper = crd.Copper(self.game, self.player2)
+
+		self.player2.deck.append(steward)
+		self.player2.deck.append(copper)
+
+		saboteur.play()
+
+		self.player2.waiting["cb"]("Curse")
+
+		self.assertTrue(self.player2.discard_pile.pop().title == "Curse")
+		self.assertTrue(self.player2.discard_pile.pop().title == "Copper")
+
 
 if __name__ == '__main__':
 	unittest.main()

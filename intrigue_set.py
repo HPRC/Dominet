@@ -71,7 +71,7 @@ class Secret_Chamber(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Secret Chamber"
-		self.description = "Discard any number of cards. +$1 per card discarded.\n When another player plays an Attack card, you may reveal this from your hand. If you do, +2 cards, then put 2 cards from your hand on top of your deck."
+		self.description = "Discard any number of cards. +$1 per card discarded.\n Reaction: When another player plays an Attack card, you may reveal this from your hand. If you do, +2 cards, then put 2 cards from your hand on top of your deck."
 		self.price = 2
 		self.type = "Action|Reaction"
 		self.trigger = "Attack"
@@ -116,6 +116,9 @@ class Secret_Chamber(crd.Card):
 			self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "Put two cards to the top of your deck")
 			self.played_by.waiting["on"].append(self.played_by)
 			self.played_by.waiting["cb"] = post_react_draw_select_callback
+
+			for i in self.played_by.get_opponents:
+				i.wait("Waiting for " + self.played_by.name_string() + " to put cards back on their deck")
 
 	def post_react_draw_select(self, selection):
 		self.played_by.deck.append(self.played_by.hand.extract(selection[0]))
@@ -549,8 +552,7 @@ class Torturer(crd.AttackCard):
 			victim.update_hand()
 			crd.AttackCard.get_next(self, victim)
 		else:
-			print("printing torturer victim's waiting on --- debugging")
-			print(list(map(lambda x: x.name, victim.waiting["on"])))
+			list(map(lambda x: x.name, victim.waiting["on"]))
 			discard_selection = victim.hand.auto_select(2, True)
 			if discard_selection:
 				victim.discard(discard_selection, victim.discard_pile)
@@ -671,13 +673,16 @@ class Saboteur(crd.AttackCard):
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		self.game.announce(self.played_by.name_string() + " goes sabotaging")
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	def attack(self):
 		crd.AttackCard.get_next(self, self.played_by)
 
 	def fire(self, victim):
+		# check if blocked by moat first.
+		if not crd.AttackCard.fire(self, victim):
+			return
+
 		self.game.announce("-- " + victim.name_string() + " is being sabotaged")
 		sabotaged = False
 
@@ -687,11 +692,8 @@ class Saboteur(crd.AttackCard):
 		# while something hasn't been trashed and we haven't gone through the whole deck
 		while sabotaged is False and len(discarded) < total_deck_count:
 			topdeck = victim.topdeck()
-			if topdeck.price >= 3:
+			if topdeck.price >= 3:  # TODO becomes get_price after merge with henry's code
 				victim.discard([topdeck.title], self.game.trash_pile)
-
-				self.game.announce(self.played_by.name_string() + " trashes " + self.game.log_string_from_title(topdeck.title)
-					+ " from the top of " + victim.name_string() + "'s deck.")
 				sabotaged = True
 				trashed = topdeck
 
@@ -700,11 +702,12 @@ class Saboteur(crd.AttackCard):
 				discarded.append(topdeck.title)
 
 		if len(discarded) > 0:
-			self.game.announce("-- discarding " + " ,".join(
+			self.game.announce("-- discarding " + ", ".join(
 				list(map(lambda x: self.game.log_string_from_title(x), discarded))))
 
 		if not sabotaged:
 			self.game.announce("-- but there was nothing to sabotage")
+			crd.AttackCard.get_next(self, victim)
 		else:
 			self.game.announce("-- trashing " + trashed.log_string())
 
@@ -712,15 +715,22 @@ class Saboteur(crd.AttackCard):
 				self.post_select(selection, victim)
 
 			# msg should be a param for select from supply?
-			self.game.announce("-- select a card for " + victim.name_string() + " to gain costing "
+			self.game.announce("-- " + victim.name_string() + " gains a card costing "
 			                   + str(trashed.price - 2) + " or less")
-			self.played_by.select_from_supply(trashed.price - 2)
-			self.played_by.waiting["on"].append(self.played_by)
-			self.played_by.waiting["cb"] = post_select_cb
+			victim.select_from_supply(price_limit=trashed.price - 2, optional=True)
+			victim.waiting["on"].append(victim)
+			victim.waiting["cb"] = post_select_cb
+			self.played_by.waiting["on"].append(victim)
+			self.played_by.wait("waiting for " + victim.name + " to gain a card")
 
 	def post_select(self, selection, victim):
-		victim.gain(selection)
-		crd.Card.on_finished(self)
+		if selection != "None":
+			victim.gain(selection)
+		else:
+			selection = "nothing"
+			self.game.announce("-- " + victim.name_string() + " gains " + selection)
+
+		crd.AttackCard.get_next(self, victim)
 
 
 class Trading_Post(crd.Card):
