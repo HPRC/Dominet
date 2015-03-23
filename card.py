@@ -100,16 +100,16 @@ class AttackCard(Card):
 			self.game.announce(target.name_string() + " is unaffected by the attack")
 			return True
 
-	#used in cards where we have to wait on each player to make a selection or something
-	#if not blocked then continue the attack and a post_select or choice will trigger the get_next
+	# used in cards where we have to wait on each player to make a selection or something
+	# if not blocked then continue the attack and a post_select or choice will trigger the get_next
 	def fire(self, player):
 		if not self.is_blocked(player):
 			return True
 		else:
 			self.get_next(player)
 	
-	#should call get next of player of the attack first (or player if inclusive)
-	#chooses the next person from the last until we reach the player to stop
+	# should call get next of player of the attack first (or player if inclusive)
+	# chooses the next person from the last until we reach the player to stop
 	def get_next(self, victim):
 		next_player_index = (self.game.players.index(victim) + 1) % len(self.game.players)
 		if self.game.players[next_player_index] != self.played_by:
@@ -149,6 +149,15 @@ class Gold(Money):
 		self.value = 3
 		self.price = 6
 		self.description = "+$3"
+
+
+class Platinum(Money):
+	def __init__(self, game, played_by):
+		Money.__init__(self, game, played_by)
+		self.title = "Platinum"
+		self.value = 5
+		self.price = 9
+		self.description = "+$5"
 
 
 class Curse(Card):
@@ -212,6 +221,15 @@ class Province(VictoryCard):
 		self.description = "+6 VP"
 		self.price = 8
 		self.vp = 6
+
+
+class Colony(VictoryCard):
+	def __init__(self, game, played_by):
+		VictoryCard.__init__(self, game, played_by)
+		self.title = "Colony"
+		self.description = "+10 VP"
+		self.price = 11
+		self.vp = 10
 
 
 # Utility

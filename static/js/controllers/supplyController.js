@@ -51,7 +51,6 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 		}
 	};
 
-
 	$scope.getPrice = function(card){
 		if (card.price + client.getPriceModifier() <= 0){
 			return 0;	
@@ -59,6 +58,10 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 			return card.price + client.getPriceModifier();
 		}
 	};
+
+    $scope.selectNone = function() {
+        socket.send(JSON.stringify({"command": "selectSupply", "card": ["None"]}));
+    };
 
 	$scope.getButtonStyle = cardStyle.getButtonStyle;
 });

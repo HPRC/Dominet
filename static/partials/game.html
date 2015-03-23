@@ -18,6 +18,11 @@
 					<tr ng-repeat="card in baseSupplyArray | orderBy:'price':true">
 						<td class="supplyCardContainer"><supply-card></supply-card></td>
 					</tr>
+                    <tr ng-show="modeJson.optional">
+                        <td class="supplyCardContainer">
+                            <button ng-click="selectNone()">None</button>
+                        </td>
+                    </tr>
 				</table>
 			</div>
 		</div>

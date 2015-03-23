@@ -6,7 +6,7 @@ clientModule.factory('socket', function($rootScope){
 
 	socket.onmessage = function(event){
 		$rootScope.$emit("socketmsg", event);
-	}
+	};
 
 	socket.close = function(event){
 		console.log("socket closed");
