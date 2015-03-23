@@ -396,6 +396,7 @@ class Baron(crd.Card):
 			self.played_by.gain("Estate")
 		crd.Card.on_finished(self)
 
+
 class Bridge(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -412,6 +413,7 @@ class Bridge(crd.Card):
 		self.game.update_all_prices()
 		self.game.announce("-- gaining 1 buy, $1")
 		crd.Card.on_finished(self, False, True)
+
 
 class Conspirator(crd.Card):
 	def __init__(self, game, played_by):
@@ -438,6 +440,7 @@ class Conspirator(crd.Card):
 		self.game.announce(announcement)
 		crd.Card.on_finished(self)
 
+
 class Coppersmith(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -457,6 +460,7 @@ class Coppersmith(crd.Card):
 		for card in self.played_by.all_cards():
 			if card.title == "Copper":
 				card.value -= 1
+
 
 class Ironworks(crd.Card):
 	def __init__(self, game, played_by):
@@ -522,6 +526,7 @@ class Mining_Village(crd.Card):
 				self.game.update_trash_pile()
 		crd.Card.on_finished(self)
 
+
 class Scout(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -542,7 +547,7 @@ class Scout(crd.Card):
 			revealed = self.played_by.deck
 		else:
 			revealed = self.played_by.deck[-4:]
-		#removed the revealed cards from deck
+		# removed the revealed cards from deck
 		num_truncate = len(revealed)
 		del self.played_by.deck[-num_truncate:]
 
@@ -572,10 +577,10 @@ class Scout(crd.Card):
 				self.played_by.waiting["cb"] = post_reorder_with
 
 	def post_reorder(self, order, cards_to_reorder):
-		#reverse the order because on frontend the leftmost is the top so we add the rightmost to the end of the
-		#deck first
+		# reverse the order because on frontend the leftmost is the top so we add the rightmost to the end of the
+		# deck first
 		order = reversed(order)
-		#we check naively to match the revealed cards to the new order O(N^2) is ok since max N = 4
+		# we check naively to match the revealed cards to the new order O(N^2) is ok since max N = 4
 		for x in order:
 			for y in cards_to_reorder:
 				if x == y.title:
@@ -603,6 +608,7 @@ class Duke(crd.VictoryCard):
 		deck_count = self.played_by.get_card_count_in_list('Duchy', self.played_by.deck)
 		discard_count = self.played_by.get_card_count_in_list('Duchy', self.played_by.discard_pile)
 		return int(hand_count + deck_count + discard_count)
+
 
 class Minion(crd.AttackCard):
 	def __init__(self, game, played_by):
@@ -645,6 +651,7 @@ class Minion(crd.AttackCard):
 				else:
 					self.game.announce("-- " + i.name_string() + " has less than 5 cards in hand")
 		crd.Card.on_finished(self, False, False)
+
 
 class Torturer(crd.AttackCard):
 	def __init__(self, game, played_by):
@@ -918,6 +925,7 @@ class Harem(crd.Money):
 
 	def get_vp(self):
 		return self.vp
+
 
 class Nobles(crd.VictoryCard):
 	def __init__(self, game, played_by):
