@@ -118,7 +118,7 @@ class Secret_Chamber(crd.Card):
 			self.played_by.waiting["cb"] = post_react_draw_select_callback
 
 			for i in self.played_by.get_opponents():
-				i.wait("Waiting for " + self.played_by.name_string() + " to put cards back on their deck")
+				i.wait("Waiting for " + self.played_by.name + " to put cards back on their deck")
 
 	def post_react_draw_select(self, selection):
 		self.played_by.deck.append(self.played_by.hand.extract(selection[0]))
