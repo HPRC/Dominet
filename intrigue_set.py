@@ -858,7 +858,7 @@ class Saboteur(crd.AttackCard):
 			self.played_by.wait("waiting for " + victim.name + " to gain a card")
 
 	def post_select(self, selection, victim):
-		if selection != "None":
+		if selection[0] != "None":
 			victim.gain(selection[0])
 		else:
 			self.game.announce("-- " + victim.name_string() + " gains nothing")

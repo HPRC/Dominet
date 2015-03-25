@@ -69,15 +69,15 @@ clientModule.controller("lobbyController", function($rootScope, $scope, $modal, 
 	};
 
     $scope.usingIncludes = function(table){
-        return table.required.join(", ")
+        return table.required.join(", ");
     };
 
     $scope.usingExcludes = function(table){
-        return table.excluded.join(", ")
+        return table.excluded.join(", ");
     };
 
     $scope.supplyInfo = function(table){
-        return table.prosperity_supply ? "Prosperity" : "Base"
+        return table.prosperity_supply ? "Prosperity" : "Base";
     };
 
 
