@@ -545,5 +545,10 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(len(self.player3.deck) == 0)
 		self.assertTrue(player3_decksize == len(self.player3.discard_pile))
 
+		self.player2.deck.append(steward)
+		saboteur.play()
+
+		self.player2.waiting["cb"](["None"])
+
 if __name__ == '__main__':
 	unittest.main()

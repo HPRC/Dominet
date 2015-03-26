@@ -119,6 +119,8 @@ class Secret_Chamber(crd.Card):
 
 			for i in self.played_by.get_opponents():
 				i.wait("Waiting for " + self.played_by.name + " to put cards back on their deck")
+		else:
+			react_to_callback()
 
 	def post_react_draw_select(self, selection):
 		self.played_by.deck.append(self.played_by.hand.extract(selection[0]))
@@ -833,7 +835,7 @@ class Saboteur(crd.AttackCard):
 		# while something hasn't been trashed and we haven't gone through the whole deck
 		while sabotaged is False and len(discarded) < total_deck_count:
 			topdeck = victim.topdeck()
-			if topdeck.price >= 3:  # TODO becomes get_price after merge with henry's code
+			if topdeck.get_price() >= 3:
 				self.game.trash_pile.append(topdeck)
 				sabotaged = True
 				trashed = topdeck
@@ -855,17 +857,16 @@ class Saboteur(crd.AttackCard):
 			def post_select_cb(selection, victim=victim):
 				self.post_select(selection, victim)
 
-			# msg should be a param for select from supply?
 			self.game.announce("-- " + victim.name_string() + " gains a card costing "
 			                   + str(trashed.price - 2) + " or less")
-			victim.select_from_supply(price_limit=trashed.price - 2, optional=True)
+			victim.select_from_supply(price_limit=trashed.get_price() - 2, optional=True)
 			victim.waiting["on"].append(victim)
 			victim.waiting["cb"] = post_select_cb
 			self.played_by.waiting["on"].append(victim)
 			self.played_by.wait("waiting for " + victim.name + " to gain a card")
 
 	def post_select(self, selection, victim):
-		if selection != "None":
+		if selection[0] != "None":
 			victim.gain(selection[0])
 		else:
 			self.game.announce("-- " + victim.name_string() + " gains nothing")

@@ -10,9 +10,10 @@ PORT_NUMBER = 9999
 ROOT = "/"
 INDEX = "index.html"
 
+
 class mainHandler(web.RequestHandler):
 	def get(self):
-		if (self.get_cookie("DMTusername") != None):
+		if self.get_cookie("DMTusername") is not None:
 			self.render("main.html")
 		else:
 			self.render(INDEX)
@@ -23,7 +24,7 @@ class mainHandler(web.RequestHandler):
 
 	def in_game(self):
 		for eg in GameHandler.games:
-			if (self.get_cookie("DMTusername") in list(map(lambda x: x.name, eg.players))):
+			if self.get_cookie("DMTusername") in list(map(lambda x: x.name, eg.players)):
 				return True
 		return False
 
@@ -90,7 +91,7 @@ class GameHandler(websocket.WebSocketHandler):
 		GameHandler.unattachedClients[self.client.name] = self.client
 		GameHandler.update_lobby()
 		self.client.game.players.remove(self.client)
-		if (len(self.client.game.players) == 0):
+		if len(self.client.game.players) == 0:
 			GameHandler.games.remove(self.client.game)
 		else:
 			for p in self.client.get_opponents():
@@ -100,13 +101,13 @@ class GameHandler(websocket.WebSocketHandler):
 		jsondata = json.loads(data)
 		self.client.exec_commands(jsondata)
 		cmd = jsondata["command"]
-		if (cmd == "createTable"):
+		if cmd == "createTable":
 			self.create_table(jsondata)
-		elif (cmd == "leaveTable"):
+		elif cmd == "leaveTable":
 			self.leave_table(jsondata)
-		elif (cmd == "joinTable"):
+		elif cmd == "joinTable":
 			self.join_table(jsondata)
-		elif (cmd == "startGame"):
+		elif cmd == "startGame":
 			table = GameHandler.game_tables[jsondata["host"]]
 			self.start_game(table)
 
@@ -120,12 +121,12 @@ class GameHandler(websocket.WebSocketHandler):
 	def leave_table(self, json):
 		table = GameHandler.game_tables[json["host"]]
 		self.table = None
-		if (self.client == table.host):
-			#no one left at table
+		if self.client == table.host:
+			# no one left at table
 			if len(table.players) == 1:
 				del GameHandler.game_tables[json["host"]]
 			else:
-			#successor host is chosen
+			# successor host is chosen
 				table.remove_player(self.client)
 				GameHandler.game_tables[table.host.name] = table
 				del GameHandler.game_tables[json["host"]]
@@ -147,7 +148,7 @@ class GameHandler(websocket.WebSocketHandler):
 	def on_close(self):
 		if self.client.name in GameHandler.unattachedClients:
 			del GameHandler.unattachedClients[self.client.name]
-		if self.table != None:
+		if self.table is not None:
 			self.leave_table({"host":self.table.host.name})
 		GameHandler.update_lobby()
 		print("\033[94m " + self.client.name + " has closed the SOCKET! \033[0m")
@@ -181,7 +182,7 @@ class DmHandler(GameHandler):
 	
 	# override
 	def on_close(self):
-		if self.client.game == None:
+		if self.client.game is None:
 			GameHandler.on_close(self)
 			return
 		self.client.ready = False
@@ -189,7 +190,7 @@ class DmHandler(GameHandler):
 		# abandoned if everyone left game
 		abandoned = True
 		for i in self.client.game.players:
-			if i.ready == True:
+			if i.ready is True:
 				abandoned = False
 		if abandoned:
 			GameHandler.games.remove(self.client.game)
@@ -201,6 +202,7 @@ class DmHandler(GameHandler):
 						i.write_json(command="announce", msg = self.client.name_string() + " has left.")
 					else:
 						i.wait(self.client.name + " has disconnected!")
+
 
 def main():
 	app = web.Application([
