@@ -467,6 +467,19 @@ class TestIntrigue(unittest.TestCase):
 		#decksize should be 2 less since we took province and great hall out
 		self.assertTrue(len(self.player1.deck) == decklength - 2)
 
+	def test_Scout_autoselect(self):
+		scout = intrigue.Scout(self.game, self.player1)
+		self.player1.deck.append(crd.Copper(self.game, self.player1))
+		self.player1.deck.append(crd.Copper(self.game, self.player1))
+		self.player1.deck.append(crd.Estate(self.game, self.player1))
+		self.player1.deck.append(crd.Estate(self.game, self.player1))
+		self.player1.hand.add(scout)
+
+		scout.play()
+		self.assertTrue(self.player.deck[-1].title == "Copper")
+		self.assertTrue(self.player.deck[-2].title == "Copper")
+
+
 	def test_Minion(self):
 		minion = intrigue.Minion(self.game, self.player1)
 		self.player1.hand.add(minion)

@@ -93,7 +93,7 @@ class Secret_Chamber(crd.Card):
 	# below is reaction code
 	def react(self, react_to_callback):
 		self.played_by.select(1, 1, ["Reveal", "Hide"],
-		                      "Reveal " + self.title + " to draw 2 cards and discard 2 cards to the top of your deck?")
+		                      "Reveal " + self.title + " to draw 2 and place 2 back to deck?")
 
 		def new_cb(selection):
 			self.post_react_select(selection, react_to_callback)
@@ -105,6 +105,7 @@ class Secret_Chamber(crd.Card):
 		self.played_by.waiting["cb"] = new_cb
 
 	def post_react_select(self, selection, react_to_callback):
+		
 		def post_react_draw_select_callback(selection):
 			self.post_react_draw_select(selection)
 			react_to_callback()
@@ -118,7 +119,7 @@ class Secret_Chamber(crd.Card):
 			self.played_by.waiting["cb"] = post_react_draw_select_callback
 
 			for i in self.played_by.get_opponents():
-				i.wait("Waiting for " + self.played_by.name_string() + " to put cards back on their deck")
+				i.wait("Waiting for " + self.played_by.name + " to put cards back on their deck")
 
 	def post_react_draw_select(self, selection):
 		self.played_by.deck.append(self.played_by.hand.extract(selection[0]))
@@ -562,7 +563,7 @@ class Scout(crd.Card):
 		else:
 			if len(set(map(lambda x: x.title, cards_left))) == 1:
 				self.played_by.deck.append(cards_left)
-				crd.Card(self, False, False)
+				crd.Card.on_finished(self, False, False)
 			else:
 				def post_reorder_with(order, cards_left=cards_left):
 					self.post_reorder(order, cards_left)
