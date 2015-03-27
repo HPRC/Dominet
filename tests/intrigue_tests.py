@@ -476,8 +476,8 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.hand.add(scout)
 
 		scout.play()
-		self.assertTrue(self.player.deck[-1].title == "Copper")
-		self.assertTrue(self.player.deck[-2].title == "Copper")
+		self.assertTrue(self.player1.deck[-1].title == "Copper")
+		self.assertTrue(self.player1.deck[-2].title == "Copper")
 
 
 	def test_Minion(self):
@@ -539,6 +539,24 @@ class TestIntrigue(unittest.TestCase):
 
 		self.player1.waiting["cb"](["Tribute"])
 		self.assertTrue(self.player1.hand.get_count("Tribute") == 0)
+
+	def test_Masquerade_waits(self):
+		masquerade = intrigue.Masquerade(self.game, self.player1)
+		curse = crd.Curse(self.game, self.player1)
+		estate = crd.Estate(self.game, self.player2)
+		estate3 = crd.Estate(self.game, self.player3)
+		self.player1.hand.add(masquerade)
+		self.player1.hand.add(curse)
+		self.player2.hand.add(estate)
+		self.player3.hand.add(estate3)
+
+		masquerade.play()
+		self.player1.exec_commands({"command": "post_selection", "selection": ["Curse"]})
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		self.player2.exec_commands({"command": "post_selection", "selection": ["Estate"]})
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		self.player3.exec_commands({"command": "post_selection", "selection": ["Estate"]})
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
 
 	def test_Saboteur(self):
 		saboteur = intrigue.Saboteur(self.game, self.player1)

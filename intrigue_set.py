@@ -105,7 +105,7 @@ class Secret_Chamber(crd.Card):
 		self.played_by.waiting["cb"] = new_cb
 
 	def post_react_select(self, selection, react_to_callback):
-		
+
 		def post_react_draw_select_callback(selection):
 			self.post_react_draw_select(selection)
 			react_to_callback()
@@ -171,13 +171,12 @@ class Masquerade(crd.Card):
 		self.played_by.update_hand()
 		self.fire(self.played_by)
 
+	#custom get_next since masquerade is not an attackcard
 	def get_next(self, player):
 		next_player_index = (self.game.players.index(player) + 1) % len(self.game.players)
 		if self.game.players[next_player_index] != self.played_by:
 			self.fire(self.game.players[next_player_index])
 		else:
-			for player in self.game.players:
-				player.update_hand()
 			self.played_by.select(None, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Select a card to trash")
 			self.played_by.waiting["on"].append(self.played_by)
 			self.played_by.waiting["cb"] = self.trash_select
@@ -196,12 +195,25 @@ class Masquerade(crd.Card):
 		player.waiting["cb"] = post_fire
 
 	def post_select(self, selection, player):
-		self.game.announce(player.name_string() + " passes a card to their left")
-		self.passed_card = selection[0]
 		left_opponent = player.get_left_opponent()
+		player.write_json(command="announce", msg="-- you pass " + self.game.log_string_from_title(selection[0]))
+		#logging what we received after we pass our card
+		if self.passed_card != "":
+			player.write_json(command="announce", msg="-- you received " + self.game.log_string_from_title(self.passed_card))
+		else:
+			#we are the first player, wait for everyone
+			self.played_by.wait("Waiting for other players to pass")
+			for i in self.played_by.get_opponents():
+				self.played_by.waiting["on"].append(i)
+		#if we are last, update the first person's receive log
+		if left_opponent == self.played_by:
+			self.played_by.write_json(command="announce", msg="-- you received " + self.game.log_string_from_title(selection[0]))
+			self.played_by.update_hand()
+		self.passed_card = selection[0]
 		card = player.hand.extract(selection[0])
 		card.played_by = left_opponent
 		left_opponent.hand.add(card)
+		player.update_hand()
 		self.get_next(player)
 
 	def trash_select(self, selection):
@@ -562,7 +574,7 @@ class Scout(crd.Card):
 			crd.Card.on_finished(self, False, False)
 		else:
 			if len(set(map(lambda x: x.title, cards_left))) == 1:
-				self.played_by.deck.append(cards_left)
+				self.played_by.deck += cards_left
 				crd.Card.on_finished(self, False, False)
 			else:
 				def post_reorder_with(order, cards_left=cards_left):
@@ -729,6 +741,8 @@ class Tribute(crd.Card):
 
 		topdeck1 = left_opponent.topdeck()
 		topdeck2 = left_opponent.topdeck()
+		left_opponent.discard_pile.append(topdeck1)
+		left_opponent.discard_pile.append(topdeck2)
 		tributes.append(topdeck1)
 		if topdeck1.title != topdeck2.title:
 			tributes.append(topdeck2)
@@ -749,10 +763,8 @@ class Tribute(crd.Card):
 			if "Victory" in x.type:
 				self.played_by.draw(2)
 				gaining.append("drawing 2 cards")
-
-			self.game.announce("-- " + " and ".join(gaining) + " for " + x.log_string())
-			left_opponent.discard_pile.append(x)
-
+			if "Curse" != x.type:
+				self.game.announce("-- " + " and ".join(gaining) + " for " + x.log_string())
 
 class Upgrade(crd.Card):
 	def __init__(self, game, played_by):
