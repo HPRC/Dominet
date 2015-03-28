@@ -25,6 +25,7 @@ class Card():
 		if modified_hand:
 			self.played_by.update_hand()
 		self.played_by.update_mode()
+		self.played_by.waiting["cb"] = None
 		self.done()
 
 	def to_json(self):

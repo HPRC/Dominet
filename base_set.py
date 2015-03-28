@@ -22,7 +22,6 @@ class Cellar(crd.Card):
 		self.played_by.waiting["cb"] = self.post_select
 
 	def post_select(self, selection):
-		self.played_by.waiting["cb"] = None
 		if len(selection) > 0:
 			self.played_by.write_json(command="announce", msg="-- you discard " + 
 				" , ".join(list(map(lambda x: self.game.card_from_title(x).log_string(), selection))))
@@ -55,7 +54,6 @@ class Chapel(crd.Card):
 			self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(selection_string));
 		else:
 			self.game.announce(self.played_by.name_string() + " trashes nothing");
-		self.played_by.waiting["cb"] = None
 		self.played_by.discard(selection, self.game.trash_pile)
 		crd.Card.on_finished(self)
 
@@ -132,7 +130,6 @@ class Chancellor(crd.Card):
 		self.played_by.waiting["on"].append(self.played_by)
 
 	def post_select(self, selection):
-		self.played_by.waiting["cb"] = None
 		if selection[0] == "Yes":
 			self.played_by.shuffle_discard_to_deck()
 		crd.Card.on_finished(self)
@@ -662,7 +659,6 @@ class Library(crd.Card):
 		self.on_finish()
 
 	def post_select(self, selection, card):
-		self.played_by.waiting["cb"] = None
 		if selection[0] == "No":
 			self.played_by.write_json(command="announce", msg="-- You draw " + card.log_string())
 			self.played_by.hand.add(card)

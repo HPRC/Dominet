@@ -44,6 +44,8 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 
 	$scope.clickCard = function(card){
 		if ($scope.modeJson.mode === "selectSupply"){
+			//wait to update ui until server responds
+			client.updateMode({"mode":"wait"});
 			//refactor into method (?)
 			socket.send(JSON.stringify({"command": "selectSupply", "card": [card.title]}));
 		} else {

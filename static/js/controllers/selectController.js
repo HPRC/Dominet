@@ -1,4 +1,4 @@
-clientModule.controller("selectController", function($scope, socket){
+clientModule.controller("selectController", function($scope, socket, client){
     $scope.$watch('modeJson', function(newValue, oldValue) {
 		if ($scope.modeJson.min_cards){
 			$scope.canBeDone = false;
@@ -43,6 +43,7 @@ clientModule.controller("selectController", function($scope, socket){
 	$scope.doneSelection = function(){
 		socket.send(JSON.stringify({"command": "post_selection", "selection": $scope.selected, "act_on":$scope.modeJson.act_on}));
 		$scope.selected = [];
+		client.updateMode({"mode":"wait"});
 	};
 
 });

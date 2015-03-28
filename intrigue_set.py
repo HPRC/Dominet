@@ -15,8 +15,8 @@ class Courtyard(crd.Card):
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		self.played_by.draw(3)
-		self.game.announce("-- drawing 3 cards")
+		drawn = self.played_by.draw(3)
+		self.game.announce("-- drawing " + drawn)
 		self.played_by.update_resources()
 		self.played_by.update_hand()
 		self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Choose a card to put back on top of your deck.")
@@ -246,8 +246,8 @@ class Shanty_Town(crd.Card):
 		self.game.announce(self.played_by.name_string() + " reveals " + str(self.played_by.hand.reveal_string())
 								+ " containing " + str(action_cards) + " action cards.")
 		if action_cards == 0:
-			self.played_by.draw(2)
-			self.game.announce("-- drawing 2 cards")
+			drawn = self.played_by.draw(2)
+			self.game.announce("-- drawing " + drawn)
 
 		crd.Card.on_finished(self)
 
@@ -273,8 +273,8 @@ class Steward(crd.Card):
 			crd.Card.on_finished(self, False)
 
 		elif "+2 Cards" in selection:
-			self.played_by.draw(2)
-			self.game.announce("-- drawing 2 cards")
+			drawn = self.played_by.draw(2)
+			self.game.announce("-- drawing " + drawn)
 			crd.Card.on_finished(self)
 		elif "Trash 2 cards from hand" in selection:
 			self.game.announce("-- choosing to trash 2 cards from hand")
@@ -293,7 +293,6 @@ class Steward(crd.Card):
 		else:
 			selection_string = ", ".join(list(map(lambda x: self.game.log_string_from_title(x), selection)))
 		self.game.announce(self.played_by.name_string() + " trashes " + selection_string)
-		self.played_by.waiting["cb"] = None
 		self.played_by.discard(selection, self.game.trash_pile)
 		crd.Card.on_finished(self, True, False)
 
@@ -558,8 +557,10 @@ class Scout(crd.Card):
 		#removed the revealed cards from deck
 		num_truncate = len(revealed)
 		del self.played_by.deck[-num_truncate:]
-
-		self.game.announce("-- revealing " + " ,".join(list(map(lambda x: x.log_string(), revealed))))
+		if len(revealed) != 0:
+			self.game.announce("-- revealing " + ", ".join(list(map(lambda x: x.log_string(), revealed))))
+		else:
+			self.game.announce("-- revealing nothing")
 		victory_cards = [x for x in revealed if "Victory" in x.type]
 		for vc in victory_cards:
 			self.played_by.hand.add(vc)
@@ -669,10 +670,10 @@ class Torturer(crd.AttackCard):
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		self.played_by.draw(3)
+		drawn = self.played_by.draw(3)
 		self.played_by.update_hand()
 		self.played_by.update_resources()
-		self.game.announce("-- drawing 3 cards.")
+		self.game.announce("-- drawing " + drawn)
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	def attack(self):

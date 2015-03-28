@@ -156,26 +156,27 @@ class DmClient(Client):
 			self.end_turn()
 		elif cmd == "buyCard":
 			self.buy_card(data["card"])
-		elif cmd == "post_selection":
-			self.update_wait()
-			# parameter to waiting callback here is a list
-			if self.waiting["cb"] != None:
-				self.waiting["cb"](data["selection"])
+		elif cmd == "post_selection": 
+			self.exec_selected_choice(data["selection"])
 		elif cmd == "selectSupply":
 			self.update_wait()
-			# parameter to waiting callback here is a list
-			if self.waiting["cb"] != None:
-				self.waiting["cb"](data["card"])
+			self.exec_selected_choice(data["card"])
 		elif cmd == "reorder":
-			self.update_wait()
-			if self.waiting["cb"] != None:
-				self.waiting["cb"](data["ordering"])
+			self.exec_selected_choice(data["ordering"])
 		elif cmd == "spendAllMoney":
 			self.spend_all_money()
 		elif cmd == "returnToLobby":
 			self.handler.return_to_lobby()
 			self.ready = False
 			self.game = None
+
+	def exec_selected_choice(self, choice):
+		self.update_wait()
+		#choice(the parameter) to waiting callback is always a list
+		if self.waiting["cb"] != None:
+			temp = self.waiting["cb"]
+			self.waiting["cb"] = None
+			temp(choice)
 
 	def resume(self):
 		self.update_hand()

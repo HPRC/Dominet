@@ -3,6 +3,7 @@ import net
 import client as c
 import game as g
 import card as crd
+import base_set as b
 import cardpile as cp
 
 
@@ -28,9 +29,11 @@ class TestGame(unittest.TestCase):
 			i.setup()
 
 	def test_initial_decks(self):
+		print_test_header("test initial decks")
 		self.assertTrue(len(self.player1.deck) == 5)
 
 	def test_remove_from_supply(self):
+		print_test_header("test remove from supply")
 		self.assertTrue(self.game.supply.get_count("Estate") == 8)
 		self.assertTrue(self.game.base_supply.get_count("Estate") == 8)
 		self.game.remove_from_supply("Estate")
@@ -38,22 +41,26 @@ class TestGame(unittest.TestCase):
 		self.assertTrue(self.game.base_supply.get_count("Estate") == 7)
 
 	def test_total_vp(self):
+		print_test_header("test total vp")
 		initial_vp = self.player1.total_vp()
 		self.player1.gain("Province")
 		self.assertTrue(self.player1.total_vp() == initial_vp + 6)
 
 	def test_gain(self):
+		print_test_header("test gain")
 		initialCurses = self.game.supply.get_count("Curse")
 		self.player2.gain("Curse")
 		self.assertTrue(self.player2.discard_pile[-1].title == "Curse")
 		self.assertTrue(self.game.supply.get_count("Curse") == initialCurses-1)
 
 	def test_detect_end(self):
+		print_test_header("test detect end")
 		for i in range(0, 8):
 			self.player1.gain("Province")
 		self.assertTrue(self.game.detect_end())
 
 	def test_end_tie(self):
+		print_test_header("test end tie")
 		self.game.turn = 1
 		for i in range(0, 4):
 			self.player1.gain("Province")
@@ -61,6 +68,7 @@ class TestGame(unittest.TestCase):
 		self.assertTrue(self.game.detect_end())
 
 	def test_spend_all_money(self):
+		print_test_header("test spend all money")
 		self.player1.balance = 0
 		self.player1.hand = cp.HandPile(self.player1)
 		copper = crd.Copper(self.game, self.player1)
@@ -72,10 +80,28 @@ class TestGame(unittest.TestCase):
 		self.assertTrue(len(self.player1.played) == 5)
 
 	def test_discard(self):
+		print_test_header("test discard")
 		self.player1.hand = cp.HandPile(self.player1)
 		self.player1.hand.add(crd.Copper(self.game, self.player1))
 		self.player1.discard(["Copper"], self.player1.discard_pile)
 		self.assertTrue(len(self.player1.hand) == 0)
 
+	def test_spam_cb(self):
+		print_test_header("test spam cb")
+		self.player1.hand.add(b.Remodel(self.game, self.player1))
+		self.player1.hand.add(crd.Silver(self.game, self.player1))
+		self.player1.hand.add(crd.Silver(self.game, self.player1))
+
+		self.player1.exec_commands({"command":"play", "card": "Remodel"})
+		self.player1.exec_commands({"command":"post_selection", "selection": ["Silver"]})
+		self.player1.exec_commands({"command":"selectSupply", "card": ["Duchy"]})
+		self.assertTrue(self.player1.waiting["cb"] == None)
+		self.player1.exec_commands({"command":"selectSupply", "card": ["Duchy"]})
+		self.assertTrue(len(self.player1.discard_pile) == 1)
+
+def print_test_header(msg):
+	print(" ---------------------------------------- ")
+	print("\t" + msg)
+	print(" ---------------------------------------- ")
 if __name__ == '__main__':
 	unittest.main()
