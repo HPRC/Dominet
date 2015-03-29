@@ -75,6 +75,7 @@ class Secret_Chamber(crd.Card):
 		self.price = 2
 		self.type = "Action|Reaction"
 		self.trigger = "Attack"
+		self.reacted_to_callback = None
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
@@ -91,42 +92,49 @@ class Secret_Chamber(crd.Card):
 		crd.Card.on_finished(self)
 
 	# below is reaction code
-	def react(self, react_to_callback):
+	def react(self, reacted_to_callback):
+		self.reacted_to_callback = reacted_to_callback
 		self.played_by.select(1, 1, ["Reveal", "Hide"],
 		                      "Reveal " + self.title + " to draw 2 and place 2 back to deck?")
-
-		def new_cb(selection):
-			self.post_react_select(selection, react_to_callback)
 
 		for i in self.played_by.get_opponents():
 			i.waiting["on"].append(self.played_by)
 
 		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = new_cb
+		self.played_by.waiting["cb"] = self.post_react_select
 
-	def post_react_select(self, selection, react_to_callback):
-
-		def post_react_draw_select_callback(selection):
-			self.post_react_draw_select(selection)
-			react_to_callback()
-
+	def post_react_select(self, selection):
 		if selection[0] == "Reveal":
-			self.played_by.draw(2)
-			self.played_by.update_hand()
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
+			drawn_cards = self.played_by.draw(2, False)
+			self.played_by.update_hand()
+			
+			def post_react_draw_select_cb(selected, drawn_cards=drawn_cards):
+				self.post_react_draw_select(selected, drawn_cards)
+
 			self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "Put two cards to the top of your deck")
 			self.played_by.waiting["on"].append(self.played_by)
-			self.played_by.waiting["cb"] = post_react_draw_select_callback
+			self.played_by.waiting["cb"] = post_react_draw_select_cb
 
 			for i in self.played_by.get_opponents():
 				i.wait("Waiting for " + self.played_by.name + " to put cards back on their deck")
+		else:
+			#temp to clear our reacted callback before calling it
+			temp = self.reacted_to_callback
+			self.reacted_to_callback = None
+			temp()
 
-	def post_react_draw_select(self, selection):
-		self.played_by.deck.append(self.played_by.hand.extract(selection[0]))
-		self.played_by.deck.append(self.played_by.hand.extract(selection[1]))
+	def post_react_draw_select(self, selection, drawn_cards):
+		self.played_by.discard(selection, self.played_by.deck)
 		self.game.announce("-- drawing two cards, putting two of them on the top of their deck.")
-
-		crd.Card.on_finished(self)
+		self.played_by.update_hand()
+		#if we put back the drawn card then remove from drawn list
+		final_drawn = [x for x in drawn_cards if x != self.played_by.deck[-1] and x!= self.played_by.deck[-2]]
+		#temp to clear our reacted callback before calling it
+		#pass in newly drawn cards to check for new reactions
+		temp = self.reacted_to_callback
+		self.reacted_to_callback = None
+		temp(final_drawn)
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
@@ -844,7 +852,7 @@ class Saboteur(crd.AttackCard):
 				self.game.trash_pile.append(topdeck)
 				sabotaged = True
 				trashed = topdeck
-
+				self.game.update_trash_pile()
 			else:
 				victim.discard_pile.append(topdeck)
 				discarded.append(topdeck.title)

@@ -3,7 +3,7 @@ import net
 import client as c
 import game as g
 import card as crd
-import base_set as b
+import base_set as base
 import cardpile as cp
 
 
@@ -88,7 +88,7 @@ class TestGame(unittest.TestCase):
 
 	def test_spam_cb(self):
 		print_test_header("test spam cb")
-		self.player1.hand.add(b.Remodel(self.game, self.player1))
+		self.player1.hand.add(base.Remodel(self.game, self.player1))
 		self.player1.hand.add(crd.Silver(self.game, self.player1))
 		self.player1.hand.add(crd.Silver(self.game, self.player1))
 
@@ -98,6 +98,7 @@ class TestGame(unittest.TestCase):
 		self.assertTrue(self.player1.waiting["cb"] == None)
 		self.player1.exec_commands({"command":"selectSupply", "card": ["Duchy"]})
 		self.assertTrue(len(self.player1.discard_pile) == 1)
+
 
 def print_test_header(msg):
 	print(" ---------------------------------------- ")

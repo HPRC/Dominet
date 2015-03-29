@@ -73,24 +73,52 @@ class AttackCard(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
 		self.type = "Action|Attack"
-		self.reactions = 0
+		#dictionary of reacting player client instance : list of reaction card callbacks to call
+		self.reactions = {}
 
 	# called after reaction card finishes
-	def reacted(self):
-		self.reactions -=1
-		if self.reactions == 0:
-			self.attack()
+	# reacting_player = owner of reactio card that just finished
+	def reacted(self, reacting_player, drew_cards=False):
+		#if we drew any new cards during a card's reaction reprompt all reactions since player may
+		#want to reveal cards again
+		if drew_cards:
+			self.reactions[reacting_player] = []
+			for x in reacting_player.hand.get_cards_by_type("Reaction"):
+				self.reactions[reacting_player].append(x.react)
+		if len(self.reactions[reacting_player]) == 0:
+			del self.reactions[reacting_player]
+			if not self.reactions:
+				self.attack()
+			else:
+				#we still have reactions but no more for this player, move onto next
+				for i in range(1, len(self.game.players)+1):
+					next_index = (i + self.game.players.index(reacting_player)) % len(self.game.players)
+					if self.game.players[next_index] in self.reactions:
+						reacting(lambda drew_cards=False: self.reacted(self.game.players[next_index], drew_cards))
+						break
+		else:
+			reacting = self.reactions[reacting_player].pop()
+			reacting(lambda drew_cards=False: self.reacted(reacting_player, drew_cards))
 
 	def check_reactions(self, targets):
 		for i in targets:
 			reaction_cards = i.hand.get_cards_by_type("Reaction")
 			for card in reaction_cards:
 				if card.trigger == "Attack":
-					self.reactions += 1
-					card.react(self.reacted)
-					self.played_by.wait("Waiting for " + i.name + " to react")
+					if i in self.reactions:
+						self.reactions[i].append(card.react)
+					else:
+						self.reactions[i] = [card.react]
 		if not self.reactions:
 			self.attack()
+		else:
+			attacker_index = self.game.players.index(self.played_by)
+			for i in range(1, len(self.game.players)+1):
+				next_index = (i + attacker_index) % len(self.game.players)
+				next_player = self.game.players[next_index]
+				if next_player in self.reactions:
+					self.reacted(next_player)
+					break
 
 	def is_blocked(self, target):
 		# shouldnt need to block against own attacks (i.e. spy)
@@ -123,7 +151,6 @@ class AttackCard(Card):
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-danger'>", self.title, "s</span>" if plural else "</span>"])
-
 
 class Copper(Money):
 	def __init__(self, game, played_by):

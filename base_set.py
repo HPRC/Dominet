@@ -67,6 +67,7 @@ class Moat(crd.Card):
 		self.price = 2
 		self.type = "Action|Reaction"
 		self.trigger = "Attack"
+		self.reacted_to_callback = None
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
@@ -74,20 +75,21 @@ class Moat(crd.Card):
 		self.game.announce(" -- drawing " + drawn)
 		crd.Card.on_finished(self)
 
-	def react(self, react_to_callback):
+	def react(self, reacted_to_callback):
+		self.reacted_to_callback = reacted_to_callback
 		self.played_by.select(1, 1, ["Reveal", "Hide"],  
 			"Reveal " + self.title + " to prevent attack?")
 
-		def new_cb(selection):
-			self.post_select(selection)
-			react_to_callback()
+			
 		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = new_cb
+		self.played_by.waiting["cb"] = self.post_select
 
 	def post_select(self, selection):
 		if selection[0] == "Reveal":
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
 			self.played_by.protection = 1
+		self.reacted_to_callback()
+		self.reacted_to_callback = None
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])

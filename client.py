@@ -57,23 +57,26 @@ class DmClient(Client):
 		random.shuffle(deck)
 		return deck
 
-	def draw(self, numCards):
-		num_drawn = 0
-		if len(self.deck) < numCards:
+	def draw(self, num_cards, return_string=True):
+		drawn = []
+		if len(self.deck) < num_cards:
 			self.shuffle_discard_to_deck()
-		for i in range(0, numCards):
+		for i in range(0, num_cards):
 			if len(self.deck) >= 1:
-				num_drawn += 1
 				card = self.deck.pop()
+				drawn.append(card)
 				self.hand.add(card)
-		if num_drawn == 0:
+		if not return_string:
+			self.update_deck_size()
+			return drawn
+		if len(drawn) == 0:
 			return "nothing"
-		elif num_drawn == 1:
+		elif len(drawn) == 1:
 			self.update_deck_size()
 			return "a card"
 		else:
 			self.update_deck_size()
-			return str(num_drawn) + " cards"
+			return str(len(drawn)) + " cards"
 
 	# get top card of deck
 	def topdeck(self):
