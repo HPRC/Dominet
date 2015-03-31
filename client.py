@@ -3,6 +3,7 @@ import card as crd
 import cardpile as cp
 import random
 import base_set as b
+import intrigue_set as ins
 import html
 
 
@@ -50,10 +51,11 @@ class DmClient(Client):
 
 	def base_deck(self):
 		deck = []
-		for i in range(0, 7):
-			deck.append(crd.Copper(game=self.game, played_by=self))
+		deck.append(b.Moat(game=self.game, played_by=self))
+		for i in range(0, 2):
+			deck.append(ins.Secret_Chamber(game=self.game, played_by=self))
 		for i in range(0, 3):
-			deck.append(crd.Estate(game=self.game, played_by=self))
+			deck.append(ins.Saboteur(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
@@ -159,7 +161,8 @@ class DmClient(Client):
 			self.end_turn()
 		elif cmd == "buyCard":
 			self.buy_card(data["card"])
-		elif cmd == "post_selection": 
+		elif cmd == "post_selection":
+			print(self.waiting)
 			self.exec_selected_choice(data["selection"])
 		elif cmd == "selectSupply":
 			self.update_wait()
@@ -222,10 +225,10 @@ class DmClient(Client):
 			self.balance -= newCard.get_price()
 			self.update_resources()
 
-	def select(self, min_cards, max_cards, select_from, msg):
+	def select(self, min_cards, max_cards, select_from, msg, ordered=False):
 		if len(select_from) > 0:
 			self.write_json(command="updateMode", mode="select", min_cards=min_cards, max_cards=max_cards,
-				select_from=select_from, msg=msg)
+				select_from=select_from, msg=msg, ordered=ordered)
 			return True
 		else:
 			self.update_mode()

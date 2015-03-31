@@ -112,7 +112,7 @@ class Secret_Chamber(crd.Card):
 			def post_react_draw_select_cb(selected, drawn_cards=drawn_cards):
 				self.post_react_draw_select(selected, drawn_cards)
 
-			self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "Put two cards to the top of your deck")
+			self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "Put two cards to the top of your deck (#1 is on top)", True)
 			self.played_by.waiting["on"].append(self.played_by)
 			self.played_by.waiting["cb"] = post_react_draw_select_cb
 
@@ -126,6 +126,7 @@ class Secret_Chamber(crd.Card):
 
 	def post_react_draw_select(self, selection, drawn_cards):
 		self.played_by.discard(selection, self.played_by.deck)
+		print(self.played_by.deck)
 		self.game.announce("-- drawing two cards, putting two of them on the top of their deck.")
 		self.played_by.update_hand()
 		#if we put back the drawn card then remove from drawn list

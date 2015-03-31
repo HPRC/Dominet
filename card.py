@@ -82,9 +82,8 @@ class AttackCard(Card):
 		#if we drew any new cards during a card's reaction reprompt all reactions since player may
 		#want to reveal cards again
 		if drew_cards:
-			self.reactions[reacting_player] = []
-			for x in reacting_player.hand.get_cards_by_type("Reaction"):
-				self.reactions[reacting_player].append(x.react)
+			self.trigger_reaction(reacting_player, False)
+			return
 		if len(self.reactions[reacting_player]) == 0:
 			del self.reactions[reacting_player]
 			if not self.reactions:
@@ -94,11 +93,18 @@ class AttackCard(Card):
 				for i in range(1, len(self.game.players)+1):
 					next_index = (i + self.game.players.index(reacting_player)) % len(self.game.players)
 					if self.game.players[next_index] in self.reactions:
-						reacting(lambda drew_cards=False: self.reacted(self.game.players[next_index], drew_cards))
+						trigger_reaction(self.game.players[next_index], False)
 						break
 		else:
-			reacting = self.reactions[reacting_player].pop()
-			reacting(lambda drew_cards=False: self.reacted(reacting_player, drew_cards))
+			#cannot get here without having had a reaction first so the reactions are ordered
+			self.trigger_reaction(reacting_player, True)
+
+	def trigger_reaction(self, player, just_ordered):
+		#order of this or statement is important, we don't want to call need order reactions if just_ordered
+		if just_ordered or not self.need_order_reactions(player):
+			#react functions take in a lambda callback (this function) that itll call with whether the reaction drew cards
+			reacting = self.reactions[player].pop()
+			reacting(lambda drew_cards=False: self.reacted(player, drew_cards))
 
 	def check_reactions(self, targets):
 		for i in targets:
@@ -113,12 +119,36 @@ class AttackCard(Card):
 			self.attack()
 		else:
 			attacker_index = self.game.players.index(self.played_by)
+			#get closest left opponent to begin reacting first
 			for i in range(1, len(self.game.players)+1):
 				next_index = (i + attacker_index) % len(self.game.players)
 				next_player = self.game.players[next_index]
 				if next_player in self.reactions:
-					self.reacted(next_player)
+					self.trigger_reaction(next_player, False)
 					break
+
+	def need_order_reactions(self, player):
+		reactions = player.hand.get_cards_by_type("Reaction")
+		attack_reactions = [x for x in reactions if "Attack" in x.trigger]
+		attack_reaction_titles = list(map(lambda x: x.title, attack_reactions))
+		if len(set(attack_reaction_titles)) == 1:
+			return False
+		else:
+			num_reactions = len(attack_reactions)
+			def player_order_reactions_cb(order, player=player):
+				self.order_reactions_cb(order, player)
+			player.waiting["cb"] = player_order_reactions_cb
+			player.waiting["on"].append(player)
+			player.select(num_reactions, num_reactions, attack_reaction_titles, 
+				"Choose the order for your reactions to resolve, #1 is first.", True)
+			return True
+
+	def order_reactions_cb(self, order, player):
+		self.reactions[player] = []
+		for card_title in order:
+			cb = player.hand.get_card(card_title).react
+			self.reactions[player].append(cb)
+		self.trigger_reaction(player, True)
 
 	def is_blocked(self, target):
 		# shouldnt need to block against own attacks (i.e. spy)

@@ -40,7 +40,8 @@
 					<h5>{{modeJson.msg}}</h5>
 					<div ng-if="modeJson.min_cards > 1 || modeJson.min_cards === null">
 						<label class="checkbox-inline" ng-repeat="option in modeJson.select_from track by $index">
-							<input type="checkbox" ng-init="checked=false" ng-click="checked=!checked; check(option,checked)">{{option}}
+							<input type="checkbox" ng-init="checked=false" ng-click="checked=!checked; check(option,checked, $index)">{{option}}
+							<span ng-show="modeJson.ordered" ng-if="checked === true"><b>{{checkboxOrder(option, $index);}}</b></span>
 						</label>
 						<button ng-disabled="!canBeDone" ng-click="doneSelection()" class="btn btn-default">Done</button>
 					</div>

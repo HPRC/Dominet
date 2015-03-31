@@ -42,6 +42,7 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 		return (!$scope.turn || $scope.modeJson.mode === "wait" ||  $scope.modeJson.mode === "select" || $scope.modeJson.mode === "reorder" || $scope.modeJson.mode === "action");
 	};
 
+
 	$scope.clickCard = function(card){
 		if ($scope.modeJson.mode === "selectSupply"){
 			//wait to update ui until server responds
