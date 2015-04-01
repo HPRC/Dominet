@@ -77,7 +77,7 @@ clientModule.controller("lobbyController", function($rootScope, $scope, $modal, 
     };
 
     $scope.supplyInfo = function(table){
-        return table.prosperity_supply ? "Prosperity" : "Base"
+        return table.supply
     };
 
 

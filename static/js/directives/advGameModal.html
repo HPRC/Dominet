@@ -18,8 +18,12 @@
             <label for="excludedCards">Excluded Cards</label>
             <input type="text" class="form-control" id="excludedCards" placeholder="List comma separated cards to exclude in supply" ng-model="inputExcluded">
             <br>
-            <label for="prosperitySupplyCheckbox">Use Prosperity Supply</label>
-            <input type="checkbox" ng-model="prosperitySupplyCheckbox.value" id="prosperitySupplyCheckbox">
+            <label for="default">Default:</label>
+            <input type="radio" name="supply" id="default" value="default" ng-model="supplyRadio.value" checked="checked">
+            <label for="base">Base:</label>
+            <input type="radio" name="supply" id="base" value="base" ng-model="supplyRadio.value">
+            <label for="prosperity">Prosperity:</label>
+            <input type="radio" name="supply" id="prosperity" value="prosperity" ng-model="supplyRadio.value">
 		</div>
 	</form>
 </div>

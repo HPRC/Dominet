@@ -57,7 +57,7 @@ class GameHandler(websocket.WebSocketHandler):
 		GameHandler.update_lobby()
 
 	def start_game(self, table):
-		game = g.DmGame(table.players, table.required, table.excluded, table.prosperity_supply)
+		game = g.DmGame(table.players, table.required, table.excluded, table.supply)
 		for i in table.players:
 			i.write_json(command="resume")
 			i.game = game
@@ -114,7 +114,7 @@ class GameHandler(websocket.WebSocketHandler):
 	def create_table(self, json):
 		tableData = json["table"]
 		newTable = GameHandler.game_tables[self.client.name] = gt.GameTable(
-			tableData["title"], self.client, tableData["seats"], tableData["required"], tableData["excluded"], "Base", tableData["prosperitySupply"])
+			tableData["title"], self.client, tableData["seats"], tableData["required"], tableData["excluded"], "Base", tableData["supply"])
 		self.table = newTable
 		GameHandler.update_lobby()
 

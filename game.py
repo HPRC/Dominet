@@ -4,15 +4,16 @@ import card
 import json
 import net
 import cardpile as cp
+from random import randint
 
 
 class Game():
-	def __init__(self, players, prosperity_supply=False):
+	def __init__(self, players, supply="default"):
 		self.players = players
 		self.first = 0
 		self.turn = self.first
 		self.turn_count = 0
-		self.prosperity_supply = prosperity_supply
+		self.supply = supply
 
 	def chat(self, msg, speaker):
 		for i in self.players:
@@ -41,16 +42,23 @@ class Game():
 
 
 class DmGame(Game):
-	def __init__(self, players, required_cards, excluded_cards, prosperity_supply=False):
-		Game.__init__(self, players, prosperity_supply)
+	def __init__(self, players, required_cards, excluded_cards, supply="default"):
+		Game.__init__(self, players, supply)
 		self.trash_pile = []
 		self.empty_piles = 0
+		self.supply = supply
+
+		if supply == "default":
+			rand = randint(1, 10)
+			if rand <= 3:
+				supply = "prosperity"
+
 		# kingdom = dictionary {card.title => [card, count]} i.e {"Copper": [card.Copper(self,None),10]}
 		base_supply = [card.Curse(self, None), card.Estate(self, None),
 		               card.Duchy(self, None), card.Province(self, None), card.Copper(self, None),
 		               card.Silver(self, None), card.Gold(self, None)]
 
-		if prosperity_supply:
+		if supply == "prosperity":
 			base_supply.append(card.Colony(self, None))
 			base_supply.append(card.Platinum(self, None))
 
@@ -122,7 +130,7 @@ class DmGame(Game):
 
 	def detect_end(self):
 		end_victory_pile = "Province"
-		if self.prosperity_supply:
+		if self.supply == "prosperity":
 			end_victory_pile = "Colony"
 
 		if self.supply.get_count(end_victory_pile) == 0 or self.empty_piles >= 3:
