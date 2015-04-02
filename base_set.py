@@ -1,4 +1,5 @@
 import card as crd
+import random as random
 
 
 # --------------------------------------------------------
@@ -88,8 +89,9 @@ class Moat(crd.Card):
 		if selection[0] == "Reveal":
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
 			self.played_by.protection = 1
-		self.reacted_to_callback()
+		temp = self.reacted_to_callback
 		self.reacted_to_callback = None
+		temp()
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])

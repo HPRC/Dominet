@@ -116,8 +116,6 @@ class Secret_Chamber(crd.Card):
 			self.played_by.waiting["on"].append(self.played_by)
 			self.played_by.waiting["cb"] = post_react_draw_select_cb
 
-			for i in self.played_by.get_opponents():
-				i.wait("Waiting for " + self.played_by.name + " to put cards back on their deck")
 		else:
 			#temp to clear our reacted callback before calling it
 			temp = self.reacted_to_callback
@@ -126,7 +124,6 @@ class Secret_Chamber(crd.Card):
 
 	def post_react_draw_select(self, selection, drawn_cards):
 		self.played_by.discard(selection, self.played_by.deck)
-		print(self.played_by.deck)
 		self.game.announce("-- drawing two cards, putting two of them on the top of their deck.")
 		self.played_by.update_hand()
 		#if we put back the drawn card then remove from drawn list
@@ -214,21 +211,24 @@ class Masquerade(crd.Card):
 			self.played_by.wait("Waiting for other players to pass")
 			for i in self.played_by.get_opponents():
 				self.played_by.waiting["on"].append(i)
-		#if we are last, update the first person's receive log
-		if left_opponent == self.played_by:
-			self.played_by.write_json(command="announce", msg="-- you received " + self.game.log_string_from_title(selection[0]))
-			self.played_by.update_hand()
 		self.passed_card = selection[0]
 		card = player.hand.extract(selection[0])
 		card.played_by = left_opponent
 		left_opponent.hand.add(card)
 		player.update_hand()
+
+		#if we are last, update the first person's receive log
+		if left_opponent == self.played_by:
+			self.played_by.write_json(command="announce", msg="-- you received " + self.game.log_string_from_title(selection[0]))
+			self.played_by.update_hand()
+
 		self.get_next(player)
 
 	def trash_select(self, selection):
-		self.game.announce("-- " + self.played_by.name_string() + " trashes " + self.played_by.hand.get_card(selection[0]).log_string())
-		self.played_by.discard([selection[0]], self.game.trash_pile)
-		self.played_by.update_hand()
+		if len(selection) > 0:
+			self.game.announce("-- " + self.played_by.name_string() + " trashes " + self.played_by.hand.get_card(selection[0]).log_string())
+			self.played_by.discard([selection[0]], self.game.trash_pile)
+		self.passed_card = ""
 		crd.Card.on_finished(self)
 
 

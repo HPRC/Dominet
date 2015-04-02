@@ -337,6 +337,7 @@ class TestIntrigue(unittest.TestCase):
 		self.player2.hand.play("Militia")
 		self.player1.waiting["cb"](["Reveal"])
 		self.player1.waiting["cb"](["Estate", "Estate"])
+		self.player1.waiting["cb"](["Hide"])
 		self.player1.waiting["cb"](["Estate", "Estate"])
 		self.assertTrue(len(self.player1.hand.card_array()) == 3)
 

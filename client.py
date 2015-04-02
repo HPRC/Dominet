@@ -3,7 +3,7 @@ import card as crd
 import cardpile as cp
 import random
 import base_set as b
-import intrigue_set as ins
+import intrigue_set as intr
 import html
 
 
@@ -51,11 +51,10 @@ class DmClient(Client):
 
 	def base_deck(self):
 		deck = []
-		deck.append(b.Moat(game=self.game, played_by=self))
-		for i in range(0, 2):
-			deck.append(ins.Secret_Chamber(game=self.game, played_by=self))
+		for i in range(0, 7):
+			deck.append(crd.Copper(game=self.game, played_by=self))
 		for i in range(0, 3):
-			deck.append(ins.Saboteur(game=self.game, played_by=self))
+			deck.append(crd.Estate(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
@@ -161,8 +160,7 @@ class DmClient(Client):
 			self.end_turn()
 		elif cmd == "buyCard":
 			self.buy_card(data["card"])
-		elif cmd == "post_selection":
-			print(self.waiting)
+		elif cmd == "post_selection": 
 			self.exec_selected_choice(data["selection"])
 		elif cmd == "selectSupply":
 			self.update_wait()

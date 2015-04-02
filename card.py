@@ -82,19 +82,18 @@ class AttackCard(Card):
 		#if we drew any new cards during a card's reaction reprompt all reactions since player may
 		#want to reveal cards again
 		if drew_cards:
-			self.trigger_reaction(reacting_player, False)
-			return
+			new_reactions = [x for x in reacting_player.hand.get_cards_by_type("Reaction") if "Attack" in x.trigger]
+			self.played_by.waiting["on"] = [w for w in self.played_by.waiting["on"] if w != reacting_player]
+			for x in new_reactions:
+				self.played_by.waiting["on"].append(reacting_player)
+			self.reactions[reacting_player] = [c.react for c in new_reactions]
+			if len(new_reactions) > 0:
+				self.trigger_reaction(reacting_player, False)
+				return
 		if len(self.reactions[reacting_player]) == 0:
 			del self.reactions[reacting_player]
 			if not self.reactions:
 				self.attack()
-			else:
-				#we still have reactions but no more for this player, move onto next
-				for i in range(1, len(self.game.players)+1):
-					next_index = (i + self.game.players.index(reacting_player)) % len(self.game.players)
-					if self.game.players[next_index] in self.reactions:
-						trigger_reaction(self.game.players[next_index], False)
-						break
 		else:
 			#cannot get here without having had a reaction first so the reactions are ordered
 			self.trigger_reaction(reacting_player, True)
@@ -111,6 +110,8 @@ class AttackCard(Card):
 			reaction_cards = i.hand.get_cards_by_type("Reaction")
 			for card in reaction_cards:
 				if card.trigger == "Attack":
+					#attack waits on the player for each reaction he has
+					self.played_by.waiting["on"].append(i)
 					if i in self.reactions:
 						self.reactions[i].append(card.react)
 					else:
@@ -118,14 +119,10 @@ class AttackCard(Card):
 		if not self.reactions:
 			self.attack()
 		else:
-			attacker_index = self.game.players.index(self.played_by)
-			#get closest left opponent to begin reacting first
-			for i in range(1, len(self.game.players)+1):
-				next_index = (i + attacker_index) % len(self.game.players)
-				next_player = self.game.players[next_index]
-				if next_player in self.reactions:
-					self.trigger_reaction(next_player, False)
-					break
+			self.played_by.wait("waiting for other players to react")
+			for p in self.played_by.get_opponents():
+				if p in self.reactions:
+					self.trigger_reaction(p, False)
 
 	def need_order_reactions(self, player):
 		reactions = player.hand.get_cards_by_type("Reaction")
