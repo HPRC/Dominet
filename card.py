@@ -83,6 +83,7 @@ class AttackCard(Card):
 		#want to reveal cards again
 		if drew_cards:
 			new_reactions = [x for x in reacting_player.hand.get_cards_by_type("Reaction") if "Attack" in x.trigger]
+			self.played_by.wait("waiting for other players to react")
 			self.played_by.waiting["on"] = [w for w in self.played_by.waiting["on"] if w != reacting_player]
 			for x in new_reactions:
 				self.played_by.waiting["on"].append(reacting_player)
@@ -134,6 +135,7 @@ class AttackCard(Card):
 			num_reactions = len(attack_reactions)
 			def player_order_reactions_cb(order, player=player):
 				self.order_reactions_cb(order, player)
+			self.played_by.waiting["on"].append(player)
 			player.waiting["cb"] = player_order_reactions_cb
 			player.waiting["on"].append(player)
 			player.select(num_reactions, num_reactions, attack_reaction_titles, 

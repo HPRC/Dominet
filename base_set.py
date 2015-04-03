@@ -1,5 +1,4 @@
 import card as crd
-import random as random
 
 
 # --------------------------------------------------------
