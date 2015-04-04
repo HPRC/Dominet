@@ -310,7 +310,7 @@ class Swindler(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Swindler"
-		self.description = "+$2\n Each other player trashes the top card of his deck and gains a card with the same cost that you choose."
+		self.description = "+$2\n Each other player trashes the top card of their deck and gains a card with the same cost that you choose."
 		self.price = 3
 		self.type = "Action|Attack"
 
@@ -336,7 +336,7 @@ class Swindler(crd.AttackCard):
 				def post_select_on(selection, player=player):
 					self.post_select(selection, player)
 
-				self.played_by.select_from_supply(topdeck.price, True)
+				self.played_by.select_from_supply(topdeck.get_price(), True)
 				self.played_by.waiting["on"].append(self.played_by)
 				self.played_by.waiting["cb"] = post_select_on
 			else:
@@ -632,7 +632,7 @@ class Minion(crd.AttackCard):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Minion"
 		self.description = "+1 Action\n Choose one: +$2 or discard your hand, draw 4 cards and each other player\
-		with at least 5 cards in hand discards his hand and draws 4 cards."
+		with at least 5 cards in hand discards their hand and draws 4 cards."
 		self.price = 5
 		self.type = "Action|Attack"
 
@@ -653,7 +653,7 @@ class Minion(crd.AttackCard):
 		else:
 			self.played_by.discard(crd.card_list_to_titles(self.played_by.hand.card_array()), self.played_by.discard_pile)
 			drawn = self.played_by.draw(4)
-			self.game.announce("-- drawing " + drawn + " cards")
+			self.game.announce("-- drawing " + drawn)
 			self.played_by.update_hand()
 			crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
@@ -673,7 +673,7 @@ class Torturer(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Torturer"
-		self.description = "+3 Cards\n Each other player chooses one: he discards 2 cards; or he gains a Curse card, putting it in his hand."
+		self.description = "+3 Cards\n Each other player chooses one: he discards 2 cards; or he gains a Curse card, putting it in their hand."
 		self.price = 5
 		self.type = "Action|Attack"
 
@@ -737,7 +737,7 @@ class Tribute(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Tribute"
-		self.description = "The player to your left reveals then discards the top 2 cards of his deck.\n" \
+		self.description = "The player to your left reveals then discards the top 2 cards of their deck.\n" \
 		                   " For each differently named card revealed, if it is an… Action Card; +2 Actions;" \
 		                   " Treasure Card; +$2; Victory Card; +2 Cards."
 		self.price = 5
@@ -753,6 +753,7 @@ class Tribute(crd.Card):
 		topdeck2 = left_opponent.topdeck()
 		left_opponent.discard_pile.append(topdeck1)
 		left_opponent.discard_pile.append(topdeck2)
+		left_opponent.update_discard_size()
 		tributes.append(topdeck1)
 		if topdeck1.title != topdeck2.title:
 			tributes.append(topdeck2)
@@ -802,15 +803,15 @@ class Upgrade(crd.Card):
 	def trash_select(self, selection):
 		card = self.played_by.hand.get_card(selection[0])
 		self.played_by.discard([card.title], self.game.trash_pile)
-		self.game.announce("-- trashing " + card.log_string() + " to gain a card with cost " + str(card.price + 1))
+		self.game.announce("-- trashing " + card.log_string() + " to gain a card with cost " + str(card.get_price() + 1))
 		self.played_by.update_hand()
 
-		if self.game.supply.pile_contains(card.price + 1):
-			self.played_by.select_from_supply(card.price + 1, True)
+		if self.game.supply.pile_contains(card.get_price() + 1):
+			self.played_by.select_from_supply(card.get_price() + 1, True)
 			self.played_by.waiting["on"].append(self.played_by)
 			self.played_by.waiting["cb"] = self.post_select
 		else:
-			self.game.announce(" however there are no cards with cost " + str(card.price + 1))
+			self.game.announce(" however there are no cards with cost " + str(card.get_price() + 1))
 			crd.Card.on_finished(self)
 
 	def post_select(self, selection):
@@ -822,7 +823,7 @@ class Saboteur(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Saboteur"
-		self.description = "Each other player reveals cards from the top of his deck until revealing one costing $3 or more.\n" \
+		self.description = "Each other player reveals cards from the top of their deck until revealing one costing $3 or more.\n" \
 		                   "He trashes that card and may gain a card costing at most $2 less than it.\n" \
 		                   "He discards the other revealed cards."
 		self.price = 5
@@ -849,7 +850,7 @@ class Saboteur(crd.AttackCard):
 		# while something hasn't been trashed and we haven't gone through the whole deck
 		while sabotaged is False and len(discarded) < total_deck_count:
 			topdeck = victim.topdeck()
-			if topdeck.price >= 3:  # TODO becomes get_price after merge with henry's code
+			if topdeck.get_price() >= 3:
 				self.game.trash_pile.append(topdeck)
 				sabotaged = True
 				trashed = topdeck
@@ -873,8 +874,8 @@ class Saboteur(crd.AttackCard):
 
 			# msg should be a param for select from supply?
 			self.game.announce("-- " + victim.name_string() + " gains a card costing "
-			                   + str(trashed.price - 2) + " or less")
-			victim.select_from_supply(price_limit=trashed.price - 2, optional=True)
+			                   + str(trashed.get_price() - 2) + " or less")
+			victim.select_from_supply(price_limit=trashed.get_price() - 2, optional=True)
 			victim.waiting["on"].append(victim)
 			victim.waiting["cb"] = post_select_cb
 			self.played_by.waiting["on"].append(victim)
