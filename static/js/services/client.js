@@ -1,4 +1,4 @@
-clientModule.factory('client', function(socket) {
+clientModule.factory('client', function(socket, favicon) {
 	var constructor = function() {
 		this.id = null;
 		this.name = null;
@@ -58,7 +58,7 @@ clientModule.factory('client', function(socket) {
 	constructor.prototype.baseCards = function(json){
 		var baseArray = JSON.parse(json.data);
 		for (var i=0; i< baseArray.length; i++) {
-			this.baseSupply[baseArray[i].title] = baseArray[i];			
+			this.baseSupply[baseArray[i].title] = baseArray[i];
 		}
 	};
 
@@ -67,10 +67,14 @@ clientModule.factory('client', function(socket) {
 		this.updateResources(json);
 		this.spendableMoney = 0;
 		this.updateSpendable();
+		favicon.alertFavicon();
 	};
 
 	constructor.prototype.updateMode = function(json){
 		this.modeJson = json;
+		if (this.modeJson.mode === "selectSupply" || this.modeJson.mode === "select" || this.modeJson.mode === "reorder"){
+			favicon.alertFavicon();
+		}
 	};
 
 	constructor.prototype.endTurn = function(){
@@ -80,6 +84,7 @@ clientModule.factory('client', function(socket) {
 		this.turn = false;
 		this.discard(this.hand);
 		this.played = []; //discarded on backend
+		favicon.stopAlert();
 		socket.send(JSON.stringify({"command": "endTurn"}));
 	};
 

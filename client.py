@@ -22,6 +22,7 @@ class Client():
 		pass
 
 	def write_json(self, **kwargs):
+		print("\033[91m " + str(kwargs) + "\033[0m")
 		self.handler.write_json(**kwargs)
 
 	def take_turn(self):

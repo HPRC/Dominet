@@ -571,6 +571,9 @@ class Scout(crd.Card):
 		else:
 			self.game.announce("-- revealing nothing")
 		victory_cards = [x for x in revealed if "Victory" in x.type]
+		if len(victory_cards) > 0:
+			victory_card_titles = [x.log_string() for x in victory_cards]
+			self.game.announce("-- putting " + " ,".join(victory_card_titles) + " into their hand")
 		for vc in victory_cards:
 			self.played_by.hand.add(vc)
 		self.played_by.update_hand()
@@ -581,10 +584,12 @@ class Scout(crd.Card):
 			crd.Card.on_finished(self, False, False)
 		elif len(cards_left) == 1:
 			self.played_by.deck.append(cards_left[0])
+			self.played_by.update_deck_size()
 			crd.Card.on_finished(self, False, False)
 		else:
 			if len(set(map(lambda x: x.title, cards_left))) == 1:
 				self.played_by.deck += cards_left
+				self.played_by.update_deck_size()
 				crd.Card.on_finished(self, False, False)
 			else:
 				def post_reorder_with(order, cards_left=cards_left):
@@ -604,7 +609,7 @@ class Scout(crd.Card):
 				if x == y.title:
 					self.played_by.deck.append(y)
 					break
-
+		self.played_by.update_deck_size()
 		crd.Card.on_finished(self, False, False)
 
 # --------------------------------------------------------
