@@ -112,3 +112,13 @@ html, body {
 	display: inline-block;
 	margin-right:2%;
 }
+
+/* custom disabled style that mimics being disabled but allows us to receive events (issue #42) */
+.btn.disabled-card {
+	opacity:.4;
+}
+.btn.disabled-card:hover, .btn.disabled-card:focus, .btn.disabled-card.focus, .btn.disabled-card:active, .btn.disabled-card.active, .open > .btn.disabled-card.dropdown-toggle {
+	outline:0;
+	outline-offset:0;
+}
+

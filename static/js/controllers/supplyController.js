@@ -44,6 +44,9 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 
 
 	$scope.clickCard = function(card){
+		if ($scope.disabled(card)){
+			return;
+		}
 		if ($scope.modeJson.mode === "selectSupply"){
 			//wait to update ui until server responds
 			client.updateMode({"mode":"wait"});
@@ -68,5 +71,11 @@ clientModule.controller("supplyController", function($scope, socket, client, car
         socket.send(JSON.stringify({"command": "selectSupply", "card": ["None"]}));
     };
 
-	$scope.getButtonStyle = cardStyle.getButtonStyle;
+	$scope.getButtonStyle = function(card){
+		if (!$scope.disabled(card)){
+			return cardStyle.getButtonStyle(card);
+		} else {
+			return cardStyle.getButtonStyle(card) + " disabled-card";
+		}
+	};
 });
