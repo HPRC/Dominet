@@ -35,7 +35,7 @@ class Card():
 			"price": self.price
 		}
 
-	#called at the end of turn if this card was played
+	# called at the end of turn if this card was played
 	def cleanup(self):
 		pass
 

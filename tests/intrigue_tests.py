@@ -11,6 +11,7 @@ import os
 #add this file's path to the sys for importing base_tests
 sys.path.append(os.path.dirname(__file__))
 import base_tests as bt
+import prosperity_tests as pt
 
 
 class TestIntrigue(unittest.TestCase):

@@ -16,6 +16,8 @@ class Client():
 		self.game = None
 		self.ready = False
 
+		self.vp = 0
+
 	# called before players take their turns
 	def setup(self):
 		pass
@@ -338,8 +340,11 @@ class DmClient(Client):
 
 	def total_vp(self, returnCards=False):
 		total = 0
+
 		# dictionary of vp {"Province" : [<card Province>, 2]}
 		vp_dict = {}
+		vp_dict["VP"] = self.vp
+		total += self.vp
 		for card in self.all_cards():
 			if "Victory" in card.type or "Curse" in card.type:
 				total += card.get_vp()
@@ -376,5 +381,4 @@ class DmClient(Client):
 
 	def all_cards(self):
 		return self.deck + self.discard_pile + self.played + self.hand.card_array()
-
 

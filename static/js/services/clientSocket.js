@@ -1,6 +1,6 @@
 clientModule.factory('socket', function($rootScope){
 	var socket = new WebSocket("ws://localhost:9999/ws");
-    //var socket = new WebSocket("ws://2ad72a66.ngrok.com/ws");
+    //var socket = new WebSocket("ws://3f850448.ngrok.com/ws");
 	socket.onopen = function(event){
 		$("#msg").text("Waiting for other player...");
 	};
