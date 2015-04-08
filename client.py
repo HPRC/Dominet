@@ -22,7 +22,7 @@ class Client():
 		pass
 
 	def write_json(self, **kwargs):
-		print("\033[91m " + str(kwargs) + "\033[0m")
+		print(self.name + ": \033[91m " + str(kwargs) + "\033[0m")
 		self.handler.write_json(**kwargs)
 
 	def take_turn(self):
@@ -140,7 +140,7 @@ class DmClient(Client):
 	def exec_commands(self, data):
 		Client.exec_commands(self, data)
 		cmd = data["command"]
-		print("\033[94m" + json.dumps(data) + "\033[0m")
+		print(self.name + ": \033[94m" + json.dumps(data) + "\033[0m")
 		if cmd == "ready":
 			self.ready = True
 			if self.game.players_ready() and self.game.turn_count == 0:

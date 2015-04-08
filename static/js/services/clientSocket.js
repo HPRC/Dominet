@@ -1,7 +1,7 @@
 clientModule.factory('socket', function($rootScope){
 	var socket = new WebSocket("ws://localhost:9999/ws");
 	socket.onopen = function(event){
-		
+
 	};
 
 	socket.onmessage = function(event){
