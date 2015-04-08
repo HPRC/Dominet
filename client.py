@@ -3,6 +3,7 @@ import card as crd
 import cardpile as cp
 import random
 import base_set as b
+import intrigue_set as intr
 import html
 
 
@@ -23,6 +24,7 @@ class Client():
 		pass
 
 	def write_json(self, **kwargs):
+		print(self.name + ": \033[91m " + str(kwargs) + "\033[0m")
 		self.handler.write_json(**kwargs)
 
 	def take_turn(self):
@@ -59,23 +61,26 @@ class DmClient(Client):
 		random.shuffle(deck)
 		return deck
 
-	def draw(self, numCards):
-		num_drawn = 0
-		if len(self.deck) < numCards:
+	def draw(self, num_cards, return_string=True):
+		drawn = []
+		if len(self.deck) < num_cards:
 			self.shuffle_discard_to_deck()
-		for i in range(0, numCards):
+		for i in range(0, num_cards):
 			if len(self.deck) >= 1:
-				num_drawn += 1
 				card = self.deck.pop()
+				drawn.append(card)
 				self.hand.add(card)
-		if num_drawn == 0:
+		if not return_string:
+			self.update_deck_size()
+			return drawn
+		if len(drawn) == 0:
 			return "nothing"
-		elif num_drawn == 1:
+		elif len(drawn) == 1:
 			self.update_deck_size()
 			return "a card"
 		else:
 			self.update_deck_size()
-			return str(num_drawn) + " cards"
+			return str(len(drawn)) + " cards"
 
 	# get top card of deck
 	def topdeck(self):
@@ -137,7 +142,7 @@ class DmClient(Client):
 	def exec_commands(self, data):
 		Client.exec_commands(self, data)
 		cmd = data["command"]
-		print("\033[94m" + json.dumps(data) + "\033[0m")
+		print(self.name + ": \033[94m" + json.dumps(data) + "\033[0m")
 		if cmd == "ready":
 			self.ready = True
 			if self.game.players_ready() and self.game.turn_count == 0:
@@ -158,26 +163,27 @@ class DmClient(Client):
 			self.end_turn()
 		elif cmd == "buyCard":
 			self.buy_card(data["card"])
-		elif cmd == "post_selection":
-			self.update_wait()
-			# parameter to waiting callback here is a list
-			if self.waiting["cb"] != None:
-				self.waiting["cb"](data["selection"])
+		elif cmd == "post_selection": 
+			self.exec_selected_choice(data["selection"])
 		elif cmd == "selectSupply":
 			self.update_wait()
-			# parameter to waiting callback here is a list
-			if self.waiting["cb"] != None:
-				self.waiting["cb"](data["card"])
+			self.exec_selected_choice(data["card"])
 		elif cmd == "reorder":
-			self.update_wait()
-			if self.waiting["cb"] != None:
-				self.waiting["cb"](data["ordering"])
+			self.exec_selected_choice(data["ordering"])
 		elif cmd == "spendAllMoney":
 			self.spend_all_money()
 		elif cmd == "returnToLobby":
 			self.handler.return_to_lobby()
 			self.ready = False
 			self.game = None
+
+	def exec_selected_choice(self, choice):
+		self.update_wait()
+		#choice(the parameter) to waiting callback is always a list
+		if self.waiting["cb"] != None:
+			temp = self.waiting["cb"]
+			self.waiting["cb"] = None
+			temp(choice)
 
 	def resume(self):
 		self.update_hand()
@@ -220,10 +226,10 @@ class DmClient(Client):
 			self.balance -= newCard.get_price()
 			self.update_resources()
 
-	def select(self, min_cards, max_cards, select_from, msg):
+	def select(self, min_cards, max_cards, select_from, msg, ordered=False):
 		if len(select_from) > 0:
 			self.write_json(command="updateMode", mode="select", min_cards=min_cards, max_cards=max_cards,
-				select_from=select_from, msg=msg)
+				select_from=select_from, msg=msg, ordered=ordered)
 			return True
 		else:
 			self.update_mode()

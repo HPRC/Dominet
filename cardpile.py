@@ -113,6 +113,8 @@ class HandPile():
 			if self.get_count(card.title) == 0:
 				del self.data[card.title]
 			return card
+		else:
+			return None
 
 	def get_count(self, card_title):
 		if card_title not in self.data:

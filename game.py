@@ -44,6 +44,8 @@ class Game():
 class DmGame(Game):
 	def __init__(self, players, required_cards, excluded_cards, supply="default"):
 		Game.__init__(self, players, supply)
+		# randomize turn order
+		random.shuffle(self.players)
 		self.trash_pile = []
 		self.empty_piles = 0
 		self.supply = supply

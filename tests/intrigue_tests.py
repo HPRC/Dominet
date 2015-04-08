@@ -338,6 +338,7 @@ class TestIntrigue(unittest.TestCase):
 		self.player2.hand.play("Militia")
 		self.player1.waiting["cb"](["Reveal"])
 		self.player1.waiting["cb"](["Estate", "Estate"])
+		self.player1.waiting["cb"](["Hide"])
 		self.player1.waiting["cb"](["Estate", "Estate"])
 		self.assertTrue(len(self.player1.hand.card_array()) == 3)
 
@@ -468,6 +469,19 @@ class TestIntrigue(unittest.TestCase):
 		#decksize should be 2 less since we took province and great hall out
 		self.assertTrue(len(self.player1.deck) == decklength - 2)
 
+	def test_Scout_autoselect(self):
+		scout = intrigue.Scout(self.game, self.player1)
+		self.player1.deck.append(crd.Copper(self.game, self.player1))
+		self.player1.deck.append(crd.Copper(self.game, self.player1))
+		self.player1.deck.append(crd.Estate(self.game, self.player1))
+		self.player1.deck.append(crd.Estate(self.game, self.player1))
+		self.player1.hand.add(scout)
+
+		scout.play()
+		self.assertTrue(self.player1.deck[-1].title == "Copper")
+		self.assertTrue(self.player1.deck[-2].title == "Copper")
+
+
 	def test_Minion(self):
 		minion = intrigue.Minion(self.game, self.player1)
 		self.player1.hand.add(minion)
@@ -527,6 +541,24 @@ class TestIntrigue(unittest.TestCase):
 
 		self.player1.waiting["cb"](["Tribute"])
 		self.assertTrue(self.player1.hand.get_count("Tribute") == 0)
+
+	def test_Masquerade_waits(self):
+		masquerade = intrigue.Masquerade(self.game, self.player1)
+		curse = crd.Curse(self.game, self.player1)
+		estate = crd.Estate(self.game, self.player2)
+		estate3 = crd.Estate(self.game, self.player3)
+		self.player1.hand.add(masquerade)
+		self.player1.hand.add(curse)
+		self.player2.hand.add(estate)
+		self.player3.hand.add(estate3)
+
+		masquerade.play()
+		self.player1.exec_commands({"command": "post_selection", "selection": ["Curse"]})
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		self.player2.exec_commands({"command": "post_selection", "selection": ["Estate"]})
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		self.player3.exec_commands({"command": "post_selection", "selection": ["Estate"]})
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
 
 	def test_Saboteur(self):
 		saboteur = intrigue.Saboteur(self.game, self.player1)
