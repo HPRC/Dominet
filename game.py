@@ -4,21 +4,23 @@ import card
 import json
 import net
 import cardpile as cp
+import random
 
 
 class Game():
-	def __init__(self, players):
+	def __init__(self, players, prosperity_supply=False):
 		self.players = players
 		self.first = 0
 		self.turn = self.first
 		self.turn_count = 0
+		self.prosperity_supply = prosperity_supply
 
 	def chat(self, msg, speaker):
 		for i in self.players:
 			i.write_json(command="chat", msg=msg, speaker=speaker)
 
 	def start_game(self):
-		self.announce("Starting game with " + str(self.players[0].name) + " and " + str(self.players[1].name))
+		self.announce("Starting game with " + " and ".join(map(lambda x: str(x.name), self.players)))
 		for i in self.players:
 			i.setup()
 		self.announce("<b>---- " + self.players[self.turn].name_string() + " 's turn " + str(self.turn_count) + " ----</b>")
@@ -40,21 +42,30 @@ class Game():
 
 
 class DmGame(Game):
-	def __init__(self, players, required_cards):
-		Game.__init__(self, players)
+	def __init__(self, players, required_cards, excluded_cards, prosperity_supply=False):
+		Game.__init__(self, players, prosperity_supply)
+		#randomize turn order
+		random.shuffle(self.players)
 		self.trash_pile = []
 		self.empty_piles = 0
 		# kingdom = dictionary {card.title => [card, count]} i.e {"Copper": [card.Copper(self,None),10]}
-		self.base_supply = self.init_supply([card.Curse(self, None), card.Estate(self, None), 
-			card.Duchy(self, None), card.Province(self, None), card.Copper(self, None),
-			card.Silver(self, None), card.Gold(self, None)])
+		base_supply = [card.Curse(self, None), card.Estate(self, None),
+		               card.Duchy(self, None), card.Province(self, None), card.Copper(self, None),
+		               card.Silver(self, None), card.Gold(self, None)]
 
-		generator = kg.kingdomGenerator(self, required_cards)
+		if prosperity_supply:
+			base_supply.append(card.Colony(self, None))
+			base_supply.append(card.Platinum(self, None))
+
+		self.base_supply = self.init_supply(base_supply)
+
+		generator = kg.kingdomGenerator(self, required_cards, excluded_cards)
 		self.kingdom = self.init_supply(generator.gen_kingdom())
 
 		self.supply = cp.CardPile()
 		self.supply.combine(self.base_supply)
 		self.supply.combine(self.kingdom)
+		self.price_modifier = 0
 
 	# override
 	def start_game(self):
@@ -76,6 +87,10 @@ class DmGame(Game):
 		if self.supply.get_count(card_title) == 0:
 			self.empty_piles += 1
 
+	def update_all_prices(self):
+		for i in self.players:
+			i.write_json(command="updateAllPrices", modifier=self.price_modifier)
+
 	def init_supply(self, cards):
 		supply = cp.CardPile()
 		num_players = len(self.players)
@@ -84,11 +99,13 @@ class DmGame(Game):
 				if num_players == 2:
 					supply.add(x, 8)
 				else:
-					supply.add(x,12)
+					supply.add(x, 12)
 			elif x.type == "Curse":
 				supply.add(x, (num_players - 1) * 10)
 			elif x.title == "Copper" or x.title == "Silver" or x.title == "Gold":
 				supply.add(x, 30)
+			elif x.title == "Platinum":
+				supply.add(x, 12)
 			else:
 				supply.add(x, 10)
 		return supply
@@ -107,7 +124,11 @@ class DmGame(Game):
 			i.write_json(command="updateTrash", trash=self.trash_string())
 
 	def detect_end(self):
-		if self.supply.get_count("Province") == 0 or self.empty_piles >= 3:
+		end_victory_pile = "Province"
+		if self.prosperity_supply:
+			end_victory_pile = "Colony"
+
+		if self.supply.get_count(end_victory_pile) == 0 or self.empty_piles >= 3:
 			self.announce("GAME OVER")
 			player_vp_list = (list(map(lambda x: (x, x.total_vp()), self.players)))
 			win_vp = max(player_vp_list, key=lambda x: x[1])[1]

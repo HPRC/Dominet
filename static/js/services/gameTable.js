@@ -7,6 +7,8 @@ clientModule.factory('gameTable', function(){
 	return {
 		title:"", 
 		seats:2, 
-		required:[]
+		required:[],
+        excluded:[],
+        prosperitySupply: false
 	};
 });

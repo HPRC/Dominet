@@ -11,7 +11,7 @@ clientModule.factory('cardStyle', function(){
 				"Treasure|Victory": "btn btn-danger-success"
 			};
 
-			if (card.type in colorDict){
+			if (card !== null && card.type in colorDict){
 				return colorDict[card.type];
 			} else {
 				return "btn btn-default";

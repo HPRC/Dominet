@@ -1,4 +1,4 @@
-clientModule.factory('client', function(socket) {
+clientModule.factory('client', function(socket, favicon) {
 	var constructor = function() {
 		this.id = null;
 		this.name = null;
@@ -34,6 +34,7 @@ clientModule.factory('client', function(socket) {
 		this.discardSize = 0;
 		//mode overidden by turn
 		this.modeJson = {"mode":"action"}; //.mode = action, buy, select, gain, wait, gameover
+		this.priceModifier = 0;
 	};
 
 	constructor.prototype.updateHand = function(json){
@@ -57,7 +58,7 @@ clientModule.factory('client', function(socket) {
 	constructor.prototype.baseCards = function(json){
 		var baseArray = JSON.parse(json.data);
 		for (var i=0; i< baseArray.length; i++) {
-			this.baseSupply[baseArray[i].title] = baseArray[i];			
+			this.baseSupply[baseArray[i].title] = baseArray[i];
 		}
 	};
 
@@ -66,10 +67,14 @@ clientModule.factory('client', function(socket) {
 		this.updateResources(json);
 		this.spendableMoney = 0;
 		this.updateSpendable();
+		favicon.alertFavicon();
 	};
 
 	constructor.prototype.updateMode = function(json){
 		this.modeJson = json;
+		if (this.modeJson.mode === "selectSupply" || this.modeJson.mode === "select" || this.modeJson.mode === "reorder"){
+			favicon.alertFavicon();
+		}
 	};
 
 	constructor.prototype.endTurn = function(){
@@ -79,6 +84,7 @@ clientModule.factory('client', function(socket) {
 		this.turn = false;
 		this.discard(this.hand);
 		this.played = []; //discarded on backend
+		favicon.stopAlert();
 		socket.send(JSON.stringify({"command": "endTurn"}));
 	};
 
@@ -139,11 +145,17 @@ clientModule.factory('client', function(socket) {
 	};
 
 	constructor.prototype.buyCard = function(card){
-		if (this.balance >= card.price){
+		if (this.balance >= card.price + this.priceModifier){
 			this.buys -= 1;
-			this.balance -= card.price;
+			if (card.price + this.priceModifier > 0){
+				this.balance -= card.price + this.priceModifier;
+			}
 			socket.send(JSON.stringify({"command":"buyCard", "card": card.title}));
 		}
+	};
+
+	constructor.prototype.updateAllPrices = function(json){
+		this.priceModifier = json.modifier;
 	};
 
 	constructor.prototype.updatePiles = function(json){
@@ -230,6 +242,10 @@ clientModule.factory('client', function(socket) {
 	constructor.prototype.getGameTrash = function(){
 		return this.gameTrash;
 	};
+
+	constructor.prototype.getPriceModifier = function(){
+		return this.priceModifier;
+	}
 
 	return new constructor();
 });

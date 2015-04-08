@@ -19,7 +19,7 @@ class TestCard(unittest.TestCase):
 		self.player1 = c.DmClient("player1", 0, PlayerHandler())
 		self.player2 = c.DmClient("player2", 1, PlayerHandler())
 		self.player3 = c.DmClient("player3", 2, PlayerHandler())
-		self.game = g.DmGame([self.player1, self.player2, self.player3], [])
+		self.game = g.DmGame([self.player1, self.player2, self.player3], [], [])
 		self.game.supply = self.game.init_supply(kg.all_cards(self.game))
 		for i in self.game.players:
 			i.game = self.game
@@ -81,12 +81,12 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(workshopCard.done.__name__ == "second_play")
 
 		self.player1.update_wait()
-		self.player1.waiting["cb"]("Silver")
+		self.player1.waiting["cb"](["Silver"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
 		self.assertTrue(workshopCard.done.__name__ == "final_done")
 
 		self.player1.update_wait()
-		self.player1.waiting["cb"]("Estate")
+		self.player1.waiting["cb"](["Estate"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Estate")
 
 	def test_Feast(self):
@@ -179,10 +179,64 @@ class TestCard(unittest.TestCase):
 		library.play()
 		self.assertTrue(len(self.player1.hand) == 6)
 		self.assertTrue(self.player1.handler.log[-1]["command"] == "updateMode")
-		self.player1.waiting["cb"]("Yes")
+		self.player1.waiting["cb"](["Yes"])
 		self.assertTrue(len(self.player1.hand) == 7)
 		self.assertTrue(self.player1.discard_pile[-1] == village)
 
+	def test_2_Reactions(self):
+		militia = base.Militia(self.game, self.player1)
+		moat = base.Moat(self.game, self.player2)
+		secret_chamber = intrigue.Secret_Chamber(self.game, self.player2)
+		estate = crd.Estate(self.game, self.player2)
+		self.player2.hand.add(moat)
+		self.player2.hand.add(secret_chamber)
+		self.player2.deck.append(estate)
+		self.player2.deck.append(estate)
+		moat3 = base.Moat(self.game, self.player3)
+		secret_chamber3 = intrigue.Secret_Chamber(self.game, self.player3)
+		silver = crd.Silver(self.game, self.player3)
+		self.player3.hand.data = {"Silver": [silver, silver, silver]}
+		self.player3.hand.add(moat3)
+		self.player3.hand.add(secret_chamber3)
+		
 
+		militia.play()
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		self.assertTrue(self.player2.last_mode["mode"] == "select")
+		self.assertTrue("Secret Chamber" in self.player2.last_mode["select_from"])		
+		self.assertTrue("Moat" in self.player2.last_mode["select_from"])
+
+		self.player2.exec_commands({"command":"post_selection", "selection":["Secret Chamber", "Moat"]})
+		#moat trigger first
+		self.assertTrue("Moat" in self.player2.last_mode["msg"])
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+
+		#while player2 is deciding to reveal moat or not,
+		#player3 chose order Secret chamber first
+		self.player3.exec_commands({"command":"post_selection", "selection":["Moat", "Secret Chamber"]})
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		self.assertTrue("Secret Chamber" in self.player3.last_mode["msg"])
+		self.player3.exec_commands({"command":"post_selection", "selection": ["Reveal"]})
+		#player3 chooses to put back secret chamber and moat in secret chamber reaction 
+		self.player3.exec_commands({"command":"post_selection", "selection": ["Secret Chamber", "Moat"]})
+		self.assertTrue(self.player3.deck[-1].title == "Moat")
+		self.assertTrue(self.player3.deck[-2].title == "Secret Chamber")
+		#player2 reveals moat
+		self.player2.exec_commands({"command":"post_selection", "selection": ["Reveal"]})
+		#player2 reveals secret chamber
+		self.player2.exec_commands({"command":"post_selection", "selection": ["Reveal"]})
+		#player2 puts back Estate, moat
+		self.assertTrue(self.player2.protection == 1)
+		self.player2.exec_commands({"command":"post_selection", "selection": ["Moat", "Estate"]})
+		self.assertTrue(self.player2.deck[-1].title == "Estate")
+		self.assertTrue(self.player2.deck[-2].title == "Moat")
+
+		
+		#player3 discards 2 silver
+		self.player3.exec_commands({"command":"post_selection", "selection": ["Silver", "Silver"]})
+
+		self.assertTrue(len(self.player3.hand)==3)
+		#player1 resumes
+		self.assertTrue(self.player1.last_mode["mode"] == "buy")
 if __name__ == '__main__':
 	unittest.main()

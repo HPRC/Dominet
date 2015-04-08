@@ -68,6 +68,18 @@ clientModule.controller("lobbyController", function($rootScope, $scope, $modal, 
 		return table.players.indexOf($scope.name) !== -1;
 	};
 
+    $scope.usingIncludes = function(table){
+        return table.required.join(", ");
+    };
+
+    $scope.usingExcludes = function(table){
+        return table.excluded.join(", ");
+    };
+
+    $scope.supplyInfo = function(table){
+        return table.prosperity_supply ? "Prosperity" : "Base";
+    };
+
 
 
 	$scope.openAdvGameModal = function () {

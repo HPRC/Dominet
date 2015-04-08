@@ -1,4 +1,4 @@
-clientModule.controller("supplyController", function($scope, socket, client, cardStyle){
+clientModule.controller("supplyController", function($scope, socket, client, cardStyle, favicon){
 	var getSupplyArray = function(supply){
 		return $.map(supply, function(card, title){
 			return card;
@@ -23,33 +23,59 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 		}
 
 		if ($scope.turn && $scope.modeJson.mode === "buy"){
-			return card.price > $scope.balance;
+			return $scope.getPrice(card) > $scope.balance;
 		}
 		if ($scope.modeJson.mode === "selectSupply"){
 			if ($scope.modeJson.type_constraint !== null && card.type.indexOf($scope.modeJson.type_constraint) === -1){
 				return true;
 			} else {
 				if ($scope.modeJson.equal_only){
-					return card.price !== $scope.modeJson.price;
+					return $scope.getPrice(card) !== $scope.modeJson.price;
 				} else if ($scope.modeJson.price){
-					return card.price > $scope.modeJson.price;
+					return $scope.getPrice(card) > $scope.modeJson.price;
 				} else {
                     return false
                 }
 
 			}
 		}
-		return (!$scope.turn || $scope.modeJson.mode === "wait" ||  $scope.modeJson.mode === "select" || $scope.modeJson.mode === "action");
+		return (!$scope.turn || $scope.modeJson.mode === "wait" ||  $scope.modeJson.mode === "select" || $scope.modeJson.mode === "reorder" || $scope.modeJson.mode === "action");
 	};
 
+
 	$scope.clickCard = function(card){
+		if ($scope.disabled(card)){
+			return;
+		}
 		if ($scope.modeJson.mode === "selectSupply"){
+			//wait to update ui until server responds
+			client.updateMode({"mode":"wait"});
 			//refactor into method (?)
-			socket.send(JSON.stringify({"command": "selectSupply", "card": card.title}));
+			favicon.stopAlert();
+			socket.send(JSON.stringify({"command": "selectSupply", "card": [card.title]}));
 		} else {
 			client.buyCard(card);
 		}
 	};
 
-	$scope.getButtonStyle = cardStyle.getButtonStyle;
+	$scope.getPrice = function(card){
+		if (card.price + client.getPriceModifier() <= 0){
+			return 0;	
+		} else {
+			return card.price + client.getPriceModifier();
+		}
+	};
+
+    $scope.selectNone = function() {
+    	favicon.stopAlert();
+        socket.send(JSON.stringify({"command": "selectSupply", "card": ["None"]}));
+    };
+
+	$scope.getButtonStyle = function(card){
+		if (!$scope.disabled(card)){
+			return cardStyle.getButtonStyle(card);
+		} else {
+			return cardStyle.getButtonStyle(card) + " disabled-card";
+		}
+	};
 });

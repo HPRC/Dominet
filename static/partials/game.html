@@ -18,6 +18,11 @@
 					<tr ng-repeat="card in baseSupplyArray | orderBy:'price':true">
 						<td class="supplyCardContainer"><supply-card></supply-card></td>
 					</tr>
+                    <tr ng-show="modeJson.optional">
+                        <td class="supplyCardContainer">
+                           <b>$-</b> <button ng-click="selectNone()" class="btn btn-default">None</button>
+                        </td>
+                    </tr>
 				</table>
 			</div>
 		</div>
@@ -35,13 +40,21 @@
 					<h5>{{modeJson.msg}}</h5>
 					<div ng-if="modeJson.min_cards > 1 || modeJson.min_cards === null">
 						<label class="checkbox-inline" ng-repeat="option in modeJson.select_from track by $index">
-							<input type="checkbox" ng-init="checked=false" ng-click="checked=!checked; check(option,checked)">{{option}}
+							<input type="checkbox" ng-init="checked=false" ng-click="checked=!checked; check(option,checked, $index)">{{option}}
+							<span ng-show="modeJson.ordered" ng-if="checked === true"><b>{{checkboxOrder(option, $index);}}</b></span>
 						</label>
 						<button ng-disabled="!canBeDone" ng-click="doneSelection()" class="btn btn-default">Done</button>
 					</div>
 					<div ng-if="modeJson.min_cards === 1">
 						<a href ng-click="selectOne(option)" ng-repeat="option in modeJson.select_from track by $index">  {{option}}  </a>
 					</div>
+				</div>
+				<div id="reorder" ng-show="modeJson.mode ==='reorder'" ng-controller="reorderController">
+					<h5>{{modeJson.msg}}</h5>
+					<ul class="reorder-ul">
+					<li id="{{option}}" ng-repeat="option in modeJson.options track by $index" class="reorder-li">{{option}}</li>
+					<li class="reorder-li-button"><button class="btn btn-default" ng-click="doneReorder()">Done</button></li>
+					</ul>
 				</div>
 			</div>
 			<div id="playerOptions" ng-show="turn">
