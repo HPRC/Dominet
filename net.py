@@ -199,7 +199,7 @@ class DmHandler(GameHandler):
 			for i in self.client.game.players:
 				if i != self.client:
 					if self.client.last_mode["mode"] == "gameover":
-						i.write_json(command="announce", msg = self.client.name_string() + " has left.")
+						i.write_json(command="chat", msg = self.client.name + " has left.", speaker=None)
 					else:
 						i.wait(self.client.name + " has disconnected!")
 

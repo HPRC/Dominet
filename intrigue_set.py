@@ -762,10 +762,9 @@ class Tribute(crd.Card):
 		tributes.append(topdeck1)
 		if topdeck1.title != topdeck2.title:
 			tributes.append(topdeck2)
-		self.game.announce("-- revealing " + ", ".join(crd.card_list_log_strings(tributes)) + " as a tribute.")
+		self.game.announce("-- revealing " + ", ".join(crd.card_list_log_strings([topdeck1, topdeck2])) + " as a tribute.")
 
 		self.tribute_card(left_opponent, tributes)
-		crd.Card.on_finished(self)
 
 	def tribute_card(self, left_opponent, tributes):
 		for x in tributes:
@@ -781,6 +780,8 @@ class Tribute(crd.Card):
 				gaining.append("drawing 2 cards")
 			if "Curse" != x.type:
 				self.game.announce("-- " + " and ".join(gaining) + " for " + x.log_string())
+		crd.Card.on_finished(self)
+
 
 class Upgrade(crd.Card):
 	def __init__(self, game, played_by):
