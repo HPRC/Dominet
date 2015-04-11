@@ -464,7 +464,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertFalse(silver.title in self.player1.hand)
 		self.assertFalse(scout2.title in self.player1.hand)
 
-		self.player1.waiting["cb"](["Silver", "Scout"])
+		self.player1.waiting["cb"](["Scout", "Silver"])
 		self.assertTrue(self.player1.deck[-1].title == "Silver")
 		self.assertTrue(self.player1.deck[-2].title == "Scout")
 		#decksize should be 2 less since we took province and great hall out

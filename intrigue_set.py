@@ -595,14 +595,11 @@ class Scout(crd.Card):
 				def post_reorder_with(order, cards_left=cards_left):
 					self.post_reorder(order, cards_left)
 
-				self.played_by.reorder(list(map(lambda x: x.title, cards_left)), "Rearrange the cards to put back on top of deck (left is topmost)")
+				self.played_by.select(len(cards_left), len(cards_left), crd.card_list_to_titles(cards_left), "Rearrange the cards to put back on top of deck (#1 is on top)", True)
 				self.played_by.waiting["on"].append(self.played_by)
 				self.played_by.waiting["cb"] = post_reorder_with
 
 	def post_reorder(self, order, cards_to_reorder):
-		#reverse the order because on frontend the leftmost is the top so we add the rightmost to the end of the
-		#deck first
-		order = reversed(order)
 		#we check naively to match the revealed cards to the new order O(N^2) is ok since max N = 4
 		for x in order:
 			for y in cards_to_reorder:

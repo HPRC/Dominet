@@ -150,7 +150,6 @@ class GameHandler(websocket.WebSocketHandler):
 		if self.table != None:
 			self.leave_table({"host":self.table.host.name})
 		GameHandler.update_lobby()
-		print("\033[96m " + self.client.name + " has closed the SOCKET! \033[0m")
 
 
 class DmHandler(GameHandler):
@@ -182,6 +181,7 @@ class DmHandler(GameHandler):
 	
 	# override
 	def on_close(self):
+		print("\033[96m " + self.client.name + " has closed the SOCKET! \033[0m")
 		if self.client.game == None:
 			GameHandler.on_close(self)
 			return

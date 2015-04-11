@@ -166,8 +166,6 @@ class DmClient(Client):
 		elif cmd == "selectSupply":
 			self.update_wait()
 			self.exec_selected_choice(data["card"])
-		elif cmd == "reorder":
-			self.exec_selected_choice(data["ordering"])
 		elif cmd == "spendAllMoney":
 			self.spend_all_money()
 		elif cmd == "returnToLobby":
@@ -194,14 +192,15 @@ class DmClient(Client):
 				buys=self.buys, balance=self.balance)
 
 	def end_turn(self):
+		for played_card in self.played:
+			played_card.cleanup()
+		self.discard_pile = self.discard_pile + self.played
+		#cleanup before game ends
 		if self.game.detect_end():
 			return
 		self.actions = 0
 		self.buys = 0
 		self.balance = 0
-		for played_card in self.played:
-			played_card.cleanup()
-		self.discard_pile = self.discard_pile + self.played
 		self.played = []
 		self.draw(self.hand_size)
 		if (self.game.price_modifier != 0):
@@ -232,9 +231,6 @@ class DmClient(Client):
 		else:
 			self.update_mode()
 			return False
-
-	def reorder(self, options, msg):
-		self.write_json(command="updateMode", mode="reorder", options=options, msg=msg)
 
 	def wait(self, msg):
 		self.write_json(command="updateMode", mode="wait", msg=msg)

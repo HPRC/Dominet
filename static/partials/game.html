@@ -49,13 +49,6 @@
 						<a href ng-click="selectOne(option)" ng-repeat="option in modeJson.select_from track by $index">  {{option}}  </a>
 					</div>
 				</div>
-				<div id="reorder" ng-show="modeJson.mode ==='reorder'" ng-controller="reorderController">
-					<h5>{{modeJson.msg}}</h5>
-					<ul class="reorder-ul">
-					<li id="{{option}}" ng-repeat="option in modeJson.options track by $index" class="reorder-li">{{option}}</li>
-					<li class="reorder-li-button"><button class="btn btn-default" ng-click="doneReorder()">Done</button></li>
-					</ul>
-				</div>
 			</div>
 			<div id="playerOptions" ng-show="turn">
 				<span class="resources"><b>actions:</b>{{actions}}</span>
