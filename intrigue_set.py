@@ -478,6 +478,7 @@ class Coppersmith(crd.Card):
 		for card in self.played_by.all_cards():
 			if card.title == "Copper":
 				card.value -= 1
+		return True
 
 class Ironworks(crd.Card):
 	def __init__(self, game, played_by):
@@ -539,9 +540,15 @@ class Mining_Village(crd.Card):
 			elif self in self.played_by.played:
 				self.game.announce("-- trashing " + self.log_string() + " to gain $2")
 				self.played_by.balance += 2
-				self.game.trash_pile.append(self.played_by.played.pop())
+				self.cleanup = self.selected_trash
+				#note we add mining village to trash and played pile (for conspirator) and remove from played in cleanup
+				self.game.trash_pile.append(self)
 				self.game.update_trash_pile()
 		crd.Card.on_finished(self)
+
+	#cleanup if we trashed mining village
+	def selected_trash(self):
+		return False
 
 class Scout(crd.Card):
 	def __init__(self, game, played_by):

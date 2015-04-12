@@ -599,7 +599,23 @@ class TestIntrigue(unittest.TestCase):
 		
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
 
-
+	def test_Mining_Village_Conspirator(self):
+		mv = intrigue.Mining_Village(self.game, self.player1)
+		village = base.Village(self.game, self.player1)
+		conspirator = intrigue.Conspirator(self.game, self.player1)
+		self.player1.hand.add(mv)
+		self.player1.hand.add(village)
+		self.player1.hand.add(conspirator)
+		village.play()
+		mv.play()
+		self.player1.exec_commands({"command": "post_selection", "selection": ["Yes"]})
+		self.assertTrue(mv in self.player1.played)
+		self.assertTrue(mv in self.game.trash_pile)
+		self.assertTrue(self.player1.actions == 3)
+		conspirator.play()
+		self.assertTrue(self.player1.actions == 3)
+		self.player1.exec_commands({"command": "endTurn"})
+		self.assertTrue(mv not in self.player1.discard_pile)
 
 if __name__ == '__main__':
 	unittest.main()

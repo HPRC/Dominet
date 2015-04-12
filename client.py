@@ -192,16 +192,16 @@ class DmClient(Client):
 				buys=self.buys, balance=self.balance)
 
 	def end_turn(self):
-		for played_card in self.played:
-			played_card.cleanup()
-		self.discard_pile = self.discard_pile + self.played
 		#cleanup before game ends
+		self.played = [x for x in self.played if x.cleanup()]
+		self.discard_pile = self.discard_pile + self.played
+		self.played = []
+
 		if self.game.detect_end():
 			return
 		self.actions = 0
 		self.buys = 0
 		self.balance = 0
-		self.played = []
 		self.draw(self.hand_size)
 		if (self.game.price_modifier != 0):
 			self.game.price_modifier = 0
