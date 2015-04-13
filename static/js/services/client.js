@@ -245,7 +245,7 @@ clientModule.factory('client', function(socket, favicon) {
 
 	constructor.prototype.getPriceModifier = function(){
 		return this.priceModifier;
-	}
+	};
 
 	return new constructor();
 });

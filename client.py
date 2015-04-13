@@ -41,6 +41,8 @@ class Client():
 		if cmd == "chat":
 			self.game.chat(data["msg"], self.name)
 
+		self.game.log_json_data("\n" + str(json.dumps(data)))
+
 
 class DmClient(Client):
 
@@ -142,7 +144,7 @@ class DmClient(Client):
 	def exec_commands(self, data):
 		Client.exec_commands(self, data)
 		cmd = data["command"]
-		print(self.name + ": \033[94m" + json.dumps(data) + "\033[0m")
+		print(self.name + " \033[94m" + json.dumps(data) + "\033[0m")
 		if cmd == "ready":
 			self.ready = True
 			if self.game.players_ready() and self.game.turn_count == 0:
@@ -176,11 +178,15 @@ class DmClient(Client):
 			self.handler.return_to_lobby()
 			self.ready = False
 			self.game = None
+		elif cmd == "submitBugReport":
+			self.game.rename_log_file("logs/flagged_" + str(self.game.START_TIME) + ".txt")
+			self.game.flagged = True
+
 
 	def exec_selected_choice(self, choice):
 		self.update_wait()
-		#choice(the parameter) to waiting callback is always a list
-		if self.waiting["cb"] != None:
+		# choice(the parameter) to waiting callback is always a list
+		if self.waiting["cb"] is not None:
 			temp = self.waiting["cb"]
 			self.waiting["cb"] = None
 			temp(choice)
@@ -206,7 +212,7 @@ class DmClient(Client):
 		self.discard_pile = self.discard_pile + self.played
 		self.played = []
 		self.draw(self.hand_size)
-		if (self.game.price_modifier != 0):
+		if self.game.price_modifier != 0:
 			self.game.price_modifier = 0
 			self.game.update_all_prices()
 		self.update_hand()
@@ -224,7 +230,9 @@ class DmClient(Client):
 			self.game.remove_from_supply(card_title)
 			self.buys -= 1
 			self.balance -= newCard.get_price()
-			self.update_resources()
+
+			# try:
+			# write on_purchase for Card class, extend it in relevant classes
 
 	def select(self, min_cards, max_cards, select_from, msg, ordered=False):
 		if len(select_from) > 0:
@@ -251,7 +259,7 @@ class DmClient(Client):
 	def discard(self, cards, pile):
 		for x in cards:
 			card = self.hand.extract(x)
-			if card != None:
+			if card is not None:
 				pile.append(card)
 		if pile == self.discard_pile:
 			self.update_discard_size()
@@ -282,7 +290,7 @@ class DmClient(Client):
 	def gain(self, card, from_supply=True):
 		new_card = self.get_card_from_supply(card, from_supply)
 		if new_card is not None:
-			self.game.announce(self.name_string() + " gains " + new_card.log_string()) # TODO perhaps delete to customize gains messages (for attacks etc.)
+			self.game.announce(self.name_string() + " gains " + new_card.log_string())  # TODO perhaps delete to customize gains messages (for attacks etc.)
 			self.discard_pile.append(new_card)
 			self.update_discard_size()
 		else:

@@ -1,4 +1,4 @@
-clientModule.controller("infoController", function($scope, client, $sce){
+clientModule.controller("infoController", function($scope, client, $sce, $modal){
 	$scope.renderHtml = function(html)
 	{
     	return $sce.trustAsHtml(html);
@@ -10,5 +10,12 @@ clientModule.controller("infoController", function($scope, client, $sce){
 			return "Trash:<br> -"
 		}
 		return "Trash:<br>" + trash
+	};
+
+    $scope.openReportBugModal = function () {
+		var modal = $modal.open({
+			templateUrl: '/static/js/directives/reportBugModal.html',
+			controller: 'reportBugModalController'
+		});
 	};
 });

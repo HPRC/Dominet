@@ -9,7 +9,7 @@ clientModule.controller("advGameModalController", function(gameTable, $scope, $m
 	$scope.createGame = function(){
 		$scope.newGameTable.required = $scope.inputRequired.split(',');
         $scope.newGameTable.excluded = $scope.inputExcluded.split(',');
-        $scope.newGameTable.supply = $scope.supplyRadio.value;
+        $scope.newGameTable.supply_set = $scope.supplyRadio.value;
 		$modalInstance.close($scope.newGameTable);
 	};
 

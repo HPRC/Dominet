@@ -704,9 +704,6 @@ class Torturer(crd.AttackCard):
 		if crd.AttackCard.fire(self, player):
 			def post_select_on(selection, player=player):
 				self.post_select(selection, player)
-
-			player.select(1, 1, ["Discard 2 cards", "Gain a Curse"], "Choose one:")
-			self.played_by.wait("Waiting for other players to choose")
 			# Here we add the player to our waiting list twice so that we keep waiting between
 			# choices (if they choose discard 2 it'll keep waiting)
 			self.played_by.waiting["on"].append(player)

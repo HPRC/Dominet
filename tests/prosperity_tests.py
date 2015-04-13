@@ -9,7 +9,7 @@ import kingdomGenerator as kg
 
 import sys
 import os
-#add this file's path to the sys for importing base_tests
+# add this file's path to the sys for importing base_tests
 sys.path.append(os.path.dirname(__file__))
 import base_tests as bt
 import intrigue_tests as it
@@ -56,6 +56,26 @@ class TestProsperity(unittest.TestCase):
 
 		self.assertTrue(self.player1.hand.get_count('Copper') == num_coppers + 3)
 		self.assertTrue(self.player1.discard_pile)
+
+	def test_Workers_Village(self):
+		workers_village = prosperity.Workers_Village(self.game, self.player1)
+
+		workers_village.play()
+
+		self.assertTrue(len(self.player1.hand.card_array()) == 6)
+		self.assertTrue(self.player1.buys == 2)
+		self.assertTrue(self.player1.actions == 2)
+
+	def test_Expand(self):
+		expand = prosperity.Expand(self.game, self.player1)
+
+		expand.play()
+
+		self.player1.waiting["cb"](["Copper"])
+
+		self.player1.waiting["cb"](["Silver"])
+
+		self.assertTrue(self.player1.discard_pile[0].title == "Silver")
 
 
 
