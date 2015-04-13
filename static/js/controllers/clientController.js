@@ -1,4 +1,4 @@
-clientModule.controller("clientController", function($rootScope, $scope, socket, client){
+clientModule.controller("clientController", function($rootScope, $scope, socket, client, $sce, $timeout){
 	client.initGameProperties();
 	$scope.c = client;
 	$scope.hand = client.getHand();
@@ -11,6 +11,7 @@ clientModule.controller("clientController", function($rootScope, $scope, socket,
 	$scope.spendableMoney = client.getSpendableMoney();
 	$scope.modeJson = client.getModeJson();
 	$scope.gameTrash = client.getGameTrash();
+	$scope.gameLogs = client.getGameLogs();
 
 	$scope.$on("$destroy", function(){
 		socketlistener();
@@ -31,12 +32,26 @@ clientModule.controller("clientController", function($rootScope, $scope, socket,
 			$scope.deckSize = client.getDeckSize();
 			$scope.discardSize = client.getDiscardSize();
 			$scope.gameTrash = client.getGameTrash();
+			$scope.gameLogs = client.getGameLogs();
+			$scope.$evalAsync($timeout($scope.updateScroll), 0);
 		});
 	});
+
+
+	
+
+	$scope.updateScroll = function(){
+		document.getElementById("container").scrollTop = document.height;
+		document.getElementById("msg").scrollTop = document.getElementById("msg").scrollHeight;
+	};
 
 	$scope.returnLobby = function(){
 		$scope.main.game = false;
 		socket.send(JSON.stringify({"command": "returnToLobby"}));
+	};
+
+	$scope.renderHtml = function(html){
+    	return $sce.trustAsHtml(html);
 	};
 
 });

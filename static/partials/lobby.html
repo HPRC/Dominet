@@ -40,7 +40,7 @@
 				<div class="row">
 					<div class="col-md-10">
 						<label class="sr-only" for="inputChat">inputChat</label>
-						<input type="text" id="inputChat" class="form-control" ng-model="inputText">
+						<input type="text" id="inputChat" class="form-control" ng-model="inputText" ng-keypress="enterKey($event)">
 					</div>
 					<div class="col-md-2">
 						<button id="sendChat" class="btn btn-default" ng-click="enterChat()">Send</button>

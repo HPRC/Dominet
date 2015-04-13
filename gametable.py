@@ -16,8 +16,8 @@ class GameTable():
 			"seats": self.seats,
 			"players": self.players_string(),
 			"required": self.required,
-		    "excluded": self.excluded,
-		    "prosperity_supply": self.prosperity_supply,
+			"excluded": self.excluded,
+			"prosperity_supply": self.prosperity_supply,
 			"sets": self.sets
 		}
 

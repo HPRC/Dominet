@@ -12,7 +12,19 @@ clientModule.controller("selectController", function($scope, socket, client, fav
 	//key = index, value = order
 	$scope.ordering = {};
 	$scope.check = function(option, isChecked, index){
-		var checkedCount = $("input:checkbox:checked").length;
+		var inputElements = document.getElementsByTagName("input");
+		var checkedBoxes = [];
+		var uncheckedBoxes = [];
+		for (var i=0; i<inputElements.length; i++){
+			if (inputElements[i].type === "checkbox"){
+				if (inputElements[i].checked){
+					checkedBoxes.push(inputElements[i]);
+				} else {
+					uncheckedBoxes.push(inputElements[i]);
+				}
+			}
+		}
+		var checkedCount = checkedBoxes.length;
 		if ($scope.modeJson.min_cards !== undefined || $scope.modeJson.max_cards !== undefined){
 			if ($scope.modeJson.min_cards !== undefined){
 				if (checkedCount >= $scope.modeJson.min_cards){
@@ -23,9 +35,13 @@ clientModule.controller("selectController", function($scope, socket, client, fav
 			}
 			if ($scope.modeJson.max_cards !== undefined){
 				if (checkedCount == $scope.modeJson.max_cards){
-					$("input:checkbox").not(":checked").attr("disabled", true);
+					uncheckedBoxes.map(function(elem){
+						elem.setAttribute("disabled", true);
+					});
 				} else {
-					$("input:checkbox").not(":checked").attr("disabled", false);
+					uncheckedBoxes.map(function(elem){
+						elem.removeAttribute("disabled");
+					});
 				}
 			}
 		}

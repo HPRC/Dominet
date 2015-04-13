@@ -35,6 +35,8 @@ clientModule.factory('client', function(socket, favicon) {
 		//mode overidden by turn
 		this.modeJson = {"mode":"action"}; //.mode = action, buy, select, gain, wait, gameover
 		this.priceModifier = 0;
+		this.gameLogs = "";
+
 	};
 
 	constructor.prototype.updateHand = function(json){
@@ -43,9 +45,8 @@ clientModule.factory('client', function(socket, favicon) {
 	};
 
 	constructor.prototype.announce = function(json){
-			$('#msg').append("<br>" + json.msg);
-			$("#container").scrollTop($(document).height());
-			$("#msg").scrollTop($("#msg")[0].scrollHeight);
+		var msg = document.getElementById("msg");
+		this.gameLogs += "<br>" + json.msg;
 	};
 
 	constructor.prototype.kingdomCards = function(json){
@@ -92,7 +93,7 @@ clientModule.factory('client', function(socket, favicon) {
 		if (cards.length == 0){
 			return;
 		}
-		var cardsByTitle = $.map(cards, function(val, index){
+		var cardsByTitle = cards.map(function(val){
 			return val.title;
 		});
 		socket.send(JSON.stringify({"command": "discard", "cards": cardsByTitle}));
@@ -246,6 +247,11 @@ clientModule.factory('client', function(socket, favicon) {
 	constructor.prototype.getPriceModifier = function(){
 		return this.priceModifier;
 	}
+
+	constructor.prototype.getGameLogs = function(){
+		return this.gameLogs;
+	}
+
 
 	return new constructor();
 });

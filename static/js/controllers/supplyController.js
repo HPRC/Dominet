@@ -1,8 +1,10 @@
 clientModule.controller("supplyController", function($scope, socket, client, cardStyle, favicon){
 	var getSupplyArray = function(supply){
-		return $.map(supply, function(card, title){
-			return card;
-		});
+		arr = [];
+		for (var key in supply){
+			arr.push(supply[key]);
+		}
+		return arr;
 	};
 
 	$scope.kingdomSupplyArray = getSupplyArray($scope.kingdom);
