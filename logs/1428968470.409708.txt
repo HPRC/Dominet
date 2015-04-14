@@ -1,0 +1,20 @@
+Game created on 1428968470.409708
+ Players: hi, dsaf
+{"command": "spendAllMoney"}
+{"command": "buyCard", "card": "Mint"}
+{"cards": ["Estate", "Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"command": "spendAllMoney"}
+{"command": "buyCard", "card": "Mint"}
+{"cards": ["Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"command": "spendAllMoney"}
+{"command": "buyCard", "card": "Mint"}
+{"cards": ["Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"command": "spendAllMoney"}
+{"command": "buyCard", "card": "Mint"}
+{"cards": ["Estate", "Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"command": "play", "card": "Mint"}
+{"command": "play", "card": "Mint"}
