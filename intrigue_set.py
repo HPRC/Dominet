@@ -611,14 +611,7 @@ class Scout(crd.Card):
 				self.played_by.waiting["cb"] = post_reorder_with
 
 	def post_reorder(self, order, cards_to_reorder):
-<<<<<<< HEAD
 		#we check naively to match the revealed cards to the new order O(N^2) is ok since max N = 4
-=======
-		# reverse the order because on frontend the leftmost is the top so we add the rightmost to the end of the
-		# deck first
-		order = reversed(order)
-		# we check naively to match the revealed cards to the new order O(N^2) is ok since max N = 4
->>>>>>> 3cc49362576de6f28b86627d6b993a0cb8aa1c28
 		for x in order:
 			for y in cards_to_reorder:
 				if x == y.title:

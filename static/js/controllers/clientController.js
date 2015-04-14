@@ -33,6 +33,7 @@ clientModule.controller("clientController", function($rootScope, $scope, socket,
 			$scope.discardSize = client.getDiscardSize();
 			$scope.gameTrash = client.getGameTrash();
 			$scope.gameLogs = client.getGameLogs();
+			//update scroll after angular renders changes to dom
 			$scope.$evalAsync($timeout($scope.updateScroll), 0);
 		});
 	});
