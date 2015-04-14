@@ -1,0 +1,7 @@
+Game created on 1429029922.124122
+ Players: AD, Henry
+{"msg": "mint is broken", "command": "chat"}
+{"msg": "i think counting houes it too", "command": "chat"}
+{"msg": "haha ok", "command": "chat"}
+{"msg": "should we remake without them?", "command": "chat"}
+{"msg": "rm?", "command": "chat"}

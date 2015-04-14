@@ -2,15 +2,14 @@ clientModule.controller("chatController", function($rootScope, $scope, socket){
     $scope.inputText = "";
     $scope.messages = [];
 
-	$("#inputChat").keypress(function(e){
+	$scope.enterKey = function(e){
 		if(e.which==13){
 			$scope.enterChat();
 		}
-	});
+	};
 
 	$scope.enterChat = function(){
 		socket.send(JSON.stringify({"command": "chat", "msg": $scope.inputText}))
-		$("#inputChat").val("");	
 		$scope.inputText = "";
 	};
 
@@ -35,7 +34,8 @@ clientModule.controller("chatController", function($rootScope, $scope, socket){
 					});
 				});
 			}
-			$(".scrollChat").scrollTop($(".scrollChat")[0].scrollHeight);
+			var chat = document.getElementsByClassName("scrollChat")[0]
+			chat.scrollTop = chat.scrollHeight;
 		}
 	});
 

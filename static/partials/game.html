@@ -29,7 +29,7 @@
 	</div>
 	<div id="middleColumn" class="col-xs-5">
 		<div id="game-panel">
-			<div id="msg"></div>
+			<div id="msg" ng-bind-html="renderHtml(gameLogs)"></div>
 			<div class="modeContainer">
 				<div id="gameover" ng-show="modeJson.mode === 'gameover'">
 					<a href="#" ng-click="returnLobby()">Return to Lobby</a>
@@ -48,13 +48,6 @@
 					<div ng-if="modeJson.min_cards === 1">
 						<a href ng-click="selectOne(option)" ng-repeat="option in modeJson.select_from track by $index">  {{option}}  </a>
 					</div>
-				</div>
-				<div id="reorder" ng-show="modeJson.mode ==='reorder'" ng-controller="reorderController">
-					<h5>{{modeJson.msg}}</h5>
-					<ul class="reorder-ul">
-					<li id="{{option}}" ng-repeat="option in modeJson.options track by $index" class="reorder-li">{{option}}</li>
-					<li class="reorder-li-button"><button class="btn btn-default" ng-click="doneReorder()">Done</button></li>
-					</ul>
 				</div>
 			</div>
 			<div id="playerOptions" ng-show="turn">
@@ -79,7 +72,7 @@
 			<hr>
 			<div class="col-md-10">
   				<label class="sr-only" for="inputChat">inputChat</label>
-				<input type="text" id="inputChat" class="form-control" ng-model="inputText">
+				<input type="text" id="inputChat" class="form-control" ng-model="inputText" ng-keypress="enterKey($event)">
 			</div>
 			<div class="col-md-2">
 				<button id="sendChat" class="btn btn-default" ng-click="enterChat()">Send</button>

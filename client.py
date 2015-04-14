@@ -170,8 +170,6 @@ class DmClient(Client):
 		elif cmd == "selectSupply":
 			self.update_wait()
 			self.exec_selected_choice(data["card"])
-		elif cmd == "reorder":
-			self.exec_selected_choice(data["ordering"])
 		elif cmd == "spendAllMoney":
 			self.spend_all_money()
 		elif cmd == "returnToLobby":
@@ -202,15 +200,16 @@ class DmClient(Client):
 				buys=self.buys, balance=self.balance)
 
 	def end_turn(self):
+		#cleanup before game ends
+		self.played = [x for x in self.played if x.cleanup()]
+		self.discard_pile = self.discard_pile + self.played
+		self.played = []
+
 		if self.game.detect_end():
 			return
 		self.actions = 0
 		self.buys = 0
 		self.balance = 0
-		for played_card in self.played:
-			played_card.cleanup()
-		self.discard_pile = self.discard_pile + self.played
-		self.played = []
 		self.draw(self.hand_size)
 		if self.game.price_modifier != 0:
 			self.game.price_modifier = 0
@@ -230,7 +229,7 @@ class DmClient(Client):
 			self.game.remove_from_supply(card_title)
 			self.buys -= 1
 			self.balance -= newCard.get_price()
-
+			self.update_resources()
 			# try:
 			# write on_purchase for Card class, extend it in relevant classes
 
@@ -242,9 +241,6 @@ class DmClient(Client):
 		else:
 			self.update_mode()
 			return False
-
-	def reorder(self, options, msg):
-		self.write_json(command="updateMode", mode="reorder", options=options, msg=msg)
 
 	def wait(self, msg):
 		self.write_json(command="updateMode", mode="wait", msg=msg)
@@ -357,7 +353,7 @@ class DmClient(Client):
 
 		# dictionary of vp {"Province" : [<card Province>, 2]}
 		vp_dict = {}
-		vp_dict["VP"] = self.vp
+		vp_dict["VP tokens"] = self.vp
 		total += self.vp
 		for card in self.all_cards():
 			if "Victory" in card.type or "Curse" in card.type:

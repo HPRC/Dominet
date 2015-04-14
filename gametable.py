@@ -16,7 +16,7 @@ class GameTable():
 			"seats": self.seats,
 			"players": self.players_string(),
 			"required": self.required,
-		    "excluded": self.excluded,
+			"excluded": self.excluded,
 		    "supply_set": self.supply_set,
 			"sets": self.sets
 		}

@@ -36,9 +36,10 @@ class Card():
 			"price": self.price
 		}
 
-	# called at the end of turn if this card was played
+	#called at the end of turn if this card was played
+	#returns True if we add card to discard pile, False otherwise
 	def cleanup(self):
-		pass
+		return True
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-default'>", self.title, "s</span>" if plural else "</span>"])

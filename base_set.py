@@ -556,15 +556,15 @@ class Throne_Room(crd.Card):
 		self.played_by.update_resources()
 		self.played_by.update_hand()
 
-		#remove throne roomed card from being added to played twice
-		def removeCardFromPlayed():
-			#cleanup the throneroomed card since it will be skipped when calling cleanups after being removed
-			selected_card.cleanup()
-			self.played_by.played.remove(selected_card)
+		normal_cleanup = selected_card.cleanup
+		#remove throne roomed card from being added to discard_pile twice
+		def throne_roomed_cleanup():
+			normal_cleanup()
 			#reset cleanup after it finishes
-			self.cleanup = lambda : None
+			selected_card.cleanup = normal_cleanup
+			return False
 
-		self.cleanup = removeCardFromPlayed
+		selected_card.cleanup = throne_roomed_cleanup
 
 
 # --------------------------------------------------------

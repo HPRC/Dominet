@@ -207,9 +207,9 @@ class DmGame(Game):
 	def construct_VP_string(self, player):
 		ls = [] 
 		for title, data in player.total_vp(True).items():
-			if title == "VP":
+			if title == "VP tokens":
 				if data > 0:
-					ls.append(str(data) + " <span class='label label-success'>VP</span>")
+					ls.append(str(data) + " <span class='label label-success'>VP tokens</span>")
 				continue
 			if data[1] == 1:
 				ls.append(str(data[1]) + " " + data[0].log_string(False))

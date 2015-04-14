@@ -20,6 +20,8 @@ class TestIntrigue(unittest.TestCase):
 		self.player2 = c.DmClient("player2", 1, bt.PlayerHandler())
 		self.player3 = c.DmClient("player3", 2, bt.PlayerHandler())
 		self.game = g.DmGame([self.player1, self.player2, self.player3], [], [])
+		#hard code order of players so that random turn order doesn't interfere with tests
+		self.game.players = [self.player1, self.player2, self.player3]
 		self.game.supply = self.game.init_supply(kg.all_cards(self.game))
 		for i in self.game.players:
 			i.game = self.game
@@ -195,7 +197,7 @@ class TestIntrigue(unittest.TestCase):
 
 	def test_Swindler(self):
 		swindler = intrigue.Swindler(self.game, self.player1)
-		self.player2.deck.append(crd.Copper(self, self.player2))
+		self.player2.deck.append(crd.Copper(self.game, self.player2))
 		self.player1.hand.add(swindler)
 
 		swindler.play()
@@ -463,7 +465,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertFalse(silver.title in self.player1.hand)
 		self.assertFalse(scout2.title in self.player1.hand)
 
-		self.player1.waiting["cb"](["Silver", "Scout"])
+		self.player1.waiting["cb"](["Scout", "Silver"])
 		self.assertTrue(self.player1.deck[-1].title == "Silver")
 		self.assertTrue(self.player1.deck[-2].title == "Scout")
 		#decksize should be 2 less since we took province and great hall out
@@ -529,9 +531,11 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.hand.get_count("Curse") == 0)
 		self.assertTrue(self.player2.hand.get_count("Curse") == 1)
 
+
 		self.assertTrue(self.player2.hand.get_count("Baron") == 1)
 		self.player2.waiting["cb"](["Baron"])
 		self.assertTrue(self.player2.hand.get_count("Baron") == 0)
+
 		self.assertTrue(self.player3.hand.get_count("Baron") == 1)
 
 		self.assertTrue(self.player3.hand.get_count("Tribute") == 1)
@@ -577,11 +581,47 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player2.discard_pile.pop().title == "Copper")
 		self.assertTrue(len(self.player3.deck) == 0)
 		self.assertTrue(player3_decksize == len(self.player3.discard_pile))
-
 		self.player2.deck.append(steward)
 		saboteur.play()
 
 		self.player2.waiting["cb"](["None"])
+
+
+	def test_Upgrade_Selection_issue_21(self):
+		upgrade = intrigue.Upgrade(self.game, self.player1)
+		throne_room = base.Throne_Room(self.game, self.player1)
+		self.player1.deck.append(crd.Estate(self.game, self.player1))
+		self.player1.deck.append(crd.Silver(self.game, self.player1))
+
+		self.player1.hand.add(upgrade)
+		self.player1.hand.add(throne_room)
+		throne_room.play()
+		self.player1.exec_commands({"command": "post_selection", "selection": ["Upgrade"]})
+		self.player1.exec_commands({"command": "post_selection", "selection": ["Silver"]})
+		self.player1.exec_commands({"command": "selectSupply", "card": ["Coppersmith"]})
+		self.assertTrue(self.player1.discard_pile[-1].title == "Coppersmith")
+		self.player1.exec_commands({"command": "post_selection", "selection": ["Estate"]})
+		self.player1.exec_commands({"command": "selectSupply", "card": ["Silver"]})
+		
+		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
+
+	def test_Mining_Village_Conspirator(self):
+		mv = intrigue.Mining_Village(self.game, self.player1)
+		village = base.Village(self.game, self.player1)
+		conspirator = intrigue.Conspirator(self.game, self.player1)
+		self.player1.hand.add(mv)
+		self.player1.hand.add(village)
+		self.player1.hand.add(conspirator)
+		village.play()
+		mv.play()
+		self.player1.exec_commands({"command": "post_selection", "selection": ["Yes"]})
+		self.assertTrue(mv in self.player1.played)
+		self.assertTrue(mv in self.game.trash_pile)
+		self.assertTrue(self.player1.actions == 3)
+		conspirator.play()
+		self.assertTrue(self.player1.actions == 3)
+		self.player1.exec_commands({"command": "endTurn"})
+		self.assertTrue(mv not in self.player1.discard_pile)
 
 if __name__ == '__main__':
 	unittest.main()

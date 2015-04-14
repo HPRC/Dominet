@@ -481,6 +481,7 @@ class Coppersmith(crd.Card):
 		for card in self.played_by.all_cards():
 			if card.title == "Copper":
 				card.value -= 1
+		return True
 
 
 class Ironworks(crd.Card):
@@ -543,10 +544,15 @@ class Mining_Village(crd.Card):
 			elif self in self.played_by.played:
 				self.game.announce("-- trashing " + self.log_string() + " to gain $2")
 				self.played_by.balance += 2
-				self.game.trash_pile.append(self.played_by.played.pop())
+				self.cleanup = self.selected_trash
+				#note we add mining village to trash and played pile (for conspirator) and remove from played in cleanup
+				self.game.trash_pile.append(self)
 				self.game.update_trash_pile()
 		crd.Card.on_finished(self)
 
+	#cleanup if we trashed mining village
+	def selected_trash(self):
+		return False
 
 class Scout(crd.Card):
 	def __init__(self, game, played_by):
@@ -600,15 +606,12 @@ class Scout(crd.Card):
 				def post_reorder_with(order, cards_left=cards_left):
 					self.post_reorder(order, cards_left)
 
-				self.played_by.reorder(list(map(lambda x: x.title, cards_left)), "Rearrange the cards to put back on top of deck (left is topmost)")
+				self.played_by.select(len(cards_left), len(cards_left), crd.card_list_to_titles(cards_left), "Rearrange the cards to put back on top of deck (#1 is on top)", True)
 				self.played_by.waiting["on"].append(self.played_by)
 				self.played_by.waiting["cb"] = post_reorder_with
 
 	def post_reorder(self, order, cards_to_reorder):
-		# reverse the order because on frontend the leftmost is the top so we add the rightmost to the end of the
-		# deck first
-		order = reversed(order)
-		# we check naively to match the revealed cards to the new order O(N^2) is ok since max N = 4
+		#we check naively to match the revealed cards to the new order O(N^2) is ok since max N = 4
 		for x in order:
 			for y in cards_to_reorder:
 				if x == y.title:
@@ -704,6 +707,10 @@ class Torturer(crd.AttackCard):
 		if crd.AttackCard.fire(self, player):
 			def post_select_on(selection, player=player):
 				self.post_select(selection, player)
+			
+			player.select(1, 1, ["Discard 2 cards", "Gain a Curse"], "Choose one:")
+			self.played_by.wait("Waiting for other players to choose")
+
 			# Here we add the player to our waiting list twice so that we keep waiting between
 			# choices (if they choose discard 2 it'll keep waiting)
 			self.played_by.waiting["on"].append(player)
@@ -766,10 +773,9 @@ class Tribute(crd.Card):
 		tributes.append(topdeck1)
 		if topdeck1.title != topdeck2.title:
 			tributes.append(topdeck2)
-		self.game.announce("-- revealing " + ", ".join(crd.card_list_log_strings(tributes)) + " as a tribute.")
+		self.game.announce("-- revealing " + ", ".join(crd.card_list_log_strings([topdeck1, topdeck2])) + " as a tribute.")
 
 		self.tribute_card(left_opponent, tributes)
-		crd.Card.on_finished(self)
 
 	def tribute_card(self, left_opponent, tributes):
 		for x in tributes:
@@ -785,6 +791,8 @@ class Tribute(crd.Card):
 				gaining.append("drawing 2 cards")
 			if "Curse" != x.type:
 				self.game.announce("-- " + " and ".join(gaining) + " for " + x.log_string())
+		crd.Card.on_finished(self)
+
 
 class Upgrade(crd.Card):
 	def __init__(self, game, played_by):
