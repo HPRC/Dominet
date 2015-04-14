@@ -229,7 +229,7 @@ class DmClient(Client):
 			self.game.remove_from_supply(card_title)
 			self.buys -= 1
 			self.balance -= newCard.get_price()
-
+			self.update_resources()
 			# try:
 			# write on_purchase for Card class, extend it in relevant classes
 
@@ -353,7 +353,7 @@ class DmClient(Client):
 
 		# dictionary of vp {"Province" : [<card Province>, 2]}
 		vp_dict = {}
-		vp_dict["VP"] = self.vp
+		vp_dict["VP tokens"] = self.vp
 		total += self.vp
 		for card in self.all_cards():
 			if "Victory" in card.type or "Curse" in card.type:

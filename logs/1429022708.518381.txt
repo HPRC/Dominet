@@ -1,0 +1,75 @@
+Game created on 1429022708.518381
+ Players: Henry, AD
+{"command": "spendAllMoney"}
+{"card": "Shanty Town", "command": "buyCard"}
+{"cards": ["Estate", "Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"command": "spendAllMoney"}
+{"card": "Workers Village", "command": "buyCard"}
+{"cards": ["Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"command": "spendAllMoney"}
+{"card": "Silver", "command": "buyCard"}
+{"cards": ["Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"command": "spendAllMoney"}
+{"card": "Silver", "command": "buyCard"}
+{"cards": ["Estate", "Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"msg": "worker's village has no apostrophe", "command": "chat"}
+{"command": "spendAllMoney"}
+{"card": "Torturer", "command": "buyCard"}
+{"cards": ["Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"command": "spendAllMoney"}
+{"card": "Silver", "command": "buyCard"}
+{"cards": ["Estate", "Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"msg": "that's true", "command": "chat"}
+{"command": "spendAllMoney"}
+{"card": "Shanty Town", "command": "buyCard"}
+{"cards": ["Estate", "Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Workers Village", "command": "play"}
+{"command": "spendAllMoney"}
+{"card": "Silver", "command": "buyCard"}
+{"cards": ["Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Shanty Town", "command": "play"}
+{"card": "Torturer", "command": "play"}
+{"msg": "i have no option?", "command": "chat"}
+{"msg": "CHRIS", "command": "chat"}
+{"card": "Shanty Town", "command": "play"}
+{"command": "spendAllMoney"}
+{"card": "Festival", "command": "buyCard"}
+{"cards": ["Estate", "Estate", "Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"msg": "all i did was merge chris's branch", "command": "chat"}
+{"command": "spendAllMoney"}
+{"msg": "well", "command": "chat"}
+{"msg": "its busted", "command": "chat"}
+{"card": "Silver", "command": "buyCard"}
+{"cards": ["Estate", "Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Festival", "command": "play"}
+{"card": "Torturer", "command": "play"}
+{"card": "Shanty Town", "command": "play"}
+{"card": "Shanty Town", "command": "play"}
+{"command": "spendAllMoney"}
+{"card": "Upgrade", "command": "buyCard"}
+{"card": "Silver", "command": "buyCard"}
+{"cards": ["Estate", "Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"command": "spendAllMoney"}
+{"msg": "its so busted", "command": "chat"}
+{"card": "Gold", "command": "buyCard"}
+{"command": "endTurn"}
+{"msg": "remake?", "command": "chat"}
+{"card": "Shanty Town", "command": "play"}
+{"card": "Upgrade", "command": "play"}
+{"selection": ["Estate"], "command": "post_selection"}
+{"card": ["Silver"], "command": "selectSupply"}
+{"command": "spendAllMoney"}
+{"card": "Gold", "command": "buyCard"}
+{"command": "endTurn"}
+{"msg": "`s", "command": "chat"}
