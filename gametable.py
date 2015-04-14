@@ -1,12 +1,12 @@
 class GameTable():
-	def __init__(self, title, host, seats, required, excluded, sets, prosperity_supply=False):
+	def __init__(self, title, host, seats, required, excluded, sets, supply_set="default"):
 		self.title = title
 		self.host = host
 		self.seats = seats
 		self.sets = sets
 		self.required = required
 		self.excluded = excluded
-		self.prosperity_supply = prosperity_supply
+		self.supply_set = supply_set
 		self.players = [host]
 
 	def to_json(self):
@@ -18,6 +18,7 @@ class GameTable():
 			"required": self.required,
 			"excluded": self.excluded,
 			"prosperity_supply": self.prosperity_supply,
+		    "supply_set": self.supply_set,
 			"sets": self.sets
 		}
 

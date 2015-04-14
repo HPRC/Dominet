@@ -1,6 +1,7 @@
 import card as crd
 import base_set as base
 import intrigue_set as intrigue
+import prosperity_set as prosperity
 import inspect
 import random
 import string
@@ -14,6 +15,7 @@ class kingdomGenerator():
 		self.excluded_cards = card_title_to_class_name(excluded_cards)
 		self.load_set(base)
 		self.load_set(intrigue)
+		self.load_set(prosperity)
 
 	def gen_kingdom(self):
 		kingdom = []

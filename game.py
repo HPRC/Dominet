@@ -5,15 +5,19 @@ import json
 import net
 import cardpile as cp
 import random
+import time
+import os
 
 
 class Game():
-	def __init__(self, players, prosperity_supply=False):
+	def __init__(self, players, supply_set="default"):
 		self.players = players
 		self.first = 0
 		self.turn = self.first
 		self.turn_count = 0
-		self.prosperity_supply = prosperity_supply
+		self.supply_set = supply_set
+		self.START_TIME = time.time()
+		self.flagged = False
 
 	def chat(self, msg, speaker):
 		for i in self.players:
@@ -21,6 +25,8 @@ class Game():
 
 	def start_game(self):
 		self.announce("Starting game with " + " and ".join(map(lambda x: str(x.name), self.players)))
+		self.setup_log_file()
+
 		for i in self.players:
 			i.setup()
 		self.announce("<b>---- " + self.players[self.turn].name_string() + " 's turn " + str(self.turn_count) + " ----</b>")
@@ -40,20 +46,49 @@ class Game():
 	def get_turn_owner(self):
 		return self.players[self.turn]
 
+	def setup_log_file(self):
+		log_str = "Game created on " + str(self.START_TIME) + "\n Players: " + ", ".join(map(lambda x: str(x.name), self.players))
+		file = open('logs/' + str(self.START_TIME) + '.txt', 'w')
+		file.write(log_str)
+		file.close()
+
+	def get_log_file_path(self):
+		flagged = "flagged_" if self.flagged else ""
+		return 'logs/' + flagged + str(self.START_TIME) + '.txt'
+
+	def log_json_data(self, data):
+		path = self.get_log_file_path()
+		if os.path.exists(path):
+			file = open(path, 'a')
+			file.write(data)
+			file.close()
+
+	def rename_log_file(self, new_name):
+		# Purpose for this check is because when game ends file path is prefixed with 'finished_'
+		# get_log_file_path is naive of this. probably should be adjusted
+		if os.path.exists(self.get_log_file_path()):
+			os.rename(self.get_log_file_path(), new_name)
+
 
 class DmGame(Game):
-	def __init__(self, players, required_cards, excluded_cards, prosperity_supply=False):
-		Game.__init__(self, players, prosperity_supply)
-		#randomize turn order
+	def __init__(self, players, required_cards, excluded_cards, supply_set="default"):
+		Game.__init__(self, players, supply_set)
+		# randomize turn order
 		random.shuffle(self.players)
 		self.trash_pile = []
 		self.empty_piles = 0
+		self.supply_set = supply_set
+		if supply_set == "default":
+			rand = random.randint(1, 10)
+			if rand <= 3:
+				self.supply_set = "prosperity"
+
 		# kingdom = dictionary {card.title => [card, count]} i.e {"Copper": [card.Copper(self,None),10]}
 		base_supply = [card.Curse(self, None), card.Estate(self, None),
 		               card.Duchy(self, None), card.Province(self, None), card.Copper(self, None),
 		               card.Silver(self, None), card.Gold(self, None)]
 
-		if prosperity_supply:
+		if self.supply_set == "prosperity":
 			base_supply.append(card.Colony(self, None))
 			base_supply.append(card.Platinum(self, None))
 
@@ -125,7 +160,7 @@ class DmGame(Game):
 
 	def detect_end(self):
 		end_victory_pile = "Province"
-		if self.prosperity_supply:
+		if self.supply_set == "prosperity":
 			end_victory_pile = "Colony"
 
 		if self.supply.get_count(end_victory_pile) == 0 or self.empty_piles >= 3:
@@ -154,6 +189,12 @@ class DmGame(Game):
 				decklists.append("<br>")
 			for i in self.players:
 				i.write_json(command="updateMode", mode="gameover", decklists="".join(decklists))
+
+			if not self.flagged:
+				os.remove(self.get_log_file_path())
+			else:
+				os.rename(self.get_log_file_path(), "logs/finished_" + str(self.START_TIME) + ".txt")
+
 			return True
 		else:
 			return False
@@ -166,6 +207,10 @@ class DmGame(Game):
 	def construct_VP_string(self, player):
 		ls = [] 
 		for title, data in player.total_vp(True).items():
+			if title == "VP":
+				if data > 0:
+					ls.append(str(data) + " <span class='label label-success'>VP</span>")
+				continue
 			if data[1] == 1:
 				ls.append(str(data[1]) + " " + data[0].log_string(False))
 			else:

@@ -11,6 +11,7 @@ import os
 #add this file's path to the sys for importing base_tests
 sys.path.append(os.path.dirname(__file__))
 import base_tests as bt
+import prosperity_tests as pt
 
 
 class TestIntrigue(unittest.TestCase):
@@ -580,6 +581,11 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player2.discard_pile.pop().title == "Copper")
 		self.assertTrue(len(self.player3.deck) == 0)
 		self.assertTrue(player3_decksize == len(self.player3.discard_pile))
+		self.player2.deck.append(steward)
+		saboteur.play()
+
+		self.player2.waiting["cb"](["None"])
+
 
 	def test_Upgrade_Selection_issue_21(self):
 		upgrade = intrigue.Upgrade(self.game, self.player1)

@@ -9,6 +9,6 @@ clientModule.factory('gameTable', function(){
 		seats:2, 
 		required:[],
         excluded:[],
-        prosperitySupply: false
+        supply: "default"
 	};
 });

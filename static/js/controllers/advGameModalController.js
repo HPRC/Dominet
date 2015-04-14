@@ -2,14 +2,14 @@ clientModule.controller("advGameModalController", function(gameTable, $scope, $m
 	$scope.newGameTable = gameTable;
 	$scope.inputRequired = "";
     $scope.inputExcluded = "";
-    $scope.prosperitySupplyCheckbox = {
-        value: false
+    $scope.supplyRadio = {
+        value: "default"
     };
 
 	$scope.createGame = function(){
 		$scope.newGameTable.required = $scope.inputRequired.split(',');
         $scope.newGameTable.excluded = $scope.inputExcluded.split(',');
-        $scope.newGameTable.prosperitySupply = $scope.prosperitySupplyCheckbox.value;
+        $scope.newGameTable.supply_set = $scope.supplyRadio.value;
 		$modalInstance.close($scope.newGameTable);
 	};
 

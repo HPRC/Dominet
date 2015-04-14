@@ -1,0 +1,16 @@
+<div class="modal-header">
+    <h3>Report Bug</h3>
+</div>
+
+<div class="modal-body">
+	<form>
+		<div class="form-group">
+			<label for="reportBug">Report the Bug</label>
+			<input type="text" class="form-control" style="height:125px" id="reportBug" ng-model="text" placeholder="Explain the issue you're experiencing" maxlength="500">
+		</div>
+	</form>
+</div>
+<div class="modal-footer">
+	<button class="btn btn-default" ng-click="cancel()">Cancel</button>
+	<button class="btn btn-default" ng-click="submitBugReport()">Submit</button>
+</div>

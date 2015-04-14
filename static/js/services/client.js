@@ -246,7 +246,7 @@ clientModule.factory('client', function(socket, favicon) {
 
 	constructor.prototype.getPriceModifier = function(){
 		return this.priceModifier;
-	}
+	};
 
 	constructor.prototype.getGameLogs = function(){
 		return this.gameLogs;
