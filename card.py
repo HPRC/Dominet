@@ -36,13 +36,16 @@ class Card():
 			"price": self.price
 		}
 
-	#called at the end of turn if this card was played
-	#returns True if we add card to discard pile, False otherwise
+	# called at the end of turn if this card was played
+	# returns True if we add card to discard pile, False otherwise
 	def cleanup(self):
 		return True
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-default'>", self.title, "s</span>" if plural else "</span>"])
+
+	def on_buy(self):
+		pass
 
 
 class Money(Card):
@@ -74,14 +77,14 @@ class AttackCard(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
 		self.type = "Action|Attack"
-		#dictionary of reacting player client instance : list of reaction card callbacks to call
+		# dictionary of reacting player client instance : list of reaction card callbacks to call
 		self.reactions = {}
 
 	# called after reaction card finishes
 	# reacting_player = owner of reactio card that just finished
 	def reacted(self, reacting_player, drew_cards=False):
-		#if we drew any new cards during a card's reaction reprompt all reactions since player may
-		#want to reveal cards again
+		# if we drew any new cards during a card's reaction reprompt all reactions since player may
+		# want to reveal cards again
 		if drew_cards:
 			new_reactions = [x for x in reacting_player.hand.get_cards_by_type("Reaction") if "Attack" in x.trigger]
 			self.played_by.wait("waiting for other players to react")
@@ -97,13 +100,13 @@ class AttackCard(Card):
 			if not self.reactions:
 				self.attack()
 		else:
-			#cannot get here without having had a reaction first so the reactions are ordered
+			# cannot get here without having had a reaction first so the reactions are ordered
 			self.trigger_reaction(reacting_player, True)
 
 	def trigger_reaction(self, player, just_ordered):
-		#order of this or statement is important, we don't want to call need order reactions if just_ordered
+		# order of this or statement is important, we don't want to call need order reactions if just_ordered
 		if just_ordered or not self.need_order_reactions(player):
-			#react functions take in a lambda callback (this function) that itll call with whether the reaction drew cards
+			# react functions take in a lambda callback (this function) that itll call with whether the reaction drew cards
 			reacting = self.reactions[player].pop()
 			reacting(lambda drew_cards=False: self.reacted(player, drew_cards))
 
@@ -182,6 +185,7 @@ class AttackCard(Card):
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-danger'>", self.title, "s</span>" if plural else "</span>"])
 
+
 class Copper(Money):
 	def __init__(self, game, played_by):
 		Money.__init__(self, game, played_by)
@@ -235,6 +239,7 @@ class Curse(Card):
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-curse'>", self.title, "s</span>" if plural else "</span>"])
+
 
 class VictoryCard(Card):
 	def __init__(self, game, played_by):

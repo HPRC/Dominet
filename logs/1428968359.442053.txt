@@ -1,4 +1,0 @@
-Game created on 1428968359.442053
- Players: hi, dsaf
-{"command": "spendAllMoney"}
-{"card": "Mint", "command": "buyCard"}

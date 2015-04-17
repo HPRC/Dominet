@@ -62,4 +62,7 @@ def all_cards(game):
 	for name, obj in inspect.getmembers(intrigue):
 		if inspect.isclass(obj):
 			all_cards.append(obj(game, None))
+	for name, obj in inspect.getmembers(prosperity):
+		if inspect.isclass(obj):
+			all_cards.append(obj(game, None))
 	return all_cards

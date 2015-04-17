@@ -77,6 +77,25 @@ class TestProsperity(unittest.TestCase):
 
 		self.assertTrue(self.player1.discard_pile[0].title == "Silver")
 
+	def test_Mint(self):
+		mint = prosperity.Mint(self.game, self.player1)
+		silver = crd.Silver(self.game, self.player1)
+
+		mint.play()
+
+		self.assertTrue(self.player1.discard_pile[0].title == "Copper")
+
+		self.player1.hand.add(silver)
+		self.player1.hand.add(silver)
+		mint.play()
+
+		self.player1.waiting["cb"](["Silver"])
+		self.assertTrue(self.player1.discard_pile[1].title == "Silver")
+
+		self.player1.spend_all_money()
+		self.player1.buy_card('Mint')
+		self.assertTrue(len(self.game.trash_pile) >= 5)
+
 
 
 

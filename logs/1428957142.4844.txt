@@ -1,3 +1,0 @@
-Game created on 1428957142.4844
- Players: dsaf, hi
-{"name": "hi", "command": "ready"}

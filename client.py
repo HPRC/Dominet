@@ -225,6 +225,7 @@ class DmClient(Client):
 			# and instantiating it
 			newCard = type(self.game.card_from_title(card_title))(self.game, self)
 			self.game.announce("<b>" + self.name + "</b> buys " + newCard.log_string())
+			newCard.on_buy()
 			self.discard_pile.append(newCard)
 			self.game.remove_from_supply(card_title)
 			self.buys -= 1

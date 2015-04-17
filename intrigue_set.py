@@ -545,12 +545,12 @@ class Mining_Village(crd.Card):
 				self.game.announce("-- trashing " + self.log_string() + " to gain $2")
 				self.played_by.balance += 2
 				self.cleanup = self.selected_trash
-				#note we add mining village to trash and played pile (for conspirator) and remove from played in cleanup
+				# note we add mining village to trash and played pile (for conspirator) and remove from played in cleanup
 				self.game.trash_pile.append(self)
 				self.game.update_trash_pile()
 		crd.Card.on_finished(self)
 
-	#cleanup if we trashed mining village
+	# cleanup if we trashed mining village
 	def selected_trash(self):
 		return False
 
@@ -611,7 +611,7 @@ class Scout(crd.Card):
 				self.played_by.waiting["cb"] = post_reorder_with
 
 	def post_reorder(self, order, cards_to_reorder):
-		#we check naively to match the revealed cards to the new order O(N^2) is ok since max N = 4
+		# we check naively to match the revealed cards to the new order O(N^2) is ok since max N = 4
 		for x in order:
 			for y in cards_to_reorder:
 				if x == y.title:

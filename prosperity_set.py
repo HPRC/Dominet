@@ -63,7 +63,7 @@ class Counting_House(crd.Card):
 		discarded_coppers = self.played_by.get_card_count_in_list('Copper', self.played_by.discard_pile)
 
 		self.game.announce("-- removing " + str(discarded_coppers) + " coppers from their discard and putting them in hand.")
-		for i in range(discarded_coppers - 1, -1, -1): # loop through discard pile backwards to in place remove coppers
+		for i in range(discarded_coppers - 1, -1, -1):  # loop through discard pile backwards to in place remove coppers
 			if self.played_by.discard_pile[i].title == "Copper":
 				copper = self.played_by.discard_pile.pop(i)
 				self.played_by.hand.add(copper)
@@ -71,21 +71,50 @@ class Counting_House(crd.Card):
 		crd.Card.on_finished(self)
 
 
-class Mint(crd.Money):
+class Mint(crd.Card):
 	def __init__(self, game, played_by):
-		crd.Money.__init__(self, game, played_by)
+		crd.Card.__init__(self, game, played_by)
 		self.title = "Mint"
 		self.description = "You may reveal a Treasure card from your hand. Gain a copy of it.\n" \
 		                   "When you buy this, trash all Treasures you have in play."
-		self.value = 0
 		self.price = 5
-		self.type = "Treasure"
+		self.type = "Action"
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
+		treasures = self.played_by.hand.get_cards_by_type("Treasure", True)
+		treasures = dedupe_list(treasures)
 
-	def on_purchase(self):
-		self.played_by = "me"
+		# perhaps write an auto_select method for lists?
+		if len(treasures) == 0:
+			self.game.announce("-- but there were no treasures to reveal")
+			crd.Card.on_finished(self, False, False)
+		elif len(treasures) == 1:
+			self.reveal(treasures)
+		else:
+			self.played_by.select(1, 1, treasures, "Choose a card to reveal")
+
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.reveal
+
+	def reveal(self, selection):
+		self.game.announce("-- revealing " + self.game.log_string_from_title(selection[0]) + " gaining a copy of it.")
+		self.played_by.gain(selection[0])
+		crd.Card.on_finished(self, False, False)
+
+	def on_buy(self):
+		trashed_treasures = list()
+		for i in range(len(self.played_by.played) - 1, -1, -1):
+			if self.played_by.played[i].type == 'Treasure':
+				trashed_treasures.append(self.played_by.played.pop(i))
+		announce_string = ", ".join(list(map(lambda x: self.game.log_string_from_title(x.title), trashed_treasures)))
+
+		self.game.announce("-- trashing " + announce_string)
+
+		for card in trashed_treasures:
+			self.game.trash_pile.append(card)
+
+		self.game.update_trash_pile()
 
 
 class Mountebank(crd.AttackCard):
@@ -161,3 +190,12 @@ class Expand(crd.Card):
 # --------------------------------------------------------
 # ------------------------ 8 Cost ------------------------
 # --------------------------------------------------------
+
+
+def dedupe_list(lst):
+	unique_cards = {}
+	for card in lst:
+		if card.title not in unique_cards:
+			unique_cards[card.title] = card
+
+	return list(map(lambda x: x, unique_cards))
