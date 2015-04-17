@@ -136,16 +136,29 @@ class Mountebank(crd.AttackCard):
 
 	def fire(self, player):
 		if crd.AttackCard.fire(self, player):
-			if player.hand.get_card("Curse"):
+			if player.hand.has_card("Curse"):
 				def post_select_on(selection, player=player):
 					self.post_select(selection, player)
+				player.select(1, 1, ["Yes", "No"], "Discard a curse?")
+				self.played_by.wait("Waiting for other players to choose")
+				player.waiting["on"].append(player)
+				player.waiting["cb"] = post_select_on
+
 			else:
 				player.gain("Copper")
 				player.gain("Curse")
+				crd.AttackCard.get_next(self, player)
 
-	# def post_select(self, selection, player):
-	 	# if selection[0] == "Yes":
-	 	# 	# player.hand.
+	def post_select(self, selection, player):
+		if selection[0] == "Yes":
+			curse = player.hand.extract("Curse")
+			player.discard_pile.append(curse)
+			self.game.announce("-- " + player.title + " discards a " + curse.log_string())
+		else:
+			player.gain("Copper")
+			player.gain("Curse")
+
+		crd.AttackCard.get_next(self, player)
 
 
 # --------------------------------------------------------

@@ -96,7 +96,20 @@ class TestProsperity(unittest.TestCase):
 		self.player1.buy_card('Mint')
 		self.assertTrue(len(self.game.trash_pile) >= 5)
 
+	def test_Mountebank(self):
+		mountebank = prosperity.Mountebank(self.game, self.player1)
+		curse = crd.Curse(self.game, self.player2)
 
+		self.player2.hand.add(curse)
+
+		mountebank.play()
+
+		self.assertTrue(self.player1.balance == 2)
+		self.player2.waiting["cb"](["Yes"])
+
+		self.assertTrue(self.player2.discard_pile[0].title == "Curse")
+		self.assertTrue(self.player3.discard_pile[0].title == "Copper")
+		self.assertTrue(self.player3.discard_pile[1].title == "Curse")
 
 
 if __name__ == '__main__':

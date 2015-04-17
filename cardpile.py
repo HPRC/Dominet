@@ -124,6 +124,9 @@ class HandPile():
 	def get_card(self, card_title):
 		return self.data[card_title][-1]
 
+	def has_card(self, card_title):
+		return True if card_title in self.data.keys() else False
+
 	def get_all(self, card_title):
 		return self.data[card_title]
 

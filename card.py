@@ -115,7 +115,7 @@ class AttackCard(Card):
 			reaction_cards = i.hand.get_cards_by_type("Reaction")
 			for card in reaction_cards:
 				if card.trigger == "Attack":
-					#attack waits on the player for each reaction he has
+					# attack waits on the player for each reaction he has
 					self.played_by.waiting["on"].append(i)
 					if i in self.reactions:
 						self.reactions[i].append(card.react)
