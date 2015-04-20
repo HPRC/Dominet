@@ -200,7 +200,7 @@ class DmClient(Client):
 				buys=self.buys, balance=self.balance)
 
 	def end_turn(self):
-		#cleanup before game ends
+		# cleanup before game ends
 		self.played = [x for x in self.played if x.cleanup()]
 		self.discard_pile = self.discard_pile + self.played
 		self.played = []

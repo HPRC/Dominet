@@ -260,7 +260,7 @@ class Estate(VictoryCard):
 	def __init__(self, game, played_by):
 		VictoryCard.__init__(self, game, played_by)
 		self.title = "Estate"
-		self.description = "+1 VP"
+		self.description = "1 VP"
 		self.price = 2
 		self.vp = 1
 
@@ -269,7 +269,7 @@ class Duchy(VictoryCard):
 	def __init__(self, game, played_by):
 		VictoryCard.__init__(self, game, played_by)
 		self.title = "Duchy"
-		self.description = "+3 VP"
+		self.description = "3 VP"
 		self.price = 5
 		self.vp = 3
 
@@ -281,7 +281,7 @@ class Province(VictoryCard):
 	def __init__(self, game, played_by):
 		VictoryCard.__init__(self, game, played_by)
 		self.title = "Province"
-		self.description = "+6 VP"
+		self.description = "6 VP"
 		self.price = 8
 		self.vp = 6
 
@@ -290,7 +290,7 @@ class Colony(VictoryCard):
 	def __init__(self, game, played_by):
 		VictoryCard.__init__(self, game, played_by)
 		self.title = "Colony"
-		self.description = "+10 VP"
+		self.description = "10 VP"
 		self.price = 11
 		self.vp = 10
 

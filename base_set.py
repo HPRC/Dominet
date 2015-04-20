@@ -51,9 +51,9 @@ class Chapel(crd.Card):
 	def post_select(self, selection):
 		selection_string = list(map(lambda x: self.game.card_from_title(x).log_string(), selection))
 		if len(selection_string) > 0:
-			self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(selection_string));
+			self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(selection_string))
 		else:
-			self.game.announce(self.played_by.name_string() + " trashes nothing");
+			self.game.announce(self.played_by.name_string() + " trashes nothing")
 		self.played_by.discard(selection, self.game.trash_pile)
 		crd.Card.on_finished(self)
 
@@ -254,7 +254,7 @@ class Gardens(crd.VictoryCard):
 	def __init__(self, game, played_by):
 		crd.VictoryCard.__init__(self, game, played_by)
 		self.title = "Gardens"
-		self.description = "+1 VP for every 10 cards in your deck (rounded down)"
+		self.description = "1 VP for every 10 cards in your deck (rounded down)"
 		self.price = 4
 		self.vp = 0
 

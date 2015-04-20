@@ -1,5 +1,5 @@
 import card as crd
-
+import math
 
 # --------------------------------------------------------
 # ------------------------ 3 Cost ------------------------
@@ -9,11 +9,72 @@ import card as crd
 # ------------------------ 4 Cost ------------------------
 # --------------------------------------------------------
 
+
+class Bishop(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Bishop"
+		self.description = "+$1; +1 VP token Trash a card from your hand.  +VP tokens equal to half its cost in coins" \
+		                   ", rounded down. Each other player may trash a card from his hand."
+		self.price = 4
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.balance += 1
+		self.played_by.vp += 1
+
+		self.game.announce("-- gaining +$1 and +1 VP")
+		self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Choose a card to trash")
+		self.played_by.waiting["on"].append(self.played_by)
+		self.played_by.waiting["cb"] = self.vp_trash_select
+
+	def vp_trash_select(self, selection):
+		trash = self.played_by.hand.extract(selection[0])
+		half_vp = math.floor(trash.price / 2)
+		self.played_by.vp += half_vp
+		self.game.trash_pile.append(trash)
+		self.game.update_trash_pile()
+
+		self.played_by.update_hand()
+
+		self.game.announce("-- trashing " + trash.log_string() + " gaining " + str(half_vp) + " VP")
+
+		self.played_by.wait("Waiting for other players to trash")
+		for i in self.played_by.get_opponents():
+			self.played_by.waiting["on"].append(i)
+
+		self.get_next(self.played_by)
+
+	def get_next(self, player):
+		next_player_index = (self.game.players.index(player) + 1) % len(self.game.players)
+		next_player = self.game.players[next_player_index]
+		if next_player == self.played_by:
+			crd.Card.on_finished(self)
+		else:
+			def trash_select_cb(selection, next_player=next_player):
+				self.trash_select(selection, next_player)
+
+			next_player.select(1, 1, crd.card_list_to_titles(next_player.hand.card_array()) + ["None"],
+			                   "Choose a card to trash")
+			next_player.waiting["on"].append(next_player)
+			next_player.waiting["cb"] = trash_select_cb
+
+	def trash_select(self, selection, player):
+		if selection[0] != "None":
+			trash = player.hand.extract(selection[0])
+			self.game.trash_pile.append(trash)
+			self.game.update_trash_pile()
+			player.update_hand()
+			self.game.announce("-- " + player.name + " trashes " + trash.log_string())
+		self.get_next(player)
+
+
 class Monument(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Monument"
-		self.description = "+$2\n +1 VP token."
+		self.description = "+$2\n +1 VP"
 		self.price = 4
 		self.type = "Action"
 
@@ -152,8 +213,9 @@ class Mountebank(crd.AttackCard):
 	def post_select(self, selection, player):
 		if selection[0] == "Yes":
 			curse = player.hand.extract("Curse")
+			player.update_hand()
 			player.discard_pile.append(curse)
-			self.game.announce("-- " + player.title + " discards a " + curse.log_string())
+			self.game.announce("-- " + player.name_string() + " discards a " + curse.log_string())
 		else:
 			player.gain("Copper")
 			player.gain("Curse")
@@ -198,6 +260,49 @@ class Expand(crd.Card):
 	def post_gain(self, selected):
 		self.played_by.gain(selected[0])
 		crd.Card.on_finished(self, False, False)
+
+
+class Forge(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Forge"
+		self.description = "Trash any number of cards from your hand." \
+		                   "Gain a card with cost exactly equal to the total cost in coins of the trashed cards."
+		self.price = 7
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.select(None, len(self.played_by.hand.card_array()), crd.card_list_to_titles(self.played_by.hand.card_array()), "Trash any number of cards")
+		self.played_by.waiting["on"].append(self.played_by)
+		self.played_by.waiting["cb"] = self.trash_select
+
+	def trash_select(self, selection):
+		trash_sum = 0
+		trashed = list()
+		for card in selection:
+			trash_card = self.played_by.hand.extract(card)
+			trashed.append(trash_card.title)
+			trash_sum += trash_card.get_price()
+			self.game.trash_pile.append(trash_card)
+
+		announce_string = list(map(lambda x: self.game.card_from_title(x).log_string(), selection))
+
+		self.game.update_trash_pile()
+		self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(announce_string) + " to gain a card with cost " + str(trash_sum))
+
+		if self.game.supply.pile_contains(trash_sum):
+			self.played_by.select_from_supply(price_limit=trash_sum, equal_only=True, optional=False)
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.gain_select
+		else:
+			self.game.announce("-- but there are no cards that cost " + str(trash_sum))
+			crd.Card.on_finished(self)
+
+	def gain_select(self, selection):
+		self.played_by.gain(selection[0])
+		self.game.announce("-- gaining " + self.game.card_from_title(selection[0]).log_string())
+		crd.Card.on_finished(self)
 
 
 # --------------------------------------------------------

@@ -26,6 +26,7 @@ class TestProsperity(unittest.TestCase):
 			i.game = self.game
 			i.setup()
 			i.handler.log = []
+		self.game.players = [self.player1, self.player2, self.player3]
 		self.player1.take_turn()
 
 	# --------------------------------------------------------
@@ -55,7 +56,7 @@ class TestProsperity(unittest.TestCase):
 		counting_house.play()
 
 		self.assertTrue(self.player1.hand.get_count('Copper') == num_coppers + 3)
-		self.assertTrue(self.player1.discard_pile)
+		self.assertTrue(len(self.player1.discard_pile) == 0)
 
 	def test_Workers_Village(self):
 		workers_village = prosperity.Workers_Village(self.game, self.player1)
@@ -110,6 +111,51 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.player2.discard_pile[0].title == "Curse")
 		self.assertTrue(self.player3.discard_pile[0].title == "Copper")
 		self.assertTrue(self.player3.discard_pile[1].title == "Curse")
+
+	def test_Bishop(self):
+		bishop = prosperity.Bishop(self.game, self.player1)
+		steward = intrigue.Steward(self.game, self.player1)
+		self.player1.hand.add(steward)
+
+		bishop.play()
+		self.assertTrue(self.player1.balance == 1)
+		self.assertTrue(self.player1.vp == 1)
+
+		self.player1.waiting["cb"](["Steward"])
+
+		self.assertTrue(self.player1.vp == 2)
+
+		self.player2.waiting["cb"](["None"])
+		self.player3.waiting["cb"](["Copper"])
+
+		self.assertTrue(len(self.player3.hand.card_array()) == 4)
+		self.assertTrue(len(self.player2.hand.card_array()) == 5)
+
+	def test_Forge(self):
+		forge = prosperity.Forge(self.game, self.player1)
+		steward = intrigue.Steward(self.game, self.player1)
+		minion = intrigue.Minion(self.game, self.player1)
+		torturer = intrigue.Torturer(self.game, self.player1)
+		secret_chamber = intrigue.Secret_Chamber(self.game, self.player1)
+		gold = crd.Gold(self.game, self.player1)
+
+		self.player1.hand.add(steward)
+		self.player1.hand.add(minion)
+		self.player1.hand.add(torturer)
+		self.player1.hand.add(secret_chamber)
+		self.player1.hand.add(gold)
+
+		forge.play()
+		# trash prices total to 8
+		self.player1.waiting["cb"](["Steward", "Copper", "Copper", "Minion"])
+		self.assertTrue(len(self.game.trash_pile) == 4)
+		self.player1.waiting["cb"](["Province"])
+		self.assertTrue(self.player1.discard_pile[0].title == "Province")
+
+		forge.play()
+		# trash prices total to 13 -- nothing to gain
+		self.player1.waiting["cb"](["Torturer", "Secret Chamber", "Gold"])
+		self.assertTrue(self.player1.waiting["cb"] is None)
 
 
 if __name__ == '__main__':
