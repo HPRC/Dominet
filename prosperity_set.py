@@ -228,7 +228,7 @@ class Mountebank(crd.AttackCard):
 
 	def fire(self, player):
 		if crd.AttackCard.fire(self, player):
-			if player.hand.has_card("Curse"):
+			if "Curse" in player.hand:
 				def post_select_on(selection, player=player):
 					self.post_select(selection, player)
 				player.select(1, 1, ["Yes", "No"], "Discard a curse?")
