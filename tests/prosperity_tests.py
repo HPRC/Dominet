@@ -157,6 +157,34 @@ class TestProsperity(unittest.TestCase):
 		self.player1.waiting["cb"](["Torturer", "Secret Chamber", "Gold"])
 		self.assertTrue(self.player1.waiting["cb"] is None)
 
+	def test_City(self):
+		city = prosperity.City(self.game, self.player1)
+
+		cards_in_hand = len(self.player1.hand.card_array())
+
+		city.play()
+		self.assertTrue(self.player1.balance == 0)
+		self.assertTrue(self.player1.actions == 2)
+		self.assertTrue(len(self.player1.hand.card_array()) == cards_in_hand + 1)
+		self.assertTrue(self.player1.buys == 1)
+		self.assertTrue(self.player1.balance == 0)
+
+		self.game.empty_piles = 1
+
+		city.play()
+		self.assertTrue(len(self.player1.hand.card_array()) == cards_in_hand + 3)
+		self.assertTrue(self.player1.actions == 3)
+		self.assertTrue(self.player1.buys == 1)
+		self.assertTrue(self.player1.balance == 0)
+
+		self.game.empty_piles = 2
+
+		city.play()
+		self.assertTrue(len(self.player1.hand.card_array()) == cards_in_hand + 5)
+		self.assertTrue(self.player1.actions == 4)
+		self.assertTrue(self.player1.buys == 2)
+		self.assertTrue(self.player1.balance == 1)
+
 
 if __name__ == '__main__':
 	unittest.main()

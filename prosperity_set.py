@@ -110,6 +110,37 @@ class Workers_Village(crd.Card):
 # ------------------------ 5 Cost ------------------------
 # --------------------------------------------------------
 
+class City(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "City"
+		self.description = "+1 Card; +2 Actions " \
+		                   "If there are one or more empty Supply piles, +1 Card. If there are two or more, +$1 and +1 Buy."
+		self.price = 5
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.actions += 2
+
+		if self.game.empty_piles >= 1:
+			drawn = self.played_by.draw(2)
+		else:
+			drawn = self.played_by.draw(1)
+
+		drawn = "and drawing " + drawn
+
+		if self.game.empty_piles >= 2:
+			self.played_by.buys += 1
+			self.played_by.balance += 1
+			drawn = "+1 buy and +$1 " + drawn
+
+		self.game.announce("-- gaining 2 actions " + drawn)
+		self.played_by.update_hand()
+
+		crd.Card.on_finished(self)
+
+
 class Counting_House(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
