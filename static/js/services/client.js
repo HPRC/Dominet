@@ -250,7 +250,7 @@ clientModule.factory('client', function(socket, favicon) {
 
 	constructor.prototype.getGameLogs = function(){
 		return this.gameLogs;
-	}
+	};
 
 
 	return new constructor();

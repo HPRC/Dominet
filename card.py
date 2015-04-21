@@ -72,6 +72,16 @@ class Money(Card):
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-warning'>", self.title, "s</span>" if plural else "</span>"])
 
+	# use this method to detect if cards have overrides
+	# for superclasses.  Specifically for SpendAll to not consume
+	# treasures with their own play() methods
+	def is_overridden(self, method):
+		this_method = getattr(self, method)
+		base_method = getattr(Money, method)
+		if this_method.__func__ is not base_method:
+			return True
+		return False
+
 
 class AttackCard(Card):
 	def __init__(self, game, played_by):

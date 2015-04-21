@@ -185,6 +185,23 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.player1.buys == 2)
 		self.assertTrue(self.player1.balance == 1)
 
+	def test_Loan(self):
+		loan = prosperity.Loan(self.game, self.player1)
+		estate = crd.Estate(self.game, self.player1)
+
+		self.player1.deck.append(estate)
+		self.player1.deck.append(estate)
+		self.player1.deck.append(estate)
+
+		loan.play()
+
+		self.player1.balance = 1
+		self.assertTrue("Treasure" in self.player1.deck[0].type)
+		self.assertTrue(len(self.player1.discard_pile) >= 3)
+
+		self.player1.waiting["cb"](["Trash"])
+
+		self.assertTrue(len(self.game.trash_pile) == 1)
 
 if __name__ == '__main__':
 	unittest.main()

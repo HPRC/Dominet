@@ -5,6 +5,63 @@ import math
 # ------------------------ 3 Cost ------------------------
 # --------------------------------------------------------
 
+
+class Loan(crd.Money):
+	def __init__(self, game, played_by):
+		crd.Money.__init__(self, game, played_by)
+		self.title = "Loan"
+		self.description = "Worth $1\n" \
+		                   "When you play this, reveal cards from your deck until you reveal a Treasure." \
+		                   "Discard it or trash it. Discard the other cards."
+		self.price = 3
+		self.value = 1
+		self.type = "Treasure"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.balance += self.value
+		self.played_by.update_resources(True)
+
+		revealed_treasure = False
+		total_deck_count = len(self.played_by.discard_pile) + len(self.played_by.deck)
+		discarded = list()
+		while revealed_treasure is not True and len(discarded) < total_deck_count:
+			topdeck = self.played_by.topdeck()
+			if "Treasure" in topdeck.type:
+				revealed_treasure = True
+				self.played_by.deck.append(topdeck)
+			else:
+				self.played_by.discard_pile.append(topdeck)
+				discarded.append(topdeck.title)
+
+		if len(discarded) > 0:
+			self.game.announce("-- discarding " + ", ".join(
+				list(map(lambda x: self.game.log_string_from_title(x), discarded))))
+
+		if revealed_treasure is True:
+			self.game.announce("-- revealing " + topdeck.log_string())
+
+			self.played_by.select(1, 1, ["Discard", "Trash"], "Discard or Trash " + topdeck.title)
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.post_select
+		else:
+			self.game.announce("-- but could not find any treasures in his or her deck.")
+			crd.Card.on_finished(self)
+
+	def post_select(self, selection):
+		topdeck = self.played_by.topdeck()
+		if selection[0] == "Discard":
+			self.played_by.discard_pile.append(topdeck)
+			self.played_by.update_hand()
+			self.game.announce("-- discarding " + topdeck.log_string())
+		else:
+			self.game.trash_pile.append(topdeck)
+			self.game.update_trash_pile()
+			self.game.announce("-- trashing " + topdeck.log_string())
+
+		crd.Card.on_finished(self)
+
+
 # --------------------------------------------------------
 # ------------------------ 4 Cost ------------------------
 # --------------------------------------------------------

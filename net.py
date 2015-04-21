@@ -126,7 +126,7 @@ class GameHandler(websocket.WebSocketHandler):
 			if len(table.players) == 1:
 				del GameHandler.game_tables[json["host"]]
 			else:
-			# successor host is chosen
+				# successor host is chosen
 				table.remove_player(self.client)
 				GameHandler.game_tables[table.host.name] = table
 				del GameHandler.game_tables[json["host"]]

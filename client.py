@@ -333,6 +333,10 @@ class DmClient(Client):
 		to_log = []
 		to_discard = []
 		treasure_cards = self.hand.get_cards_by_type("Treasure", True)
+		for i in range(len(treasure_cards) - 1, -1, -1):
+			if treasure_cards[i].is_overridden('play'):
+				treasure_cards.pop(i)
+
 		unique_treasure_titles = set(map(lambda x: x.title, treasure_cards))
 		for card_title in unique_treasure_titles:
 			card = self.hand.get_card(card_title)
