@@ -1,0 +1,336 @@
+Game created on 1429130077.139726
+ Players: hp-Griffon-Chloe, LeftShark
+{"command": "spendAllMoney"}
+{"cards": ["Estate", "Estate", "Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"command": "chat", "msg": "dammit"}
+{"command": "chat", "msg": "ad just responded"}
+{"command": "chat", "msg": "too late"}
+{"command": "chat", "msg": "lol"}
+{"command": "spendAllMoney"}
+{"card": "Silver", "command": "buyCard"}
+{"cards": ["Estate", "Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"command": "spendAllMoney"}
+{"card": "Trading Post", "command": "buyCard"}
+{"command": "endTurn"}
+{"command": "spendAllMoney"}
+{"card": "Workers Village", "command": "buyCard"}
+{"cards": ["Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Trading Post", "command": "play"}
+{"selection": ["Estate", "Estate"], "command": "post_selection"}
+{"command": "spendAllMoney"}
+{"card": "Workers Village", "command": "buyCard"}
+{"command": "endTurn"}
+{"card": "Workers Village", "command": "play"}
+{"command": "spendAllMoney"}
+{"card": "Silver", "command": "buyCard"}
+{"cards": ["Estate", "Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"command": "spendAllMoney"}
+{"card": "Workers Village", "command": "buyCard"}
+{"cards": ["Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"command": "spendAllMoney"}
+{"card": "Workers Village", "command": "buyCard"}
+{"cards": ["Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Workers Village", "command": "play"}
+{"command": "spendAllMoney"}
+{"card": "Throne Room", "command": "buyCard"}
+{"cards": ["Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Workers Village", "command": "play"}
+{"command": "spendAllMoney"}
+{"card": "Copper", "command": "buyCard"}
+{"cards": ["Estate", "Estate", "Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Workers Village", "command": "play"}
+{"command": "chat", "msg": "dude"}
+{"command": "chat", "msg": "dont buy copper"}
+{"card": "Trading Post", "command": "play"}
+{"selection": ["Copper", "Copper"], "command": "post_selection"}
+{"command": "spendAllMoney"}
+{"command": "chat", "msg": "i couldnt buy anything"}
+{"card": "Festival", "command": "buyCard"}
+{"command": "endTurn"}
+{"card": "Workers Village", "command": "play"}
+{"command": "spendAllMoney"}
+{"command": "chat", "msg": "then just end turn"}
+{"card": "Trading Post", "command": "buyCard"}
+{"command": "endTurn"}
+{"card": "Festival", "command": "play"}
+{"command": "spendAllMoney"}
+{"command": "chat", "msg": "why is that better than another copper?"}
+{"card": "Festival", "command": "buyCard"}
+{"cards": ["Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"command": "chat", "msg": "because when you buy a copper"}
+{"command": "spendAllMoney"}
+{"command": "chat", "msg": "you add it to your deck"}
+{"card": "Gold", "command": "buyCard"}
+{"command": "endTurn"}
+{"command": "chat", "msg": "and it gets drawn and shuffled in so you will draw it every cycle"}
+{"command": "chat", "msg": "and u normally dont want coppers because they are low value"}
+{"command": "chat", "msg": "itll decrease how often u draw ur better cards too"}
+{"command": "chat", "msg": "but isnt another copper better than a wasted turn?"}
+{"command": "chat", "msg": "since your deck is bigger"}
+{"command": "chat", "msg": "no"}
+{"command": "chat", "msg": "for example"}
+{"command": "chat", "msg": "i would waste a turn to trash a copper"}
+{"command": "chat", "msg": "i see"}
+{"command": "chat", "msg": "like with chapel, trash 4 coppers"}
+{"command": "chat", "msg": "its the opposite and way better"}
+{"card": "Workers Village", "command": "play"}
+{"card": "Throne Room", "command": "play"}
+{"selection": ["Workers Village"], "command": "post_selection"}
+{"card": "Trading Post", "command": "play"}
+{"command": "chat", "msg": "Makes sense"}
+{"selection": ["Copper", "Copper"], "command": "post_selection"}
+{"command": "spendAllMoney"}
+{"card": "Witch", "command": "buyCard"}
+{"command": "endTurn"}
+{"command": "spendAllMoney"}
+{"card": "Silver", "command": "buyCard"}
+{"cards": ["Estate", "Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Workers Village", "command": "play"}
+{"card": "Throne Room", "command": "play"}
+{"selection": ["Workers Village"], "command": "post_selection"}
+{"card": "Festival", "command": "play"}
+{"command": "spendAllMoney"}
+{"card": "Witch", "command": "buyCard"}
+{"cards": ["Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Workers Village", "command": "play"}
+{"card": "Workers Village", "command": "play"}
+{"card": "Trading Post", "command": "play"}
+{"selection": ["Copper", "Estate"], "command": "post_selection"}
+{"command": "spendAllMoney"}
+{"command": "chat", "msg": "like having a deck of 5 golds is so good, 5 golds and 5 copper not so good"}
+{"card": "Remodel", "command": "buyCard"}
+{"command": "endTurn"}
+{"card": "Festival", "command": "play"}
+{"card": "Witch", "command": "play"}
+{"card": "Trading Post", "command": "play"}
+{"selection": ["Copper", "Estate"], "command": "post_selection"}
+{"command": "spendAllMoney"}
+{"command": "chat", "msg": "I see your point"}
+{"card": "Festival", "command": "buyCard"}
+{"command": "endTurn"}
+{"command": "chat", "msg": "Rookie mistake :("}
+{"command": "spendAllMoney"}
+{"command": "chat", "msg": "ROOKIE MISTAKE"}
+{"command": "chat", "msg": "this is why u lost to ur ex-nemesis"}
+{"card": "Trading Post", "command": "buyCard"}
+{"cards": ["Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Workers Village", "command": "play"}
+{"command": "chat", "msg": "I know it"}
+{"card": "Workers Village", "command": "play"}
+{"card": "Witch", "command": "play"}
+{"card": "Throne Room", "command": "play"}
+{"selection": ["Festival"], "command": "post_selection"}
+{"card": "Witch", "command": "play"}
+{"card": "Festival", "command": "play"}
+{"command": "spendAllMoney"}
+{"card": "Province", "command": "buyCard"}
+{"card": "Throne Room", "command": "buyCard"}
+{"command": "endTurn"}
+{"command": "spendAllMoney"}
+{"card": "Gold", "command": "buyCard"}
+{"cards": ["Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Festival", "command": "play"}
+{"card": "Trading Post", "command": "play"}
+{"selection": ["Silver", "Copper"], "command": "post_selection"}
+{"command": "spendAllMoney"}
+{"card": "Witch", "command": "buyCard"}
+{"command": "endTurn"}
+{"card": "Trading Post", "command": "play"}
+{"selection": ["Copper", "Copper"], "command": "post_selection"}
+{"command": "spendAllMoney"}
+{"card": "Gold", "command": "buyCard"}
+{"command": "endTurn"}
+{"card": "Festival", "command": "play"}
+{"card": "Throne Room", "command": "play"}
+{"selection": ["Witch"], "command": "post_selection"}
+{"card": "Workers Village", "command": "play"}
+{"command": "chat", "msg": "..."}
+{"card": "Throne Room", "command": "play"}
+{"selection": ["Festival"], "command": "post_selection"}
+{"card": "Witch", "command": "play"}
+{"card": "Workers Village", "command": "play"}
+{"card": "Festival", "command": "play"}
+{"command": "chat", "msg": "STOP CURSING ME"}
+{"command": "spendAllMoney"}
+{"card": "Province", "command": "buyCard"}
+{"card": "Festival", "command": "buyCard"}
+{"cards": ["Province"], "command": "discard"}
+{"command": "endTurn"}
+{"text": "Henry Cheats. Thanks.", "command": "submitBugReport"}
+{"card": "Workers Village", "command": "play"}
+{"command": "chat", "msg": "u should buy a witch too"}
+{"card": "Trading Post", "command": "play"}
+{"command": "chat", "msg": "because there are 10 curses to give out max"}
+{"selection": ["Estate", "Curse"], "command": "post_selection"}
+{"command": "spendAllMoney"}
+{"command": "chat", "msg": "if only 1 player has curses hes gonna get all 10"}
+{"command": "chat", "msg": "but if we both have them then its gonna be like 5/5"}
+{"command": "chat", "msg": "having all 10 is hard to recover from"}
+{"card": "Militia", "command": "buyCard"}
+{"command": "endTurn"}
+{"card": "Witch", "command": "play"}
+{"command": "spendAllMoney"}
+{"card": "Gold", "command": "buyCard"}
+{"cards": ["Trading Post", "Province", "Province"], "command": "discard"}
+{"command": "endTurn"}
+{"command": "spendAllMoney"}
+{"card": "Witch", "command": "buyCard"}
+{"cards": ["Curse"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Workers Village", "command": "play"}
+{"card": "Festival", "command": "play"}
+{"card": "Throne Room", "command": "play"}
+{"selection": ["Witch"], "command": "post_selection"}
+{"card": "Throne Room", "command": "play"}
+{"selection": ["Festival"], "command": "post_selection"}
+{"card": "Festival", "command": "play"}
+{"card": "Festival", "command": "play"}
+{"command": "spendAllMoney"}
+{"card": "Province", "command": "buyCard"}
+{"card": "Great Hall", "command": "buyCard"}
+{"command": "endTurn"}
+{"card": "Workers Village", "command": "play"}
+{"card": "Remodel", "command": "play"}
+{"selection": ["Curse"], "command": "post_selection"}
+{"command": "chat", "msg": "but if there are good cards that trash  it doesnt matter as much"}
+{"card": ["Estate"], "command": "selectSupply"}
+{"command": "chat", "msg": "remodel is too slow tho"}
+{"command": "spendAllMoney"}
+{"card": "Witch", "command": "buyCard"}
+{"cards": ["Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Workers Village", "command": "play"}
+{"card": "Witch", "command": "play"}
+{"card": "Festival", "command": "play"}
+{"command": "chat", "msg": "because its only 1?"}
+{"command": "spendAllMoney"}
+{"card": "Province", "command": "buyCard"}
+{"cards": ["Trading Post", "Province"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Trading Post", "command": "play"}
+{"selection": ["Copper", "Estate"], "command": "post_selection"}
+{"command": "spendAllMoney"}
+{"command": "chat", "msg": "no because it doesnt give u +1 action"}
+{"command": "chat", "msg": "and slows u down a bit and u can only gain estates from curses"}
+{"card": "Workers Village", "command": "buyCard"}
+{"command": "endTurn"}
+{"command": "chat", "msg": "which also dont help much"}
+{"card": "Great Hall", "command": "play"}
+{"card": "Throne Room", "command": "play"}
+{"selection": ["Festival"], "command": "post_selection"}
+{"card": "Witch", "command": "play"}
+{"card": "Festival", "command": "play"}
+{"card": "Witch", "command": "play"}
+{"command": "spendAllMoney"}
+{"card": "Province", "command": "buyCard"}
+{"cards": ["Province", "Throne Room"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Remodel", "command": "play"}
+{"selection": ["Curse"], "command": "post_selection"}
+{"card": ["Estate"], "command": "selectSupply"}
+{"command": "spendAllMoney"}
+{"card": "Masquerade", "command": "buyCard"}
+{"cards": ["Militia", "Curse"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Workers Village", "command": "play"}
+{"card": "Throne Room", "command": "play"}
+{"selection": ["Festival"], "command": "post_selection"}
+{"command": "spendAllMoney"}
+{"card": "Great Hall", "command": "buyCard"}
+{"cards": ["Province", "Province"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Witch", "command": "play"}
+{"command": "spendAllMoney"}
+{"card": "Witch", "command": "buyCard"}
+{"cards": ["Witch", "Curse", "Trading Post"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Witch", "command": "play"}
+{"command": "spendAllMoney"}
+{"card": "Province", "command": "buyCard"}
+{"cards": ["Witch", "Province"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Workers Village", "command": "play"}
+{"command": "spendAllMoney"}
+{"card": "Throne Room", "command": "buyCard"}
+{"command": "chat", "msg": "i mean i already lost this game"}
+{"command": "chat", "msg": "so"}
+{"command": "chat", "msg": "theres that lol"}
+{"cards": ["Curse", "Curse", "Curse"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Workers Village", "command": "play"}
+{"card": "Festival", "command": "play"}
+{"card": "Throne Room", "command": "play"}
+{"selection": ["Great Hall"], "command": "post_selection"}
+{"card": "Festival", "command": "play"}
+{"command": "spendAllMoney"}
+{"card": "Silver", "command": "buyCard"}
+{"cards": ["Trading Post", "Province", "Province"], "command": "discard"}
+{"command": "endTurn"}
+{"command": "chat", "msg": "ya basically"}
+{"command": "chat", "msg": "but next game"}
+{"card": "Workers Village", "command": "play"}
+{"command": "spendAllMoney"}
+{"card": "Gold", "command": "buyCard"}
+{"cards": ["Curse", "Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Workers Village", "command": "play"}
+{"card": "Witch", "command": "play"}
+{"card": "Throne Room", "command": "play"}
+{"selection": ["Festival"], "command": "post_selection"}
+{"command": "spendAllMoney"}
+{"card": "Province", "command": "buyCard"}
+{"cards": ["Throne Room"], "command": "discard"}
+{"command": "endTurn"}
+{"command": "spendAllMoney"}
+{"card": "Gold", "command": "buyCard"}
+{"cards": ["Estate", "Throne Room"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Witch", "command": "play"}
+{"cards": ["Trading Post", "Festival", "Province", "Province", "Province", "Province"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Workers Village", "command": "play"}
+{"card": "Masquerade", "command": "play"}
+{"selection": ["Curse"], "command": "post_selection"}
+{"selection": ["Witch"], "command": "post_selection"}
+{"command": "chat", "msg": "have a witch"}
+{"selection": ["Copper"], "command": "post_selection"}
+{"card": "Witch", "command": "play"}
+{"command": "spendAllMoney"}
+{"card": "Festival", "command": "buyCard"}
+{"cards": ["Witch", "Curse", "Trading Post", "Militia"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Great Hall", "command": "play"}
+{"command": "chat", "msg": "Thanks"}
+{"card": "Great Hall", "command": "play"}
+{"card": "Festival", "command": "play"}
+{"command": "spendAllMoney"}
+{"card": "Duchy", "command": "buyCard"}
+{"command": "chat", "msg": "pity"}
+{"cards": ["Curse", "Province", "Province"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Workers Village", "command": "play"}
+{"command": "spendAllMoney"}
+{"command": "chat", "msg": "witches arent very good once curses run out"}
+{"command": "chat", "msg": "since they just give u 2 cards"}
+{"card": "Duchy", "command": "buyCard"}
+{"cards": ["Curse", "Curse"], "command": "discard"}
+{"command": "endTurn"}
+{"card": "Workers Village", "command": "play"}
+{"card": "Throne Room", "command": "play"}
+{"selection": ["Festival"], "command": "post_selection"}
+{"command": "spendAllMoney"}
+{"card": "Province", "command": "buyCard"}
+{"command": "endTurn"}

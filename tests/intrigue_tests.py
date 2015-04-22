@@ -8,17 +8,16 @@ import kingdomGenerator as kg
 
 import sys
 import os
-#add this file's path to the sys for importing base_tests
+#add this file's path to the sys for importing test_utils
 sys.path.append(os.path.dirname(__file__))
-import base_tests as bt
-import prosperity_tests as pt
+import test_utils as tu
 
 
 class TestIntrigue(unittest.TestCase):
 	def setUp(self):
-		self.player1 = c.DmClient("player1", 0, bt.PlayerHandler())
-		self.player2 = c.DmClient("player2", 1, bt.PlayerHandler())
-		self.player3 = c.DmClient("player3", 2, bt.PlayerHandler())
+		self.player1 = c.DmClient("player1", 0, tu.PlayerHandler())
+		self.player2 = c.DmClient("player2", 1, tu.PlayerHandler())
+		self.player3 = c.DmClient("player3", 2, tu.PlayerHandler())
 		self.game = g.DmGame([self.player1, self.player2, self.player3], [], [])
 		#hard code order of players so that random turn order doesn't interfere with tests
 		self.game.players = [self.player1, self.player2, self.player3]

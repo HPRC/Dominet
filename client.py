@@ -24,7 +24,6 @@ class Client():
 		pass
 
 	def write_json(self, **kwargs):
-		print(self.name + ": \033[91m " + str(kwargs) + "\033[0m")
 		self.handler.write_json(**kwargs)
 
 	def take_turn(self):
@@ -229,7 +228,12 @@ class DmClient(Client):
 			self.game.remove_from_supply(card_title)
 			self.buys -= 1
 			self.balance -= newCard.get_price()
-			self.update_resources()
+			gain_reactions = self.hand.get_reactions_for("Gain")
+			if gain_reactions:
+				for x in gain_reactions:
+					x.react(newCard, lambda : self.update_resources())
+			else:
+				self.update_resources()
 			# try:
 			# write on_purchase for Card class, extend it in relevant classes
 
@@ -286,8 +290,13 @@ class DmClient(Client):
 	def gain(self, card, from_supply=True):
 		new_card = self.get_card_from_supply(card, from_supply)
 		if new_card is not None:
-			self.game.announce(self.name_string() + " gains " + new_card.log_string())  # TODO perhaps delete to customize gains messages (for attacks etc.)
 			self.discard_pile.append(new_card)
+			gain_reactions = self.hand.get_reactions_for("Gain")
+			if gain_reactions:
+				for x in gain_reactions:
+					x.react(new_card, lambda : None)
+
+			self.game.announce(self.name_string() + " gains " + new_card.log_string())  # TODO perhaps delete to customize gains messages (for attacks etc.)
 			self.update_discard_size()
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")

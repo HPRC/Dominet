@@ -101,9 +101,9 @@ class Secret_Chamber(crd.Card):
 			i.waiting["on"].append(self.played_by)
 
 		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = self.post_react_select
+		self.played_by.waiting["cb"] = self.post_reveal
 
-	def post_react_select(self, selection):
+	def post_reveal(self, selection):
 		if selection[0] == "Reveal":
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
 			drawn_cards = self.played_by.draw(2, False)

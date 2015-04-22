@@ -7,19 +7,16 @@ import card as crd
 import game as g
 import kingdomGenerator as kg
 
-class PlayerHandler():
-	def __init__(self):
-		self.log = []
-
-	def write_json(self, **kwargs):
-		if kwargs["command"] != "announce":
-			self.log.append(kwargs)
+import sys
+import os
+sys.path.append(os.path.dirname(__file__))
+import test_utils as tu
 
 class TestCard(unittest.TestCase):
 	def setUp(self):
-		self.player1 = c.DmClient("player1", 0, PlayerHandler())
-		self.player2 = c.DmClient("player2", 1, PlayerHandler())
-		self.player3 = c.DmClient("player3", 2, PlayerHandler())
+		self.player1 = c.DmClient("player1", 0, tu.PlayerHandler())
+		self.player2 = c.DmClient("player2", 1, tu.PlayerHandler())
+		self.player3 = c.DmClient("player3", 2, tu.PlayerHandler())
 		self.game = g.DmGame([self.player1, self.player2, self.player3], [], [])
 		#hard code order of players so that random turn order doesn't interfere with tests
 		self.game.players = [self.player1, self.player2, self.player3]
@@ -35,6 +32,8 @@ class TestCard(unittest.TestCase):
 	# --------------------------------------------------------
 
 	def test_Cellar(self):
+		tu.print_test_header("test Cellar")
+
 		self.player1.hand.add(base.Cellar(self.game, self.player1))
 		self.player1.hand.play("Cellar")
 		self.assertTrue(self.player1.handler.log[-1]["command"] == "updateMode")
@@ -46,6 +45,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(len(self.player1.discard_pile) == 5)
 
 	def test_Militia(self):
+		tu.print_test_header("test Militia")
 		self.player1.hand.add(base.Militia(self.game, self.player1))
 		self.player1.hand.play("Militia")
 		self.assertTrue(self.player2.handler.log[0]["command"] == "updateMode")
@@ -58,6 +58,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(len(self.player2.hand) == 3)
 
 	def test_Moat_reaction(self):
+		tu.print_test_header("test Moat Reaction")
 		self.player2.hand.add(base.Moat(self.game, self.player2))
 		self.player1.hand.add(base.Witch(self.game, self.player1))
 		self.player1.hand.play("Witch")
@@ -67,6 +68,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(len(self.player2.discard_pile) == 0)
 
 	def test_Throne_Room_on_Village(self):
+		tu.print_test_header("test Throne Room Village")
 		throne_room_card = base.Throne_Room(self.game, self.player1)
 		self.player1.hand.add(throne_room_card)
 		self.player1.hand.add(base.Village(self.game, self.player1))
@@ -75,6 +77,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.player1.actions == 4)
 
 	def test_Throne_Room_on_Workshop(self):
+		tu.print_test_header("test Throne Room workshop")
 		throne_room_card = base.Throne_Room(self.game, self.player1)
 		self.player1.hand.add(throne_room_card)
 		workshopCard = base.Workshop(self.game, self.player1)
@@ -93,6 +96,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.player1.discard_pile[-1].title == "Estate")
 
 	def test_Feast(self):
+		tu.print_test_header("test Feast")
 		feast_card = base.Feast(self.game, self.player1)
 		self.player1.hand.add(feast_card)
 		feast_card.play()
@@ -101,6 +105,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.game.trash_pile[-1] == feast_card)
 
 	def test_Thief_2_treasures(self):
+		tu.print_test_header("test Thief on 2 treasures")
 		thief_card = base.Thief(self.game, self.player1)
 		self.player1.hand.add(thief_card)
 		self.player2.deck.append(crd.Copper(self.game, self.player2))
@@ -114,6 +119,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
 
 	def test_Thief_1_treasure(self):
+		tu.print_test_header("test Thief on 1 treasure")
 		thief_card = base.Thief(self.game, self.player1)
 		self.player1.hand.add(thief_card)
 		self.player2.deck.append(crd.Estate(self.game, self.player2))
@@ -124,6 +130,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.player1.discard_pile[-1].title == "Gold")
 
 	def test_Thief_3_players(self):
+		tu.print_test_header("test Thief 3 players")
 		thief_card = base.Thief(self.game, self.player1)
 		self.player1.hand.add(thief_card)
 		self.player2.deck.append(crd.Estate(self.game, self.player2))
@@ -138,6 +145,7 @@ class TestCard(unittest.TestCase):
 		thief_card.play()
 
 	def test_Gardens(self):
+		tu.print_test_header("test Gardens")
 		gardens = base.Gardens(self.game, self.player1)
 		self.player1.hand.add(gardens)
 		self.assertTrue(gardens.get_vp() == 1)
@@ -149,6 +157,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.player1.total_vp() == 23)
 
 	def test_Chancellor(self):
+		tu.print_test_header("test Chancellor")
 		self.player1.discard_pile.append(crd.Copper(self.game, self.player1))
 		chancellor = base.Chancellor(self.game, self.player1)
 		self.player1.hand.add(chancellor)
@@ -161,6 +170,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(len(self.player1.deck) == decksize + 1)
 
 	def test_Adventurer(self):
+		tu.print_test_header("test Adventurer")
 		estate = crd.Estate(self.game, self.player1)
 		gold = crd.Gold(self.game, self.player1)
 		adventurer = base.Adventurer(self.game, self.player1)
@@ -174,6 +184,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(len(self.player1.discard_pile) == 3)
 
 	def test_Library(self):
+		tu.print_test_header("test Library")
 		library = base.Library(self.game, self.player1)
 		village = base.Village(self.game, self.player1)
 		copper = crd.Copper(self.game, self.player1)
@@ -187,6 +198,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.player1.discard_pile[-1] == village)
 
 	def test_2_Reactions(self):
+		tu.print_test_header("test 2 reaction secret chamber moat")
 		militia = base.Militia(self.game, self.player1)
 		moat = base.Moat(self.game, self.player2)
 		secret_chamber = intrigue.Secret_Chamber(self.game, self.player2)

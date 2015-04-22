@@ -1,0 +1,13 @@
+Game created on 1429544482.582819
+ Players: ad, LeftShark
+{"msg": "u a legend", "command": "chat"}
+{"msg": "am i?", "command": "chat"}
+{"msg": "that was henry", "command": "chat"}
+{"msg": "no jk", "command": "chat"}
+{"msg": "henry is working hard", "command": "chat"}
+{"command": "spendAllMoney"}
+{"card": "Bureaucrat", "command": "buyCard"}
+{"cards": ["Estate"], "command": "discard"}
+{"command": "endTurn"}
+{"msg": "doubtful", "command": "chat"}
+{"msg": "probably spying on us", "command": "chat"}

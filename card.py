@@ -109,15 +109,14 @@ class AttackCard(Card):
 
 	def check_reactions(self, targets):
 		for i in targets:
-			reaction_cards = i.hand.get_cards_by_type("Reaction")
+			reaction_cards = i.hand.get_reactions_for("Attack")
 			for card in reaction_cards:
-				if card.trigger == "Attack":
-					#attack waits on the player for each reaction he has
-					self.played_by.waiting["on"].append(i)
-					if i in self.reactions:
-						self.reactions[i].append(card.react)
-					else:
-						self.reactions[i] = [card.react]
+				#attack waits on the player for each reaction he has
+				self.played_by.waiting["on"].append(i)
+				if i in self.reactions:
+					self.reactions[i].append(card.react)
+				else:
+					self.reactions[i] = [card.react]
 		if not self.reactions:
 			self.attack()
 		else:
@@ -127,13 +126,12 @@ class AttackCard(Card):
 					self.trigger_reaction(p, False)
 
 	def need_order_reactions(self, player):
-		reactions = player.hand.get_cards_by_type("Reaction")
-		attack_reactions = [x for x in reactions if "Attack" in x.trigger]
-		attack_reaction_titles = list(map(lambda x: x.title, attack_reactions))
+		reactions = player.hand.get_reactions_for("Attack")
+		attack_reaction_titles = list(map(lambda x: x.title, reactions))
 		if len(set(attack_reaction_titles)) == 1:
 			return False
 		else:
-			num_reactions = len(attack_reactions)
+			num_reactions = len(reactions)
 			def player_order_reactions_cb(order, player=player):
 				self.order_reactions_cb(order, player)
 			self.played_by.waiting["on"].append(player)

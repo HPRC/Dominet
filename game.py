@@ -159,11 +159,7 @@ class DmGame(Game):
 			i.write_json(command="updateTrash", trash=self.trash_string())
 
 	def detect_end(self):
-		end_victory_pile = "Province"
-		if self.supply_set == "prosperity":
-			end_victory_pile = "Colony"
-
-		if self.supply.get_count(end_victory_pile) == 0 or self.empty_piles >= 3:
+		if self.supply.get_count("Province") == 0 or self.empty_piles >= 3 or (self.supply_set == "prosperity" and self.supply.get_count("Colony") == 0):
 			self.announce("GAME OVER")
 			player_vp_list = (list(map(lambda x: (x, x.total_vp()), self.players)))
 			win_vp = max(player_vp_list, key=lambda x: x[1])[1]

@@ -9,23 +9,23 @@ import kingdomGenerator as kg
 
 import sys
 import os
-# add this file's path to the sys for importing base_tests
+# add this file's path to the sys for importing test_utils
 sys.path.append(os.path.dirname(__file__))
-import base_tests as bt
-import intrigue_tests as it
+import test_utils as tu
 
 
 class TestProsperity(unittest.TestCase):
 	def setUp(self):
-		self.player1 = c.DmClient("player1", 0, bt.PlayerHandler())
-		self.player2 = c.DmClient("player2", 1, bt.PlayerHandler())
-		self.player3 = c.DmClient("player3", 2, bt.PlayerHandler())
+		self.player1 = c.DmClient("player1", 0, tu.PlayerHandler())
+		self.player2 = c.DmClient("player2", 1, tu.PlayerHandler())
+		self.player3 = c.DmClient("player3", 2, tu.PlayerHandler())
 		self.game = g.DmGame([self.player1, self.player2, self.player3], [], [])
 		self.game.supply = self.game.init_supply(kg.all_cards(self.game))
 		for i in self.game.players:
 			i.game = self.game
 			i.setup()
 			i.handler.log = []
+		self.game.players = [self.player1, self.player2, self.player3]
 		self.player1.take_turn()
 
 	# --------------------------------------------------------
@@ -67,6 +67,7 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.player1.actions == 2)
 
 	def test_Expand(self):
+		tu.print_test_header("testing expand")
 		expand = prosperity.Expand(self.game, self.player1)
 
 		expand.play()
@@ -77,7 +78,44 @@ class TestProsperity(unittest.TestCase):
 
 		self.assertTrue(self.player1.discard_pile[0].title == "Silver")
 
+	def test_Watchtower_play(self):
+		tu.print_test_header("testing Watchtower play action")
+		watchtower = prosperity.Watchtower(self.game, self.player1)
+		watchtower2 = prosperity.Watchtower(self.game, self.player1)
+		estate = crd.Estate(self.game, self.player1)
+		tu.set_player_hand(self.player1, [watchtower, estate, watchtower2])
+		self.player1.actions = 2
+		watchtower.play()
+		#3 cards in hand
+		self.assertTrue(len(self.player1.hand) == 6)
+		#7 cards in hand
+		tu.set_player_hand(self.player1, [estate, estate, watchtower2, estate, estate, estate, estate])
+		watchtower2.play()
+		self.assertTrue(len(self.player1.hand) == 6)
 
+	def test_Watchtower_react(self):
+		tu.print_test_header("testing Watchtower reaction")
+		watchtower = prosperity.Watchtower(self.game, self.player1)
+		tu.set_player_hand(self.player1, [watchtower])
+		self.player1.buy_card("Silver")
+		#0 buys should end turn normally but we have a reaction so should still be player1's turn
+		self.assertTrue(self.game.get_turn_owner().name == self.player1.name)
+
+		self.player1.exec_commands({"command":"post_selection", "selection":["Reveal"]})
+		self.player1.exec_commands({"command":"post_selection", "selection":["Put on top of deck"]})
+		self.assertTrue(len(self.player1.discard_pile) == 0)
+		self.assertTrue(self.player1.deck[-1].title == "Silver")
+
+		self.player1.end_turn()
+		witch = base.Witch(self.game, self.player2)
+		self.player2.hand.add(witch)
+		watchtower2 = prosperity.Watchtower(self.game, self.player1)
+		self.player1.hand.add(watchtower2)
+
+		witch.play()
+		self.player1.exec_commands({"command":"post_selection", "selection":["Reveal"]})
+		self.player1.exec_commands({"command":"post_selection", "selection":["Trash"]})
+		self.assertTrue(self.game.trash_pile[-1].title == "Curse")
 
 
 if __name__ == '__main__':

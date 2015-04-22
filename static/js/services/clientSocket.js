@@ -1,5 +1,5 @@
 clientModule.factory('socket', function($rootScope){
-	var socket = new WebSocket("ws://43986d8c.ngrok.com/ws");
+	var socket = new WebSocket("ws://7a34688c.ngrok.com/ws");
 	socket.onopen = function(event){
 
 	};

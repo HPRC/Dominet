@@ -79,12 +79,11 @@ class Moat(crd.Card):
 		self.reacted_to_callback = reacted_to_callback
 		self.played_by.select(1, 1, ["Reveal", "Hide"],  
 			"Reveal " + self.title + " to prevent attack?")
-
 			
 		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = self.post_select
+		self.played_by.waiting["cb"] = self.post_reveal
 
-	def post_select(self, selection):
+	def post_reveal(self, selection):
 		if selection[0] == "Reveal":
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
 			self.played_by.protection = 1
