@@ -228,5 +228,20 @@ class TestProsperity(unittest.TestCase):
 		self.player1.waiting["cb"]("Trash")
 		self.assertTrue(self.game.trash_pile[0].title == "Copper")
 
+	def test_Vault(self):
+		vault = prosperity.Vault(self.game, self.player1)
+
+		vault.play()
+
+		self.player1.waiting["cb"](["Estate", "Estate"])
+		self.assertTrue(self.player1.balance == 2)
+
+		self.player2.waiting["cb"](["Yes"])
+		cards_in_hand = len(self.player2.hand.card_array())
+		self.player2.waiting["cb"](["Copper", "Copper"])
+		self.assertTrue(len(self.player2.hand.card_array()) == cards_in_hand - 1)
+
+		self.player3.waiting["cb"](["No"])
+
 if __name__ == '__main__':
 	unittest.main()

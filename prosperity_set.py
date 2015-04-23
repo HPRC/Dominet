@@ -323,19 +323,62 @@ class Vault(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		drawn = self.played_by.draw(2)
-		self.game.announce("-- drawing " + drawn + " cards")
+		self.played_by.update_hand()
+		self.game.announce("-- drawing " + drawn)
 
-		self.played_by.select(None, len(self.played_by.hand.card_array()), "Discard any number of cards")
+		self.played_by.select(None, len(self.played_by.hand.card_array()),
+		                      crd.card_list_to_titles(self.played_by.hand.card_array()), "Discard any number of cards")
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_discard
 
 	def post_discard(self, selection):
-		for card in selection:
-			self.played_by.discard(card, self.played_by.discard_pile)
+		self.played_by.discard(selection, self.played_by.discard_pile)
 
+		self.played_by.update_hand()
 		self.played_by.balance += len(selection)
-		self.game.announce("-- discarding " + ", ".join(list(map(lambda x: self.game.card_from_title(x).log_string(), selection))) +
-		                   " gaining +$" + str(len(selection)))
+		self.game.announce("-- discarding " + str(len(selection)) +
+		                   ", gaining +$" + str(len(selection)))
+
+		self.played_by.wait("Waiting for other players to discard")
+		for i in self.played_by.get_opponents():
+			self.played_by.waiting["on"].append(i)
+		self.get_next(self.played_by)
+
+	def get_next(self, player):
+		next_player_index = (self.game.players.index(player) + 1) % len(self.game.players)
+		next_player = self.game.players[next_player_index]
+		if next_player == self.played_by:
+			crd.Card.on_finished(self)
+		else:
+			def discard_choice_cb(selection, next_player=next_player):
+					self.discard_choice(selection, next_player)
+
+			next_player.select(1, 1, ["Yes", "No"], "Discard 2 cards to draw 1?")
+			next_player.waiting["on"].append(next_player)
+			next_player.waiting["cb"] = discard_choice_cb
+
+	def discard_choice(self, selection, player):
+		if selection[0] != "Yes":
+			self.get_next(player)
+		else:
+			def discard_select_cb(selection, player=player):
+				self.discard_select(selection, player)
+
+			player.select(min(len(player.hand.card_array()), 2), 2, crd.card_list_to_titles(player.hand.card_array()), "Discard up to 2")
+			self.played_by.wait("Waiting for " + player.name + " to discard")
+			self.played_by.waiting["on"].append(player)
+			player.waiting["on"].append(player)
+			player.waiting["cb"] = discard_select_cb
+
+	def discard_select(self, selection, player):
+		player.discard(selection, player.discard_pile)
+		self.game.announce("-- discarding " + str(len(selection)) + " cards")
+
+		if len(selection) >= 2:
+			drawn = player.draw(1)
+			player.update_hand()
+			self.game.announce("-- drawing " + drawn)
+		self.get_next(player)
 
 
 class Venture(crd.Money):
@@ -370,7 +413,8 @@ class Venture(crd.Money):
 
 		if revealed_treasure is True:
 			self.game.announce("-- revealing " + topdeck.log_string())
-			topdeck.play()
+			self.game.announce("-- " + self.played_by.name_string() + " played " + topdeck.log_string())
+			topdeck.play(True)
 		else:
 			self.game.announce("-- but could not find any treasures in his or her deck.")
 		crd.Card.on_finished(self, waiting_cleanup=False)
