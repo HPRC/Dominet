@@ -19,13 +19,14 @@ class Card():
 		return self.price + self.game.price_modifier
 
 	# called at the end of a card's resolution
-	def on_finished(self, modified_hand=True, modified_resources=True):
+	def on_finished(self, modified_hand=True, modified_resources=True, waiting_cleanup=True):
 		if modified_resources:
 			self.played_by.update_resources()
 		if modified_hand:
 			self.played_by.update_hand()
 		self.played_by.update_mode()
-		self.played_by.waiting["cb"] = None
+		if waiting_cleanup:
+			self.played_by.waiting["cb"] = None
 		self.done()
 
 	def to_json(self):

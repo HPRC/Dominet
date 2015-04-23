@@ -203,5 +203,30 @@ class TestProsperity(unittest.TestCase):
 
 		self.assertTrue(len(self.game.trash_pile) == 1)
 
+	def test_Venture(self):
+		venture = prosperity.Venture(self.game, self.player1)
+		estate = crd.Estate(self.game, self.player1)
+		loan = prosperity.Loan(self.game, self.player1)
+		silver = crd.Silver(self.game, self.player1)
+
+		self.player1.deck.append(loan)
+		self.player1.deck.append(estate)
+		self.player1.deck.append(estate)
+		self.player1.deck.append(silver)
+		self.player1.deck.append(estate)
+
+		venture.play()
+
+		self.assertTrue(len(self.player1.discard_pile) == 1)
+		self.assertTrue(self.player1.balance == 3)
+
+		venture.play()
+
+		# self.assertTrue(len(self.player1.discard_pile) == 4)
+		self.assertTrue(self.player1.balance == 5)
+
+		self.player1.waiting["cb"]("Trash")
+		self.assertTrue(self.game.trash_pile[0].title == "Copper")
+
 if __name__ == '__main__':
 	unittest.main()

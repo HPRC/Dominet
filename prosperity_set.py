@@ -311,6 +311,70 @@ class Mountebank(crd.AttackCard):
 		crd.AttackCard.get_next(self, player)
 
 
+class Vault(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Vault"
+		self.description = "+2 Cards\nDiscard any number of cards. +$1 per card discarded. " \
+		                   "Each other player may discard 2 cards. If he does, he draws a card."
+		self.price = 5
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		drawn = self.played_by.draw(2)
+		self.game.announce("-- drawing " + drawn + " cards")
+
+		self.played_by.select(None, len(self.played_by.hand.card_array()), "Discard any number of cards")
+		self.played_by.waiting["on"].append(self.played_by)
+		self.played_by.waiting["cb"] = self.post_discard
+
+	def post_discard(self, selection):
+		for card in selection:
+			self.played_by.discard(card, self.played_by.discard_pile)
+
+		self.played_by.balance += len(selection)
+		self.game.announce("-- discarding " + ", ".join(list(map(lambda x: self.game.card_from_title(x).log_string(), selection))) +
+		                   " gaining +$" + str(len(selection)))
+
+
+class Venture(crd.Money):
+	def __init__(self, game, played_by):
+		crd.Money.__init__(self, game, played_by)
+		self.title = "Venture"
+		self.description = "Worth $1\nWhen you play this, reveal cards from your deck until you reveal a Treasure. " \
+		                   "Discard the other cards. Play that Treasure."
+		self.price = 5
+		self.value = 1
+		self.type = "Treasure"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.balance += self.value
+		self.played_by.update_resources(True)
+
+		revealed_treasure = False
+		total_deck_count = len(self.played_by.discard_pile) + len(self.played_by.deck)
+		discarded = list()
+		while revealed_treasure is not True and len(discarded) < total_deck_count:
+			topdeck = self.played_by.topdeck()
+			if "Treasure" in topdeck.type:
+				revealed_treasure = True
+			else:
+				self.played_by.discard_pile.append(topdeck)
+				discarded.append(topdeck.title)
+
+		if len(discarded) > 0:
+			self.game.announce("-- discarding " + ", ".join(
+				list(map(lambda x: self.game.log_string_from_title(x), discarded))))
+
+		if revealed_treasure is True:
+			self.game.announce("-- revealing " + topdeck.log_string())
+			topdeck.play()
+		else:
+			self.game.announce("-- but could not find any treasures in his or her deck.")
+		crd.Card.on_finished(self, waiting_cleanup=False)
+
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------
 # --------------------------------------------------------
@@ -318,6 +382,7 @@ class Mountebank(crd.AttackCard):
 # --------------------------------------------------------
 # ------------------------ 7 Cost ------------------------
 # --------------------------------------------------------
+
 
 class Expand(crd.Card):
 	def __init__(self, game, played_by):

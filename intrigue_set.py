@@ -554,6 +554,7 @@ class Mining_Village(crd.Card):
 	def selected_trash(self):
 		return False
 
+
 class Scout(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
