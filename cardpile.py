@@ -170,15 +170,15 @@ class HandPile():
 				reactions.append(card)
 		return reactions
 		
-	#triggers reactions in hand one after another if many
-	def queue_reactions(self, trigger, final_cb):
+	#triggers reactions in hand
+	def do_reactions(self, trigger, final_cb, react_data=None):
 		reactions = self.get_reactions_for(trigger)
 		if len(reactions) == 0:
-			return
-		elif len(reactions) == 1:
-			reactions[0].react(newCard, lambda : self.update_resources())
-
-
+			final_cb()
+		else:
+			rh = ReactionHandler(self.player, trigger, final_cb, react_data)
+			rh.initiate_reactions()
+			
 	def is_homogeneous(self):
 		return len(self.data) == 1
 
@@ -195,9 +195,6 @@ class HandPile():
 			return list(map(lambda x: x.title, self.card_array()))
 		return []
 
-
-		
-
 	def play(self, card_title):
 		self.get_card(card_title).play()
 
@@ -213,7 +210,7 @@ class HandPile():
 
 #Move to diff file?
 class ReactionHandler():
-	def __init__(player, trigger, resume=lambda : None):
+	def __init__(self, player, trigger, resume=lambda : None, react_data=None):
 		self.player = player
 		self.game = self.player.game
 		self.trigger = trigger
@@ -222,41 +219,48 @@ class ReactionHandler():
 		self.reactions_queue = []
 		#callback to call after finish all reactions
 		self.resume = resume
+		#extra parameter to pass into react function of card
+		self.react_data = react_data
 
 	def initiate_reactions(self):
 		if not self.need_order_reactions():
 			self.trigger_reactions()
 
 	def need_order_reactions(self):
-		reactions = self.get_reactions_for(self.trigger)
+		reactions = self.player.hand.get_reactions_for(self.trigger)
 		reaction_titles = list(map(lambda x: x.title, reactions))
 		if len(set(reaction_titles)) == 1:
-			self.reactions_queue = reactions
+			if (self.turn_owner != self.player):
+				self.turn_owner.waiting["on"].append(self.player)
+			self.reactions_queue = list(map(lambda x: x.react, reactions))
 			return False
 		else:
 			num_reactions = len(reaction_titles)
+			for r in range(0, num_reactions):
+				if (self.turn_owner != self.player):
+					self.turn_owner.waiting["on"].append(self.player)
 
-			if (self.turn_owner != self.player):
-				self.turn_owner.waiting["on"].append(self.player)
-
-			self.player.waiting["cb"] = finish_ordering_reactions
+			self.player.waiting["cb"] = self.finish_ordering_reactions
 			self.player.waiting["on"].append(self.player)
-			self.select(num_reactions, num_reactions, reaction_titles, 
+			self.player.select(num_reactions, num_reactions, reaction_titles, 
 				"Choose the order for your reactions to resolve, #1 is first.", True)
 			return True
 
 	def finish_ordering_reactions(self, order):
-		self.reaction_queue = []
 		for card_title in order:
-			cb = self.hand.get_card(card_title).react
-			self.reaction_queue.append(cb)
+			cb = self.player.hand.get_card(card_title).react
+			self.reactions_queue.append(cb)
 
-		self.trigger_reactions(reaction_cbs)
+		self.trigger_reactions()
 
+	#trigger next reaction
 	def trigger_reactions(self):
 		if self.reactions_queue:
-			cb = reactions_left.pop()
-			cb(self.reacted)
+			cb = self.reactions_queue.pop()
+			if self.react_data is None:
+				cb(self.reacted)
+			else:
+				cb(self.reacted, self.react_data)
 
 	def reacted(self, drew_cards=False):
 		#if we drew any new cards during a card's reaction reprompt all reactions since player may
@@ -272,7 +276,6 @@ class ReactionHandler():
 				self.initiate_reactions()
 				return
 		if len(self.reactions_queue) == 0:
-			self.reactions_queue = []
 			self.resume()
 		else:
 			#cannot get here without having had a reaction first so the reactions are ordered

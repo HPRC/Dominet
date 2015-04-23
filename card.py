@@ -74,79 +74,23 @@ class AttackCard(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
 		self.type = "Action|Attack"
-		#dictionary of reacting player client instance : list of reaction card callbacks to call
-		self.reactions = {}
+		#list of players with reactions to attack
+		self.reacting_players = []
 
-	# called after reaction card finishes
-	# reacting_player = owner of reactio card that just finished
-	def reacted(self, reacting_player, drew_cards=False):
-		#if we drew any new cards during a card's reaction reprompt all reactions since player may
-		#want to reveal cards again
-		if drew_cards:
-			new_reactions = [x for x in reacting_player.hand.get_cards_by_type("Reaction") if "Attack" in x.trigger]
-			self.played_by.wait("waiting for other players to react")
-			self.played_by.waiting["on"] = [w for w in self.played_by.waiting["on"] if w != reacting_player]
-			for x in new_reactions:
-				self.played_by.waiting["on"].append(reacting_player)
-			self.reactions[reacting_player] = [c.react for c in new_reactions]
-			if len(new_reactions) > 0:
-				self.trigger_reaction(reacting_player, False)
-				return
-		if len(self.reactions[reacting_player]) == 0:
-			del self.reactions[reacting_player]
-			if not self.reactions:
-				self.attack()
-		else:
-			#cannot get here without having had a reaction first so the reactions are ordered
-			self.trigger_reaction(reacting_player, True)
-
-	def trigger_reaction(self, player, just_ordered):
-		#order of this or statement is important, we don't want to call need order reactions if just_ordered
-		if just_ordered or not self.need_order_reactions(player):
-			#react functions take in a lambda callback (this function) that itll call with whether the reaction drew cards
-			reacting = self.reactions[player].pop()
-			reacting(lambda drew_cards=False: self.reacted(player, drew_cards))
+	def player_finished_reacting(self, player):
+		self.reacting_players.remove(player)
+		if not self.reacting_players:
+			self.attack()
 
 	def check_reactions(self, targets):
 		for i in targets:
-			reaction_cards = i.hand.get_reactions_for("Attack")
-			for card in reaction_cards:
-				#attack waits on the player for each reaction he has
-				self.played_by.waiting["on"].append(i)
-				if i in self.reactions:
-					self.reactions[i].append(card.react)
-				else:
-					self.reactions[i] = [card.react]
-		if not self.reactions:
+			if len(i.hand.get_reactions_for("Attack")) > 0:
+				self.reacting_players.append(i)
+				i.hand.do_reactions("Attack", lambda x=i: self.player_finished_reacting(x))
+		if not self.reacting_players:
 			self.attack()
 		else:
 			self.played_by.wait("waiting for other players to react")
-			for p in self.played_by.get_opponents():
-				if p in self.reactions:
-					self.trigger_reaction(p, False)
-
-	def need_order_reactions(self, player):
-		reactions = player.hand.get_reactions_for("Attack")
-		attack_reaction_titles = list(map(lambda x: x.title, reactions))
-		if len(set(attack_reaction_titles)) == 1:
-			return False
-		else:
-			num_reactions = len(reactions)
-			def player_order_reactions_cb(order, player=player):
-				self.order_reactions_cb(order, player)
-			self.played_by.waiting["on"].append(player)
-			player.waiting["cb"] = player_order_reactions_cb
-			player.waiting["on"].append(player)
-			player.select(num_reactions, num_reactions, attack_reaction_titles, 
-				"Choose the order for your reactions to resolve, #1 is first.", True)
-			return True
-
-	def order_reactions_cb(self, order, player):
-		self.reactions[player] = []
-		for card_title in order:
-			cb = player.hand.get_card(card_title).react
-			self.reactions[player].append(cb)
-		self.trigger_reaction(player, True)
 
 	def is_blocked(self, target):
 		# shouldnt need to block against own attacks (i.e. spy)

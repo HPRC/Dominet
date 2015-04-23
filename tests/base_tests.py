@@ -253,5 +253,6 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(len(self.player3.hand)==3)
 		#player1 resumes
 		self.assertTrue(self.player1.last_mode["mode"] == "buy")
+
 if __name__ == '__main__':
 	unittest.main()

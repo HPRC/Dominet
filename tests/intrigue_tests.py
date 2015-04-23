@@ -33,6 +33,7 @@ class TestIntrigue(unittest.TestCase):
 	# --------------------------------------------------------
 
 	def test_Pawn(self):
+		tu.print_test_header("test Pawn")
 		pawn = intrigue.Pawn(self.game, self.player1)
 		self.player1.hand.add(pawn)
 		pawn.play()
@@ -41,6 +42,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.actions == 1)
 
 	def test_Great_Hall(self):
+		tu.print_test_header("test Great Hall")
 		great_hall = intrigue.Great_Hall(self.game, self.player1)
 		player1_vp = self.player1.total_vp()
 		self.player1.hand.add(great_hall)
@@ -49,6 +51,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue((self.player1.total_vp()) == player1_vp + 1)
 
 	def test_Steward(self):
+		tu.print_test_header("test Steward")
 		steward = intrigue.Steward(self.game, self.player1)
 		steward2 = intrigue.Steward(self.game, self.player1)
 		steward3 = intrigue.Steward(self.game, self.player1)
@@ -92,6 +95,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(len(self.player1.hand) == 0)
 
 	def test_Baron(self):
+		tu.print_test_header("test Baron")
 		baron = intrigue.Baron(self.game, self.player1)
 		self.player1.hand.data = {}
 		self.player1.hand.add(baron)
@@ -120,6 +124,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.buys == 4)
 
 	def test_Shanty_Town(self):
+		tu.print_test_header("test Shanty Town")
 		shanty_town = intrigue.Shanty_Town(self.game, self.player1)
 		self.player1.hand.add(shanty_town)
 		self.player1.hand.add(shanty_town)
@@ -136,6 +141,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(len(self.player1.hand) == cards_in_hand)
 
 	def test_Conspirator(self):
+		tu.print_test_header("test Conspirator")
 		conspirator = intrigue.Conspirator(self.game, self.player1)
 		self.player1.hand.add(conspirator)
 		self.player1.hand.add(conspirator)
@@ -154,6 +160,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(len(self.player1.hand) == cards_in_hand)
 
 	def test_Conspirator_Throne_Room(self):
+		tu.print_test_header("test Conspirator Throne Room")
 		conspirator = intrigue.Conspirator(self.game, self.player1)
 		throne_room = base.Throne_Room(self.game, self.player1)
 		self.player1.hand.add(conspirator)
@@ -167,6 +174,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(handsize == len(self.player1.hand))
 
 	def test_Courtyard(self):
+		tu.print_test_header("test Courtyard")
 		courtyard = intrigue.Courtyard(self.game, self.player1)
 		self.player1.hand.add(courtyard)
 
@@ -180,6 +188,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(topdeck.title == "Copper")
 
 	def test_Nobles(self):
+		tu.print_test_header("test Nobles")
 		nobles = intrigue.Nobles(self.game, self.player1)
 		self.player1.hand.add(nobles)
 		self.player1.hand.add(nobles)
@@ -195,6 +204,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(len(self.player1.hand) == cards_in_hand + 2)
 
 	def test_Swindler(self):
+		tu.print_test_header("test Swindler")
 		swindler = intrigue.Swindler(self.game, self.player1)
 		self.player2.deck.append(crd.Copper(self.game, self.player2))
 		self.player1.hand.add(swindler)
@@ -204,6 +214,7 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.waiting["cb"](["Curse"])
 
 	def test_Duke(self):
+		tu.print_test_header("test Duke")
 		duke = intrigue.Duke(self.game, self.player1)
 		self.player1.hand.add(duke)
 
@@ -215,6 +226,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(duke.get_vp() == 3)
 
 	def test_Wishing_Well(self):
+		tu.print_test_header("test Wishing Well")
 		wishing_well = intrigue.Wishing_Well(self.game, self.player1)
 		self.player1.hand.add(wishing_well)
 		self.player1.hand.add(wishing_well)
@@ -233,6 +245,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.hand.get_count('Province') == 1)
 
 	def test_Upgrade(self):
+		tu.print_test_header("test Upgrade")
 		upgrade = intrigue.Upgrade(self.game, self.player1)
 		self.player1.hand.add(upgrade)
 		self.player1.hand.add(upgrade)
@@ -248,6 +261,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue("Silver" == self.player1.discard_pile[-1].title)
 
 	def test_Torturer(self):
+		tu.print_test_header("test Torturer")
 		torturer = intrigue.Torturer(self.game, self.player1)
 		self.player1.hand.add(torturer)
 		self.player1.hand.add(torturer)
@@ -272,6 +286,7 @@ class TestIntrigue(unittest.TestCase):
 		self.player2.waiting["cb"](["Discard 2 cards"])
 
 	def test_Trading_Post(self):
+		tu.print_test_header("test Trading Post")
 		trading_post = intrigue.Trading_Post(self.game, self.player1)
 		copper = crd.Copper(self.game, self.player1)
 		self.player1.hand.data = {}
@@ -298,6 +313,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.hand.get_count("Silver") == 2)
 
 	def test_Ironworks(self):
+		tu.print_test_header("test Ironworks")
 		ironworks = intrigue.Ironworks(self.game, self.player1)
 		self.player1.hand.add(ironworks)
 		self.player1.hand.add(ironworks)
@@ -320,6 +336,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.hand, cards_in_hand + 1)
 
 	def test_Secret_Chamber(self):
+		tu.print_test_header("test Secret Chamber")
 		secret_chamber = intrigue.Secret_Chamber(self.game, self.player1)
 		estate = crd.Estate(self.game, self.player1)
 		self.player1.hand.data = {
@@ -348,6 +365,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.hand.get_count("Estate") == estates + 2)
 
 	def test_Tribute(self):
+		tu.print_test_header("test Tribute")
 		tribute = intrigue.Tribute(self.game, self.player1)
 		self.player1.hand.add(tribute)
 		self.player1.hand.add(tribute)
@@ -369,6 +387,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.balance == 2)
 
 	def test_Mining_Village(self):
+		tu.print_test_header("test Mining Village")
 		mining_village = intrigue.Mining_Village(self.game, self.player1)
 		mining_village2 = intrigue.Mining_Village(self.game, self.player1)
 		self.player1.hand.add(mining_village)
@@ -388,6 +407,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.balance == 2)
 
 	def test_Mining_Village_Throne_Room(self):
+		tu.print_test_header("test Mining Village Throne Room")
 		mining_village = intrigue.Mining_Village(self.game, self.player1)
 		mining_village2 = intrigue.Mining_Village(self.game, self.player1)
 		throne_room = base.Throne_Room(self.game, self.player1)
@@ -404,6 +424,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.balance == 2)
 
 	def test_Bridge(self):
+		tu.print_test_header("test Bridge")
 		bridge = intrigue.Bridge(self.game, self.player1)
 		self.player1.hand.add(bridge)
 		bridge.play()
@@ -413,6 +434,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.buys == 1)
 
 	def test_Coppersmith(self):
+		tu.print_test_header("test Coppersmith")
 		coppersmith = intrigue.Coppersmith(self.game, self.player1)
 		copper = crd.Copper(self.game, self.player1)
 		self.player1.hand.add(coppersmith)
@@ -426,6 +448,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(copper.value == 1)
 
 	def test_Coppersmith_Throne_Room(self):
+		tu.print_test_header("test Coppersmith Throne Room")
 		coppersmith = intrigue.Coppersmith(self.game, self.player1)
 		throneroom = base.Throne_Room(self.game, self.player1)
 		copper = crd.Copper(self.game, self.player1)
@@ -446,6 +469,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(len(coppersmiths) == 1)
 
 	def test_Scout(self):
+		tu.print_test_header("test Scout")
 		scout = intrigue.Scout(self.game, self.player1)
 		scout2 = intrigue.Scout(self.game, self.player1)
 		province = crd.Province(self.game, self.player1)
@@ -471,6 +495,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(len(self.player1.deck) == decklength - 2)
 
 	def test_Scout_autoselect(self):
+		tu.print_test_header("test Scout autoselect")
 		scout = intrigue.Scout(self.game, self.player1)
 		self.player1.deck.append(crd.Copper(self.game, self.player1))
 		self.player1.deck.append(crd.Copper(self.game, self.player1))
@@ -484,6 +509,7 @@ class TestIntrigue(unittest.TestCase):
 
 
 	def test_Minion(self):
+		tu.print_test_header("test Minion")
 		minion = intrigue.Minion(self.game, self.player1)
 		self.player1.hand.add(minion)
 		moat = base.Moat(self.game, self.player3)
@@ -502,6 +528,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(len(self.player3.hand) > 4)
 
 	def test_Minion_Throne_Room(self):
+		tu.print_test_header("test Minion Throne Room")
 		minion = intrigue.Minion(self.game, self.player1)
 		throneroom = base.Throne_Room(self.game, self.player1)
 		self.player1.hand.add(minion)
@@ -514,6 +541,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.balance == 2)
 
 	def test_Masquerade(self):
+		tu.print_test_header("test Masquerade")
 		masquerade = intrigue.Masquerade(self.game, self.player1)
 		curse = crd.Curse(self.game, self.player1)
 		baron = intrigue.Baron(self.game, self.player2)
@@ -546,6 +574,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.hand.get_count("Tribute") == 0)
 
 	def test_Masquerade_waits(self):
+		tu.print_test_header("test Masquerade waits")
 		masquerade = intrigue.Masquerade(self.game, self.player1)
 		curse = crd.Curse(self.game, self.player1)
 		estate = crd.Estate(self.game, self.player2)
@@ -564,6 +593,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.last_mode["mode"] == "select")
 
 	def test_Saboteur(self):
+		tu.print_test_header("test Saboteur")
 		saboteur = intrigue.Saboteur(self.game, self.player1)
 		steward = intrigue.Steward(self.game, self.player2)
 		copper = crd.Copper(self.game, self.player2)
@@ -587,6 +617,7 @@ class TestIntrigue(unittest.TestCase):
 
 
 	def test_Upgrade_Selection_issue_21(self):
+		tu.print_test_header("test Upgrade selection issue 21")
 		upgrade = intrigue.Upgrade(self.game, self.player1)
 		throne_room = base.Throne_Room(self.game, self.player1)
 		self.player1.deck.append(crd.Estate(self.game, self.player1))
@@ -605,6 +636,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
 
 	def test_Mining_Village_Conspirator(self):
+		tu.print_test_header("test Mining Village Conspirator")
 		mv = intrigue.Mining_Village(self.game, self.player1)
 		village = base.Village(self.game, self.player1)
 		conspirator = intrigue.Conspirator(self.game, self.player1)

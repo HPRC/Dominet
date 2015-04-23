@@ -26,7 +26,7 @@ class Watchtower(crd.Card):
 			self.game.announce("-- but already has at least 6 cards in hand")
 		crd.Card.on_finished(self)
 
-	def react(self, to_gain, reacted_to_callback):
+	def react(self, reacted_to_callback, to_gain):
 		self.reacted_to_callback = reacted_to_callback
 
 		self.played_by.select(1, 1, ["Reveal", "Hide"],  
@@ -45,7 +45,6 @@ class Watchtower(crd.Card):
 			temp = self.reacted_to_callback
 			self.reacted_to_callback = None
 			temp()
-
 
 	def trash_or_gain(self, selection):
 		to_gain = self.played_by.discard_pile.pop()
@@ -85,7 +84,7 @@ class Monument(crd.Card):
 class Workers_Village(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
-		self.title = "Workers Village"
+		self.title = "Worker's Village"
 		self.description = "+1 Card; +2 Actions, +1 Buy"
 		self.price = 4
 		self.type = "Action"
@@ -96,7 +95,7 @@ class Workers_Village(crd.Card):
 		self.played_by.buys += 1
 		drawn = self.played_by.draw(1)
 
-		self.game.announce("-- drawing " + drawn + " cards and gaining 2 actions and 1 buy")
+		self.game.announce("-- drawing " + drawn + " and gaining 2 actions and 1 buy")
 
 		self.played_by.update_hand()
 		crd.Card.on_finished(self)

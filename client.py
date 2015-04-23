@@ -92,6 +92,7 @@ class DmClient(Client):
 		return self.deck.pop()
 
 	def shuffle_discard_to_deck(self):
+		self.game.announce(self.name_string() + " reshuffles")
 		random.shuffle(self.discard_pile)
 		self.deck = self.discard_pile + self.deck
 		self.discard_pile = []
@@ -228,14 +229,7 @@ class DmClient(Client):
 			self.game.remove_from_supply(card_title)
 			self.buys -= 1
 			self.balance -= newCard.get_price()
-			gain_reactions = self.hand.get_reactions_for("Gain")
-			if gain_reactions:
-				for x in gain_reactions:
-					x.react(newCard, lambda : self.update_resources())
-			else:
-				self.update_resources()
-			# try:
-			# write on_purchase for Card class, extend it in relevant classes
+			self.hand.do_reactions("Gain", lambda : self.update_resources(), newCard)
 
 	def select(self, min_cards, max_cards, select_from, msg, ordered=False):
 		if len(select_from) > 0:
@@ -291,13 +285,9 @@ class DmClient(Client):
 		new_card = self.get_card_from_supply(card, from_supply)
 		if new_card is not None:
 			self.discard_pile.append(new_card)
-			gain_reactions = self.hand.get_reactions_for("Gain")
-			if gain_reactions:
-				for x in gain_reactions:
-					x.react(new_card, lambda : None)
-
 			self.game.announce(self.name_string() + " gains " + new_card.log_string())  # TODO perhaps delete to customize gains messages (for attacks etc.)
 			self.update_discard_size()
+			self.hand.do_reactions("Gain", lambda : None, new_card)
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 
@@ -308,7 +298,7 @@ class DmClient(Client):
 			self.hand.add(new_card)
 			self.update_hand()
 		else:
-			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + "but it is out of supply.")
+			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 
 	def select_from_supply(self, price_limit=None, equal_only=False, type_constraint=None, allow_empty=False, optional=False):
 		self.write_json(command="updateMode", mode="selectSupply", price=price_limit, equal_only=equal_only,
@@ -400,4 +390,5 @@ class DmClient(Client):
 
 	def all_cards(self):
 		return self.deck + self.discard_pile + self.played + self.hand.card_array()
+
 

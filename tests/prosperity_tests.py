@@ -33,6 +33,7 @@ class TestProsperity(unittest.TestCase):
 	# --------------------------------------------------------
 
 	def test_Monument(self):
+		tu.print_test_header("test Monument")
 		monument = prosperity.Monument(self.game, self.player1)
 		monument.play()
 		self.assertTrue(self.player1.balance == 2)
@@ -41,6 +42,7 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.player1.total_vp() == 4)
 
 	def test_Counting_House(self):
+		tu.print_test_header("test Counting House")
 		counting_house = prosperity.Counting_House(self.game, self.player1)
 		copper1 = crd.Copper(self.game, self.player1)
 		copper2 = crd.Copper(self.game, self.player1)
@@ -58,6 +60,7 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.player1.discard_pile)
 
 	def test_Workers_Village(self):
+		tu.print_test_header("test Worker's Village")
 		workers_village = prosperity.Workers_Village(self.game, self.player1)
 
 		workers_village.play()

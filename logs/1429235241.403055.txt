@@ -1,4 +1,0 @@
-Game created on 1429235241.403055
- Players: we, 12
-{"command": "spendAllMoney"}
-{"card": "Watchtower", "command": "buyCard"}
