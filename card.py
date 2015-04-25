@@ -5,7 +5,7 @@ class Card():
 		self.title = None
 		self.type = None
 		self.description = None
-		self.price = None
+		self.price = 0
 		self.done = lambda: None
 
 	def play(self, skip=False):

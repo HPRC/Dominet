@@ -180,8 +180,7 @@ class Bureaucrat(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Bureaucrat"
-		self.description = "Gain a Silver, put it on top of your deck. Each other player reveals a Victory card\
-		and puts it on their deck or reveals a hand with no Victory cards."
+		self.description = "Gain a Silver, put it on top of your deck. Each other player reveals a Victory card and puts it on their deck or reveals a hand with no Victory cards."
 		self.price = 4
 
 	def play(self, skip=False):

@@ -80,7 +80,7 @@ class CardPile():
 		cardtype_exists = False
 		if price:
 			for title in self.data:
-				if self.data[title][0].price == price:
+				if self.data[title][0].get_price() == price:
 					price_exists = True
 					break
 
@@ -92,6 +92,22 @@ class CardPile():
 
 		return (not price or price_exists) and (not cardtype or cardtype_exists)
 
+	#returns true if there are available cards left in supply to gain from with the given parameters
+	#equal_only = True if price must be equal to input otherwise it is equal to or less than
+	def has_selectable(self, price, equal_only, type_constraint):
+		cards_with_price = []
+		for title in self.data:
+			card = self.get_card(title)
+			card_price = card.get_price()
+			if card_price == price or card_price < price and not equal_only:
+				cards_with_price.append(title)
+		cards_avail = [x for x in cards_with_price if self.get_count(x) > 0]
+		if type_constraint:
+			cards_avail = [x for x in cards_avail if type_constraint in x.type]
+		if cards_avail:
+			return True
+		else:
+			return False
 
 class HandPile():
 	def __init__(self, player):
