@@ -16,6 +16,7 @@ class Loan(crd.Money):
 		self.price = 3
 		self.value = 1
 		self.type = "Treasure"
+		self.spend_all = False
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
@@ -160,6 +161,27 @@ class Workers_Village(crd.Card):
 		self.game.announce("-- drawing " + drawn + " cards and gaining 2 actions and 1 buy")
 
 		self.played_by.update_hand()
+		crd.Card.on_finished(self)
+
+
+class Talisman(crd.Money):
+	def __init__(self, game, played_by):
+		crd.Money.__init__(self, game, played_by)
+		self.title = "Talisman"
+		self.description = "Worth $1.\nWhile this is in play, when you buy a card costing $4 or less" \
+		                   " that is not a Victory card, gain a copy of it."
+		self.price = 4
+		self.value = 1
+		self.type = "Treasure"
+		self.spend_all = False
+
+	def on_buy_effect(self, purchased_card):
+		if purchased_card.get_price() <= 4 and "Victory" not in purchased_card.type:
+			card = self.played_by.get_card_from_supply(purchased_card.title, True)
+			if card is not None:
+				self.played_by.discard_pile.append(card)
+				self.played_by.update_discard_size()
+				self.game.announce("-- gaining another " + card.log_string())
 		crd.Card.on_finished(self)
 
 
@@ -311,6 +333,98 @@ class Mountebank(crd.AttackCard):
 		crd.AttackCard.get_next(self, player)
 
 
+class Rabble(crd.AttackCard):
+	def __init__(self, game, played_by):
+		crd.AttackCard.__init__(self, game, played_by)
+		self.title = "Rabble"
+		self.description = "+3 Cards\nEach other player reveals the top 3 cards of his deck, " \
+		                   "discards the revealed Actions and Treasures, and puts the rest back " \
+		                   "on top in any order he chooses."
+		self.price = 5
+		self.type = "Action|Attack"
+
+	def play(self, skip=False):
+		crd.AttackCard.play(self, skip)
+		drawn = self.played_by.draw(3)
+		self.played_by.update_hand()
+		self.game.announce("-- drawing " + drawn)
+		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+
+	def attack(self):
+		crd.AttackCard.get_next(self, self.played_by)
+
+	def fire(self, player):
+		if crd.AttackCard.fire(self, player):
+			if len(player.deck) < 3:
+				player.shuffle_discard_to_deck()
+
+			revealed = []
+			if len(player.deck) < 3:
+				revealed = player.deck
+			else:
+				revealed = player.deck[-3:]
+			# removed the revealed cards from deck
+			num_truncate = len(revealed)
+			del player.deck[-num_truncate:]
+			if len(revealed) != 0:
+				self.game.announce("-- revealing " + ", ".join(list(map(lambda x: x.log_string(), revealed))))
+			else:
+				self.game.announce("-- revealing nothing")
+			action_treasure_cards = [x for x in revealed if "Treasure" in x.type or "Action" in x.type]
+			if len(action_treasure_cards) > 0:
+				action_treasure_card_titles = [x.log_string() for x in action_treasure_cards]
+				self.game.announce("-- discarding " + ", ".join(action_treasure_card_titles))
+				for at in action_treasure_cards:
+					player.discard_pile.append(at)
+				player.update_deck_size()
+
+			cards_left = [x for x in revealed if "Action" not in x.type and "Treasure" not in x.type]
+			if len(cards_left) == 0:
+				crd.Card.on_finished(self, False, False)
+			elif len(cards_left) == 1:
+				player.deck.append(cards_left[0])
+				player.update_deck_size()
+				crd.Card.on_finished(self, False, False)
+			else:
+				if len(set(map(lambda x: x.title, cards_left))) == 1:
+					player.deck += cards_left
+					player.update_deck_size()
+					crd.AttackCard.get_next(self, player)
+				else:
+					def post_reorder_with(order, cards_left=cards_left, player=player):
+						self.post_reorder(order, cards_left, player)
+
+					player.select(len(cards_left), len(cards_left), crd.card_list_to_titles(cards_left),
+					              "Rearrange the cards to put back on top of deck (#1 is on top)", True)
+					self.played_by.wait("Waiting for " + player.name + " to reorder cards")
+					self.played_by.waiting["on"].append(player)
+					player.waiting["cb"] = post_reorder_with
+
+	def post_reorder(self, order, cards_to_reorder, player):
+		for x in order:
+			for y in cards_to_reorder:
+				if x == y.title:
+					player.deck.append(y)
+					break
+		player.update_deck_size()
+		crd.Card.on_finished(self, False, False)
+
+
+# class Royal_Seal(crd.Money):
+# 	def __init__(self, game, played_by):
+# 		crd.Money.__init__(self, game, played_by)
+# 		self.title = "Royal Seal"
+# 		self.description = "Worth $2\nWhile this is in play, when you gain a card," \
+# 		                   " you may put that card on top of your deck."
+# 		self.price = 5
+# 		self.value = 2
+# 		self.spend_all = False
+#
+# 	def on_buy_effect(self, purchased_card):
+# 		if self.game.supply.get_count(purchased_card.title) <= 0:
+# 			self.played_by.select
+
+
 class Vault(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -390,6 +504,7 @@ class Venture(crd.Money):
 		self.price = 5
 		self.value = 1
 		self.type = "Treasure"
+		self.spend_all = False
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
@@ -423,9 +538,100 @@ class Venture(crd.Money):
 # ------------------------ 6 Cost ------------------------
 # --------------------------------------------------------
 
+
+class Goons(crd.AttackCard):
+	def __init__(self, game, played_by):
+		crd.AttackCard.__init__(self, game, played_by)
+		self.title = "Goons"
+		self.description = "+1 Buy; +$2\nEach other player discards down to 3 cards in hand." \
+		                   "\nWhile this is in play, when you buy a card, +1 VP token."
+		self.price = 6
+		self.type = "Action|Attack"
+
+	def play(self, skip=False):
+		crd.AttackCard.play(self, skip)
+		self.played_by.balance += 2
+		self.played_by.buys += 1
+
+		self.game.announce("-- gaining +$2 and +1 Buy")
+		self.played_by.update_resources()
+		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+
+	def attack(self):
+		attacking = False
+		for i in self.played_by.get_opponents():
+			if not crd.AttackCard.is_blocked(self, i):
+				attacking = True
+				if len(i.hand) > 3:
+					i.select(len(i.hand) - 3, len(i.hand) - 3, crd.card_list_to_titles(i.hand.card_array()),
+					         "discard down to 3 cards")
+
+					def post_select_on(selection, i=i):
+						self.post_select(selection, i)
+
+					i.waiting["on"].append(i)
+					i.waiting["cb"] = post_select_on
+					self.played_by.waiting["on"].append(i)
+					self.played_by.wait("Waiting for other players to discard")
+				else:
+					self.game.announce("-- " + i.name_string() + " has 3 or less cards in hand")
+		if not attacking:
+			crd.Card.on_finished(self, False, False)
+
+	def post_select(self, selection, victim):
+		self.game.announce("-- " + victim.name_string() + " discards down to 3")
+		victim.discard(selection, victim.discard_pile)
+		victim.update_hand()
+		if len(self.played_by.waiting["on"]) == 0:
+			crd.Card.on_finished(self, False, False)
+
+	def on_buy_effect(self, purchased_card):
+		self.played_by.vp += 1
+		self.game.announce("-- gaining +1 VP")
+
+
+class Hoard(crd.Money):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Hoard"
+		self.description = "Worth $2.\n While this is in play, when you buy a Victory card, gain a Gold."
+		self.price = 6
+		self.value = 2
+		self.type = "Treasure"
+		self.spend_all = False
+
+	def on_buy_effect(self, purchased_card):
+		if "Victory" in purchased_card.type:
+			self.played_by.gain("Gold", True, True)
+			gold = self.played_by.get_card_from_supply("Gold", False)
+			self.game.announce("-- gaining a " + gold.log_string())
+		crd.Card.on_finished(self)
+
+
 # --------------------------------------------------------
 # ------------------------ 7 Cost ------------------------
 # --------------------------------------------------------
+
+
+class Bank(crd.Money):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Bank"
+		self.description = "Worth $?\nWhen you play this, it’s worth $1 per Treasure card you have in play (counting this)."
+		self.price = 7
+		self.value = 0
+		self.type = "Treasure"
+		self.spend_all = False
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		total_played_treasures = 0
+		for card in self.played_by.played:
+			if "Treasure" in card.type:
+				total_played_treasures += 1
+		self.played_by.balance += total_played_treasures
+		self.game.announce("-- gaining +$" + str(total_played_treasures))
+		crd.Card.on_finished(self)
 
 
 class Expand(crd.Card):
@@ -498,7 +704,6 @@ class Forge(crd.Card):
 
 	def gain_select(self, selection):
 		self.played_by.gain(selection[0])
-		self.game.announce("-- gaining " + self.game.card_from_title(selection[0]).log_string())
 		crd.Card.on_finished(self)
 
 

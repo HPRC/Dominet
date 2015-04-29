@@ -296,7 +296,7 @@ class Militia(crd.AttackCard):
 					self.played_by.waiting["on"].append(i)
 					self.played_by.wait("Waiting for other players to discard")
 				else:
-					self.game.announce("-- " + i.name_string() + " has 3 cards in hand")
+					self.game.announce("-- " + i.name_string() + " has 3 or less cards in hand")
 		if not attacking:
 			crd.Card.on_finished(self, False, False)
 

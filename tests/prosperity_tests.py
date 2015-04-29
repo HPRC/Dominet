@@ -243,5 +243,117 @@ class TestProsperity(unittest.TestCase):
 
 		self.player3.waiting["cb"](["No"])
 
+	def test_Bank(self):
+		bank = prosperity.Bank(self.game, self.player1)
+		self.player1.hand.add(bank)
+
+		bank.play()
+		self.assertTrue(self.player1.balance == 1)
+
+		self.player1.hand.add(bank)
+		self.player1.spend_all_money()
+		coppers = self.player1.balance - 1
+		bank.play()
+		self.assertTrue(self.player1.balance == (3 + coppers + coppers))
+
+	def test_Hoard(self):
+		hoard = prosperity.Hoard(self.game, self.player1)
+		woodcutter = base.Woodcutter(self.game, self.player1)
+
+		woodcutter.play()
+		self.player1.hand.add(hoard)
+		self.player1.hand.add(hoard)
+		hoard.play()
+		hoard.play()
+
+		self.assertTrue(self.player1.balance == 6)
+
+		self.player1.buy_card('Estate')
+		self.player1.buy_card('Estate')
+
+		golds = self.player1.get_card_count_in_list('Gold', self.player1.discard_pile)
+
+		self.assertTrue(golds == 4)
+
+	def test_Talisman(self):
+		talisman = prosperity.Talisman(self.game, self.player1)
+		self.player1.hand.add(talisman)
+		self.player1.hand.add(talisman)
+
+		talisman.play()
+		talisman.play()
+		self.assertTrue(self.player1.balance == 2)
+
+		self.player1.balance = 8
+		self.player1.buys = 2
+
+		self.player1.buy_card('Gardens')
+		self.player1.buy_card('Mining Village')
+
+		gardens = self.player1.get_card_count_in_list('Gardens', self.player1.discard_pile)
+		mining_villages = self.player1.get_card_count_in_list('Mining Village', self.player1.discard_pile)
+
+		self.assertTrue(gardens == 1)
+		self.assertTrue(mining_villages == 3)
+
+	def test_Goons(self):
+		goons = prosperity.Goons(self.game, self.player1)
+		self.player1.hand.add(goons)
+		self.player1.hand.add(goons)
+
+		self.player1.actions = 2
+
+		goons.play()
+		self.assertTrue(self.player1.balance == 2)
+		self.assertTrue(self.player1.buys == 2)
+
+		self.player2.waiting["cb"](["Copper", "Copper"])
+		self.player3.waiting["cb"](["Copper", "Copper"])
+
+		goons.play()
+
+		self.player1.buy_card("Copper")
+		self.assertTrue(self.player1.vp == 2)
+		self.player1.buy_card("Copper")
+		self.player1.buy_card("Copper")
+		self.assertTrue(self.player1.vp == 6)
+
+	def test_Rabble(self):
+		rabble = prosperity.Rabble(self.game, self.player1)
+		copper = crd.Copper(self.game, self.player2)
+		estate = crd.Estate(self.game, self.player2)
+
+		self.player2.deck.append(estate)
+		self.player2.deck.append(copper)
+		self.player2.deck.append(estate)
+
+		duchy = crd.Duchy(self.game, self.player3)
+		gardens = base.Gardens(self.game, self.player3)
+		great_hall = intrigue.Great_Hall(self.game, self.player3)
+
+		self.player3.deck.append(duchy)
+		self.player3.deck.append(gardens)
+		self.player3.deck.append(great_hall)
+
+		rabble.play()
+
+		topdeck1 = self.player2.topdeck()
+		topdeck2 = self.player2.topdeck()
+		self.assertTrue(topdeck1.title == "Estate")
+		self.assertTrue(topdeck2.title == "Estate")
+
+		self.player3.waiting["cb"](["Gardens", "Duchy"])
+
+		topdeck1 = self.player3.topdeck()
+		topdeck2 = self.player3.topdeck()
+
+		self.assertTrue(topdeck1.title == "Duchy")
+		self.assertTrue(topdeck2.title == "Gardens")
+
+
+
+
+
+
 if __name__ == '__main__':
 	unittest.main()

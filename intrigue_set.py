@@ -585,7 +585,7 @@ class Scout(crd.Card):
 		victory_cards = [x for x in revealed if "Victory" in x.type]
 		if len(victory_cards) > 0:
 			victory_card_titles = [x.log_string() for x in victory_cards]
-			self.game.announce("-- putting " + " ,".join(victory_card_titles) + " into their hand")
+			self.game.announce("-- putting " + ", ".join(victory_card_titles) + " into their hand")
 		for vc in victory_cards:
 			self.played_by.hand.add(vc)
 		self.played_by.update_hand()
