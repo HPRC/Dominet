@@ -120,6 +120,18 @@ class TestProsperity(unittest.TestCase):
 		self.player1.exec_commands({"command":"post_selection", "selection":["Trash"]})
 		self.assertTrue(self.game.trash_pile[-1].title == "Curse")
 
+	def test_Kings_Court(self):
+		tu.print_test_header("testing King's Court")
+		conspirator = intrigue.Conspirator(self.game, self.player1)
+		kings_court = prosperity.Kings_Court(self.game, self.player1)
+		tu.set_player_hand(self.player1, [conspirator, kings_court])
+		kings_court.play()
+		self.player1.waiting["cb"](["Conspirator"])
+		self.assertTrue(self.player1.actions == 2)
+		self.assertTrue(self.player1.balance == 6)
+		#conspirator should be triggered twice, we drew 2 cards
+		self.assertTrue(len(self.player1.hand) == 2)
+
 
 if __name__ == '__main__':
 	unittest.main()

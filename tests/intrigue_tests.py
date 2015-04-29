@@ -58,15 +58,10 @@ class TestIntrigue(unittest.TestCase):
 
 		copper = crd.Copper(self.game, self.player1)
 		estate = crd.Estate(self.game, self.player1)
-		self.player1.hand.data = {}
-		self.player1.hand.add(steward)
-		self.player1.hand.add(steward2)
-		self.player1.hand.add(steward3)
-		self.player1.hand.add(copper)
-		self.player1.hand.add(copper)
-		self.player1.hand.add(copper)
-		self.player1.hand.add(estate)
-		self.player1.hand.add(estate)
+		tu.clear_player_hand(self.player1)
+		tu.add_many_to_hand(self.player1, steward, 3)
+		tu.add_many_to_hand(self.player1, copper, 3)
+		tu.add_many_to_hand(self.player1, estate, 2)
 
 		self.player1.actions = 5
 		# +$2
@@ -97,10 +92,8 @@ class TestIntrigue(unittest.TestCase):
 	def test_Baron(self):
 		tu.print_test_header("test Baron")
 		baron = intrigue.Baron(self.game, self.player1)
-		self.player1.hand.data = {}
-		self.player1.hand.add(baron)
-		self.player1.hand.add(baron)
-		self.player1.hand.add(baron)
+		tu.clear_player_hand(self.player1)
+		tu.add_many_to_hand(self.player1, baron,3)
 		estate = crd.Estate(self.game, self.player1)
 		# sadly add an estate to hand since no guarantees -- actually overwrites hand
 		self.player1.hand.add(estate)
@@ -126,8 +119,7 @@ class TestIntrigue(unittest.TestCase):
 	def test_Shanty_Town(self):
 		tu.print_test_header("test Shanty Town")
 		shanty_town = intrigue.Shanty_Town(self.game, self.player1)
-		self.player1.hand.add(shanty_town)
-		self.player1.hand.add(shanty_town)
+		tu.add_many_to_hand(self.player1, shanty_town,2)
 
 		# First Play: has an action, should not draw cards.
 		cards_in_hand = len(self.player1.hand)
@@ -143,8 +135,7 @@ class TestIntrigue(unittest.TestCase):
 	def test_Conspirator(self):
 		tu.print_test_header("test Conspirator")
 		conspirator = intrigue.Conspirator(self.game, self.player1)
-		self.player1.hand.add(conspirator)
-		self.player1.hand.add(conspirator)
+		tu.add_many_to_hand(self.player1, conspirator,2)
 
 		village = base.Village(self.game, self.player1)
 		self.player1.hand.add(village)
@@ -163,8 +154,7 @@ class TestIntrigue(unittest.TestCase):
 		tu.print_test_header("test Conspirator Throne Room")
 		conspirator = intrigue.Conspirator(self.game, self.player1)
 		throne_room = base.Throne_Room(self.game, self.player1)
-		self.player1.hand.add(conspirator)
-		self.player1.hand.add(throne_room)
+		tu.set_player_hand(self.player1, [conspirator, throne_room])
 		throne_room.play()
 		handsize = len(self.player1.hand)
 		self.player1.waiting["cb"](["Conspirator"])
@@ -190,8 +180,7 @@ class TestIntrigue(unittest.TestCase):
 	def test_Nobles(self):
 		tu.print_test_header("test Nobles")
 		nobles = intrigue.Nobles(self.game, self.player1)
-		self.player1.hand.add(nobles)
-		self.player1.hand.add(nobles)
+		tu.add_many_to_hand(self.player1, nobles, 2)
 
 		nobles.play()
 		self.player1.waiting["cb"](["+2 Actions"])
@@ -228,8 +217,7 @@ class TestIntrigue(unittest.TestCase):
 	def test_Wishing_Well(self):
 		tu.print_test_header("test Wishing Well")
 		wishing_well = intrigue.Wishing_Well(self.game, self.player1)
-		self.player1.hand.add(wishing_well)
-		self.player1.hand.add(wishing_well)
+		tu.add_many_to_hand(self.player1, wishing_well, 2)
 		province = crd.Province(self.game, self.player1)
 		self.player1.deck.append(province)
 		self.player1.deck.append(crd.Silver(self.game, self.player1))
@@ -247,8 +235,7 @@ class TestIntrigue(unittest.TestCase):
 	def test_Upgrade(self):
 		tu.print_test_header("test Upgrade")
 		upgrade = intrigue.Upgrade(self.game, self.player1)
-		self.player1.hand.add(upgrade)
-		self.player1.hand.add(upgrade)
+		tu.add_many_to_hand(self.player1, upgrade, 2)
 		self.player1.hand.add(crd.Copper(self.game, self.player1))
 		self.player1.hand.add(crd.Estate(self.game, self.player1))
 
@@ -367,8 +354,7 @@ class TestIntrigue(unittest.TestCase):
 	def test_Tribute(self):
 		tu.print_test_header("test Tribute")
 		tribute = intrigue.Tribute(self.game, self.player1)
-		self.player1.hand.add(tribute)
-		self.player1.hand.add(tribute)
+		tu.add_many_to_hand(self.player1, tribute, 2)
 		copper = crd.Copper(self.game, self.player2)
 		great_hall = intrigue.Great_Hall(self.game, self.player2)
 		swindler = intrigue.Swindler(self.game, self.player2)

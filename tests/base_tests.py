@@ -258,8 +258,7 @@ class TestCard(unittest.TestCase):
 	def test_has_selectable(self):
 		tu.print_test_header("test has selectable")
 		#2 Remodels in hand
-		self.player1.hand.add(base.Remodel(self.game, self.player1))
-		self.player1.hand.add(base.Remodel(self.game, self.player1))
+		tu.add_many_to_hand(self.player1, base.Remodel(self.game, self.player1), 2)
 		#nothing in supply except remodel and gold both at 0 left
 		self.game.supply.data = {"Remodel": [base.Remodel(self.game, None), 0], "Gold": [crd.Gold(self.game, None), 0]}
 		#try to remodel another remodel

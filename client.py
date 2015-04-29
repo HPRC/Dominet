@@ -306,6 +306,8 @@ class DmClient(Client):
 		if allow_empty or self.game.supply.has_selectable(price_limit, equal_only, type_constraint):
 			self.write_json(command="updateMode", mode="selectSupply", price=price_limit, equal_only=equal_only,
 				type_constraint=type_constraint, allow_empty=allow_empty, optional=optional)
+		else:
+			self.game.announce("-- but there is nothing available")
 
 	def update_resources(self, playedMoney=False):
 		if playedMoney:

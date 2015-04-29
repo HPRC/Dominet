@@ -193,11 +193,13 @@ class Expand(crd.Card):
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),
-		                      "select card to expand")
-		self.played_by.update_resources()
-		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = self.post_select
+		if self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),
+		                      "select card to expand"):
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.post_select
+		else:
+			self.game.announce("-- but has nothing to expand.")
+			self.played_by.update_resources()
 
 	def post_select(self, selection):
 		self.played_by.discard(selection, self.game.trash_pile)
@@ -212,6 +214,54 @@ class Expand(crd.Card):
 	def post_gain(self, selected):
 		self.played_by.gain(selected[0])
 		crd.Card.on_finished(self, False, False)
+
+class Kings_Court(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "King's Court"
+		self.description = "Choose an action card from your hand. Play it three times."
+		self.price = 7
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		action_cards = self.played_by.hand.get_cards_by_type("Action")
+		if not self.played_by.select(1, 1, crd.card_list_to_titles(action_cards),
+		 "select card for King's Court"):
+			self.done = lambda : None
+			self.game.announce(" -- but has no action cards")
+		else:
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.post_select
+		self.played_by.update_resources()
+
+	def post_select(self, selection):
+		selected_card = self.played_by.hand.get_card(selection[0])
+		kings_court_str = self.played_by.name_string() + " " + self.log_string(True) + " " + selected_card.log_string()
+
+		def final_done(card=selected_card):
+			# after the third play of card is finished, kings court is finished
+			card.done = lambda: None
+			crd.Card.on_finished(self, False, False)
+
+		#plays the selected card 2nd and 3rd time, done_cb is the callback called after a card finishes playing
+		#the default done cb is final_done to be called after the 3rd card is played.
+		def play_again(card=selected_card, done_cb=final_done):
+			card.game.announce(kings_court_str)
+			card.done = done_cb
+			#add to played again temporarily for things like conspirator
+			card.played_by.played.append(card)
+			card.play(True)
+			card.played_by.update_resources()
+
+		#after playing the card the first time, we set the done callback to play_again and override the default
+		#done callback for the 2nd time the card is played to play_again to play a 3rd time
+		selected_card.done = lambda : play_again(done_cb=play_again)
+		self.played_by.discard(selection, self.played_by.played)
+		self.game.announce(kings_court_str)
+		selected_card.play(True)
+		self.played_by.update_resources()
+		self.played_by.update_hand()
 
 
 # --------------------------------------------------------

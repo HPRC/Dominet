@@ -100,8 +100,8 @@ class CardPile():
 			card = self.get_card(title)
 			card_price = card.get_price()
 			if card_price == price or card_price < price and not equal_only:
-				cards_with_price.append(title)
-		cards_avail = [x for x in cards_with_price if self.get_count(x) > 0]
+				cards_with_price.append(card)
+		cards_avail = [x for x in cards_with_price if self.get_count(x.title) > 0]
 		if type_constraint:
 			cards_avail = [x for x in cards_avail if type_constraint in x.type]
 		if cards_avail:
