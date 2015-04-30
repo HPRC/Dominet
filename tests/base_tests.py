@@ -183,6 +183,20 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(len(self.player1.deck) == 0)
 		self.assertTrue(len(self.player1.discard_pile) == 3)
 
+	def test_Adventurer_empty_deck(self):
+		tu.print_test_header("test Adventurer")
+		estate = crd.Estate(self.game, self.player1)
+		gold = crd.Gold(self.game, self.player1)
+		adventurer = base.Adventurer(self.game, self.player1)
+		self.player1.deck = []
+		self.player1.discard_pile = [gold]
+
+		self.player1.hand.add(adventurer)
+		adventurer.play()
+		self.assertTrue(self.player1.hand.get_count("Gold") == 1)
+		self.assertTrue(len(self.player1.deck) == 0)
+		self.assertTrue(len(self.player1.discard_pile) == 0)
+
 	def test_Library(self):
 		tu.print_test_header("test Library")
 		library = base.Library(self.game, self.player1)
@@ -253,21 +267,6 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(len(self.player3.hand)==3)
 		#player1 resumes
 		self.assertTrue(self.player1.last_mode["mode"] == "buy")
-
-	#tests gaining a card not available anymore doesnt lead to deadlock
-	def test_has_selectable(self):
-		tu.print_test_header("test has selectable")
-		#2 Remodels in hand
-		tu.add_many_to_hand(self.player1, base.Remodel(self.game, self.player1), 2)
-		#nothing in supply except remodel and gold both at 0 left
-		self.game.supply.data = {"Remodel": [base.Remodel(self.game, None), 0], "Gold": [crd.Gold(self.game, None), 0]}
-		#try to remodel another remodel
-		self.player1.exec_commands({"command":"play", "card": "Remodel"})
-		self.assertTrue(self.player1.last_mode["mode"] == "select")
-		self.player1.exec_commands({"command":"post_selection", "selection": ["Remodel"]})
-
-		self.assertTrue(self.player1.last_mode["mode"] != "selectSupply")
-
 
 if __name__ == '__main__':
 	unittest.main()

@@ -61,6 +61,9 @@ class Watchtower(crd.Card):
 		self.reacted_to_callback = None
 		temp()
 
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
+
 # --------------------------------------------------------
 # ------------------------ 4 Cost ------------------------
 # --------------------------------------------------------
@@ -263,7 +266,20 @@ class Kings_Court(crd.Card):
 		self.played_by.update_resources()
 		self.played_by.update_hand()
 
+		normal_cleanup = selected_card.cleanup
+		#remove king's courted card from being added to discard_pile 3x
+		#instance is 1 or 2 to represent the 1st copy or 2nd copy of action card played
+		def kings_court_cleanup(instance):
+			normal_cleanup()
+			#if this is the 2nd king courted card then we reset the cleanup to the default
+			#else this is the cleanup of the 1st copy so we increase the instance for the next one to finish cleaning up
+			if instance == 2:
+				selected_card.cleanup = normal_cleanup
+			else:
+				selected_card.cleanup = lambda : kings_court_cleanup(2)
+			return False
+		#first copy cleanup
+		selected_card.cleanup = lambda : kings_court_cleanup(1)
 
-# --------------------------------------------------------
-# ------------------------ 8 Cost ------------------------
-# --------------------------------------------------------
+
+

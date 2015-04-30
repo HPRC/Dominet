@@ -104,7 +104,19 @@ class TestGame(unittest.TestCase):
 		self.player1.exec_commands({"command":"selectSupply", "card": ["Duchy"]})
 		self.assertTrue(len(self.player1.discard_pile) == 1)
 
+	#tests gaining a card not available anymore doesnt lead to deadlock
+	def test_has_selectable(self):
+		tu.print_test_header("test has selectable")
+		#2 Remodels in hand
+		tu.add_many_to_hand(self.player1, base.Remodel(self.game, self.player1), 2)
+		#nothing in supply except remodel and gold both at 0 left
+		self.game.supply.data = {"Remodel": [base.Remodel(self.game, None), 0], "Gold": [crd.Gold(self.game, None), 0]}
+		#try to remodel another remodel
+		self.player1.exec_commands({"command":"play", "card": "Remodel"})
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
+		self.player1.exec_commands({"command":"post_selection", "selection": ["Remodel"]})
 
+		self.assertTrue(self.player1.last_mode["mode"] != "selectSupply")
 
 
 if __name__ == '__main__':

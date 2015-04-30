@@ -131,6 +131,9 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.player1.balance == 6)
 		#conspirator should be triggered twice, we drew 2 cards
 		self.assertTrue(len(self.player1.hand) == 2)
+		self.player1.end_turn()
+		conspirators_in_deck = [x for x in self.player1.all_cards() if x.title == "Conspirator"]
+		self.assertTrue(len(conspirators_in_deck) == 1)
 
 
 if __name__ == '__main__':

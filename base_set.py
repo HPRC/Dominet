@@ -780,6 +780,8 @@ class Adventurer(crd.Card):
 		crd.Card.play(self, skip)
 		to_discard = []
 		treasures = []
+		if len(self.played_by.deck) == 0:
+			self.played_by.shuffle_discard_to_deck()
 		while len(self.played_by.deck) > 0:
 			card = self.played_by.deck.pop()
 			if "Treasure" in card.type:

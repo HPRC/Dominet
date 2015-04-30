@@ -292,6 +292,7 @@ class ReactionHandler():
 				self.initiate_reactions()
 				return
 		if len(self.reactions_queue) == 0:
+			self.player.update_mode()
 			self.resume()
 		else:
 			#cannot get here without having had a reaction first so the reactions are ordered

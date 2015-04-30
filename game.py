@@ -206,7 +206,7 @@ class DmGame(Game):
 			if not self.flagged:
 				os.remove(self.get_log_file_path())
 			else:
-				os.rename(self.get_log_file_path(), LOGS_DIR + "/finished_" + str(self.START_TIME) + ".html")
+				os.rename(self.get_log_file_path(), LOGS_DIR + "/finished_" + self.file_title + ".html")
 
 			return True
 		else:
