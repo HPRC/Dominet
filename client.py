@@ -105,6 +105,7 @@ class DmClient(Client):
 		self.last_mode = {"command":"updateMode", "mode": "action"}
 		self.discard_pile = []
 		# deck = [bottom, middle, top]
+		self.vp = 0
 		self.deck = self.base_deck()
 		self.hand = cp.HandPile(self)
 		self.played = []
@@ -128,6 +129,7 @@ class DmClient(Client):
 		new_conn.waiting = self.waiting
 		new_conn.last_mode = self.last_mode
 		new_conn.protection = self.protection
+		new_conn.vp = self.vp
 		for card in self.all_cards():
 			card.played_by = new_conn
 
@@ -202,7 +204,7 @@ class DmClient(Client):
 				buys=self.buys, balance=self.balance)
 
 	def end_turn(self):
-		#cleanup before game ends
+		# cleanup before game ends
 		self.played = [x for x in self.played if x.cleanup()]
 		self.discard_pile = self.discard_pile + self.played
 		self.played = []
@@ -227,6 +229,8 @@ class DmClient(Client):
 			# and instantiating it
 			newCard = type(self.game.card_from_title(card_title))(self.game, self)
 			self.game.announce("<b>" + self.name + "</b> buys " + newCard.log_string())
+			newCard.on_buy()
+			self.resolve_on_buy_effects(newCard)
 			self.discard_pile.append(newCard)
 			self.game.remove_from_supply(card_title)
 			self.buys -= 1
@@ -283,11 +287,12 @@ class DmClient(Client):
 		new_card = type(self.game.card_from_title(card))(self.game, self)
 		return new_card
 
-	def gain(self, card, from_supply=True):
+	def gain(self, card, from_supply=True, suppress_announcement=False):
 		new_card = self.get_card_from_supply(card, from_supply)
 		if new_card is not None:
+			if not suppress_announcement:
+				self.game.announce(self.name_string() + " gains " + new_card.log_string())
 			self.discard_pile.append(new_card)
-			self.game.announce(self.name_string() + " gains " + new_card.log_string())  # TODO perhaps delete to customize gains messages (for attacks etc.)
 			self.update_discard_size()
 			self.hand.do_reactions("Gain", lambda : None, new_card)
 		else:
@@ -336,6 +341,10 @@ class DmClient(Client):
 		to_log = []
 		to_discard = []
 		treasure_cards = self.hand.get_cards_by_type("Treasure", True)
+		for i in range(len(treasure_cards) - 1, -1, -1):
+			if not treasure_cards[i].spend_all:
+				treasure_cards.pop(i)
+
 		unique_treasure_titles = set(map(lambda x: x.title, treasure_cards))
 		for card_title in unique_treasure_titles:
 			card = self.hand.get_card(card_title)
@@ -396,4 +405,7 @@ class DmClient(Client):
 	def all_cards(self):
 		return self.deck + self.discard_pile + self.played + self.hand.card_array()
 
+	def resolve_on_buy_effects(self, purchased_card):
+		for card in self.played:
+			card.on_buy_effect(purchased_card)
 

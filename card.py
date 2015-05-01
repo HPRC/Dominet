@@ -19,13 +19,14 @@ class Card():
 		return self.price + self.game.price_modifier
 
 	# called at the end of a card's resolution
-	def on_finished(self, modified_hand=True, modified_resources=True):
+	def on_finished(self, modified_hand=True, modified_resources=True, waiting_cleanup=True):
 		if modified_resources:
 			self.played_by.update_resources()
 		if modified_hand:
 			self.played_by.update_hand()
 		self.played_by.update_mode()
-		self.played_by.waiting["cb"] = None
+		if waiting_cleanup:
+			self.played_by.waiting["cb"] = None
 		self.done()
 
 	def to_json(self):
@@ -36,13 +37,25 @@ class Card():
 			"price": self.price
 		}
 
-	#called at the end of turn if this card was played
-	#returns True if we add card to discard pile, False otherwise
+	# called at the end of turn if this card was played
+	# returns True if we add card to discard pile, False otherwise
 	def cleanup(self):
 		return True
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-default'>", self.title, "s</span>" if plural else "</span>"])
+
+	def on_buy(self):
+		pass
+
+	def on_buy_effect(self, purchased_card):
+		pass
+
+	def on_gain(self):
+		pass
+
+	def on_gain_effect(self, gained_card):
+		pass
 
 
 class Money(Card):
@@ -50,6 +63,7 @@ class Money(Card):
 		Card.__init__(self, game, played_by)
 		self.type = "Treasure"
 		self.value = None
+		self.spend_all = True
 
 	def play(self, skip=False):
 		Card.play(self, skip)
@@ -124,6 +138,7 @@ class AttackCard(Card):
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-danger'>", self.title, "s</span>" if plural else "</span>"])
 
+
 class Copper(Money):
 	def __init__(self, game, played_by):
 		Money.__init__(self, game, played_by)
@@ -178,6 +193,7 @@ class Curse(Card):
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-curse'>", self.title, "s</span>" if plural else "</span>"])
 
+
 class VictoryCard(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
@@ -197,7 +213,7 @@ class Estate(VictoryCard):
 	def __init__(self, game, played_by):
 		VictoryCard.__init__(self, game, played_by)
 		self.title = "Estate"
-		self.description = "+1 VP"
+		self.description = "1 VP"
 		self.price = 2
 		self.vp = 1
 
@@ -206,7 +222,7 @@ class Duchy(VictoryCard):
 	def __init__(self, game, played_by):
 		VictoryCard.__init__(self, game, played_by)
 		self.title = "Duchy"
-		self.description = "+3 VP"
+		self.description = "3 VP"
 		self.price = 5
 		self.vp = 3
 
@@ -218,7 +234,7 @@ class Province(VictoryCard):
 	def __init__(self, game, played_by):
 		VictoryCard.__init__(self, game, played_by)
 		self.title = "Province"
-		self.description = "+6 VP"
+		self.description = "6 VP"
 		self.price = 8
 		self.vp = 6
 
@@ -227,7 +243,7 @@ class Colony(VictoryCard):
 	def __init__(self, game, played_by):
 		VictoryCard.__init__(self, game, played_by)
 		self.title = "Colony"
-		self.description = "+10 VP"
+		self.description = "10 VP"
 		self.price = 11
 		self.vp = 10
 

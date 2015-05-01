@@ -27,6 +27,11 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 		if ($scope.turn && $scope.modeJson.mode === "buy"){
 			return $scope.getPrice(card) > $scope.balance;
 		}
+
+        //if (($scope.turn && $scope.modeJson.mode === "buy") && ($scope.contraband.size > 0)) {
+        //    return $scope.contraband[card.title] ? true : false;
+        //}
+
 		if ($scope.modeJson.mode === "selectSupply"){
 			if ($scope.modeJson.type_constraint !== null && card.type.indexOf($scope.modeJson.type_constraint) === -1){
 				return true;

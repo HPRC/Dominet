@@ -177,7 +177,7 @@ class Masquerade(crd.Card):
 		self.played_by.update_hand()
 		self.fire(self.played_by)
 
-	#custom get_next since masquerade is not an attackcard
+	# custom get_next since masquerade is not an attack card
 	def get_next(self, player):
 		next_player_index = (self.game.players.index(player) + 1) % len(self.game.players)
 		if self.game.players[next_player_index] != self.played_by:
@@ -194,7 +194,7 @@ class Masquerade(crd.Card):
 		# need to know which card was passed to them so we can know which card to NOT show user and remove from card_array()
 		card = player.hand.extract(self.passed_card)
 		player.select(1, 1, crd.card_list_to_titles(player.hand.card_array()), "Select a card to pass to player on your left")
-		if card != None:
+		if card is not None:
 			player.hand.add(card)
 
 		player.waiting["on"].append(player)
@@ -203,11 +203,11 @@ class Masquerade(crd.Card):
 	def post_select(self, selection, player):
 		left_opponent = player.get_left_opponent()
 		player.write_json(command="announce", msg="-- you pass " + self.game.log_string_from_title(selection[0]))
-		#logging what we received after we pass our card
+		# logging what we received after we pass our card
 		if self.passed_card != "":
 			player.write_json(command="announce", msg="-- you received " + self.game.log_string_from_title(self.passed_card))
 		else:
-			#we are the first player, wait for everyone
+			# we are the first player, wait for everyone
 			self.played_by.wait("Waiting for other players to pass")
 			for i in self.played_by.get_opponents():
 				self.played_by.waiting["on"].append(i)
@@ -217,7 +217,7 @@ class Masquerade(crd.Card):
 		left_opponent.hand.add(card)
 		player.update_hand()
 
-		#if we are last, update the first person's receive log
+		# if we are last, update the first person's receive log
 		if left_opponent == self.played_by:
 			self.played_by.write_json(command="announce", msg="-- you received " + self.game.log_string_from_title(selection[0]))
 			self.played_by.update_hand()
@@ -545,14 +545,15 @@ class Mining_Village(crd.Card):
 				self.game.announce("-- trashing " + self.log_string() + " to gain $2")
 				self.played_by.balance += 2
 				self.cleanup = self.selected_trash
-				#note we add mining village to trash and played pile (for conspirator) and remove from played in cleanup
+				# note we add mining village to trash and played pile (for conspirator) and remove from played in cleanup
 				self.game.trash_pile.append(self)
 				self.game.update_trash_pile()
 		crd.Card.on_finished(self)
 
-	#cleanup if we trashed mining village
+	# cleanup if we trashed mining village
 	def selected_trash(self):
 		return False
+
 
 class Scout(crd.Card):
 	def __init__(self, game, played_by):
@@ -584,7 +585,7 @@ class Scout(crd.Card):
 		victory_cards = [x for x in revealed if "Victory" in x.type]
 		if len(victory_cards) > 0:
 			victory_card_titles = [x.log_string() for x in victory_cards]
-			self.game.announce("-- putting " + " ,".join(victory_card_titles) + " into their hand")
+			self.game.announce("-- putting " + ", ".join(victory_card_titles) + " into their hand")
 		for vc in victory_cards:
 			self.played_by.hand.add(vc)
 		self.played_by.update_hand()
@@ -611,7 +612,7 @@ class Scout(crd.Card):
 				self.played_by.waiting["cb"] = post_reorder_with
 
 	def post_reorder(self, order, cards_to_reorder):
-		#we check naively to match the revealed cards to the new order O(N^2) is ok since max N = 4
+		# we check naively to match the revealed cards to the new order O(N^2) is ok since max N = 4
 		for x in order:
 			for y in cards_to_reorder:
 				if x == y.title:
@@ -629,7 +630,7 @@ class Duke(crd.VictoryCard):
 	def __init__(self, game, played_by):
 		crd.VictoryCard.__init__(self, game, played_by)
 		self.title = "Duke"
-		self.description = "Worth 1 Victory Point per Duchy you have."
+		self.description = "Worth 1 VP for each Duchy you have."
 		self.price = 5
 		self.vp = 0
 		self.type = "Victory"
