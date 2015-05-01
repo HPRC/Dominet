@@ -179,7 +179,7 @@ class DmClient(Client):
 			self.ready = False
 			self.game = None
 		elif cmd == "submitBugReport":
-			self.game.rename_log_file("logs/flagged_" + str(self.game.START_TIME) + ".txt")
+			self.game.rename_log_file("logs/flagged_" + str(self.game.file_title) + ".html")
 			self.game.flagged = True
 
 
