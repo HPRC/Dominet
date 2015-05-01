@@ -45,15 +45,19 @@ class Card():
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-default'>", self.title, "s</span>" if plural else "</span>"])
 
+	#called when you buy a this card 
 	def on_buy(self):
 		pass
 
+	#called when you buy a card with this card in play
 	def on_buy_effect(self, purchased_card):
 		pass
 
+	#called when you gain this card
 	def on_gain(self):
 		pass
 
+	#called when you gain a card with this card in play
 	def on_gain_effect(self, gained_card):
 		pass
 

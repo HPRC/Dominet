@@ -520,7 +520,6 @@ class Vault(crd.Card):
 		drawn = self.played_by.draw(2)
 		self.played_by.update_hand()
 		self.game.announce("-- drawing " + drawn)
->>>>>>> bc7a21200523f51701766c799a1a94fdd66a2b3b
 
 		self.played_by.select(None, len(self.played_by.hand.card_array()),
 		                      crd.card_list_to_titles(self.played_by.hand.card_array()), "Discard any number of cards")
