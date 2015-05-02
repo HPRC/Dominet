@@ -41,7 +41,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.player1.waiting["cb"] != None)
 
 		selection = crd.card_list_to_titles(self.player1.hand.card_array())
-		self.player1.waiting["cb"](selection)
+		tu.send_input(self.player1, "post_selection", selection)
 		self.assertTrue(len(self.player1.discard_pile) == 5)
 
 	def test_Militia(self):
@@ -54,7 +54,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.player2.waiting["cb"] != None)
 
 		selection = crd.card_list_to_titles(self.player2.hand.card_array())[:2]
-		self.player2.waiting["cb"](selection)
+		tu.send_input(self.player2, "post_selection", selection)
 		self.assertTrue(len(self.player2.hand) == 3)
 
 	def test_Moat_reaction(self):
@@ -63,7 +63,8 @@ class TestCard(unittest.TestCase):
 		self.player1.hand.add(base.Witch(self.game, self.player1))
 		self.player1.hand.play("Witch")
 		self.assertTrue("Reveal" in self.player2.handler.log[0]["select_from"])
-		self.player2.waiting["cb"](["Reveal"])
+
+		tu.send_input(self.player2, "post_selection", ["Reveal"])
 		# didn't gain curse
 		self.assertTrue(len(self.player2.discard_pile) == 0)
 
@@ -87,12 +88,12 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(workshopCard.done.__name__ == "second_play")
 
 		self.player1.update_wait()
-		self.player1.waiting["cb"](["Silver"])
+		tu.send_input(self.player1, "selectSupply", ["Silver"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
 		self.assertTrue(workshopCard.done.__name__ == "final_done")
 
 		self.player1.update_wait()
-		self.player1.waiting["cb"](["Estate"])
+		tu.send_input(self.player1, "selectSupply", ["Estate"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Estate")
 
 	def test_Feast(self):
@@ -113,9 +114,9 @@ class TestCard(unittest.TestCase):
 		thief_card.play()
 		self.assertTrue("Copper" in self.player1.handler.log[-1]['select_from'])
 		self.assertTrue("Silver" in self.player1.handler.log[-1]['select_from'])
-		self.player1.waiting["cb"](["Silver"])
+		tu.send_input(self.player1, "post_selection", ["Silver"])
 		self.assertTrue(self.game.trash_pile[-1].title == "Silver")
-		self.player1.waiting["cb"](["Yes"])
+		tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
 
 	def test_Thief_1_treasure(self):
@@ -126,7 +127,7 @@ class TestCard(unittest.TestCase):
 		self.player2.deck.append(crd.Gold(self.game, self.player2))
 		thief_card.play()
 		self.assertTrue(self.game.trash_pile[-1].title == "Gold")
-		self.player1.waiting["cb"](["Yes"])
+		tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Gold")
 
 	def test_Thief_3_players(self):
@@ -138,9 +139,9 @@ class TestCard(unittest.TestCase):
 		self.player3.deck.append(crd.Copper(self.game, self.player2))
 		self.player3.deck.append(crd.Estate(self.game, self.player2))
 		thief_card.play()
-		self.player1.waiting["cb"](["Yes"])
+		tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Gold")
-		self.player1.waiting["cb"](["Yes"])
+		tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Copper")
 		thief_card.play()
 
@@ -165,7 +166,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.player1.handler.log[-1]["command"] == "updateMode")
 		self.assertTrue(len(self.player1.discard_pile) == 1)
 		decksize = len(self.player1.deck)
-		self.player1.waiting["cb"](["Yes"])
+		tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(len(self.player1.discard_pile) == 0)
 		self.assertTrue(len(self.player1.deck) == decksize + 1)
 
@@ -207,7 +208,7 @@ class TestCard(unittest.TestCase):
 		library.play()
 		self.assertTrue(len(self.player1.hand) == 6)
 		self.assertTrue(self.player1.handler.log[-1]["command"] == "updateMode")
-		self.player1.waiting["cb"](["Yes"])
+		tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(len(self.player1.hand) == 7)
 		self.assertTrue(self.player1.discard_pile[-1] == village)
 

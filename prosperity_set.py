@@ -278,28 +278,28 @@ class City(crd.Card):
 		crd.Card.on_finished(self)
 
 
-class Contraband(crd.Money):
-	def __init__(self, game, played_by):
-		self.title = "Contraband"
-		self.description = ""
-		self.price = 5
-		self.value = 3
-		self.type = "Treasure"
-		self.spend_all = False
+# class Contraband(crd.Money):
+# 	def __init__(self, game, played_by):
+# 		self.title = "Contraband"
+# 		self.description = ""
+# 		self.price = 5
+# 		self.value = 3
+# 		self.type = "Treasure"
+# 		self.spend_all = False
 
-	def play(self, skip=False):
-		crd.Money.play(self, skip)
-		self.played_by.buys += 1
-		self.game.announce("-- gaining a buy")
+# 	def play(self, skip=False):
+# 		crd.Money.play(self, skip)
+# 		self.played_by.buys += 1
+# 		self.game.announce("-- gaining a buy")
 
-		left_opponent = self.played_by.get_left_opponent()
-		left_opponent.select_from_supply()
-		self.played_by.wait("Waiting for " + left_opponent.title + " to choose a card for contraband")
-		self.played_by.waiting["on"].append(left_opponent)
-		left_opponent.waiting["cb"] = self.contraband_select
+# 		left_opponent = self.played_by.get_left_opponent()
+# 		left_opponent.select_from_supply()
+# 		self.played_by.wait("Waiting for " + left_opponent.title + " to choose a card for contraband")
+# 		self.played_by.waiting["on"].append(left_opponent)
+# 		left_opponent.waiting["cb"] = self.contraband_select
 
-	def contraband_select(self, selection):
-		crd.Card.on_finished(self)
+# 	def contraband_select(self, selection):
+# 		crd.Card.on_finished(self)
 
 
 class Counting_House(crd.Card):
@@ -535,27 +535,19 @@ class Vault(crd.Card):
 		                   ", gaining +$" + str(len(selection)))
 
 		self.played_by.wait("Waiting for other players to discard")
+
 		for i in self.played_by.get_opponents():
+			#callback for each opponent
+			def discard_choice_cb(selection, player=i):
+				self.discard_choice(selection, player)
+
 			self.played_by.waiting["on"].append(i)
-		self.get_next(self.played_by)
-
-	def get_next(self, player):
-		next_player_index = (self.game.players.index(player) + 1) % len(self.game.players)
-		next_player = self.game.players[next_player_index]
-		if next_player == self.played_by:
-			crd.Card.on_finished(self)
-		else:
-			def discard_choice_cb(selection, next_player=next_player):
-					self.discard_choice(selection, next_player)
-
-			next_player.select(1, 1, ["Yes", "No"], "Discard 2 cards to draw 1?")
-			next_player.waiting["on"].append(next_player)
-			next_player.waiting["cb"] = discard_choice_cb
+			i.select(1, 1, ["Yes", "No"], "Discard 2 cards to draw 1?")
+			i.waiting["on"].append(i)
+			i.waiting["cb"] = discard_choice_cb
 
 	def discard_choice(self, selection, player):
-		if selection[0] != "Yes":
-			self.get_next(player)
-		else:
+		if selection[0] == "Yes":
 			def discard_select_cb(selection, player=player):
 				self.discard_select(selection, player)
 
@@ -564,17 +556,18 @@ class Vault(crd.Card):
 			self.played_by.waiting["on"].append(player)
 			player.waiting["on"].append(player)
 			player.waiting["cb"] = discard_select_cb
+		elif len(self.played_by.waiting["on"]) == 0:
+			crd.Card.on_finished(self, False, False)
 
 	def discard_select(self, selection, player):
 		player.discard(selection, player.discard_pile)
-		self.game.announce("-- discarding " + str(len(selection)) + " cards")
-
+		drawn = 0
 		if len(selection) >= 2:
 			drawn = player.draw(1)
 			player.update_hand()
-			self.game.announce("-- drawing " + drawn)
-		self.get_next(player)
-
+		self.game.announce(player.name_string() + " discards " + str(len(selection)) + " cards and draws " + drawn)
+		if len(self.played_by.waiting["on"]) == 0:
+			crd.Card.on_finished(self, False, False)
 
 class Venture(crd.Money):
 	def __init__(self, game, played_by):

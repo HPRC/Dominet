@@ -74,10 +74,8 @@ class TestProsperity(unittest.TestCase):
 		expand = prosperity.Expand(self.game, self.player1)
 
 		expand.play()
-
-		self.player1.waiting["cb"](["Copper"])
-
-		self.player1.waiting["cb"](["Silver"])
+		tu.send_input(self.player1, "post_selection", ["Copper"])
+		tu.send_input(self.player1, "post_selection", ["Silver"])
 
 		self.assertTrue(self.player1.discard_pile[0].title == "Silver")
 
@@ -126,7 +124,7 @@ class TestProsperity(unittest.TestCase):
 		kings_court = prosperity.Kings_Court(self.game, self.player1)
 		tu.set_player_hand(self.player1, [conspirator, kings_court])
 		kings_court.play()
-		self.player1.waiting["cb"](["Conspirator"])
+		tu.send_input(self.player1, "post_selection", ["Conspirator"])
 		self.assertTrue(self.player1.actions == 2)
 		self.assertTrue(self.player1.balance == 6)
 		#conspirator should be triggered twice, we drew 2 cards
@@ -136,6 +134,7 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(len(conspirators_in_deck) == 1)
 
 	def test_Mint(self):
+		tu.print_test_header("test Mint")
 		mint = prosperity.Mint(self.game, self.player1)
 		silver = crd.Silver(self.game, self.player1)
 
@@ -146,8 +145,7 @@ class TestProsperity(unittest.TestCase):
 		self.player1.hand.add(silver)
 		self.player1.hand.add(silver)
 		mint.play()
-
-		self.player1.waiting["cb"](["Silver"])
+		tu.send_input(self.player1, "post_selection", ["Silver"])
 		self.assertTrue(self.player1.discard_pile[1].title == "Silver")
 
 		self.player1.spend_all_money()
@@ -155,6 +153,7 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(len(self.game.trash_pile) >= 5)
 
 	def test_Mountebank(self):
+		tu.print_test_header("test Mountebank")
 		mountebank = prosperity.Mountebank(self.game, self.player1)
 		curse = crd.Curse(self.game, self.player2)
 
@@ -163,13 +162,14 @@ class TestProsperity(unittest.TestCase):
 		mountebank.play()
 
 		self.assertTrue(self.player1.balance == 2)
-		self.player2.waiting["cb"](["Yes"])
+		tu.send_input(self.player2, "post_selection", ["Yes"])
 
 		self.assertTrue(self.player2.discard_pile[0].title == "Curse")
 		self.assertTrue(self.player3.discard_pile[0].title == "Copper")
 		self.assertTrue(self.player3.discard_pile[1].title == "Curse")
 
 	def test_Bishop(self):
+		tu.print_test_header("test Bishop")
 		bishop = prosperity.Bishop(self.game, self.player1)
 		steward = intrigue.Steward(self.game, self.player1)
 		self.player1.hand.add(steward)
@@ -178,17 +178,18 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.player1.balance == 1)
 		self.assertTrue(self.player1.vp == 1)
 
-		self.player1.waiting["cb"](["Steward"])
+		tu.send_input(self.player1, "post_selection", ["Steward"])
 
 		self.assertTrue(self.player1.vp == 2)
+		tu.send_input(self.player2, "post_selection", ["None"])
+		tu.send_input(self.player3, "post_selection", ["Copper"])
 
-		self.player2.waiting["cb"](["None"])
-		self.player3.waiting["cb"](["Copper"])
-
+		self.assertTrue(self.player3.vp == 0)
 		self.assertTrue(len(self.player3.hand.card_array()) == 4)
 		self.assertTrue(len(self.player2.hand.card_array()) == 5)
 
 	def test_Forge(self):
+		tu.print_test_header("test Forge")
 		forge = prosperity.Forge(self.game, self.player1)
 		steward = intrigue.Steward(self.game, self.player1)
 		minion = intrigue.Minion(self.game, self.player1)
@@ -204,17 +205,18 @@ class TestProsperity(unittest.TestCase):
 
 		forge.play()
 		# trash prices total to 8
-		self.player1.waiting["cb"](["Steward", "Copper", "Copper", "Minion"])
+		tu.send_input(self.player1, "post_selection", ["Steward", "Copper", "Copper", "Minion"])
 		self.assertTrue(len(self.game.trash_pile) == 4)
-		self.player1.waiting["cb"](["Province"])
+		tu.send_input(self.player1, "selectSupply", ["Province"])
 		self.assertTrue(self.player1.discard_pile[0].title == "Province")
 
 		forge.play()
 		# trash prices total to 13 -- nothing to gain
-		self.player1.waiting["cb"](["Torturer", "Secret Chamber", "Gold"])
+		tu.send_input(self.player1, "post_selection", ["Torturer", "Secret Chamber", "Gold"])
 		self.assertTrue(self.player1.waiting["cb"] is None)
 
 	def test_City(self):
+		tu.print_test_header("test City")
 		city = prosperity.City(self.game, self.player1)
 
 		cards_in_hand = len(self.player1.hand.card_array())
@@ -243,6 +245,7 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.player1.balance == 1)
 
 	def test_Loan(self):
+		tu.print_test_header("test Loan")
 		loan = prosperity.Loan(self.game, self.player1)
 		estate = crd.Estate(self.game, self.player1)
 
@@ -252,25 +255,20 @@ class TestProsperity(unittest.TestCase):
 
 		loan.play()
 
-		self.player1.balance = 1
-		self.assertTrue("Treasure" in self.player1.deck[0].type)
+		self.assertTrue(self.player1.balance == 1)
 		self.assertTrue(len(self.player1.discard_pile) >= 3)
-
-		self.player1.waiting["cb"](["Trash"])
-
+		tu.send_input(self.player1, "post_selection", ["Trash"])
 		self.assertTrue(len(self.game.trash_pile) == 1)
+		self.assertTrue("Treasure" in self.game.trash_pile[-1].type)
+
 
 	def test_Venture(self):
+		tu.print_test_header("test Venture")
 		venture = prosperity.Venture(self.game, self.player1)
 		estate = crd.Estate(self.game, self.player1)
 		loan = prosperity.Loan(self.game, self.player1)
 		silver = crd.Silver(self.game, self.player1)
-
-		self.player1.deck.append(loan)
-		self.player1.deck.append(estate)
-		self.player1.deck.append(estate)
-		self.player1.deck.append(silver)
-		self.player1.deck.append(estate)
+		self.player1.deck += [loan, estate, estate, silver, estate]
 
 		venture.play()
 
@@ -282,25 +280,29 @@ class TestProsperity(unittest.TestCase):
 		# self.assertTrue(len(self.player1.discard_pile) == 4)
 		self.assertTrue(self.player1.balance == 5)
 
-		self.player1.waiting["cb"]("Trash")
-		self.assertTrue(self.game.trash_pile[0].title == "Copper")
-
 	def test_Vault(self):
+		tu.print_test_header("testing vault")
 		vault = prosperity.Vault(self.game, self.player1)
 
 		vault.play()
-
-		self.player1.waiting["cb"](["Estate", "Estate"])
+		tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
+		#add two coppers to player2's hand so he can use vault to discard
+		tu.add_many_to_hand(self.player2, crd.Copper(self.game, self.player2), 2)
 		self.assertTrue(self.player1.balance == 2)
-
-		self.player2.waiting["cb"](["Yes"])
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		#both players should be able to choose to discard at the same time
+		self.assertTrue(self.player2.last_mode["mode"] == "select")
+		self.assertTrue(self.player3.last_mode["mode"] == "select")
+		tu.send_input(self.player2, "post_selection", ["Yes"])		
 		cards_in_hand = len(self.player2.hand.card_array())
-		self.player2.waiting["cb"](["Copper", "Copper"])
+		tu.send_input(self.player2, "post_selection", ["Copper", "Copper"])
 		self.assertTrue(len(self.player2.hand.card_array()) == cards_in_hand - 1)
 
-		self.player3.waiting["cb"](["No"])
+		self.player3.exec_commands({"command":"post_selection", "selection":["No"]})
+		self.assertTrue(self.player1.last_mode["mode"] == "buy")
 
 	def test_Bank(self):
+		tu.print_test_header("test Bank")
 		bank = prosperity.Bank(self.game, self.player1)
 		self.player1.hand.add(bank)
 
@@ -314,6 +316,7 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.player1.balance == (3 + coppers + coppers))
 
 	def test_Hoard(self):
+		tu.print_test_header("test Hoard")
 		hoard = prosperity.Hoard(self.game, self.player1)
 		woodcutter = base.Woodcutter(self.game, self.player1)
 
@@ -333,6 +336,7 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(golds == 4)
 
 	def test_Talisman(self):
+		tu.print_test_header("test Talisman")
 		talisman = prosperity.Talisman(self.game, self.player1)
 		self.player1.hand.add(talisman)
 		self.player1.hand.add(talisman)
@@ -354,6 +358,7 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(mining_villages == 3)
 
 	def test_Goons(self):
+		tu.print_test_header("test Goons")
 		goons = prosperity.Goons(self.game, self.player1)
 		self.player1.hand.add(goons)
 		self.player1.hand.add(goons)
@@ -363,9 +368,8 @@ class TestProsperity(unittest.TestCase):
 		goons.play()
 		self.assertTrue(self.player1.balance == 2)
 		self.assertTrue(self.player1.buys == 2)
-
-		self.player2.waiting["cb"](["Copper", "Copper"])
-		self.player3.waiting["cb"](["Copper", "Copper"])
+		tu.send_input(self.player2, "post_selection", ["Copper", "Copper"])
+		tu.send_input(self.player3, "post_selection", ["Copper", "Copper"])
 
 		goons.play()
 
@@ -376,6 +380,7 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.player1.vp == 6)
 
 	def test_Rabble(self):
+		tu.print_test_header("test Rabble")
 		rabble = prosperity.Rabble(self.game, self.player1)
 		copper = crd.Copper(self.game, self.player2)
 		estate = crd.Estate(self.game, self.player2)
@@ -398,8 +403,7 @@ class TestProsperity(unittest.TestCase):
 		topdeck2 = self.player2.topdeck()
 		self.assertTrue(topdeck1.title == "Estate")
 		self.assertTrue(topdeck2.title == "Estate")
-
-		self.player3.waiting["cb"](["Gardens", "Duchy"])
+		tu.send_input(self.player3, "post_selection", ["Gardens", "Duchy"])
 
 		topdeck1 = self.player3.topdeck()
 		topdeck2 = self.player3.topdeck()

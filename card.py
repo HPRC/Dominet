@@ -74,6 +74,10 @@ class Money(Card):
 		self.played_by.balance += self.value
 		self.played_by.update_resources(True)
 
+	#This isn't called for basic money cards like gold/silver/copper/harem
+	def on_finished(self):
+		self.played_by.update_resources(True)
+		
 	# override
 	def to_json(self):
 		return {

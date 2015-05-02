@@ -37,7 +37,7 @@ class TestIntrigue(unittest.TestCase):
 		pawn = intrigue.Pawn(self.game, self.player1)
 		self.player1.hand.add(pawn)
 		pawn.play()
-		self.player1.waiting["cb"](["+$1", "+1 Action"])
+		tu.send_input(self.player1, "post_selection", ["+$1", "+1 Action"])
 		self.assertTrue(self.player1.balance == 1)
 		self.assertTrue(self.player1.actions == 1)
 
@@ -66,19 +66,19 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.actions = 5
 		# +$2
 		steward.play()
-		self.player1.waiting["cb"](["+$2"])
+		tu.send_input(self.player1, "post_selection", ["+$2"])
 		self.assertTrue(self.player1.balance == 2)
 
 		# Trash 2 with more than 2 in hand
 		steward2.play()
 		trash_size = len(self.game.trash_pile)
-		self.player1.waiting["cb"](["Trash 2 cards from hand"])
-		self.player1.waiting["cb"](["Estate", "Estate"])
+		tu.send_input(self.player1, "post_selection", ["Trash 2 cards from hand"])
+		tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
 		self.assertTrue(len(self.game.trash_pile) == trash_size + 2)
 
 		# Trash 2 with homogeneous hand
 		steward3.play()
-		self.player1.waiting["cb"](["Trash 2 cards from hand"])
+		tu.send_input(self.player1, "post_selection", ["Trash 2 cards from hand"])
 		self.assertTrue(self.player1.hand.get_count("Copper") == 1)
 
 		self.player1.hand.add(steward)
@@ -86,7 +86,7 @@ class TestIntrigue(unittest.TestCase):
 		# Trash 2 with 1 in hand
 		self.player1.hand.data["Steward"] = [intrigue.Steward(self.game, self.player1)]
 		steward.play()
-		self.player1.waiting["cb"](["Trash 2 cards from hand"])
+		tu.send_input(self.player1, "post_selection", ["Trash 2 cards from hand"])
 		self.assertTrue(len(self.player1.hand) == 0)
 
 	def test_Baron(self):
@@ -101,13 +101,13 @@ class TestIntrigue(unittest.TestCase):
 
 		# decline Estate discard, gain Estate to discard pile.
 		baron.play()
-		self.player1.waiting["cb"](["No"])
+		tu.send_input(self.player1, "post_selection", ["No"])
 		self.assertTrue(self.player1.buys == 2)
 		self.assertTrue(len(self.player1.discard_pile) == 1)
 
 		# accept Estate discard, do not gain Estate to discard pile, gain $4
 		baron.play()
-		self.player1.waiting["cb"](["Yes"])
+		tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.buys == 3)
 		self.assertTrue(self.player1.balance == 4)
 		self.assertFalse("Estate" in self.player1.hand)
@@ -157,7 +157,7 @@ class TestIntrigue(unittest.TestCase):
 		tu.set_player_hand(self.player1, [conspirator, throne_room])
 		throne_room.play()
 		handsize = len(self.player1.hand)
-		self.player1.waiting["cb"](["Conspirator"])
+		tu.send_input(self.player1, "post_selection", ["Conspirator"])
 		self.assertTrue(self.player1.actions == 1)
 		self.assertTrue(self.player1.balance == 4)
 		#discard conspirator, draw 1 card should have same handsize
@@ -171,7 +171,7 @@ class TestIntrigue(unittest.TestCase):
 		cards_in_hand = len(self.player1.hand)
 
 		courtyard.play()
-		self.player1.waiting["cb"](["Copper"])
+		tu.send_input(self.player1, "post_selection", ["Copper"])
 
 		self.assertTrue(len(self.player1.hand) == cards_in_hand + 1)
 		topdeck = self.player1.topdeck()
@@ -183,13 +183,13 @@ class TestIntrigue(unittest.TestCase):
 		tu.add_many_to_hand(self.player1, nobles, 2)
 
 		nobles.play()
-		self.player1.waiting["cb"](["+2 Actions"])
+		tu.send_input(self.player1, "post_selection", ["+2 Actions"])
 		self.assertTrue(self.player1.actions == 2)
 
 		cards_in_hand = len(self.player1.hand)
 
 		nobles.play()
-		self.player1.waiting["cb"](["+3 Cards"])
+		tu.send_input(self.player1, "post_selection", ["+3 Cards"])
 		self.assertTrue(len(self.player1.hand) == cards_in_hand + 2)
 
 	def test_Swindler(self):
@@ -199,8 +199,8 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.hand.add(swindler)
 
 		swindler.play()
+		tu.send_input(self.player1, "selectSupply", ["Curse"])
 
-		self.player1.waiting["cb"](["Curse"])
 
 	def test_Duke(self):
 		tu.print_test_header("test Duke")
@@ -224,12 +224,12 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.deck.append(province)
 
 		wishing_well.play()
-
-		self.player1.waiting["cb"](["Province"])
+		tu.send_input(self.player1, "selectSupply", ["Curse"])
+		tu.send_input(self.player1, "selectSupply", ["Province"])
 		self.assertTrue(self.player1.hand.get_count('Province') == 1)
 
 		wishing_well.play()
-		self.player1.waiting["cb"](["Copper"])
+		tu.send_input(self.player1, "selectSupply", ["Copper"])
 		self.assertTrue(self.player1.hand.get_count('Province') == 1)
 
 	def test_Upgrade(self):
@@ -240,11 +240,12 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.hand.add(crd.Estate(self.game, self.player1))
 
 		upgrade.play()
-		self.player1.waiting["cb"](["Copper"])
 
+		tu.send_input(self.player1, "post_selection", ["Copper"])
 		upgrade.play()
-		self.player1.waiting["cb"](["Estate"])
-		self.player1.waiting["cb"](["Silver"])
+		tu.send_input(self.player1, "post_selection", ["Estate"])
+		tu.send_input(self.player1, "selectSupply", ["Silver"])
+
 		self.assertTrue("Silver" == self.player1.discard_pile[-1].title)
 
 	def test_Torturer(self):
@@ -256,21 +257,13 @@ class TestIntrigue(unittest.TestCase):
 
 		torturer.play()
 		# choosing to discard 2
-		self.player2.waiting["cb"](["Discard 2 cards"])
-		self.player2.waiting["cb"](['Copper', 'Copper'])
+		tu.send_input(self.player2, "post_selection", ["Discard 2 cards"])
+		tu.send_input(self.player2, "post_selection", ["Copper", "Copper"])
 
 		torturer.play()
-		self.player2.waiting["cb"](["Gain a Curse"])
+		tu.send_input(self.player2, "post_selection", ["Gain a Curse"])
+
 		self.assertTrue(self.player2.hand.get_count('Curse') == 1)
-
-		self.player1.actions = 1
-		copper = crd.Copper(self.game, self.player1)
-		self.player2.hand.add(copper)
-		self.player2.hand.add(copper)
-		self.player2.hand.add(copper)
-
-		torturer.play()
-		self.player2.waiting["cb"](["Discard 2 cards"])
 
 	def test_Trading_Post(self):
 		tu.print_test_header("test Trading Post")
@@ -296,29 +289,26 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.hand.add(trading_post)
 		self.player1.hand.add(trading_post)
 		trading_post.play()
-		self.player1.waiting["cb"](["Trading Post", "Trading Post"])
+		tu.send_input(self.player1, "post_selection", ["Trading Post", "Trading Post"])
 		self.assertTrue(self.player1.hand.get_count("Silver") == 2)
 
 	def test_Ironworks(self):
 		tu.print_test_header("test Ironworks")
 		ironworks = intrigue.Ironworks(self.game, self.player1)
-		self.player1.hand.add(ironworks)
-		self.player1.hand.add(ironworks)
-		self.player1.hand.add(ironworks)
-		self.player1.hand.add(ironworks)
+		tu.add_many_to_hand(self.player1, ironworks, 4)
 		self.player1.actions = 2
 
 		ironworks.play()
-		self.player1.waiting["cb"](["Steward"])
+		tu.send_input(self.player1, "selectSupply", ["Steward"])
 		self.assertTrue(self.player1.actions, 2)
 
 		ironworks.play()
-		self.player1.waiting["cb"](["Silver"])
+		tu.send_input(self.player1, "selectSupply", ["Silver"])
 		self.assertTrue(self.player1.balance, 1)
 
 		ironworks.play()
 		cards_in_hand = len(self.player1.hand.card_array())
-		self.player1.waiting["cb"](["Great Hall"])
+		tu.send_input(self.player1, "selectSupply", ["Great Hall"])
 		self.assertTrue(self.player1.actions, 1)
 		self.assertTrue(self.player1.hand, cards_in_hand + 1)
 
@@ -332,7 +322,7 @@ class TestIntrigue(unittest.TestCase):
 		}
 
 		secret_chamber.play()
-		self.player1.waiting["cb"](["Estate", "Estate", "Estate", "Estate"])
+		tu.send_input(self.player1, "post_selection", ["Estate", "Estate", "Estate", "Estate"])
 		self.assertTrue(self.player1.balance == 4)
 
 		self.player1.hand.data = {
@@ -341,10 +331,10 @@ class TestIntrigue(unittest.TestCase):
 		}
 		self.player2.hand.add(base.Militia(self.game, self.player2))
 		self.player2.hand.play("Militia")
-		self.player1.waiting["cb"](["Reveal"])
-		self.player1.waiting["cb"](["Estate", "Estate"])
-		self.player1.waiting["cb"](["Hide"])
-		self.player1.waiting["cb"](["Estate", "Estate"])
+		tu.send_input(self.player1, "post_selection", ["Reveal"])
+		tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
+		tu.send_input(self.player1, "post_selection", ["Hide"])
+		tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
 		self.assertTrue(len(self.player1.hand.card_array()) == 3)
 
 		estates = self.player1.hand.get_count("Estate")
@@ -380,14 +370,14 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.hand.add(mining_village2)
 
 		mining_village.play()
-		self.player1.waiting["cb"](["No"])
+		tu.send_input(self.player1, "post_selection", ["No"])
 		self.assertTrue(self.player1.actions == 2)
 		self.assertTrue(mining_village not in self.game.trash_pile)
 
 		# note discard takes in a string as a parameter so the trashed mining village
 		# could be mining_village or mining_village2 it is not guaranteed to be the same
 		mining_village2.play()
-		self.player1.waiting["cb"](["Yes"])
+		tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.actions == 3)
 		self.assertTrue(self.game.trash_pile[-1].title == "Mining Village")
 		self.assertTrue(self.player1.balance == 2)
@@ -402,11 +392,11 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.hand.add(throne_room)
 
 		throne_room.play()
-		self.player1.waiting["cb"](["Mining Village"])
+		tu.send_input(self.player1, "post_selection", ["Mining Village"])
 		self.assertTrue(self.player1.actions, 2)
-		self.player1.waiting["cb"](["Yes"])
+		tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.balance == 2)
-		self.player1.waiting["cb"](["Yes"])
+		tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.balance == 2)
 
 	def test_Bridge(self):
@@ -443,7 +433,7 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.hand.add(copper)
 
 		throneroom.play()
-		self.player1.waiting["cb"](["Coppersmith"])
+		tu.send_input(self.player1, "post_selection", ["Coppersmith"])
 		copper.play()
 		self.assertTrue(self.player1.balance == 3)
 		#we played throne room, coppersmith, coppersmith, copper
@@ -473,8 +463,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(province.title in self.player1.hand)
 		self.assertFalse(silver.title in self.player1.hand)
 		self.assertFalse(scout2.title in self.player1.hand)
-
-		self.player1.waiting["cb"](["Scout", "Silver"])
+		tu.send_input(self.player1, "post_selection", ["Scout", "Silver"])
 		self.assertTrue(self.player1.deck[-1].title == "Silver")
 		self.assertTrue(self.player1.deck[-2].title == "Scout")
 		#decksize should be 2 less since we took province and great hall out
@@ -540,23 +529,23 @@ class TestIntrigue(unittest.TestCase):
 
 		masquerade.play()
 		self.assertTrue(self.player1.hand.get_count("Curse") == 1)
-		self.player1.waiting["cb"](["Curse"])
+		tu.send_input(self.player1, "post_selection", ["Curse"])
 		self.assertTrue(self.player1.hand.get_count("Curse") == 0)
 		self.assertTrue(self.player2.hand.get_count("Curse") == 1)
 
 
 		self.assertTrue(self.player2.hand.get_count("Baron") == 1)
-		self.player2.waiting["cb"](["Baron"])
+		tu.send_input(self.player2, "post_selection", ["Baron"])
 		self.assertTrue(self.player2.hand.get_count("Baron") == 0)
 
 		self.assertTrue(self.player3.hand.get_count("Baron") == 1)
 
 		self.assertTrue(self.player3.hand.get_count("Tribute") == 1)
-		self.player3.waiting["cb"](["Tribute"])
+		tu.send_input(self.player3, "post_selection", ["Tribute"])
 		self.assertTrue(self.player3.hand.get_count("Tribute") == 0)
 		self.assertTrue(self.player1.hand.get_count("Tribute") == 1)
 
-		self.player1.waiting["cb"](["Tribute"])
+		tu.send_input(self.player1, "post_selection", ["Tribute"])
 		self.assertTrue(self.player1.hand.get_count("Tribute") == 0)
 
 	def test_Masquerade_waits(self):
@@ -590,7 +579,7 @@ class TestIntrigue(unittest.TestCase):
 
 		saboteur.play()
 
-		self.player2.waiting["cb"](["Curse"])
+		tu.send_input(self.player2, "selectSupply", ["Curse"])
 
 		self.assertTrue(self.player2.discard_pile.pop().title == "Curse")
 		self.assertTrue(self.player2.discard_pile.pop().title == "Copper")
@@ -598,8 +587,8 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(player3_decksize == len(self.player3.discard_pile))
 		self.player2.deck.append(steward)
 		saboteur.play()
-
-		self.player2.waiting["cb"](["None"])
+		tu.send_input(self.player2, "selectSupply", ["None"])
+		self.assertTrue(len(self.player2.discard_pile) == 0)
 
 
 	def test_Upgrade_Selection_issue_21(self):
