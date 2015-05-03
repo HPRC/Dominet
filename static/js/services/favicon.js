@@ -17,15 +17,16 @@ clientModule.factory('favicon', function($interval){
 	};
 
 	this.alertFavicon = function(){
-		// favicon.href = "static/favicon_red.ico";
 		if (flashing === null){
 			flashing = $interval(function(){
 				if (isActive){
 					change("static/favicon.ico");
 					isActive = false;
+					document.title = "Dominet"
 				} else {
 					change("static/favicon_red.ico");
 					isActive = true;
+					document.title = "Your Move!"
 				}
 			}, 800, 0, false);
 		}
@@ -35,6 +36,7 @@ clientModule.factory('favicon', function($interval){
 	this.stopAlert = function(){
 		$interval.cancel(flashing);
 		favicon.href = "static/favicon.ico";
+		document.title = "Dominet"
 		isActive = false;
 		flashing = null;
 	};

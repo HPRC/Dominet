@@ -203,10 +203,14 @@ class DmGame(Game):
 			for i in self.players:
 				i.write_json(command="updateMode", mode="gameover", decklists="".join(decklists))
 
-			if not self.flagged:
-				os.remove(self.get_log_file_path())
+			#TODO separate log logic into diff method/class
+			if os.path.exists(self.get_log_file_path()):
+				if not self.flagged:
+					os.remove(self.get_log_file_path())
+				else:
+					os.rename(self.get_log_file_path(), LOGS_DIR + "/finished_" + self.file_title + ".html")
 			else:
-				os.rename(self.get_log_file_path(), LOGS_DIR + "/finished_" + self.file_title + ".html")
+				print("Game ended with no log found at " + self.get_log_file_path())
 
 			return True
 		else:
