@@ -398,7 +398,6 @@ class TestProsperity(unittest.TestCase):
 		self.player3.deck.append(great_hall)
 
 		rabble.play()
-
 		topdeck1 = self.player2.topdeck()
 		topdeck2 = self.player2.topdeck()
 		self.assertTrue(topdeck1.title == "Estate")

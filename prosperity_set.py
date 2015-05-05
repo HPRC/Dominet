@@ -105,7 +105,7 @@ class Loan(crd.Money):
 			self.played_by.waiting["cb"] = self.post_select
 		else:
 			self.game.announce("-- but could not find any treasures in his or her deck.")
-			crd.Card.on_finished(self)
+			crd.Money.on_finished(self)
 
 	def post_select(self, selection):
 		topdeck = self.played_by.topdeck()
@@ -118,7 +118,7 @@ class Loan(crd.Money):
 			self.game.update_trash_pile()
 			self.game.announce("-- trashing " + topdeck.log_string())
 
-		crd.Card.on_finished(self)
+		crd.Money.on_finished(self)
 
 
 # --------------------------------------------------------
@@ -432,64 +432,41 @@ class Rabble(crd.AttackCard):
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	def attack(self):
-		crd.AttackCard.get_next(self, self.played_by)
+		attacking = False
+		for player in self.played_by.get_opponents():
+			if crd.AttackCard.fire(self, player):
+				attacking = True
+				if len(player.deck) < 3:
+					player.shuffle_discard_to_deck()
 
-	def fire(self, player):
-		if crd.AttackCard.fire(self, player):
-			if len(player.deck) < 3:
-				player.shuffle_discard_to_deck()
-
-			revealed = []
-			if len(player.deck) < 3:
-				revealed = player.deck
-			else:
-				revealed = player.deck[-3:]
-			# removed the revealed cards from deck
-			num_truncate = len(revealed)
-			del player.deck[-num_truncate:]
-			if len(revealed) != 0:
-				self.game.announce("-- revealing " + ", ".join(list(map(lambda x: x.log_string(), revealed))))
-			else:
-				self.game.announce("-- revealing nothing")
-			action_treasure_cards = [x for x in revealed if "Treasure" in x.type or "Action" in x.type]
-			if len(action_treasure_cards) > 0:
-				action_treasure_card_titles = [x.log_string() for x in action_treasure_cards]
-				self.game.announce("-- discarding " + ", ".join(action_treasure_card_titles))
-				for at in action_treasure_cards:
-					player.discard_pile.append(at)
-				player.update_deck_size()
-
-			cards_left = [x for x in revealed if "Action" not in x.type and "Treasure" not in x.type]
-			if len(cards_left) == 0:
-				crd.Card.on_finished(self, False, False)
-			elif len(cards_left) == 1:
-				player.deck.append(cards_left[0])
-				player.update_deck_size()
-				crd.Card.on_finished(self, False, False)
-			else:
-				if len(set(map(lambda x: x.title, cards_left))) == 1:
-					player.deck += cards_left
-					player.update_deck_size()
-					crd.AttackCard.get_next(self, player)
+				revealed = []
+				if len(player.deck) < 3:
+					revealed = player.deck
 				else:
-					def post_reorder_with(order, cards_left=cards_left, player=player):
-						self.post_reorder(order, cards_left, player)
+					revealed = player.deck[-3:]
+				# removed the revealed cards from deck
+				num_truncate = len(revealed)
+				del player.deck[-num_truncate:]
+				if len(revealed) != 0:
+					self.game.announce(player.name_string() + " reveals " + ", ".join(list(map(lambda x: x.log_string(), revealed))))
+				else:
+					self.game.announce(player.name_string() + " reveals nothing")
+				action_treasure_cards = [x for x in revealed if "Treasure" in x.type or "Action" in x.type]
+				if len(action_treasure_cards) > 0:
+					action_treasure_card_titles = [x.log_string() for x in action_treasure_cards]
+					self.game.announce("-- discarding " + ", ".join(action_treasure_card_titles))
+					for at in action_treasure_cards:
+						player.discard_pile.append(at)
+					player.update_deck_size()
 
-					player.select(len(cards_left), len(cards_left), crd.card_list_to_titles(cards_left),
-					              "Rearrange the cards to put back on top of deck (#1 is on top)", True)
-					self.played_by.wait("Waiting for " + player.name + " to reorder cards")
-					self.played_by.waiting["on"].append(player)
-					player.waiting["cb"] = post_reorder_with
+				cards_left = [x for x in revealed if "Action" not in x.type and "Treasure" not in x.type]
+				crd.reorder_top(player, cards_left, self.finish)
+		if not attacking:
+			crd.Card.on_finished(self, False, False)
 
-	def post_reorder(self, order, cards_to_reorder, player):
-		for x in order:
-			for y in cards_to_reorder:
-				if x == y.title:
-					player.deck.append(y)
-					break
-		player.update_deck_size()
-		crd.Card.on_finished(self, False, False)
-
+	def finish(self):
+		if len(self.played_by.waiting["on"]) == 0:
+			crd.Card.on_finished(self, False, False)
 
 # class Royal_Seal(crd.Money):
 # 	def __init__(self, game, played_by):
@@ -606,7 +583,7 @@ class Venture(crd.Money):
 			topdeck.play(True)
 		else:
 			self.game.announce("-- but could not find any treasures in his or her deck.")
-		crd.Card.on_finished(self, waiting_cleanup=False)
+		crd.Money.on_finished(self)
 
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------
@@ -663,6 +640,8 @@ class Goons(crd.AttackCard):
 		self.played_by.vp += 1
 		self.game.announce("-- gaining +1 VP")
 
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-warning'>", self.title, "</span>"])
 
 class Hoard(crd.Money):
 	def __init__(self, game, played_by):

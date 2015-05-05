@@ -592,34 +592,7 @@ class Scout(crd.Card):
 		self.played_by.update_deck_size()
 
 		cards_left = [x for x in revealed if "Victory" not in x.type]
-		if len(cards_left) == 0:
-			crd.Card.on_finished(self, False, False)
-		elif len(cards_left) == 1:
-			self.played_by.deck.append(cards_left[0])
-			self.played_by.update_deck_size()
-			crd.Card.on_finished(self, False, False)
-		else:
-			if len(set(map(lambda x: x.title, cards_left))) == 1:
-				self.played_by.deck += cards_left
-				self.played_by.update_deck_size()
-				crd.Card.on_finished(self, False, False)
-			else:
-				def post_reorder_with(order, cards_left=cards_left):
-					self.post_reorder(order, cards_left)
-
-				self.played_by.select(len(cards_left), len(cards_left), crd.card_list_to_titles(cards_left), "Rearrange the cards to put back on top of deck (#1 is on top)", True)
-				self.played_by.waiting["on"].append(self.played_by)
-				self.played_by.waiting["cb"] = post_reorder_with
-
-	def post_reorder(self, order, cards_to_reorder):
-		# we check naively to match the revealed cards to the new order O(N^2) is ok since max N = 4
-		for x in order:
-			for y in cards_to_reorder:
-				if x == y.title:
-					self.played_by.deck.append(y)
-					break
-		self.played_by.update_deck_size()
-		crd.Card.on_finished(self, False, False)
+		crd.reorder_top(self.played_by, cards_left, lambda : crd.Card.on_finished(self, False, False))
 
 # --------------------------------------------------------
 # ------------------------ 5 Cost ------------------------

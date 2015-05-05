@@ -263,9 +263,38 @@ def card_list_to_titles(lst):
 		return []
 	return list(map(lambda x: x['title'], lst)) if isinstance(lst[0], dict) else list(map(lambda x: x.title, lst))
 
-
+#returns list of html log_strings from a list of cards
 def card_list_log_strings(lst):
 	return list(map(lambda x: x.log_string(), lst))
 
+#asks player to reorder input list of cards
+def reorder_top(player, cards_to_reorder, callback):
+	if len(cards_to_reorder) == 0:
+		callback()
+	elif len(set(map(lambda x: x.title, cards_to_reorder))) == 1:
+		player.deck += cards_to_reorder
+		player.update_deck_size()
+		callback()
+	else:
+		def post_reorder_with(order, player=player, cards=cards_to_reorder, callback=callback):
+			post_reorder(player, order, cards, callback)
+
+		turn_owner = player.game.get_turn_owner()
+		if turn_owner != player:
+			turn_owner.wait("Waiting for " + player.name + " to reorder cards")
+			turn_owner.waiting["on"].append(player)
+		player.waiting["on"].append(player)
+		player.waiting["cb"] = post_reorder_with
+
+		player.select(len(cards_to_reorder), len(cards_to_reorder), card_list_to_titles(cards_to_reorder), "Rearrange the cards to put back on top of deck (#1 is on top)", True)
+
+def post_reorder(player, selection, cards, callback):
+		for x in selection:
+			for y in cards:
+				if x == y.title:
+					player.deck.append(y)
+					break
+		player.update_deck_size()
+		callback()
 
 
