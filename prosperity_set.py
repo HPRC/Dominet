@@ -240,7 +240,7 @@ class Talisman(crd.Money):
 				self.played_by.discard_pile.append(card)
 				self.played_by.update_discard_size()
 				self.game.announce("-- gaining another " + card.log_string())
-		crd.Card.on_finished(self)
+		crd.Money.on_finished(self)
 
 
 # --------------------------------------------------------
@@ -562,27 +562,15 @@ class Venture(crd.Money):
 		self.played_by.balance += self.value
 		self.played_by.update_resources(True)
 
-		revealed_treasure = False
-		total_deck_count = len(self.played_by.discard_pile) + len(self.played_by.deck)
-		discarded = list()
-		while revealed_treasure is not True and len(discarded) < total_deck_count:
-			topdeck = self.played_by.topdeck()
-			if "Treasure" in topdeck.type:
-				revealed_treasure = True
-			else:
-				self.played_by.discard_pile.append(topdeck)
-				discarded.append(topdeck.title)
+		crd.search_deck_for(self.played_by, lambda x : "Treasure" in x.type, self.found)
 
-		if len(discarded) > 0:
-			self.game.announce("-- discarding " + ", ".join(
-				list(map(lambda x: self.game.log_string_from_title(x), discarded))))
-
-		if revealed_treasure is True:
-			self.game.announce("-- revealing " + topdeck.log_string())
-			self.game.announce("-- " + self.played_by.name_string() + " played " + topdeck.log_string())
-			topdeck.play(True)
-		else:
+	def found(self, card):
+		if card is None:
 			self.game.announce("-- but could not find any treasures in his or her deck.")
+		else:
+			self.game.announce("-- revealing " + card.log_string())
+			self.game.announce("-- " + self.played_by.name_string() + " played " + card.log_string())
+			card.play(True)
 		crd.Money.on_finished(self)
 
 # --------------------------------------------------------

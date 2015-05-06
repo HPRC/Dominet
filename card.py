@@ -267,7 +267,11 @@ def card_list_to_titles(lst):
 def card_list_log_strings(lst):
 	return list(map(lambda x: x.log_string(), lst))
 
-#asks player to reorder input list of cards
+
+# asks player to reorder input list of cards
+# player = player who is reordering
+# cards_to_reorder = list of card objects have already been removed from the top of deck
+# callback = called when player finishes reordering the top of his/her deck
 def reorder_top(player, cards_to_reorder, callback):
 	if len(cards_to_reorder) == 0:
 		callback()
@@ -288,6 +292,7 @@ def reorder_top(player, cards_to_reorder, callback):
 
 		player.select(len(cards_to_reorder), len(cards_to_reorder), card_list_to_titles(cards_to_reorder), "Rearrange the cards to put back on top of deck (#1 is on top)", True)
 
+#this is used by reorder top to place ordered selections back on top of deck
 def post_reorder(player, selection, cards, callback):
 		for x in selection:
 			for y in cards:
@@ -296,5 +301,31 @@ def post_reorder(player, selection, cards, callback):
 					break
 		player.update_deck_size()
 		callback()
+
+#search through a players deck and discard until findng a specific card
+# player = player who owns deck to search through
+# search_criteria = function that needs to accept a card object as a parameter and return True if the card object matches
+#     what we are looking for False otherwise
+# callback = callback function we will call after finding our match, passing in the matching card to it or None
+def search_deck_for(player, search_criteria, callback):
+	total_deck_count = len(player.discard_pile) + len(player.deck)
+	discarded = list()
+	match_found = False
+	while match_found == False and len(discarded) < total_deck_count:
+		topdeck = player.topdeck()
+		if search_criteria(topdeck):
+			match_found = True
+		else:
+			player.discard_pile.append(topdeck)
+			discarded.append(topdeck.log_string())
+
+	if len(discarded) > 0:
+		player.game.announce("-- discarding " + ", ".join(discarded))
+		player.update_discard_size()
+		player.update_deck_size()
+	if match_found:
+		callback(topdeck)
+	else:
+		callback(None)
 
 

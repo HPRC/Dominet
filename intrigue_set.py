@@ -833,39 +833,23 @@ class Saboteur(crd.AttackCard):
 			return
 
 		self.game.announce("-- " + victim.name_string() + " is being sabotaged")
+
 		sabotaged = False
+		crd.search_deck_for(victim, lambda x : x.price >=3, lambda c: self.found(c, victim=victim))
 
-		discarded = list()
-		trashed = None
-		total_deck_count = len(victim.discard_pile) + len(victim.deck)  # cards in hand are safe from sabotage
-		# while something hasn't been trashed and we haven't gone through the whole deck
-		while sabotaged is False and len(discarded) < total_deck_count:
-			topdeck = victim.topdeck()
-			if topdeck.get_price() >= 3:
-				self.game.trash_pile.append(topdeck)
-				sabotaged = True
-				trashed = topdeck
-				self.game.update_trash_pile()
-			else:
-				victim.discard_pile.append(topdeck)
-				discarded.append(topdeck.title)
-
-		if len(discarded) > 0:
-			self.game.announce("-- discarding " + ", ".join(
-				list(map(lambda x: self.game.log_string_from_title(x), discarded))))
-
-		if not sabotaged:
+	def found(self, card, victim):
+		if card is None:
 			self.game.announce("-- but there was nothing to sabotage")
 			crd.AttackCard.get_next(self, victim)
 		else:
-			self.game.announce("-- trashing " + trashed.log_string())
+			self.game.announce("-- trashing " + card.log_string())
 
 			def post_select_cb(selection, victim=victim):
 				self.post_select(selection, victim)
 
 			self.game.announce("-- " + victim.name_string() + " gains a card costing "
-			                   + str(trashed.get_price() - 2) + " or less")
-			victim.select_from_supply(price_limit=trashed.get_price() - 2, optional=True)
+			                   + str(card.get_price() - 2) + " or less")
+			victim.select_from_supply(price_limit=card.get_price() - 2, optional=True)
 			victim.waiting["on"].append(victim)
 			victim.waiting["cb"] = post_select_cb
 			self.played_by.waiting["on"].append(victim)
