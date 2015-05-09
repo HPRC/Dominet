@@ -521,8 +521,6 @@ class Throne_Room(crd.Card):
 
 			card.game.announce(throne_room_str)
 			card.done = final_done
-			#add to played again temporarily for things like conspirator
-			card.played_by.played.append(card)
 			card.play(True)
 			card.played_by.update_resources()
 
@@ -532,17 +530,6 @@ class Throne_Room(crd.Card):
 		selected_card.play(True)
 		self.played_by.update_resources()
 		self.played_by.update_hand()
-
-		normal_cleanup = selected_card.cleanup
-		#remove throne roomed card from being added to discard_pile twice
-		def throne_roomed_cleanup():
-			normal_cleanup()
-			#reset cleanup after it finishes
-			selected_card.cleanup = normal_cleanup
-			return False
-
-		selected_card.cleanup = throne_roomed_cleanup
-
 
 # --------------------------------------------------------
 # ------------------------ 5 Cost ------------------------

@@ -109,6 +109,7 @@ class DmClient(Client):
 		self.deck = self.base_deck()
 		self.hand = cp.HandPile(self)
 		self.played = []
+		self.played_actions = 0
 		self.actions = 0
 		self.buys = 0
 		self.balance = 0
@@ -205,15 +206,18 @@ class DmClient(Client):
 
 	def end_turn(self):
 		# cleanup before game ends
-		self.played = [x for x in self.played if x.cleanup()]
+		for x in self.played:
+			x.cleanup() 
 		self.discard_pile = self.discard_pile + self.played
 		self.played = []
+
 
 		if self.game.detect_end():
 			return
 		self.actions = 0
 		self.buys = 0
 		self.balance = 0
+		self.played_actions = 0
 		self.draw(self.hand_size)
 		if self.game.price_modifier != 0:
 			self.game.price_modifier = 0

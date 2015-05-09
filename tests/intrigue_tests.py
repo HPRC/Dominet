@@ -436,8 +436,8 @@ class TestIntrigue(unittest.TestCase):
 		tu.send_input(self.player1, "post_selection", ["Coppersmith"])
 		copper.play()
 		self.assertTrue(self.player1.balance == 3)
-		#we played throne room, coppersmith, coppersmith, copper
-		self.assertTrue(len(self.player1.played) == 4)
+		#we played throne room, coppersmith, copper
+		self.assertTrue(len(self.player1.played) == 3)
 		self.player1.end_turn()
 		self.assertTrue(copper.value == 1)
 		#make sure we only have 1 coppersmith in our deck

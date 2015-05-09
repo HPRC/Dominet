@@ -9,11 +9,14 @@ class Card():
 		self.done = lambda: None
 
 	def play(self, skip=False):
+		if "Action" in self.type:
+			self.played_by.played_actions += 1
 		if not skip:
 			self.played_by.discard([self.title], self.played_by.played)
 			self.game.announce(self.played_by.name_string() + " played " + self.log_string())
 			if "Action" in self.type:
 				self.played_by.actions -= 1
+
 
 	def get_price(self):
 		return self.price + self.game.price_modifier

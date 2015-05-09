@@ -722,8 +722,6 @@ class Kings_Court(crd.Card):
 		def play_again(card=selected_card, done_cb=final_done):
 			card.game.announce(kings_court_str)
 			card.done = done_cb
-			#add to played again temporarily for things like conspirator
-			card.played_by.played.append(card)
 			card.play(True)
 			card.played_by.update_resources()
 
@@ -735,22 +733,6 @@ class Kings_Court(crd.Card):
 		selected_card.play(True)
 		self.played_by.update_resources()
 		self.played_by.update_hand()
-
-		normal_cleanup = selected_card.cleanup
-		#remove king's courted card from being added to discard_pile 3x
-		#instance is 1 or 2 to represent the 1st copy or 2nd copy of action card played
-		def kings_court_cleanup(instance):
-			normal_cleanup()
-			#if this is the 2nd king courted card then we reset the cleanup to the default
-			#else this is the cleanup of the 1st copy so we increase the instance for the next one to finish cleaning up
-			if instance == 2:
-				selected_card.cleanup = normal_cleanup
-			else:
-				selected_card.cleanup = lambda : kings_court_cleanup(2)
-			return False
-		#first copy cleanup
-		selected_card.cleanup = lambda : kings_court_cleanup(1)
-
 
 
 class Forge(crd.Card):

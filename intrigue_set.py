@@ -448,13 +448,8 @@ class Conspirator(crd.Card):
 		crd.Card.play(self, skip)
 		self.played_by.balance += 2
 
-		played_cards = self.played_by.played
-		played_action_cards = 0
 		announcement = "-- gaining $2"
-		for data in played_cards:
-			if "Action" in data.type:
-				played_action_cards += 1
-		if played_action_cards >= 3:
+		if self.played_by.played_actions >= 3:
 			self.played_by.actions += 1
 			self.played_by.draw(1)
 			announcement += " and drawing a card and gaining +1 action"
@@ -480,9 +475,7 @@ class Coppersmith(crd.Card):
 	def cleanup(self):
 		for card in self.played_by.all_cards():
 			if card.title == "Copper":
-				card.value -= 1
-		return True
-
+				card.value = 1
 
 class Ironworks(crd.Card):
 	def __init__(self, game, played_by):
