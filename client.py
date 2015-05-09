@@ -5,7 +5,7 @@ import random
 import base_set as b
 import intrigue_set as intr
 import html
-
+import game as g
 
 class Client():
 	hand_size = 5
@@ -181,7 +181,7 @@ class DmClient(Client):
 			self.ready = False
 			self.game = None
 		elif cmd == "submitBugReport":
-			self.game.rename_log_file(self.game.LOGS + "/flagged_" + str(self.game.file_title) + ".html")
+			self.game.rename_log_file(g.LOGS_DIR + "/flagged_" + str(self.game.file_title) + ".html")
 			self.game.flagged = True
 
 

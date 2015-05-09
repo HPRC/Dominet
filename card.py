@@ -328,4 +328,34 @@ def search_deck_for(player, search_criteria, callback):
 	else:
 		callback(None)
 
+#makes the given player discard their hand down to the reduced hand size
+# player = player who needs to discard
+# reduced_hand_size = number of cards to discard down to
+# callback = callback function called after player discarded, default is card on_finished
+def discard_down(player, reduced_hand_size, callback):
+	if len(player.hand) > reduced_hand_size:
+		player.select(len(player.hand) - reduced_hand_size, len(player.hand) - reduced_hand_size, 
+			card_list_to_titles(player.hand.card_array()), "discard down to " + str(reduced_hand_size) + " cards")
+
+		def discard_cb(selection, player=player, reduced_hand_size=reduced_hand_size, callback=callback):
+			post_discard_down(player, selection, reduced_hand_size, callback)
+
+		turn_owner = player.game.get_turn_owner()
+		player.waiting["on"].append(player)
+		player.waiting["cb"] = discard_cb
+		turn_owner.waiting["on"].append(player)
+		turn_owner.wait("Waiting for other players to discard")
+	else:
+		player.game.announce("-- " + player.name_string() + " has " + str(reduced_hand_size) + " or less cards in hand")
+		callback()
+
+def post_discard_down(player, selection, reduced_hand_size, callback):
+	player.game.announce("-- " + player.name_string() + " discards down to " + str(reduced_hand_size))
+	player.discard(selection, player.discard_pile)
+	player.update_hand()
+	turn_owner = player.game.get_turn_owner()
+	if len(turn_owner.waiting["on"]) == 0:
+		callback()
+
+
 

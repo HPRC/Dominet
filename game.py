@@ -97,7 +97,7 @@ class DmGame(Game):
 		self.supply_set = supply_set
 		if supply_set == "default":
 			rand = random.randint(1, 10)
-			if rand <= 3:
+			if rand < 3:
 				self.supply_set = "prosperity"
 
 		# kingdom = dictionary {card.title => [card, count]} i.e {"Copper": [card.Copper(self,None),10]}

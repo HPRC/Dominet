@@ -281,30 +281,9 @@ class Militia(crd.AttackCard):
 		attacking = False
 		for i in self.played_by.get_opponents():
 			if not crd.AttackCard.is_blocked(self, i):
-				attacking = True
-				if len(i.hand) > 3:
-					i.select(len(i.hand) - 3, len(i.hand) - 3, crd.card_list_to_titles(i.hand.card_array()),
-						"discard down to 3 cards")
-
-					def post_select_on(selection, i=i):
-						self.post_select(selection, i)
-
-					i.waiting["on"].append(i)
-					i.waiting["cb"] = post_select_on
-					self.played_by.waiting["on"].append(i)
-					self.played_by.wait("Waiting for other players to discard")
-				else:
-					self.game.announce("-- " + i.name_string() + " has 3 or less cards in hand")
+				crd.discard_down(i, 3, lambda : crd.Card.on_finished(self, False, False))
 		if not attacking:
 			crd.Card.on_finished(self, False, False)
-
-	def post_select(self, selection, victim):
-		self.game.announce("-- " + victim.name_string() + " discards down to 3")
-		victim.discard(selection, victim.discard_pile)
-		victim.update_hand()
-		if len(self.played_by.waiting["on"]) == 0:
-			crd.Card.on_finished(self, False, False)
-
 
 class Moneylender(crd.Card):
 	def __init__(self, game, played_by):
