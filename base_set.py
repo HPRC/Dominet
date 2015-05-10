@@ -43,10 +43,12 @@ class Chapel(crd.Card):
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		self.played_by.select(None, 4,
-			crd.card_list_to_titles(self.played_by.hand.card_array()), "select cards to trash")
-		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = self.post_select
+		if self.played_by.select(None, 4,
+			crd.card_list_to_titles(self.played_by.hand.card_array()), "select cards to trash"):
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.post_select
+		else:
+			crd.Card.on_finished(self, False, False)
 
 	def post_select(self, selection):
 		selection_string = list(map(lambda x: self.game.card_from_title(x).log_string(), selection))
@@ -163,9 +165,11 @@ class Workshop(crd.Card):
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = self.post_gain
-		self.played_by.select_from_supply(4, False)
+		if self.played_by.select_from_supply(4, False):
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.post_gain
+		else:
+			crd.Card.on_finished(self, False, False)
 
 	def post_gain(self, selected):
 		self.played_by.gain(selected[0])
@@ -239,9 +243,11 @@ class Feast(crd.Card):
 			self.game.update_trash_pile()
 			self.game.announce("-- trashing " + self.log_string())
 		self.played_by.update_resources()
-		self.played_by.select_from_supply(5, False)
-		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = self.post_gain
+		if self.played_by.select_from_supply(5, False):
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.post_gain
+		else:
+			crd.Card.on_finished(self, False, False)
 
 	def post_gain(self, selected):
 		self.played_by.gain(selected[0])
@@ -314,21 +320,24 @@ class Remodel(crd.Card):
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),
-		 "select card to remodel")
-		self.played_by.update_resources()
-		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = self.post_select
+		if self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),
+		 "select card to remodel"):
+			self.played_by.update_resources()
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.post_select
+		else:
+			crd.Card.on_finished(self)
 
 	def post_select(self, selection):
 		self.played_by.discard(selection, self.game.trash_pile)
 		card_trashed = self.game.card_from_title(selection[0])
 		self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
-		self.played_by.select_from_supply(card_trashed.get_price() + 2, False)
-
-		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = self.post_gain
-		self.played_by.update_hand()
+		if self.played_by.select_from_supply(card_trashed.get_price() + 2, False):
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.post_gain
+			self.played_by.update_hand()
+		else:
+			crd.Card.on_finished(self, False, False)
 
 	def post_gain(self, selected):
 		self.played_by.gain(selected[0])
@@ -694,9 +703,11 @@ class Mine(crd.Card):
 		self.played_by.discard(selection, self.game.trash_pile)
 		card_trashed = self.game.card_from_title(selection[0])
 		self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
-		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = self.post_gain
-		self.played_by.select_from_supply(card_trashed.get_price() + 3, False, "Treasure")
+		if self.played_by.select_from_supply(card_trashed.get_price() + 3, False, "Treasure"):
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.post_gain	
+		else:
+			crd.Card.on_finished(self, False, False)
 
 	def post_gain(self, selected_cards):
 		self.played_by.gain(selected_cards[0])

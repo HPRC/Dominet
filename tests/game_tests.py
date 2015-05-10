@@ -28,7 +28,9 @@ class TestGame(unittest.TestCase):
 	def setUp(self):
 		self.player1 = c.DmClient("player1", 0, DummyHandler())
 		self.player2 = c.DmClient("player2", 1, SilentHandler())
-		self.game = g.DmGame([self.player1, self.player2], [], [])
+		self.player3 = c.DmClient("player3", 2, SilentHandler())
+		self.game = g.DmGame([self.player1, self.player2, self.player3], [], [])
+		self.game.players = [self.player1, self.player2, self.player3]
 		for i in self.game.players:
 			i.game = self.game
 			i.setup()
@@ -39,11 +41,11 @@ class TestGame(unittest.TestCase):
 
 	def test_remove_from_supply(self):
 		tu.print_test_header("test remove from supply")
-		self.assertTrue(self.game.supply.get_count("Estate") == 8)
-		self.assertTrue(self.game.base_supply.get_count("Estate") == 8)
+		self.assertTrue(self.game.supply.get_count("Estate") == 12)
+		self.assertTrue(self.game.base_supply.get_count("Estate") == 12)
 		self.game.remove_from_supply("Estate")
-		self.assertTrue(self.game.supply.get_count("Estate") == 7)
-		self.assertTrue(self.game.base_supply.get_count("Estate") == 7)
+		self.assertTrue(self.game.supply.get_count("Estate") == 11)
+		self.assertTrue(self.game.base_supply.get_count("Estate") == 11)
 
 	def test_total_vp(self):
 		tu.print_test_header("test total vp")
@@ -60,14 +62,14 @@ class TestGame(unittest.TestCase):
 
 	def test_detect_end(self):
 		tu.print_test_header("test detect end")
-		for i in range(0, 8):
+		for i in range(0, 12):
 			self.player1.gain("Province")
 		self.assertTrue(self.game.detect_end())
 
 	def test_end_tie(self):
 		tu.print_test_header("test end tie")
 		self.game.turn = 1
-		for i in range(0, 4):
+		for i in range(0, 6):
 			self.player1.gain("Province")
 			self.player2.gain("Province")
 		self.assertTrue(self.game.detect_end())
@@ -117,6 +119,17 @@ class TestGame(unittest.TestCase):
 		self.player1.exec_commands({"command":"post_selection", "selection": ["Remodel"]})
 
 		self.assertTrue(self.player1.last_mode["mode"] != "selectSupply")
+
+	def test_get_opponent_order(self):
+		player1opponents = self.player1.get_opponents()
+		self.assertTrue(player1opponents[0] == self.player2)
+		self.assertTrue(player1opponents[1] == self.player3)
+		player2opponents = self.player2.get_opponents()
+		self.assertTrue(player2opponents[0] == self.player3)
+		self.assertTrue(player2opponents[1] == self.player1)
+		player3opponents = self.player3.get_opponents()
+		self.assertTrue(player3opponents[0] == self.player1)
+		self.assertTrue(player3opponents[1] == self.player2)
 
 
 if __name__ == '__main__':

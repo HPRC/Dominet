@@ -62,20 +62,19 @@
 					<hand-card></hand-card>
 				</span>
 			</div>
-		</div>
-		<div class="chat-container" ng-controller="chatController">
-			<div class="scrollChat">
-				<div ng-repeat="msg in messages">
-					<span ng-show="msg.speaker !== ''"><b>{{msg.speaker}}</b>:</span><span>{{msg.msg}}</span>
+			<div class="chat-container" ng-controller="chatController">
+				<div class="scrollChat">
+					<div ng-repeat="msg in messages">
+						<span ng-show="msg.speaker !== ''"><b>{{msg.speaker}}</b>:</span><span>{{msg.msg}}</span>
+					</div>
 				</div>
-			</div>
-			<hr>
-			<div class="col-md-10">
-  				<label class="sr-only" for="inputChat">inputChat</label>
-				<input type="text" id="inputChat" class="form-control" ng-model="inputText" ng-keypress="enterKey($event)">
-			</div>
-			<div class="col-md-2">
-				<button id="sendChat" class="btn btn-default" ng-click="enterChat()">Send</button>
+				<div class="col-md-10">
+	  				<label class="sr-only" for="inputChat">inputChat</label>
+					<input type="text" id="inputChat" class="form-control" ng-model="inputText" ng-keypress="enterKey($event)">
+				</div>
+				<div class="col-md-2">
+					<button id="sendChat" class="btn btn-default" ng-click="enterChat()">Send</button>
+				</div>
 			</div>
 		</div>
 	</div>

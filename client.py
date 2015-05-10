@@ -124,6 +124,7 @@ class DmClient(Client):
 		new_conn.deck = self.deck
 		new_conn.hand = self.hand
 		new_conn.played = self.played
+		new_conn.played_actions = self.played_actions
 		new_conn.actions = self.actions
 		new_conn.buys = self.buys
 		new_conn.balance = self.balance
@@ -247,7 +248,7 @@ class DmClient(Client):
 				select_from=select_from, msg=msg, ordered=ordered)
 			return True
 		else:
-			self.update_mode()
+			# self.update_mode() Do we need this? or handle in caller
 			return False
 
 	def wait(self, msg):
@@ -315,8 +316,10 @@ class DmClient(Client):
 		if allow_empty or self.game.supply.has_selectable(price_limit, equal_only, type_constraint):
 			self.write_json(command="updateMode", mode="selectSupply", price=price_limit, equal_only=equal_only,
 				type_constraint=type_constraint, allow_empty=allow_empty, optional=optional)
+			return True
 		else:
 			self.game.announce("-- but there is nothing available")
+			return False
 
 	def update_resources(self, playedMoney=False):
 		if playedMoney:
@@ -326,8 +329,13 @@ class DmClient(Client):
 	def total_deck_size(self):
 		return len(self.deck) + len(self.discard_pile) + len(self.played) + len(self.hand)
 
+	#by default returns list in order starting with players after you
 	def get_opponents(self):
-		return [x for x in self.game.players if x != self]
+		my_index = self.game.players.index(self)
+		opponents = []
+		for i in range(1, len(self.game.players)):
+			opponents.append(self.game.players[(my_index + i) % len(self.game.players)])
+		return opponents
 
 	def get_left_opponent(self):
 		counter = 0

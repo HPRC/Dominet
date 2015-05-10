@@ -6,7 +6,6 @@ class Card():
 		self.type = None
 		self.description = None
 		self.price = 0
-		self.done = lambda: None
 
 	def play(self, skip=False):
 		if "Action" in self.type:
@@ -62,6 +61,10 @@ class Card():
 
 	#called when you gain a card with this card in play
 	def on_gain_effect(self, gained_card):
+		pass
+
+	#called after card finishes resolving and is put into the played pile
+	def done(self):
 		pass
 
 

@@ -19,9 +19,11 @@ class Courtyard(crd.Card):
 		self.game.announce("-- drawing " + drawn)
 		self.played_by.update_resources()
 		self.played_by.update_hand()
-		self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Choose a card to put back on top of your deck.")
-		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = self.post_select
+		if self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Choose a card to put back on top of your deck."):
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.post_select
+		else:
+			crd.Card.on_finished(self, True, False)
 
 	def post_select(self, selection):
 		self.game.announce("-- " + self.game.log_string_from_title(selection[0]) + " is placed on top of the deck.")
@@ -112,10 +114,15 @@ class Secret_Chamber(crd.Card):
 			def post_react_draw_select_cb(selected, drawn_cards=drawn_cards):
 				self.post_react_draw_select(selected, drawn_cards)
 
-			self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "Put two cards to the top of your deck (#1 is on top)", True)
-			self.played_by.waiting["on"].append(self.played_by)
-			self.played_by.waiting["cb"] = post_react_draw_select_cb
-
+			if self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), 
+				"Put two cards to the top of your deck (#1 is on top)", True):
+				self.played_by.waiting["on"].append(self.played_by)
+				self.played_by.waiting["cb"] = post_react_draw_select_cb
+			else:
+				#temp to clear our reacted callback before calling it
+				temp = self.reacted_to_callback
+				self.reacted_to_callback = None
+				temp()
 		else:
 			#temp to clear our reacted callback before calling it
 			temp = self.reacted_to_callback
@@ -336,9 +343,11 @@ class Swindler(crd.AttackCard):
 				def post_select_on(selection, player=player):
 					self.post_select(selection, player)
 
-				self.played_by.select_from_supply(topdeck.get_price(), True)
-				self.played_by.waiting["on"].append(self.played_by)
-				self.played_by.waiting["cb"] = post_select_on
+				if self.played_by.select_from_supply(topdeck.get_price(), True):
+					self.played_by.waiting["on"].append(self.played_by)
+					self.played_by.waiting["cb"] = post_select_on
+				else:
+					crd.AttackCard.get_next(self, player)
 			else:
 				self.game.announce(player.name_string() + " has no cards to Swindle.")
 				crd.AttackCard.get_next(self, player)
@@ -489,9 +498,11 @@ class Ironworks(crd.Card):
 		crd.Card.play(self, skip)
 		self.game.announce("Gain a card costing up to $4")
 
-		self.played_by.select_from_supply(4)
-		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = self.post_select
+		if self.played_by.select_from_supply(4):
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.post_select
+		else:
+			crd.Card.on_finished(self, False, False)
 
 	def post_select(self, selection):
 		card = self.game.card_from_title(selection[0])
@@ -780,9 +791,12 @@ class Upgrade(crd.Card):
 		if selection:
 			self.trash_select(selection)
 		else:
-			self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Choose a card to trash:")
-			self.played_by.waiting["on"].append(self.played_by)
-			self.played_by.waiting["cb"] = self.trash_select
+			if self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), 
+				"Choose a card to trash:"):
+				self.played_by.waiting["on"].append(self.played_by)
+				self.played_by.waiting["cb"] = self.trash_select
+			else:
+				crd.Card.on_finished(self)
 
 	def trash_select(self, selection):
 		card = self.played_by.hand.get_card(selection[0])
@@ -790,8 +804,7 @@ class Upgrade(crd.Card):
 		self.game.announce("-- trashing " + card.log_string() + " to gain a card with cost " + str(card.get_price() + 1))
 		self.played_by.update_hand()
 
-		if self.game.supply.pile_contains(card.get_price() + 1):
-			self.played_by.select_from_supply(card.get_price() + 1, True)
+		if self.played_by.select_from_supply(card.get_price() + 1, True):
 			self.played_by.waiting["on"].append(self.played_by)
 			self.played_by.waiting["cb"] = self.post_select
 		else:
