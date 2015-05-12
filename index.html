@@ -10,7 +10,7 @@
 </head>
 <div id="container">
 	<h2>Dominet</h2>
-<div id="errorMsg"></div>
+<div id="errorMsg">{{error if 'error' in globals() else ""}}</div>
 <form role="form" action="/" method="POST" onsubmit="return validateUsername()">
 	<div class="form-group">
 		<label for="inputUsername">Username</label>

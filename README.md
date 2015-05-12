@@ -1,5 +1,6 @@
 Dominet
 =============
+Browser based implementation of dominion.
 
 ## Dependencies
 

@@ -16,7 +16,7 @@ class Client():
 		self.handler = handler
 		self.game = None
 		self.ready = False
-
+		self.disconnected = False
 		self.vp = 0
 
 	# called before players take their turns
