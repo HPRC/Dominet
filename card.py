@@ -296,7 +296,8 @@ def reorder_top(player, cards_to_reorder, callback):
 		player.waiting["on"].append(player)
 		player.waiting["cb"] = post_reorder_with
 
-		player.select(len(cards_to_reorder), len(cards_to_reorder), card_list_to_titles(cards_to_reorder), "Rearrange the cards to put back on top of deck (#1 is on top)", True)
+		player.select(len(cards_to_reorder), len(cards_to_reorder), card_list_to_titles(cards_to_reorder), 
+			"Rearrange the cards to put back on top of deck (#1 is on top)", True)
 
 #this is used by reorder top to place ordered selections back on top of deck
 def post_reorder(player, selection, cards, callback):

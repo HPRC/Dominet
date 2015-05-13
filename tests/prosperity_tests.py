@@ -49,15 +49,15 @@ class TestProsperity(unittest.TestCase):
 		copper3 = crd.Copper(self.game, self.player1)
 
 		num_coppers = self.player1.hand.get_count('Copper')
-
+		self.player1.discard_pile = []
 		self.player1.discard_pile.append(copper1)
 		self.player1.discard_pile.append(copper2)
 		self.player1.discard_pile.append(copper3)
 
 		counting_house.play()
-
-		self.assertTrue(self.player1.hand.get_count('Copper') == num_coppers + 3)
-		self.assertTrue(len(self.player1.discard_pile) == 0)
+		tu.send_input(self.player1, "post_selection", [2])
+		self.assertTrue(self.player1.hand.get_count('Copper') == num_coppers + 2)
+		self.assertTrue(len(self.player1.discard_pile) == 1)
 
 	def test_Workers_Village(self):
 		tu.print_test_header("test Worker's Village")

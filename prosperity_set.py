@@ -315,15 +315,25 @@ class Counting_House(crd.Card):
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
+		coppers = [x for x in self.played_by.discard_pile if x.title == "Copper"]
+		if len(coppers) == 0:
+			self.game.announce("-- but has no copper in their discard pile")
+			crd.Card.on_finished(self, False, True)
+		else:
+			self.played_by.select(1, 1, [str(i) for i in range(0, len(coppers))], "Choose number of coppers to put into hand.")
+			self.played_by.waiting["on"].append(self.played_by)
+			self.played_by.waiting["cb"] = self.select_copper
 
-		discarded_coppers = self.played_by.get_card_count_in_list('Copper', self.played_by.discard_pile)
-
-		self.game.announce("-- removing " + str(discarded_coppers) + " coppers from their discard and putting them in hand.")
-		for i in range(discarded_coppers - 1, -1, -1):  # loop through discard pile backwards to in place remove coppers
-			if self.played_by.discard_pile[i].title == "Copper":
-				copper = self.played_by.discard_pile.pop(i)
-				self.played_by.hand.add(copper)
+	def select_copper(self, selection):
+		num_revealed = int(selection[0])
+		coppers = [x for x in self.played_by.discard_pile if x.title == "Copper"]
+		for copper in coppers[:num_revealed]:
+			self.played_by.hand.add(copper)
 		self.played_by.update_hand()
+		self.game.announce("-- removing " + str(selection[0]) + " coppers from their discard and putting them in hand.")
+		for i in range(num_revealed, 0, -1):
+			if self.played_by.discard_pile[i].title == "Copper":
+				self.played_by.discard_pile.pop(i)
 		crd.Card.on_finished(self)
 
 class Mint(crd.Card):
