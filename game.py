@@ -57,7 +57,7 @@ class Game():
 
 	def get_log_file_path(self):
 		flagged = "flagged_" if self.flagged else ""
-		return LOGS_DIR + '/' + self.file_title + '.html'
+		return LOGS_DIR + '/' + flagged + self.file_title + '.html'
 
 	def log_json_data(self, data, sent):
 		path = self.get_log_file_path()

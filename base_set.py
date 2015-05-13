@@ -287,6 +287,7 @@ class Militia(crd.AttackCard):
 		attacking = False
 		for i in self.played_by.get_opponents():
 			if not crd.AttackCard.is_blocked(self, i):
+				attacking = True
 				crd.discard_down(i, 3, lambda : crd.Card.on_finished(self, False, False))
 		if not attacking:
 			crd.Card.on_finished(self, False, False)

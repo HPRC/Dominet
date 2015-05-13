@@ -751,7 +751,7 @@ class Tribute(crd.Card):
 		tributes.append(topdeck1)
 		if topdeck1.title != topdeck2.title:
 			tributes.append(topdeck2)
-		self.game.announce("-- revealing " + ", ".join(crd.card_list_log_strings([topdeck1, topdeck2])) + " as a tribute.")
+		self.game.announce("-- "+ left_opponent.name_string() + " reveals " + ", ".join(crd.card_list_log_strings([topdeck1, topdeck2])) + " as a tribute.")
 
 		self.tribute_card(left_opponent, tributes)
 
