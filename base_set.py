@@ -129,13 +129,16 @@ class Chancellor(crd.Card):
 		crd.Card.play(self, skip)
 		self.played_by.balance += 2
 		self.played_by.select(1, 1, ["Yes", "No"],  
-			"Put discard into deck?")
+			"Put your deck into your discard pile?")
 		self.played_by.waiting["cb"] = self.post_select
 		self.played_by.waiting["on"].append(self.played_by)
 
 	def post_select(self, selection):
 		if selection[0] == "Yes":
-			self.played_by.shuffle_discard_to_deck()
+			self.played_by.discard_pile += self.played_by.deck
+			self.played_by.deck = []
+			self.played_by.update_discard_size()
+			self.played_by.update_deck_size()
 		crd.Card.on_finished(self)
 
 

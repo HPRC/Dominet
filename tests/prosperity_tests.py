@@ -53,11 +53,13 @@ class TestProsperity(unittest.TestCase):
 		self.player1.discard_pile.append(copper1)
 		self.player1.discard_pile.append(copper2)
 		self.player1.discard_pile.append(copper3)
-
+		all_copper = len([x for x in self.player1.all_cards() if x.title == "Copper"])
+		
 		counting_house.play()
 		tu.send_input(self.player1, "post_selection", [2])
 		self.assertTrue(self.player1.hand.get_count('Copper') == num_coppers + 2)
 		self.assertTrue(len(self.player1.discard_pile) == 1)
+		self.assertTrue(len([x for x in self.player1.all_cards() if x.title == "Copper"]) == all_copper)
 
 	def test_Workers_Village(self):
 		tu.print_test_header("test Worker's Village")

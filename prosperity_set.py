@@ -326,14 +326,18 @@ class Counting_House(crd.Card):
 
 	def select_copper(self, selection):
 		num_revealed = int(selection[0])
-		coppers = [x for x in self.played_by.discard_pile if x.title == "Copper"]
-		for copper in coppers[:num_revealed]:
-			self.played_by.hand.add(copper)
+		added_to_hand = 0
+		for i in range(len(self.played_by.discard_pile)-1, -1, -1):
+			if added_to_hand == num_revealed:
+				break
+			elif self.played_by.discard_pile[i].title == "Copper":
+				copper = self.played_by.discard_pile.pop(i)
+				self.played_by.hand.add(copper)
+				added_to_hand += 1
 		self.played_by.update_hand()
 		self.game.announce("-- removing " + str(selection[0]) + " coppers from their discard and putting them in hand.")
-		for i in range(num_revealed, 0, -1):
-			if self.played_by.discard_pile[i].title == "Copper":
-				self.played_by.discard_pile.pop(i)
+		self.played_by.update_discard_size()
+		self.played_by.update_deck_size()
 		crd.Card.on_finished(self)
 
 class Mint(crd.Card):
