@@ -460,8 +460,8 @@ class Conspirator(crd.Card):
 		announcement = "-- gaining $2"
 		if self.played_by.played_actions >= 3:
 			self.played_by.actions += 1
-			self.played_by.draw(1)
-			announcement += " and drawing a card and gaining +1 action"
+			drawn = self.played_by.draw(1)
+			announcement += " and drawing " + drawn + " and gaining +1 action"
 		self.game.announce(announcement)
 		crd.Card.on_finished(self)
 
@@ -515,8 +515,8 @@ class Ironworks(crd.Card):
 			self.played_by.balance += 1
 			effects.append("gaining +$1")
 		if "Victory" in card.type:
-			self.played_by.draw(1)
-			effects.append("drawing a card")
+			drawn = self.played_by.draw(1)
+			effects.append("drawing " + drawn)
 		if not card.type == "Curse":
 			self.game.announce("-- " + " and ".join(effects))
 		crd.Card.on_finished(self)
@@ -765,8 +765,8 @@ class Tribute(crd.Card):
 				self.played_by.balance += 2
 				gaining.append("gaining +$2")
 			if "Victory" in x.type:
-				self.played_by.draw(2)
-				gaining.append("drawing 2 cards")
+				drawn = self.played_by.draw(2)
+				gaining.append("drawing " + drawn)
 			if "Curse" != x.type:
 				self.game.announce("-- " + " and ".join(gaining) + " for " + x.log_string())
 		crd.Card.on_finished(self)

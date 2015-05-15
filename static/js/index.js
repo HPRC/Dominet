@@ -5,6 +5,9 @@ function validateUsername(){
 	} else if ($("#inputUsername").val().length > 25){
 		$("#errorMsg").text("Name cannot be over 24 characters");
 		return false;
+	} else if ($("#inputUsername").val().length < 1){
+		$("#errorMsg").text("Name cannot be empty");
+		return false;
 	} else {
 		return true;
 	}
