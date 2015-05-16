@@ -246,15 +246,10 @@ class ReactionHandler():
 		reactions = self.player.hand.get_reactions_for(self.trigger)
 		reaction_titles = list(map(lambda x: x.title, reactions))
 		if len(set(reaction_titles)) == 1:
-			if (self.turn_owner != self.player):
-				self.turn_owner.waiting["on"].append(self.player)
 			self.reactions_queue = list(map(lambda x: x.react, reactions))
 			return False
 		else:
 			num_reactions = len(reaction_titles)
-			for r in range(0, num_reactions):
-				if (self.turn_owner != self.player):
-					self.turn_owner.waiting["on"].append(self.player)
 
 			self.player.waiting["cb"] = self.finish_ordering_reactions
 			self.player.waiting["on"].append(self.player)
@@ -283,10 +278,6 @@ class ReactionHandler():
 		#want to reveal cards again, should only re-prompt with attack reactions
 		if drew_cards and self.trigger == "Attack":
 			new_reactions = self.player.hand.get_reactions_for(self.trigger)
-			self.turn_owner.wait("waiting for other players to react")
-			self.turn_owner.waiting["on"] = [w for w in self.turn_owner.waiting["on"] if w != self.player]
-			for x in new_reactions:
-				self.turn_owner.waiting["on"].append(self.player)
 			self.reactions_queue = [c.react for c in new_reactions]
 			if len(new_reactions) > 0:
 				self.initiate_reactions()

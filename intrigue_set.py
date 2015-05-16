@@ -99,8 +99,8 @@ class Secret_Chamber(crd.Card):
 		self.played_by.select(1, 1, ["Reveal", "Hide"],
 		                      "Reveal " + self.title + " to draw 2 and place 2 back to deck?")
 
-		for i in self.played_by.get_opponents():
-			i.waiting["on"].append(self.played_by)
+		self.game.get_turn_owner().wait("Waiting for other players to react")
+		self.game.get_turn_owner().waiting["on"] += [self.played_by, self.played_by]
 
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_reveal
@@ -110,7 +110,7 @@ class Secret_Chamber(crd.Card):
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
 			drawn_cards = self.played_by.draw(2, False)
 			self.played_by.update_hand()
-			
+	
 			def post_react_draw_select_cb(selected, drawn_cards=drawn_cards):
 				self.post_react_draw_select(selected, drawn_cards)
 
@@ -124,6 +124,8 @@ class Secret_Chamber(crd.Card):
 				self.reacted_to_callback = None
 				temp()
 		else:
+			#clear 2nd wait since we selected hide
+			self.played_by.update_wait()
 			#temp to clear our reacted callback before calling it
 			temp = self.reacted_to_callback
 			self.reacted_to_callback = None
@@ -548,16 +550,10 @@ class Mining_Village(crd.Card):
 			elif self in self.played_by.played:
 				self.game.announce("-- trashing " + self.log_string() + " to gain $2")
 				self.played_by.balance += 2
-				self.cleanup = self.selected_trash
-				# note we add mining village to trash and played pile (for conspirator) and remove from played in cleanup
+				self.played_by.played.pop()
 				self.game.trash_pile.append(self)
 				self.game.update_trash_pile()
 		crd.Card.on_finished(self)
-
-	# cleanup if we trashed mining village
-	def selected_trash(self):
-		return False
-
 
 class Scout(crd.Card):
 	def __init__(self, game, played_by):
@@ -747,6 +743,7 @@ class Tribute(crd.Card):
 		topdeck2 = left_opponent.topdeck()
 		left_opponent.discard_pile.append(topdeck1)
 		left_opponent.discard_pile.append(topdeck2)
+		left_opponent.update_deck_size()
 		left_opponent.update_discard_size()
 		tributes.append(topdeck1)
 		if topdeck1.title != topdeck2.title:
@@ -808,7 +805,6 @@ class Upgrade(crd.Card):
 			self.played_by.waiting["on"].append(self.played_by)
 			self.played_by.waiting["cb"] = self.post_select
 		else:
-			self.game.announce(" however there are no cards with cost " + str(card.get_price() + 1))
 			crd.Card.on_finished(self)
 
 	def post_select(self, selection):

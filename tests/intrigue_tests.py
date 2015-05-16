@@ -316,19 +316,23 @@ class TestIntrigue(unittest.TestCase):
 		tu.print_test_header("test Secret Chamber")
 		secret_chamber = intrigue.Secret_Chamber(self.game, self.player1)
 		estate = crd.Estate(self.game, self.player1)
-		self.player1.hand.data = {
-			"Estate": [estate for i in range(0,4)],
-			"Secret Chamber": [secret_chamber]
-		}
+		tu.clear_player_hand(self.player1)
+
+		tu.add_many_to_hand(self.player1, estate, 4)
+		self.player1.hand.add(secret_chamber)
 
 		secret_chamber.play()
 		tu.send_input(self.player1, "post_selection", ["Estate", "Estate", "Estate", "Estate"])
 		self.assertTrue(self.player1.balance == 4)
+		self.player1.end_turn()
+		
+		tu.clear_player_hand(self.player1)
+		tu.add_many_to_hand(self.player1, estate, 4)
+		self.player1.hand.add(secret_chamber)
+		
+		tu.clear_player_hand(self.player3)
 
-		self.player1.hand.data = {
-			"Estate": [estate for i in range(0,4)],
-			"Secret Chamber": [secret_chamber]
-		}
+		self.player1.deck.append(crd.Copper(self.game, self.player1))
 		self.player2.hand.add(base.Militia(self.game, self.player2))
 		self.player2.hand.play("Militia")
 		tu.send_input(self.player1, "post_selection", ["Reveal"])
@@ -336,10 +340,10 @@ class TestIntrigue(unittest.TestCase):
 		tu.send_input(self.player1, "post_selection", ["Hide"])
 		tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
 		self.assertTrue(len(self.player1.hand.card_array()) == 3)
-
 		estates = self.player1.hand.get_count("Estate")
 		self.player1.draw(2)
 		self.assertTrue(self.player1.hand.get_count("Estate") == estates + 2)
+		self.assertTrue(self.player2.last_mode["mode"] != "wait")
 
 	def test_Tribute(self):
 		tu.print_test_header("test Tribute")
@@ -380,6 +384,7 @@ class TestIntrigue(unittest.TestCase):
 		tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.actions == 3)
 		self.assertTrue(self.game.trash_pile[-1].title == "Mining Village")
+		self.assertTrue(len(self.player1.played)==1)
 		self.assertTrue(self.player1.balance == 2)
 
 	def test_Mining_Village_Throne_Room(self):
@@ -621,7 +626,7 @@ class TestIntrigue(unittest.TestCase):
 		village.play()
 		mv.play()
 		self.player1.exec_commands({"command": "post_selection", "selection": ["Yes"]})
-		self.assertTrue(mv in self.player1.played)
+		self.assertFalse(mv in self.player1.played)
 		self.assertTrue(mv in self.game.trash_pile)
 		self.assertTrue(self.player1.actions == 3)
 		conspirator.play()
