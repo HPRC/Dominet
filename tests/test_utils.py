@@ -20,7 +20,7 @@ def add_many_to_hand(player, card, count):
 def send_input(player, command, selection):
 	if command == "post_selection":
 		player.exec_commands({"command":command, "selection":selection})
-	elif command == "selectSupply":
+	elif command == "selectSupply" or command == "buyCard":
 		player.exec_commands({"command":command, "card":selection})
 
 def print_test_header(msg):

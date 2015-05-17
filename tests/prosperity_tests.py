@@ -285,6 +285,7 @@ class TestProsperity(unittest.TestCase):
 	def test_Vault(self):
 		tu.print_test_header("testing vault")
 		vault = prosperity.Vault(self.game, self.player1)
+		self.player1.hand.add(vault)
 
 		vault.play()
 		tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
@@ -301,6 +302,8 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(len(self.player2.hand.card_array()) == cards_in_hand - 1)
 
 		self.player3.exec_commands({"command":"post_selection", "selection":["No"]})
+		print(self.player1.actions)
+		print(self.player1.last_mode)
 		self.assertTrue(self.player1.last_mode["mode"] == "buy")
 
 	def test_Bank(self):
@@ -411,6 +414,29 @@ class TestProsperity(unittest.TestCase):
 
 		self.assertTrue(topdeck1.title == "Duchy")
 		self.assertTrue(topdeck2.title == "Gardens")
+
+	def test_Royal_Seal(self):
+		tu.print_test_header("test Royal Seal")
+		royal_seal = prosperity.Royal_Seal(self.game, self.player1)
+		workers_village = prosperity.Workers_Village(self.game, self.player1)
+		copper = crd.Copper(self.game, self.player1)
+		self.player1.hand.add(royal_seal)
+		self.player1.hand.add(copper)
+		self.player1.hand.add(workers_village)
+
+		workers_village.play()
+
+		royal_seal.play()
+		tu.send_input(self.player1, "buyCard", "Curse")
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
+		tu.send_input(self.player1, "post_selection", ["Yes"])
+		self.assertTrue(self.player1.deck[-1].title == "Curse")
+		print(self.player1.last_mode)
+		self.assertTrue(self.player1.last_mode["mode"] == "buy")
+		tu.send_input(self.player1, "buyCard", "Silver")
+		tu.send_input(self.player1, "post_selection", ["No"])
+		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
+		self.assertTrue(self.player1.last_mode["mode"] == "buy")
 
 if __name__ == '__main__':
 	unittest.main()

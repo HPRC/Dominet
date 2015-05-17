@@ -235,9 +235,9 @@ class DmClient(Client):
 			newCard = type(self.game.card_from_title(card_title))(self.game, self)
 			self.game.announce("<b>" + self.name + "</b> buys " + newCard.log_string())
 			newCard.on_buy()
-			self.resolve_on_buy_effects(newCard)
 			self.discard_pile.append(newCard)
 			self.game.remove_from_supply(card_title)
+			self.resolve_on_buy_effects(newCard)
 			self.buys -= 1
 			self.balance -= newCard.get_price()
 			self.hand.do_reactions("Gain", lambda : self.update_resources(), newCard)
@@ -272,11 +272,12 @@ class DmClient(Client):
 			self.game.update_trash_pile()
 
 	def update_mode(self):
+		played_money = [x for x in self.played if "Treasure" in x.type]
 		# if we have no actions or no action cards and no money cards, buy mode
 		if (len(self.hand.get_cards_by_type("Action")) == 0 or self.actions == 0) and len(self.hand.get_cards_by_type("Treasure")) == 0:
 			self.write_json(command="updateMode", mode="buy")
 		else:
-			self.write_json(command="updateMode", mode="action" if self.actions > 0 else "buy")
+			self.write_json(command="updateMode", mode="action" if not played_money and self.actions > 0 else "buy")
 
 	def update_deck_size(self):
 		self.write_json(command="updateDeckSize", size=len(self.deck))

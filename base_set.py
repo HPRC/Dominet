@@ -79,9 +79,13 @@ class Moat(crd.Card):
 
 	def react(self, reacted_to_callback):
 		self.reacted_to_callback = reacted_to_callback
+		
+		self.game.get_turn_owner().wait("Waiting for other players to react")
+		self.game.get_turn_owner().waiting["on"].append(self.played_by)
+
 		self.played_by.select(1, 1, ["Reveal", "Hide"],  
 			"Reveal " + self.title + " to prevent attack?")
-			
+
 		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.waiting["cb"] = self.post_reveal
 

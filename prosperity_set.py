@@ -485,20 +485,27 @@ class Rabble(crd.AttackCard):
 		if len(self.played_by.waiting["on"]) == 0:
 			crd.Card.on_finished(self, False, False)
 
-# class Royal_Seal(crd.Money):
-# 	def __init__(self, game, played_by):
-# 		crd.Money.__init__(self, game, played_by)
-# 		self.title = "Royal Seal"
-# 		self.description = "Worth $2\nWhile this is in play, when you gain a card," \
-# 		                   " you may put that card on top of your deck."
-# 		self.price = 5
-# 		self.value = 2
-# 		self.spend_all = False
-#
-# 	def on_buy_effect(self, purchased_card):
-# 		if self.game.supply.get_count(purchased_card.title) <= 0:
-# 			self.played_by.select
+class Royal_Seal(crd.Money):
+	def __init__(self, game, played_by):
+		crd.Money.__init__(self, game, played_by)
+		self.title = "Royal Seal"
+		self.description = "Worth $2\nWhile this is in play, when you gain a card," \
+		                   " you may put that card on top of your deck."
+		self.price = 5
+		self.value = 2
+		self.spend_all = False
 
+	def on_buy_effect(self, purchased_card):
+		self.played_by.select(1, 1, ["Yes", "No"], "Place " + purchased_card.title + " on top of deck?")
+		self.played_by.waiting["on"].append(self.played_by)
+		self.played_by.waiting["cb"] = self.post_buy
+
+	def post_buy(self, selection):
+		if selection[0] == "Yes":
+			purchased_card = self.played_by.discard_pile.pop()
+			self.game.announce(self.played_by.name_string() + " uses " + self.log_string() + " to place "
+				+ purchased_card.log_string() + " on the top of their deck")
+			self.played_by.deck.append(purchased_card)
 
 class Vault(crd.Card):
 	def __init__(self, game, played_by):
