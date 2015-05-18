@@ -302,8 +302,6 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(len(self.player2.hand.card_array()) == cards_in_hand - 1)
 
 		self.player3.exec_commands({"command":"post_selection", "selection":["No"]})
-		print(self.player1.actions)
-		print(self.player1.last_mode)
 		self.assertTrue(self.player1.last_mode["mode"] == "buy")
 
 	def test_Bank(self):

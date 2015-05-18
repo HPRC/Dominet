@@ -118,6 +118,8 @@ class DmClient(Client):
 		# List of players waiting for, callback called after select/gain gets response
 		self.waiting = {"on": [], "cb": None}
 		self.protection = 0
+		#boolean to keep track of if we bought a card to disable spending treasure afterwards
+		self.bought_cards = False
 
 	def resume_state(self, new_conn):
 		new_conn.discard_pile = self.discard_pile
@@ -132,6 +134,8 @@ class DmClient(Client):
 		new_conn.last_mode = self.last_mode
 		new_conn.protection = self.protection
 		new_conn.vp = self.vp
+		new_conn.bought_cards = self.bought_cards
+
 		for card in self.all_cards():
 			card.played_by = new_conn
 
@@ -219,6 +223,7 @@ class DmClient(Client):
 		self.buys = 0
 		self.balance = 0
 		self.played_actions = 0
+		self.bought_cards = False
 		self.draw(self.hand_size)
 		if self.game.price_modifier != 0:
 			self.game.price_modifier = 0
@@ -241,6 +246,7 @@ class DmClient(Client):
 			self.buys -= 1
 			self.balance -= newCard.get_price()
 			self.hand.do_reactions("Gain", lambda : self.update_resources(), newCard)
+			self.bought_cards = True
 
 	def select(self, min_cards, max_cards, select_from, msg, ordered=False):
 		if len(select_from) > 0:
@@ -275,9 +281,12 @@ class DmClient(Client):
 		played_money = [x for x in self.played if "Treasure" in x.type]
 		# if we have no actions or no action cards and no money cards, buy mode
 		if (len(self.hand.get_cards_by_type("Action")) == 0 or self.actions == 0) and len(self.hand.get_cards_by_type("Treasure")) == 0:
-			self.write_json(command="updateMode", mode="buy")
+			self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards)
 		else:
-			self.write_json(command="updateMode", mode="action" if not played_money and self.actions > 0 else "buy")
+			if not played_money and self.actions > 0:
+				self.write_json(command="updateMode", mode="action")
+			else:
+				self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards)
 
 	def update_deck_size(self):
 		self.write_json(command="updateDeckSize", size=len(self.deck))
@@ -324,7 +333,7 @@ class DmClient(Client):
 
 	def update_resources(self, playedMoney=False):
 		if playedMoney:
-			self.write_json(command="updateMode", mode="buy")
+			self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards)
 		self.write_json(command="updateResources", actions=self.actions, buys=self.buys, balance=self.balance)
 
 	def total_deck_size(self):

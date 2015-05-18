@@ -284,7 +284,7 @@ class City(crd.Card):
 # class Contraband(crd.Money):
 # 	def __init__(self, game, played_by):
 # 		self.title = "Contraband"
-# 		self.description = ""
+# 		self.description = "+$3, +1 Buy \n The player to your left names a card, you cannot buy that card this turn."
 # 		self.price = 5
 # 		self.value = 3
 # 		self.type = "Treasure"
@@ -297,13 +297,15 @@ class City(crd.Card):
 
 # 		left_opponent = self.played_by.get_left_opponent()
 # 		left_opponent.select_from_supply()
-# 		self.played_by.wait("Waiting for " + left_opponent.title + " to choose a card for contraband")
-# 		self.played_by.waiting["on"].append(left_opponent)
+# 		left_opponent.waiting["on"].append(left_opponent)
 # 		left_opponent.waiting["cb"] = self.contraband_select
 
-# 	def contraband_select(self, selection):
-# 		crd.Card.on_finished(self)
+# 		self.played_by.wait("Waiting for " + left_opponent.title + " to choose a card for contraband")
+# 		self.played_by.waiting["on"].append(left_opponent)
 
+# 	def contraband_select(self, selection):
+# 		# self.played_by.banned.append(selection[0])
+# 		crd.Money.on_finished(self)
 
 class Counting_House(crd.Card):
 	def __init__(self, game, played_by):

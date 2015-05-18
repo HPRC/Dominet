@@ -118,8 +118,11 @@ clientModule.factory('client', function(socket, favicon) {
 	};
 
 	constructor.prototype.spendAllMoney = function(){
+		if (this.modeJson.mode === "buy" && this.modeJson.bought_cards === true){
+			return;
+		}
 		this.spendableMoney = 0;
-		this.modeJson = {"mode":"buy"};
+		this.modeJson = {"mode":"buy", "bought_cards": false};
 		socket.send(JSON.stringify({"command": "spendAllMoney"}));
 	};
 

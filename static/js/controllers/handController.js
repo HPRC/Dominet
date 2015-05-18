@@ -5,7 +5,7 @@ clientModule.controller("handController", function($scope, client, cardStyle){
 			return true;
 		}
 		if ($scope.modeJson.mode === "buy"){
-			if (card.type.indexOf("Action") !== -1){
+			if (card.type.indexOf("Action") !== -1 || $scope.modeJson.bought_cards === true){
 				return true;
 			}
 		}

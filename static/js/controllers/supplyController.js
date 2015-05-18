@@ -61,6 +61,7 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 			favicon.stopAlert();
 			socket.send(JSON.stringify({"command": "selectSupply", "card": [card.title]}));
 		} else {
+			$scope.modeJson.bought_cards = true;
 			client.buyCard(card);
 		}
 	};
