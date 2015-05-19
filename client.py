@@ -120,6 +120,8 @@ class DmClient(Client):
 		self.protection = 0
 		#boolean to keep track of if we bought a card to disable spending treasure afterwards
 		self.bought_cards = False
+		#cards banned from buying
+		self.banned = []
 
 	def resume_state(self, new_conn):
 		new_conn.discard_pile = self.discard_pile
@@ -135,6 +137,7 @@ class DmClient(Client):
 		new_conn.protection = self.protection
 		new_conn.vp = self.vp
 		new_conn.bought_cards = self.bought_cards
+		new_conn.banned = self.banned
 
 		for card in self.all_cards():
 			card.played_by = new_conn
@@ -224,6 +227,7 @@ class DmClient(Client):
 		self.balance = 0
 		self.played_actions = 0
 		self.bought_cards = False
+		self.banned = []
 		self.draw(self.hand_size)
 		if self.game.price_modifier != 0:
 			self.game.price_modifier = 0
@@ -234,7 +238,7 @@ class DmClient(Client):
 		self.game.change_turn()
 
 	def buy_card(self, card_title):
-		if self.buys > 0 and self.game.supply.get_count(card_title) > 0:
+		if self.buys > 0 and self.game.supply.get_count(card_title) > 0 and card_title not in self.banned:
 			# we instantiate a new card by getting the class from the kingdom instance 
 			# and instantiating it
 			newCard = type(self.game.card_from_title(card_title))(self.game, self)
@@ -281,12 +285,12 @@ class DmClient(Client):
 		played_money = [x for x in self.played if "Treasure" in x.type]
 		# if we have no actions or no action cards and no money cards, buy mode
 		if (len(self.hand.get_cards_by_type("Action")) == 0 or self.actions == 0) and len(self.hand.get_cards_by_type("Treasure")) == 0:
-			self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards)
+			self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards, banned=self.banned)
 		else:
 			if not played_money and self.actions > 0:
 				self.write_json(command="updateMode", mode="action")
 			else:
-				self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards)
+				self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards, banned=self.banned)
 
 	def update_deck_size(self):
 		self.write_json(command="updateDeckSize", size=len(self.deck))
@@ -333,7 +337,7 @@ class DmClient(Client):
 
 	def update_resources(self, playedMoney=False):
 		if playedMoney:
-			self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards)
+			self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards, banned=self.banned)
 		self.write_json(command="updateResources", actions=self.actions, buys=self.buys, balance=self.balance)
 
 	def total_deck_size(self):

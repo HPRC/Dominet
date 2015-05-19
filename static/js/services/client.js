@@ -122,7 +122,6 @@ clientModule.factory('client', function(socket, favicon) {
 			return;
 		}
 		this.spendableMoney = 0;
-		this.modeJson = {"mode":"buy", "bought_cards": false};
 		socket.send(JSON.stringify({"command": "spendAllMoney"}));
 	};
 
@@ -142,7 +141,6 @@ clientModule.factory('client', function(socket, favicon) {
 		}
 
 		if (card.type === "Treasure"){
-			this.modeJson = {"mode":"buy"};
 			this.updateSpendable();
 		}
 

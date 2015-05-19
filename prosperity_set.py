@@ -281,31 +281,34 @@ class City(crd.Card):
 		crd.Card.on_finished(self)
 
 
-# class Contraband(crd.Money):
-# 	def __init__(self, game, played_by):
-# 		self.title = "Contraband"
-# 		self.description = "+$3, +1 Buy \n The player to your left names a card, you cannot buy that card this turn."
-# 		self.price = 5
-# 		self.value = 3
-# 		self.type = "Treasure"
-# 		self.spend_all = False
+class Contraband(crd.Money):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Contraband"
+		self.description = "+$3, +1 Buy \n The player to your left names a card, you cannot buy that card this turn."
+		self.price = 5
+		self.value = 3
+		self.type = "Treasure"
+		self.spend_all = False
 
-# 	def play(self, skip=False):
-# 		crd.Money.play(self, skip)
-# 		self.played_by.buys += 1
-# 		self.game.announce("-- gaining a buy")
+	def play(self, skip=False):
+		crd.Money.play(self, skip)
+		self.played_by.buys += 1
+		self.game.announce("-- gaining a buy")
 
-# 		left_opponent = self.played_by.get_left_opponent()
-# 		left_opponent.select_from_supply()
-# 		left_opponent.waiting["on"].append(left_opponent)
-# 		left_opponent.waiting["cb"] = self.contraband_select
+		left_opponent = self.played_by.get_left_opponent()
+		left_opponent.select_from_supply()
+		left_opponent.waiting["on"].append(left_opponent)
+		left_opponent.waiting["cb"] = self.contraband_select
 
-# 		self.played_by.wait("Waiting for " + left_opponent.title + " to choose a card for contraband")
-# 		self.played_by.waiting["on"].append(left_opponent)
+		self.played_by.wait("Waiting for " + left_opponent.name + " to choose a card for contraband")
+		self.played_by.waiting["on"].append(left_opponent)
 
-# 	def contraband_select(self, selection):
-# 		# self.played_by.banned.append(selection[0])
-# 		crd.Money.on_finished(self)
+	def contraband_select(self, selection):
+		left_opponent = self.played_by.get_left_opponent()
+		self.game.announce(left_opponent.name_string() + " bans " + self.game.log_string_from_title(selection[0]))
+		self.played_by.banned.append(selection[0])
+		crd.Money.on_finished(self)
 
 class Counting_House(crd.Card):
 	def __init__(self, game, played_by):
@@ -654,7 +657,6 @@ class Hoard(crd.Money):
 			gold = self.played_by.get_card_from_supply("Gold", False)
 			self.game.announce("-- gaining a " + gold.log_string())
 		crd.Money.on_finished(self)
-
 
 # --------------------------------------------------------
 # ------------------------ 7 Cost ------------------------
