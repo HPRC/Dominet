@@ -281,6 +281,7 @@ class TestProsperity(unittest.TestCase):
 
 		# self.assertTrue(len(self.player1.discard_pile) == 4)
 		self.assertTrue(self.player1.balance == 5)
+		self.assertTrue(silver in self.player1.all_cards())
 
 	def test_Vault(self):
 		tu.print_test_header("testing vault")

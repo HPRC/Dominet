@@ -706,6 +706,8 @@ class Torturer(crd.AttackCard):
 				self.game.announce(victim.name_string() + " discards " + str(len(discard_selection)) + " cards")
 				victim.update_hand()
 				crd.AttackCard.get_next(self, victim)
+			elif victim.hand == 0:
+				crd.AttackCard.get_next(self, victim)
 			else:
 				self.played_by.wait("Waiting for other players to discard")
 
@@ -844,6 +846,8 @@ class Saboteur(crd.AttackCard):
 			self.game.announce("-- but there was nothing to sabotage")
 			crd.AttackCard.get_next(self, victim)
 		else:
+			self.game.trash_pile.append(card)
+			self.game.update_trash_pile()
 			self.game.announce("-- trashing " + card.log_string())
 
 			def post_select_cb(selection, victim=victim):

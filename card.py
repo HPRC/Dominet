@@ -18,7 +18,7 @@ class Card():
 
 
 	def get_price(self):
-		return self.price + self.game.price_modifier
+		return 0 if self.price + self.game.price_modifier < 0 else self.price + self.game.price_modifier
 
 	# called at the end of a card's resolution
 	def on_finished(self, modified_hand=True, modified_resources=True, waiting_cleanup=True):

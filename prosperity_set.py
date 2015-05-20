@@ -600,6 +600,7 @@ class Venture(crd.Money):
 			self.game.announce("-- revealing " + card.log_string())
 			self.game.announce("-- " + self.played_by.name_string() + " played " + card.log_string())
 			card.play(True)
+			self.played_by.played.append(card)
 		crd.Money.on_finished(self)
 
 # --------------------------------------------------------
@@ -657,6 +658,7 @@ class Hoard(crd.Money):
 			gold = self.played_by.get_card_from_supply("Gold", False)
 			self.game.announce("-- gaining a " + gold.log_string())
 		crd.Money.on_finished(self)
+
 
 # --------------------------------------------------------
 # ------------------------ 7 Cost ------------------------
