@@ -280,6 +280,9 @@ class City(crd.Card):
 
 		crd.Card.on_finished(self)
 
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-default'>", "Cities</span>" if plural else self.title + "</span>"])
+
 
 class Contraband(crd.Money):
 	def __init__(self, game, played_by):
@@ -511,6 +514,7 @@ class Royal_Seal(crd.Money):
 			self.game.announce(self.played_by.name_string() + " uses " + self.log_string() + " to place "
 				+ purchased_card.log_string() + " on the top of their deck")
 			self.played_by.deck.append(purchased_card)
+		self.played_by.update_resources(True)
 
 class Vault(crd.Card):
 	def __init__(self, game, played_by):
@@ -659,6 +663,23 @@ class Hoard(crd.Money):
 			self.game.announce("-- gaining a " + gold.log_string())
 		crd.Money.on_finished(self)
 
+class Grand_Market(crd.Card):
+	def __init__(self, game, played_by):
+		crd.AttackCard.__init__(self, game, played_by)
+		self.title = "Grand Market"
+		self.description = "+1 Card, +1 Action, +1 Buy, +$2\n" \
+							"You can't buy this card if you have copper in play"
+		self.price = 6
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		drawn = self.played_by.draw(1)
+		self.played_by.actions += 1
+		self.played_by.balance += 2
+		self.played_by.buys += 1
+		self.game.announce("-- drawing " + drawn + " , gaining +1 action and $2")
+		crd.Card.on_finished(self)
 
 # --------------------------------------------------------
 # ------------------------ 7 Cost ------------------------

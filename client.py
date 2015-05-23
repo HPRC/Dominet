@@ -287,7 +287,7 @@ class DmClient(Client):
 		if (len(self.hand.get_cards_by_type("Action")) == 0 or self.actions == 0) and len(self.hand.get_cards_by_type("Treasure")) == 0:
 			self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards, banned=self.banned)
 		else:
-			if not played_money and self.actions > 0:
+			if not played_money and self.actions > 0 and len(self.hand.get_cards_by_type("Action")) != 0:
 				self.write_json(command="updateMode", mode="action")
 			else:
 				self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards, banned=self.banned)
@@ -366,26 +366,26 @@ class DmClient(Client):
 	def spend_all_money(self):
 		to_log = []
 		to_discard = []
-		treasure_cards = self.hand.get_cards_by_type("Treasure", True)
-		for i in range(len(treasure_cards) - 1, -1, -1):
-			if not treasure_cards[i].spend_all:
-				treasure_cards.pop(i)
-
-		unique_treasure_titles = set(map(lambda x: x.title, treasure_cards))
-		for card_title in unique_treasure_titles:
-			card = self.hand.get_card(card_title)
-			count = self.hand.get_count(card_title)
-			self.balance += card.value * count
-			if len(to_log) != 0:
-				to_log.append(",")
-			to_discard += self.hand.get_all(card_title)
-			to_log.append(str(count))
-			to_log.append(card.log_string() if count == 1 else card.log_string(True))
-		self.discard(list(map(lambda x: x.title, to_discard)), self.played)
-		if len(to_log) > 0:
-			self.game.announce(self.name_string() + " played " + " ".join(to_log))
-			self.update_resources(True)
-		self.update_hand()
+		treasure_cards = [x for x in self.hand.get_cards_by_type("Treasure", True) if x.get_spend_all()]
+		if len(treasure_cards) != 0:
+			unique_treasure_titles = set(map(lambda x: x.title, treasure_cards))
+			for card_title in unique_treasure_titles:
+				card = self.hand.get_card(card_title)
+				count = self.hand.get_count(card_title)
+				for i in range(0, count):
+					card.play(True)
+				if len(to_log) != 0:
+					to_log.append(",")
+				to_discard += self.hand.get_all(card_title)
+				to_log.append(str(count))
+				to_log.append(card.log_string() if count == 1 else card.log_string(True))
+			self.discard(list(map(lambda x: x.title, to_discard)), self.played)
+			if len(to_log) > 0:
+				self.game.announce(self.name_string() + " played " + " ".join(to_log))
+				self.update_resources(True)
+			self.update_hand()
+		else:
+			self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards, banned=self.banned)
 
 	def total_vp(self, returnCards=False):
 		total = 0
@@ -416,7 +416,7 @@ class DmClient(Client):
 			else:
 				decklist_str.append(decklist.get_card(card_title).log_string(True))
 			decklist_str.append(" ")
-		return "".join(decklist_str)
+		return "".join(decklist_str) + "<br>" + str(len(self.all_cards())) + " cards"
 
 	def name_string(self):
 		return "<b>" + html.escape(self.name) + "</b>"

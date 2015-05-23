@@ -1,4 +1,4 @@
 *.pyc
 *.idea
-static/js/services/clientSocket.js
+/static/js/services/clientSocket.js
 /logs/*

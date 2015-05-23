@@ -77,6 +77,7 @@ class TestGame(unittest.TestCase):
 	def test_spend_all_money(self):
 		tu.print_test_header("test spend all money")
 		self.player1.balance = 0
+		self.player1.deck = []
 		self.player1.hand = cp.HandPile(self.player1)
 		copper = crd.Copper(self.game, self.player1)
 		for i in range(0, 5):
@@ -85,6 +86,7 @@ class TestGame(unittest.TestCase):
 		self.assertTrue(self.player1.balance == 5)
 		self.assertTrue(len(self.player1.hand) == 0)
 		self.assertTrue(len(self.player1.played) == 5)
+		self.assertTrue(len([x for x in self.player1.all_cards() if x.title == "Copper"]) == 5)
 
 	def test_discard(self):
 		tu.print_test_header("test discard")

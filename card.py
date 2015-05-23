@@ -94,6 +94,9 @@ class Money(Card):
 			"value": self.value
 		}
 
+	def get_spend_all(self):
+		return self.spend_all
+
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-warning'>", self.title, "s</span>" if plural else "</span>"])
 
@@ -161,6 +164,20 @@ class Copper(Money):
 		self.price = 0
 		self.description = "+$1"
 
+	def play(self, skip=False):
+		Money.play(self, skip)
+		if "Grand Market" in self.game.supply and "Grand Market" not in self.played_by.banned:
+			self.played_by.banned.append("Grand Market")
+
+	def get_spend_all(self):
+		if "Grand Market" in self.game.supply:
+			#TODO check for potential balance with other treasures
+			if self.played_by.balance >=6:
+				return False
+			else:
+				return True
+		else:
+			return True
 
 class Silver(Money):
 	def __init__(self, game, played_by):
