@@ -171,8 +171,11 @@ class Copper(Money):
 
 	def get_spend_all(self):
 		if "Grand Market" in self.game.supply:
-			#TODO check for potential balance with other treasures
-			if self.played_by.balance >=6:
+			spend_all_treasures = [x for x in self.played_by.hand.get_cards_by_type("Treasure", True) if x.title != "Copper" and x.get_spend_all()]
+			potential_balance = 0
+			for x in spend_all_treasures:
+				potential_balance += x.value
+			if self.played_by.balance >=6 or potential_balance >=6:
 				return False
 			else:
 				return True

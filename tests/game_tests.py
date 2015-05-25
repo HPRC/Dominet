@@ -133,6 +133,5 @@ class TestGame(unittest.TestCase):
 		self.assertTrue(player3opponents[0] == self.player1)
 		self.assertTrue(player3opponents[1] == self.player2)
 
-
 if __name__ == '__main__':
 	unittest.main()

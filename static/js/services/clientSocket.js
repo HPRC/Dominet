@@ -1,5 +1,5 @@
 clientModule.factory('socket', function($rootScope){
-	var socket = new WebSocket("ws://" + window.location.hostname + "/ws");
+	var socket = new WebSocket("ws://" + window.location.host + "/ws");
 	socket.onopen = function(event){
 
 	};
