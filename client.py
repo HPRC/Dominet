@@ -16,7 +16,6 @@ class Client():
 		self.handler = handler
 		self.game = None
 		self.ready = False
-		self.disconnected = False
 		self.vp = 0
 
 	# called before players take their turns
@@ -156,6 +155,9 @@ class DmClient(Client):
 	# override
 	def exec_commands(self, data):
 		Client.exec_commands(self, data)
+		#if we reconnected and an old connection is sending input, ignore
+		if self.game is None:
+			return
 		cmd = data["command"]
 		print(self.name + " \033[94m" + json.dumps(data) + "\033[0m")
 		if cmd == "ready":

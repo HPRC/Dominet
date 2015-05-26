@@ -80,8 +80,6 @@ clientModule.controller("lobbyController", function($rootScope, $scope, $modal, 
         return table.supply_set
     };
 
-
-
 	$scope.openAdvGameModal = function () {
 		var modal = $modal.open({
 			templateUrl: '/static/js/directives/advGameModal.html',
@@ -111,9 +109,9 @@ clientModule.controller("lobbyController", function($rootScope, $scope, $modal, 
 			client.onmessage(event);
 		}
 		var exec = $scope[jsonres.command];
-			if (exec != undefined){
-				exec.call($scope,jsonres);
-			}
+		if (exec != undefined){
+			exec.call($scope, jsonres);
+		}
 
 		$scope.$digest();
 	});
