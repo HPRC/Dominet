@@ -21,6 +21,8 @@ class TestProsperity(unittest.TestCase):
 		self.player3 = c.DmClient("player3", 2, tu.PlayerHandler())
 		self.game = g.DmGame([self.player1, self.player2, self.player3], [], [])
 		self.game.supply = self.game.init_supply(kg.all_cards(self.game))
+		for x in self.game.supply.unique_cards():
+			self.game.price_modifier[x.title] = 0
 		for i in self.game.players:
 			i.game = self.game
 			i.setup()
@@ -430,12 +432,32 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.player1.last_mode["mode"] == "select")
 		tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.deck[-1].title == "Curse")
-		print(self.player1.last_mode)
 		self.assertTrue(self.player1.last_mode["mode"] == "buy")
 		tu.send_input(self.player1, "buyCard", "Silver")
 		tu.send_input(self.player1, "post_selection", ["No"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
 		self.assertTrue(self.player1.last_mode["mode"] == "buy")
+
+	def test_quarry(self):
+		tu.print_test_header("test Quarry")
+		quarry = prosperity.Quarry(self.game, self.player1)
+		bridge = intrigue.Bridge(self.game, self.player1)
+		self.player1.hand.add(bridge)
+		tu.add_many_to_hand(self.player1, quarry, 2)
+
+		bridge.play()
+		quarry.play()
+		self.assertTrue(self.game.card_from_title("Estate").get_price() == 1)
+		self.assertTrue(self.game.card_from_title("Village").get_price() == 0)
+		self.assertTrue(self.game.card_from_title("Laboratory").get_price() == 2)
+		quarry.play()
+		self.assertTrue(self.game.card_from_title("Laboratory").get_price() == 0)
+		self.assertTrue(self.player1.balance == 3)
+		self.assertTrue(self.player1.last_mode["mode"] == "buy")
+		tu.send_input(self.player1, "buyCard", "Laboratory")
+		self.assertTrue(self.player1.balance == 3)
+		self.player1.end_turn()
+		self.assertTrue(self.game.card_from_title("Laboratory").get_price() == 5)
 
 if __name__ == '__main__':
 	unittest.main()

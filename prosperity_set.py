@@ -246,6 +246,24 @@ class Talisman(crd.Money):
 		crd.Money.on_finished(self)
 
 
+class Quarry(crd.Money):
+	def __init__(self, game, played_by):
+		crd.Money.__init__(self, game, played_by)
+		self.title = "Quarry"
+		self.description = "$1.\nWhile this is in play, Action cards cost $2 less" \
+		                   " but not less than 0"
+		self.price = 4
+		self.value = 1
+		self.type = "Treasure"
+		self.spend_all = False
+
+	def play(self, skip=False):
+		crd.Money.play(self, skip)
+		for x in self.game.price_modifier.keys():
+			if "Action" in self.game.card_from_title(x).type:
+				self.game.price_modifier[x] -= 2
+		self.game.update_all_prices()
+		crd.Money.on_finished(self)
 # --------------------------------------------------------
 # ------------------------ 5 Cost ------------------------
 # --------------------------------------------------------
@@ -836,4 +854,5 @@ class Forge(crd.Card):
 # --------------------------------------------------------
 # ------------------------ 8 Cost ------------------------
 # --------------------------------------------------------
+
 

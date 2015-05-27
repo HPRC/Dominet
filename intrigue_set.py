@@ -441,7 +441,8 @@ class Bridge(crd.Card):
 		crd.Card.play(self, skip)
 		self.played_by.buys += 1
 		self.played_by.balance += 1
-		self.game.price_modifier -= 1
+		for i in self.game.supply.unique_cards():
+			self.game.price_modifier[i.title] -= 1
 		self.game.update_all_prices()
 		self.game.announce("-- gaining 1 buy, $1")
 		crd.Card.on_finished(self, False, True)

@@ -18,7 +18,7 @@ class Card():
 
 
 	def get_price(self):
-		return 0 if self.price + self.game.price_modifier < 0 else self.price + self.game.price_modifier
+		return 0 if self.price + self.game.price_modifier[self.title] < 0 else self.price + self.game.price_modifier[self.title]
 
 	# called at the end of a card's resolution
 	def on_finished(self, modified_hand=True, modified_resources=True, waiting_cleanup=True):
@@ -281,6 +281,8 @@ class Colony(VictoryCard):
 		self.price = 11
 		self.vp = 10
 
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-success'>", "Colonies</span>" if plural else self.title, "</span>"])
 
 # Utility
 # returns list of card titles from list of card jsons or card objects

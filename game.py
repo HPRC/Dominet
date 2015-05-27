@@ -117,7 +117,10 @@ class DmGame(Game):
 		self.supply = cp.CardPile()
 		self.supply.combine(self.base_supply)
 		self.supply.combine(self.kingdom)
-		self.price_modifier = 0
+		#dictionary of card title => price modifier for that card
+		self.price_modifier = {}
+		for x in self.supply.unique_cards():
+			self.price_modifier[x.title] = 0
 
 	# override
 	def start_game(self):
@@ -128,6 +131,7 @@ class DmGame(Game):
 		for i in self.players:
 			i.write_json(command="kingdomCards", data=json.dumps(self.kingdom.to_json()))
 			i.write_json(command="baseCards", data=json.dumps(self.base_supply.to_json()))
+		self.update_all_prices()
 
 	def remove_from_supply(self, card_title):
 		if card_title in self.kingdom:
@@ -142,6 +146,11 @@ class DmGame(Game):
 	def update_all_prices(self):
 		for i in self.players:
 			i.write_json(command="updateAllPrices", modifier=self.price_modifier)
+
+	def reset_prices(self):
+		for card in self.supply.unique_cards():
+			self.price_modifier[card.title] = 0
+		self.update_all_prices()
 
 	def init_supply(self, cards):
 		supply = cp.CardPile()

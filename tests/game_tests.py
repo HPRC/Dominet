@@ -34,6 +34,8 @@ class TestGame(unittest.TestCase):
 		for i in self.game.players:
 			i.game = self.game
 			i.setup()
+		for x in self.game.supply.unique_cards():
+			self.game.price_modifier[x.title] = 0
 
 	def test_initial_decks(self):
 		tu.print_test_header("test initial decks")

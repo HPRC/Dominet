@@ -34,7 +34,7 @@ clientModule.factory('client', function(socket, favicon) {
 		this.discardSize = 0;
 		//mode overidden by turn
 		this.modeJson = {"mode":"action"}; //.mode = action, buy, select, gain, wait, gameover
-		this.priceModifier = 0;
+		this.priceModifier = {};
 		this.gameLogs = "";
 
 	};
@@ -147,10 +147,10 @@ clientModule.factory('client', function(socket, favicon) {
 	};
 
 	constructor.prototype.buyCard = function(card){
-		if (this.balance >= card.price + this.priceModifier){
+		if (this.balance >= card.price + this.priceModifier[card.title]){
 			this.buys -= 1;
-			if (card.price + this.priceModifier > 0){
-				this.balance -= card.price + this.priceModifier;
+			if (card.price + this.priceModifier[card.title] > 0){
+				this.balance -= card.price + this.priceModifier[card.title];
 			}
 			socket.send(JSON.stringify({"command":"buyCard", "card": card.title}));
 		}

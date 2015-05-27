@@ -21,6 +21,8 @@ class TestCard(unittest.TestCase):
 		#hard code order of players so that random turn order doesn't interfere with tests
 		self.game.players = [self.player1, self.player2, self.player3]
 		self.game.supply = self.game.init_supply(kg.all_cards(self.game))
+		for x in self.game.supply.unique_cards():
+			self.game.price_modifier[x.title] = 0
 		for i in self.game.players:
 			i.game = self.game
 			i.setup()

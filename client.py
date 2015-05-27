@@ -167,8 +167,7 @@ class DmClient(Client):
 				self.game.start_game()
 			elif self.game.players_ready():
 				self.game.load_supplies()
-				if self.game.price_modifier != 0:
-					self.game.update_all_prices()
+				self.game.update_all_prices()
 				self.resume()
 		elif cmd == "play":
 			if not data["card"] in self.hand:
@@ -231,9 +230,7 @@ class DmClient(Client):
 		self.bought_cards = False
 		self.banned = []
 		self.draw(self.hand_size)
-		if self.game.price_modifier != 0:
-			self.game.price_modifier = 0
-			self.game.update_all_prices()
+		self.game.reset_prices()
 		self.update_hand()
 		self.update_discard_size()
 		self.update_deck_size()

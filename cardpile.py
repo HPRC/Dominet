@@ -32,6 +32,9 @@ class CardPile():
 	def get_card(self, card_title):
 		return self.data[card_title][0]
 
+	def unique_cards(self):
+		return list(set(self.card_array()))
+
 	def card_array(self):
 		arr = []
 		for title, lst in self.data.items():

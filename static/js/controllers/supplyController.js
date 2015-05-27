@@ -63,10 +63,10 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 	};
 
 	$scope.getPrice = function(card){
-		if (card.price + client.getPriceModifier() <= 0){
+		if (card.price + client.getPriceModifier()[card.title] <= 0){
 			return 0;	
 		} else {
-			return card.price + client.getPriceModifier();
+			return card.price + client.getPriceModifier()[card.title];
 		}
 	};
 
