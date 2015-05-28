@@ -423,8 +423,10 @@ class TestProsperity(unittest.TestCase):
 		copper = crd.Copper(self.game, self.player1)
 		self.player1.hand.add(royal_seal)
 		self.player1.hand.add(copper)
-		self.player1.hand.add(workers_village)
+		tu.add_many_to_hand(self.player1, workers_village, 3)
 
+		workers_village.play()
+		workers_village.play()
 		workers_village.play()
 
 		royal_seal.play()
@@ -434,8 +436,11 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.player1.deck[-1].title == "Curse")
 		self.assertTrue(self.player1.last_mode["mode"] == "buy")
 		tu.send_input(self.player1, "buyCard", "Silver")
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
 		tu.send_input(self.player1, "post_selection", ["No"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
+		self.assertTrue(self.player1.last_mode["mode"] == "buy")
+		tu.send_input(self.player1, "buyCard", "Mint")
 		self.assertTrue(self.player1.last_mode["mode"] == "buy")
 
 	def test_quarry(self):

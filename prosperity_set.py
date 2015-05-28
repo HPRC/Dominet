@@ -264,6 +264,11 @@ class Quarry(crd.Money):
 				self.game.price_modifier[x] -= 2
 		self.game.update_all_prices()
 		crd.Money.on_finished(self)
+
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-warning'>", "Quarries</span>" if plural else self.title + "</span>"])
+
+
 # --------------------------------------------------------
 # ------------------------ 5 Cost ------------------------
 # --------------------------------------------------------
@@ -501,6 +506,7 @@ class Rabble(crd.AttackCard):
 					for at in action_treasure_cards:
 						player.discard_pile.append(at)
 					player.update_deck_size()
+					player.update_discard_size()
 
 				cards_left = [x for x in revealed if "Action" not in x.type and "Treasure" not in x.type]
 				crd.reorder_top(player, cards_left, self.finish)

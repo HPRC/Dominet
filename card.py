@@ -175,7 +175,7 @@ class Copper(Money):
 			potential_balance = 0
 			for x in spend_all_treasures:
 				potential_balance += x.value
-			if self.played_by.balance >=6 or potential_balance >=6:
+			if self.played_by.balance >=6 or potential_balance + self.played_by.balance >=6:
 				return False
 			else:
 				return True
