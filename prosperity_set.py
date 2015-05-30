@@ -591,7 +591,7 @@ class Vault(crd.Card):
 			player.waiting["on"].append(player)
 			player.waiting["cb"] = discard_select_cb
 		elif len(self.played_by.waiting["on"]) == 0:
-			crd.Card.on_finished(self, False, False)
+			crd.Card.on_finished(self, False, True)
 
 	def discard_select(self, selection, player):
 		player.discard(selection, player.discard_pile)
@@ -861,4 +861,24 @@ class Forge(crd.Card):
 # ------------------------ 8 Cost ------------------------
 # --------------------------------------------------------
 
+class Peddler(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Peddler"
+		self.description = "+1 Card, +1 Action, +$1\n" \
+		                   "During your Buy phase, this costs $2 less for each action card in play (not less than $0)"
+		self.price = 8
+		self.type = "Action"
 
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.balance += 1
+		drawn = self.played_by.draw(1)
+		self.game.announce("-- drawing " + drawn)
+		self.played_by.actions += 1
+		crd.Card.on_finished(self)
+
+	#called when the buy phase begins
+	def on_buy_phase(self):
+		modifier = self.game.get_turn_owner().played_actions * -2
+		self.game.price_modifier[self.title] = modifier

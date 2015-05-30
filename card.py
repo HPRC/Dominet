@@ -40,14 +40,10 @@ class Card():
 		}
 
 	# called at the end of turn if this card was played
-	# returns True if we add card to discard pile, False otherwise
 	def cleanup(self):
-		return True
+		pass
 
-	def log_string(self, plural=False):
-		return "".join(["<span class='label label-default'>", self.title, "s</span>" if plural else "</span>"])
-
-	#called when you buy a this card 
+	#called when you buy this card 
 	def on_buy(self):
 		pass
 
@@ -66,6 +62,10 @@ class Card():
 	#called after card finishes resolving and is put into the played pile
 	def done(self):
 		pass
+
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-default'>", self.title, "s</span>" if plural else "</span>"])
+
 
 
 class Money(Card):

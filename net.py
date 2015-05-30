@@ -197,8 +197,8 @@ class DmHandler(GameHandler):
 			for p in each_game.players:
 				if self.client.name == p.name:
 					p.handler.disconnected = False
-					p.resume_state(self.client)
 					self.client.game = p.game
+					p.resume_state(self.client)
 					#clear game of old connection
 					p.game = None
 					# update game players

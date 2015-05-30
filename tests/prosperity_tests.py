@@ -464,5 +464,23 @@ class TestProsperity(unittest.TestCase):
 		self.player1.end_turn()
 		self.assertTrue(self.game.card_from_title("Laboratory").get_price() == 5)
 
+	def test_Peddler(self):
+		tu.print_test_header("test Peddler")
+		village = base.Village(self.game, self.player1)
+		copper = crd.Copper(self.game, self.player1)
+		self.player1.hand.add(copper)
+		tu.add_many_to_hand(self.player1, village, 5)
+
+		village.play()
+		self.assertTrue(self.game.price_modifier["Peddler"] == 0)
+		village.play()
+		village.play()
+		village.play()
+		village.play()
+		copper.play()
+		self.assertTrue(self.game.price_modifier["Peddler"] == -10)
+		self.assertTrue(self.game.card_from_title("Peddler").get_price() == 0)
+
+
 if __name__ == '__main__':
 	unittest.main()

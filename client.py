@@ -172,7 +172,8 @@ class DmClient(Client):
 		elif cmd == "play":
 			if not data["card"] in self.hand:
 				print("Error " + data["card"] + " not in " + self.hand)
-			self.hand.play(data["card"])
+			else:
+				self.hand.play(data["card"])
 		elif cmd == "discard":
 			self.discard(data["cards"], self.discard_pile)
 		elif cmd == "endTurn":
@@ -284,12 +285,18 @@ class DmClient(Client):
 		played_money = [x for x in self.played if "Treasure" in x.type]
 		# if we have no actions or no action cards and no money cards, buy mode
 		if (len(self.hand.get_cards_by_type("Action")) == 0 or self.actions == 0) and len(self.hand.get_cards_by_type("Treasure")) == 0:
-			self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards, banned=self.banned)
+			self.update_mode_buy_phase()
 		else:
 			if not played_money and self.actions > 0 and len(self.hand.get_cards_by_type("Action")) != 0:
 				self.write_json(command="updateMode", mode="action")
 			else:
-				self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards, banned=self.banned)
+				self.update_mode_buy_phase()
+
+	def update_mode_buy_phase(self):
+		self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards, banned=self.banned)
+		if "Peddler" in self.game.supply:
+			self.game.card_from_title("Peddler").on_buy_phase()
+			self.game.update_all_prices()
 
 	def update_deck_size(self):
 		self.write_json(command="updateDeckSize", size=len(self.deck))
@@ -336,7 +343,7 @@ class DmClient(Client):
 
 	def update_resources(self, playedMoney=False):
 		if playedMoney:
-			self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards, banned=self.banned)
+			self.update_mode_buy_phase()
 		self.write_json(command="updateResources", actions=self.actions, buys=self.buys, balance=self.balance)
 
 	def total_deck_size(self):
@@ -384,7 +391,7 @@ class DmClient(Client):
 				self.update_resources(True)
 			self.update_hand()
 		else:
-			self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards, banned=self.banned)
+			self.update_mode_buy_phase()
 
 	def total_vp(self, returnCards=False):
 		total = 0
