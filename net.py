@@ -103,7 +103,6 @@ class GameHandler(websocket.WebSocketHandler):
 		GameHandler.update_lobby()
 		GameHandler.announce_lobby(" and ".join(list(map(lambda x: x.name, table.players))) + " started a game.")
 
-
 	def chat(self, msg, speaker):
 		for name, p in GameHandler.unattachedClients.items():
 			p.write_json(command="chat", msg=msg, speaker=speaker)
@@ -177,7 +176,7 @@ class GameHandler(websocket.WebSocketHandler):
 
 	def announce_lobby(msg):
 		for name, p in GameHandler.unattachedClients.items():
-			p.write_json(command="announce", msg= msg)
+			p.write_json(command="chat", msg=msg)
 
 	def on_close(self):
 		self.disconnected = True

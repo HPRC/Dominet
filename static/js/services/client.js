@@ -52,7 +52,7 @@ clientModule.factory('client', function(socket, favicon) {
 	constructor.prototype.kingdomCards = function(json){
 		var kingdomArray = JSON.parse(json.data);
 		for (var i=0; i< kingdomArray.length; i++) {
-			this.kingdom[kingdomArray[i].title] = kingdomArray[i];			
+			this.kingdom[kingdomArray[i].title] = kingdomArray[i];		
 		}
 	};
 
@@ -111,7 +111,7 @@ clientModule.factory('client', function(socket, favicon) {
 	constructor.prototype.updateSpendable = function (){
 		this.spendableMoney = 0;
 		for (var i=0; i<this.hand.length; i++){
-			if (this.hand[i].type.indexOf("Treasure") > -1){
+			if (this.hand[i].type.indexOf("Treasure") > -1 && this.hand[i].spend_all === true){
 				this.spendableMoney += this.hand[i].value;
 			}
 		}

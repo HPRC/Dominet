@@ -91,7 +91,8 @@ class Money(Card):
 			"type": self.type,
 			"description": self.description,
 			"price": self.price,
-			"value": self.value
+			"value": self.value,
+			"spend_all": self.get_spend_all()
 		}
 
 	def get_spend_all(self):
@@ -168,9 +169,10 @@ class Copper(Money):
 		Money.play(self, skip)
 		if "Grand Market" in self.game.supply and "Grand Market" not in self.played_by.banned:
 			self.played_by.banned.append("Grand Market")
+			self.played_by.update_mode_buy_phase()
 
 	def get_spend_all(self):
-		if "Grand Market" in self.game.supply:
+		if "Grand Market" in self.game.supply and self.played_by is not None:
 			spend_all_treasures = [x for x in self.played_by.hand.get_cards_by_type("Treasure", True) if x.title != "Copper" and x.get_spend_all()]
 			potential_balance = 0
 			for x in spend_all_treasures:

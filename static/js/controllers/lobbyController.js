@@ -30,11 +30,13 @@ clientModule.controller("lobbyController", function($rootScope, $scope, $modal, 
 	};
 
 	$scope.joinTable = function(table){
-		$scope.atTable = true;
-		socket.send(JSON.stringify({
-			"command": "joinTable",
-			"host": table.host
-		}));
+		if (table.players.length < table.seats){
+			$scope.atTable = true;
+			socket.send(JSON.stringify({
+				"command": "joinTable",
+				"host": table.host
+			}));
+		}
 	};
 
 	$scope.leaveTable = function(table){
