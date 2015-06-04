@@ -1,4 +1,4 @@
-clientModule.controller("clientController", function($rootScope, $scope, socket, client, $sce, $timeout){
+clientModule.controller("clientController", function($rootScope, $scope, socket, client, favicon, $sce, $timeout){
 	client.initGameProperties();
 	$scope.c = client;
 	$scope.hand = client.getHand();
@@ -49,6 +49,7 @@ clientModule.controller("clientController", function($rootScope, $scope, socket,
 	$scope.returnLobby = function(){
 		$scope.main.game = false;
 		socket.send(JSON.stringify({"command": "returnToLobby"}));
+		favicon.stopAlert();
 	};
 
 	$scope.renderHtml = function(html){

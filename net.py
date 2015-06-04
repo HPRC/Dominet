@@ -97,9 +97,15 @@ class GameHandler(websocket.WebSocketHandler):
 			i.game = game
 		GameHandler.games.append(game)
 		for x in table.players:
-			del GameHandler.unattachedClients[x.name]
+			try:
+				del GameHandler.unattachedClients[x.name]
+			except ValueError:
+				print("Error tried removing " + x.name + " from unattachedClients list")
 			x.handler.table = None
-		del GameHandler.game_tables[table.host.name]
+		try:
+			del GameHandler.game_tables[table.host.name]
+		except ValueError:
+			print("Error tried removing " + table.host.name + "'s table from game_tables list")
 		GameHandler.update_lobby()
 		GameHandler.announce_lobby(" and ".join(list(map(lambda x: x.name, table.players))) + " started a game.")
 
