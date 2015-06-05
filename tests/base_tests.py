@@ -169,8 +169,9 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(len(self.player1.discard_pile) == 1)
 		decksize = len(self.player1.deck)
 		tu.send_input(self.player1, "post_selection", ["Yes"])
-		self.assertTrue(len(self.player1.discard_pile) == 0)
-		self.assertTrue(len(self.player1.deck) == decksize + 1)
+
+		self.assertTrue(len(self.player1.discard_pile) == decksize + 1)
+		self.assertTrue(len(self.player1.deck) == 0)
 
 	def test_Adventurer(self):
 		tu.print_test_header("test Adventurer")

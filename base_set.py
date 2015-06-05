@@ -206,10 +206,10 @@ class Bureaucrat(crd.AttackCard):
 	def attack(self):
 		for i in self.played_by.get_opponents():
 			if not crd.AttackCard.is_blocked(self, i):
-				i_victory_cards = list(set(i.hand.get_cards_by_type("Victory")))
+				i_victory_cards = i.hand.get_cards_by_type("Victory")
 				if len(i_victory_cards) == 0:
 					self.game.announce(i.name_string() + " has no Victory cards & reveals " + i.hand.reveal_string())
-				elif len(i_victory_cards) == 1:
+				elif len(set(map(lambda x: x.title, i_victory_cards))) == 1:
 					self.game.announce(i.name_string() + " puts " + i_victory_cards[0].log_string() + " back on top of the deck")
 					i.discard([i_victory_cards[0].title], i.deck)
 					i.update_hand()

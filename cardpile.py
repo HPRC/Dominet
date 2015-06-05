@@ -165,8 +165,10 @@ class HandPile():
 		for title, lst in self.data.items():
 			card = lst[0]
 			count = len(lst)
-			h.append(str(count))
-			h.append(card.log_string(True)) if count > 1 else h.append(card.log_string())
+			cardstr = str(count)
+			logstr = card.log_string(True) if count > 1 else card.log_string()
+			cardstr += " " + logstr
+			h.append(cardstr)
 		return ", ".join(h)
 
 	# returns list of cards of given type
