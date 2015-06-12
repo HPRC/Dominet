@@ -28,6 +28,11 @@ class Watchtower(crd.Card):
 
 	def react(self, reacted_to_callback, to_gain):
 		self.reacted_to_callback = reacted_to_callback
+		turn_owner = self.game.get_turn_owner()
+		if self.played_by != turn_owner:
+			turn_owner.wait("Waiting for other players to react")
+			#need to add two because we have two choices to make and don't want to preemptively update wait
+			turn_owner.waiting["on"] += [self.played_by, self.played_by]
 
 		self.played_by.select(1, 1, ["Reveal", "Hide"],  
 			"Reveal " + self.title + " to trash " + to_gain.title + " or put it on top of deck?")
@@ -42,6 +47,8 @@ class Watchtower(crd.Card):
 			self.played_by.waiting["on"].append(self.played_by)
 			self.played_by.waiting["cb"] = self.trash_or_gain
 		else:
+			#clear 2nd wait since we selected hide
+			self.played_by.update_wait()
 			temp = self.reacted_to_callback
 			self.reacted_to_callback = None
 			temp()
@@ -399,8 +406,7 @@ class Mint(crd.Card):
 
 	def reveal(self, selection):
 		self.game.announce("-- revealing " + self.game.log_string_from_title(selection[0]) + " gaining a copy of it.")
-		self.played_by.gain(selection[0])
-		crd.Card.on_finished(self, False, False)
+		self.played_by.gain(selection[0], done_gaining=lambda : crd.Card.on_finished(self, False, False))
 
 	def on_buy(self):
 		trashed_treasures = list()
@@ -443,11 +449,10 @@ class Mountebank(crd.AttackCard):
 				self.played_by.wait("Waiting for other players to choose")
 				player.waiting["on"].append(player)
 				player.waiting["cb"] = post_select_on
-
 			else:
-				player.gain("Copper")
-				player.gain("Curse")
-				crd.AttackCard.get_next(self, player)
+				player.gain("Curse", done_gaining=
+					lambda : player.gain("Copper", done_gaining=
+						lambda : crd.AttackCard.get_next(self, player)))
 
 	def post_select(self, selection, player):
 		if selection[0] == "Yes":
@@ -455,11 +460,11 @@ class Mountebank(crd.AttackCard):
 			player.update_hand()
 			player.discard_pile.append(curse)
 			self.game.announce("-- " + player.name_string() + " discards a " + curse.log_string())
+			crd.AttackCard.get_next(self, player)
 		else:
-			player.gain("Copper")
-			player.gain("Curse")
-
-		crd.AttackCard.get_next(self, player)
+			player.gain("Curse", done_gaining=
+				lambda : player.gain("Copper", done_gaining=
+					lambda : crd.AttackCard.get_next(self, player)))
 
 
 class Rabble(crd.AttackCard):
@@ -601,7 +606,7 @@ class Vault(crd.Card):
 			player.update_hand()
 		self.game.announce(player.name_string() + " discards " + str(len(selection)) + " cards and draws " + drawn)
 		if len(self.played_by.waiting["on"]) == 0:
-			crd.Card.on_finished(self, False, False)
+			crd.Card.on_finished(self)
 
 class Venture(crd.Money):
 	def __init__(self, game, played_by):
@@ -682,9 +687,8 @@ class Hoard(crd.Money):
 
 	def on_buy_effect(self, purchased_card):
 		if "Victory" in purchased_card.type:
-			self.played_by.gain("Gold", True, True)
-			gold = self.played_by.get_card_from_supply("Gold", False)
-			self.game.announce("-- gaining a " + gold.log_string())
+			self.played_by.gain("Gold", True, True, done_gaining= lambda : 
+				self.game.announce("-- gaining a " + self.played_by.get_card_from_supply("Gold", False).log_string()))
 		crd.Money.on_finished(self)
 
 class Grand_Market(crd.Card):
@@ -760,8 +764,7 @@ class Expand(crd.Card):
 		self.played_by.update_hand()
 
 	def post_gain(self, selected):
-		self.played_by.gain(selected[0])
-		crd.Card.on_finished(self, False, False)
+		self.played_by.gain(selected[0], done_gaining=lambda : crd.Card.on_finished(self, False, False))
 
 class Kings_Court(crd.Card):
 	def __init__(self, game, played_by):
@@ -853,8 +856,7 @@ class Forge(crd.Card):
 			crd.Card.on_finished(self)
 
 	def gain_select(self, selection):
-		self.played_by.gain(selection[0])
-		crd.Card.on_finished(self)
+		self.played_by.gain(selection[0], done_gaining=lambda : crd.Card.on_finished(self))
 
 
 # --------------------------------------------------------

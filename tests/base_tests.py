@@ -147,6 +147,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.player1.discard_pile[-1].title == "Copper")
 		thief_card.play()
 
+
 	def test_Gardens(self):
 		tu.print_test_header("test Gardens")
 		gardens = base.Gardens(self.game, self.player1)

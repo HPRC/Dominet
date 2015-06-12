@@ -355,9 +355,7 @@ class Swindler(crd.AttackCard):
 				crd.AttackCard.get_next(self, player)
 
 	def post_select(self, selection, victim):
-		victim.gain(selection[0])
-		crd.AttackCard.get_next(self, victim)
-
+		victim.gain(selection[0], done_gaining= lambda : crd.AttackCard.get_next(self, victim))
 
 class Wishing_Well(crd.Card):
 	def __init__(self, game, played_by):
@@ -416,8 +414,7 @@ class Baron(crd.Card):
 			self.played_by.waiting["cb"] = self.post_select
 
 		else:
-			self.played_by.gain("Estate")
-			crd.Card.on_finished(self, False)
+			self.played_by.gain("Estate", done_gaining=lambda : crd.Card.on_finished(self, False))
 
 	def post_select(self, selection):
 		if "Yes" in selection:
@@ -425,7 +422,7 @@ class Baron(crd.Card):
 			self.game.announce("-- discarding an " + self.played_by.hand.data['Estate'][0].log_string() + " and gaining +$4 ")
 			self.played_by.discard(["Estate"], self.played_by.discard_pile)
 		else:
-			self.played_by.gain("Estate")
+			self.played_by.gain("Estate", done_gaining=lambda : crd.Card.on_finished(self))
 		crd.Card.on_finished(self)
 
 
@@ -509,20 +506,23 @@ class Ironworks(crd.Card):
 
 	def post_select(self, selection):
 		card = self.game.card_from_title(selection[0])
-		self.played_by.gain(selection[0], True)
-		effects = []
-		if "Action" in card.type:
-			self.played_by.actions += 1
-			effects.append("gaining 1 action")
-		if "Treasure" in card.type:
-			self.played_by.balance += 1
-			effects.append("gaining +$1")
-		if "Victory" in card.type:
-			drawn = self.played_by.draw(1)
-			effects.append("drawing " + drawn)
-		if not card.type == "Curse":
-			self.game.announce("-- " + " and ".join(effects))
-		crd.Card.on_finished(self)
+		
+		def post_gain(card= card):
+			effects = []
+			if "Action" in card.type:
+				self.played_by.actions += 1
+				effects.append("gaining 1 action")
+			if "Treasure" in card.type:
+				self.played_by.balance += 1
+				effects.append("gaining +$1")
+			if "Victory" in card.type:
+				drawn = self.played_by.draw(1)
+				effects.append("drawing " + drawn)
+			if not card.type == "Curse":
+				self.game.announce("-- " + " and ".join(effects))
+			crd.Card.on_finished(self)
+
+		self.played_by.gain(selection[0], True, done_gaining=lambda : post_gain)
 
 
 class Mining_Village(crd.Card):
@@ -697,9 +697,7 @@ class Torturer(crd.AttackCard):
 		if selection[0] == 'Gain a Curse':
 			# we call update_wait manually to update the torturer and override the second wait
 			victim.update_wait()
-			victim.gain_to_hand('Curse')
-			victim.update_hand()
-			crd.AttackCard.get_next(self, victim)
+			victim.gain_to_hand('Curse', done_gaining= lambda : crd.AttackCard.get_next(self, victim))
 		else:
 			discard_selection = victim.hand.auto_select(2, True)
 			if discard_selection:
@@ -811,9 +809,7 @@ class Upgrade(crd.Card):
 			crd.Card.on_finished(self)
 
 	def post_select(self, selection):
-		self.played_by.gain(selection[0])
-		crd.Card.on_finished(self)
-
+		self.played_by.gain(selection[0], done_gaining=lambda : crd.Card.on_finished(self))
 
 class Saboteur(crd.AttackCard):
 	def __init__(self, game, played_by):
@@ -864,11 +860,11 @@ class Saboteur(crd.AttackCard):
 
 	def post_select(self, selection, victim):
 		if selection[0] != "None":
-			victim.gain(selection[0])
+			victim.gain(selection[0], done_gaining=lambda : crd.AttackCard.get_next(self, victim))
 		else:
 			self.game.announce("-- " + victim.name_string() + " gains nothing")
-
-		crd.AttackCard.get_next(self, victim)
+			crd.AttackCard.get_next(self, victim)
+		
 
 
 class Trading_Post(crd.Card):
@@ -899,10 +895,9 @@ class Trading_Post(crd.Card):
 			self.played_by.discard(selection, self.game.trash_pile)
 
 		if len(selection) >= 2:
-			self.played_by.gain_to_hand("Silver")
-
-		crd.Card.on_finished(self)
-
+			self.played_by.gain_to_hand("Silver", done_gaining=lambda : crd.Card.on_finished(self))
+		else:
+			crd.Card.on_finished(self)
 
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------

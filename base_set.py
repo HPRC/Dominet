@@ -179,8 +179,8 @@ class Workshop(crd.Card):
 			crd.Card.on_finished(self, False, False)
 
 	def post_gain(self, selected):
-		self.played_by.gain(selected[0])
-		crd.Card.on_finished(self, False, False)
+		self.played_by.gain(selected[0], done_gaining=lambda : crd.Card.on_finished(self, False, False))
+		
 
 
 # --------------------------------------------------------
@@ -257,8 +257,8 @@ class Feast(crd.Card):
 			crd.Card.on_finished(self, False, False)
 
 	def post_gain(self, selected):
-		self.played_by.gain(selected[0])
-		crd.Card.on_finished(self, False, False)
+		self.played_by.gain(selected[0], done_gaining=lambda : crd.Card.on_finished(self, False, False))
+		
 
 
 class Gardens(crd.VictoryCard):
@@ -348,8 +348,8 @@ class Remodel(crd.Card):
 			crd.Card.on_finished(self, False, False)
 
 	def post_gain(self, selected):
-		self.played_by.gain(selected[0])
-		crd.Card.on_finished(self, False, False)
+		self.played_by.gain(selected[0], done_gaining=lambda : crd.Card.on_finished(self, False, False))
+
 
 
 class Spy(crd.AttackCard):
@@ -481,9 +481,10 @@ class Thief(crd.AttackCard):
 	def post_select_gain(self, selection, thieved, card):
 		if selection[0] == "Yes":
 			self.game.trash_pile.pop()
-			self.played_by.gain(card, False)
 			self.game.update_trash_pile()
-		crd.AttackCard.get_next(self, thieved)
+			self.played_by.gain(card, False, done_gaining=lambda : crd.AttackCard.get_next(self, thieved))
+		else:
+			crd.AttackCard.get_next(self, thieved)
 
 	def post_select_trash(self, selection, thieved, cards):
 		card_to_trash = [x for x in cards if selection[0] == x.title][0]
@@ -718,10 +719,7 @@ class Mine(crd.Card):
 			crd.Card.on_finished(self, False, False)
 
 	def post_gain(self, selected_cards):
-		self.played_by.gain(selected_cards[0])
-		gained_card = self.played_by.discard_pile.pop()
-		self.played_by.hand.add(gained_card)
-		crd.Card.on_finished(self)
+		self.played_by.gain_to_hand(selected_cards[0], done_gaining= lambda : crd.Card.on_finished(self))
 
 
 class Witch(crd.AttackCard):
@@ -740,10 +738,15 @@ class Witch(crd.AttackCard):
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	def attack(self):
+		num_attacked = 0
 		for i in self.played_by.get_opponents():
 			if not crd.AttackCard.is_blocked(self, i):
-				i.gain("Curse")
-		crd.Card.on_finished(self, False, False)
+				num_attacked += 1
+				i.gain("Curse", done_gaining=lambda x=num_attacked: self.curse_finished(x-1))
+
+	def curse_finished(self, count):
+		if count == 0:
+			crd.Card.on_finished(self, False, False)
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-danger'>", self.title, "es</span>" if plural else "</span>"])

@@ -312,23 +312,30 @@ class DmClient(Client):
 		new_card = type(self.game.card_from_title(card))(self.game, self)
 		return new_card
 
-	def gain(self, card, from_supply=True, suppress_announcement=False):
+	def gain(self, card, from_supply=True, suppress_announcement=False, done_gaining=lambda : None):
 		new_card = self.get_card_from_supply(card, from_supply)
 		if new_card is not None:
 			if not suppress_announcement:
 				self.game.announce(self.name_string() + " gains " + new_card.log_string())
 			self.discard_pile.append(new_card)
 			self.update_discard_size()
-			self.hand.do_reactions("Gain", lambda : None, new_card)
+			self.hand.do_reactions("Gain", done_gaining, new_card)
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 
-	def gain_to_hand(self, card, from_supply=True):
+	def gain_to_hand(self, card, from_supply=True, done_gaining=lambda : None):
 		new_card = self.get_card_from_supply(card, from_supply)
 		if new_card is not None:
 			self.game.announce(self.name_string() + " gains " + new_card.log_string() + " to their hand.")
-			self.hand.add(new_card)
-			self.update_hand()
+			#add to discard first for reactions so that they can access and manipulate the new card from discard
+			self.discard_pile.append(new_card)
+			def done_react():
+				#if the gained card is still in discard pile, then we can remove and add to hand
+				if self.discard_pile and new_card == self.discard_pile[-1]:
+					self.hand.add(self.discard_pile.pop())
+					self.update_hand()
+				done_gaining()
+			self.hand.do_reactions("Gain", done_react, new_card)
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 
