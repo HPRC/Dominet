@@ -25,6 +25,7 @@ clientModule.factory('client', function(socket, favicon) {
 		this.kingdom = {};
 		this.baseSupply = {};
 		this.gameTrash = "";
+		this.gameMat = {};
 		this.actions = 0;
 		this.buys = 0;
 		this.balance = 0;
@@ -189,6 +190,10 @@ clientModule.factory('client', function(socket, favicon) {
 		this.gameTrash = json.trash;
 	};
 
+	constructor.prototype.updateMat = function(json){
+		this.gameMat = json.mat;
+	};
+
 	constructor.prototype.getHand = function(){
 		return this.hand;
 	};
@@ -239,6 +244,10 @@ clientModule.factory('client', function(socket, favicon) {
 
 	constructor.prototype.getDiscardSize = function(){
 		return this.discardSize;
+	};
+
+	constructor.prototype.getGameMat = function(){
+		return this.gameMat;
 	};
 
 	constructor.prototype.getGameTrash = function(){

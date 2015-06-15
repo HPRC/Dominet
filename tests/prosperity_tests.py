@@ -20,7 +20,10 @@ class TestProsperity(unittest.TestCase):
 		self.player2 = c.DmClient("player2", 1, tu.PlayerHandler())
 		self.player3 = c.DmClient("player3", 2, tu.PlayerHandler())
 		self.game = g.DmGame([self.player1, self.player2, self.player3], [], [])
+		#todo use game initialization setup
 		self.game.supply = self.game.init_supply(kg.all_cards(self.game))
+		for x in self.game.supply.unique_cards():
+			x.on_supply_init()
 		for x in self.game.supply.unique_cards():
 			self.game.price_modifier[x.title] = 0
 		for i in self.game.players:
@@ -169,8 +172,9 @@ class TestProsperity(unittest.TestCase):
 		tu.send_input(self.player2, "post_selection", ["Yes"])
 
 		self.assertTrue(self.player2.discard_pile[0].title == "Curse")
-		self.assertTrue(self.player3.discard_pile[0].title == "Copper")
-		self.assertTrue(self.player3.discard_pile[1].title == "Curse")
+		#curse is gained first then copper
+		self.assertTrue(self.player3.discard_pile[0].title == "Curse")
+		self.assertTrue(self.player3.discard_pile[1].title == "Copper")
 
 	def test_Bishop(self):
 		tu.print_test_header("test Bishop")
@@ -480,6 +484,32 @@ class TestProsperity(unittest.TestCase):
 		copper.play()
 		self.assertTrue(self.game.price_modifier["Peddler"] == -10)
 		self.assertTrue(self.game.card_from_title("Peddler").get_price() == 0)
+
+	def test_Trade_Route(self):
+		'''
+		This fails currently because our tests are not isolated games and other tests can affect the current state
+		'''
+		tu.print_test_header("test Trade Route")
+		trade_route = prosperity.Trade_Route(self.game, self.player1)
+		copper = crd.Copper(self.game, self.player1)
+		tu.set_player_hand(self.player1, [trade_route, copper, copper, copper, copper])
+		trade_route2 = prosperity.Trade_Route(self.game, self.player2)
+		self.player2.hand.add(trade_route2)
+
+		self.assertTrue(self.player1.buys == 1)
+		trade_route.play()
+		self.assertTrue(self.player1.buys == 2)
+		self.assertTrue(self.player1.balance == 0)
+		tu.send_input(self.player1, "post_selection", ["Copper"])
+		self.player1.spend_all_money()
+		#buy 2 estates
+		tu.send_input(self.player1, "buyCard", "Estate")
+		tu.send_input(self.player1, "buyCard", "Estate")
+		self.player1.end_turn()
+
+		tu.send_input(self.player2, "post_selection", ["Copper"])
+		self.assertTrue(self.player2.balance == 1)
+		self.assertTrue(self.player2.buys == 2)
 
 
 if __name__ == '__main__':

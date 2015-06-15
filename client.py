@@ -237,19 +237,32 @@ class DmClient(Client):
 		self.update_deck_size()
 		self.game.change_turn()
 
+	#used to properly generate a copy of a card from supply to add to my deck
+	def gen_new_card(self, card_title):
+		supply_card = self.game.card_from_title(card_title)
+		# we instantiate a new card by getting the class from the kingdom instance 
+		# and instantiating it
+		new_card = type(supply_card)(self.game, self)
+		#patch the on buy and on gain functions in case they were overriden at supply initialization
+		#used for example with trade route
+		supply_card.played_by = self
+		new_card.on_gain = supply_card.on_gain
+		new_card.on_buy = supply_card.on_buy
+		return new_card
+
+
 	def buy_card(self, card_title):
 		if self.buys > 0 and self.game.supply.get_count(card_title) > 0 and card_title not in self.banned:
-			# we instantiate a new card by getting the class from the kingdom instance 
-			# and instantiating it
-			newCard = type(self.game.card_from_title(card_title))(self.game, self)
-			self.game.announce("<b>" + self.name + "</b> buys " + newCard.log_string())
-			newCard.on_buy()
-			self.discard_pile.append(newCard)
+			new_card = self.gen_new_card(card_title)
+			self.game.announce("<b>" + self.name + "</b> buys " + new_card.log_string())
+			new_card.on_buy()
+			new_card.on_gain()
+			self.discard_pile.append(new_card)
 			self.game.remove_from_supply(card_title)
-			self.resolve_on_buy_effects(newCard)
+			self.resolve_on_buy_effects(new_card)
 			self.buys -= 1
-			self.balance -= newCard.get_price()
-			self.hand.do_reactions("Gain", lambda : self.update_resources(), newCard)
+			self.balance -= new_card.get_price()
+			self.hand.do_reactions("Gain", lambda : self.update_resources(), new_card)
 			self.bought_cards = True
 
 	def select(self, min_cards, max_cards, select_from, msg, ordered=False):
@@ -309,8 +322,7 @@ class DmClient(Client):
 			return
 		if from_supply:
 			self.game.remove_from_supply(card)
-		new_card = type(self.game.card_from_title(card))(self.game, self)
-		return new_card
+		return self.gen_new_card(card)
 
 	def gain(self, card, from_supply=True, suppress_announcement=False, done_gaining=lambda : None):
 		new_card = self.get_card_from_supply(card, from_supply)
@@ -319,9 +331,11 @@ class DmClient(Client):
 				self.game.announce(self.name_string() + " gains " + new_card.log_string())
 			self.discard_pile.append(new_card)
 			self.update_discard_size()
+			new_card.on_gain()
 			self.hand.do_reactions("Gain", done_gaining, new_card)
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
+			donge_gaining()
 
 	def gain_to_hand(self, card, from_supply=True, done_gaining=lambda : None):
 		new_card = self.get_card_from_supply(card, from_supply)
@@ -335,9 +349,11 @@ class DmClient(Client):
 					self.hand.add(self.discard_pile.pop())
 					self.update_hand()
 				done_gaining()
+			new_card.on_gain()
 			self.hand.do_reactions("Gain", done_react, new_card)
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
+			done_gaining()
 
 	def select_from_supply(self, price_limit=None, equal_only=False, type_constraint=None, allow_empty=False, optional=False):
 		if allow_empty or self.game.supply.has_selectable(price_limit, equal_only, type_constraint):

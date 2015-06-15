@@ -189,8 +189,7 @@ class HandPile():
 		for card in self:
 			if "Reaction" in card.type and trigger in card.trigger:
 				reactions.append(card)
-		unique_reactions = list(set(map(lambda x : x.title, reactions)))
-		return [self.get_card(x) for x in unique_reactions]
+		return reactions
 		
 	#triggers reactions in hand
 	def do_reactions(self, trigger, final_cb, react_data=None):

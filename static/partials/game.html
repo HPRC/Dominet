@@ -86,7 +86,9 @@
 				<li class="list-group-item">Discard
 					<span class="badge">{{discardSize}}</span>
 				</li>
-				<li class="list-group-item" ng-bind-html="renderHtml(trashDisplay(gameTrash))">
+				<li class="list-group-item" ng-bind-html="matDisplay('Trash',gameTrash)">
+				</li>
+				<li class="list-group-item" ng-repeat="(name, data) in gameMat" ng-bind-html="matDisplay(name, data)">
 				</li>
 				<li class="list-group-item" ng-bind-html="renderHtml(modeJson.decklists)" ng-show="modeJson.mode === 'gameover'">
 				</li>

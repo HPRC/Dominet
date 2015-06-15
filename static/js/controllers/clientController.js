@@ -12,6 +12,8 @@ clientModule.controller("clientController", function($rootScope, $scope, socket,
 	$scope.modeJson = client.getModeJson();
 	$scope.gameTrash = client.getGameTrash();
 	$scope.gameLogs = client.getGameLogs();
+	$scope.gameMat = client.getGameMat();
+
 
 	$scope.$on("$destroy", function(){
 		socketlistener();
@@ -33,6 +35,7 @@ clientModule.controller("clientController", function($rootScope, $scope, socket,
 			$scope.discardSize = client.getDiscardSize();
 			$scope.gameTrash = client.getGameTrash();
 			$scope.gameLogs = client.getGameLogs();
+			$scope.gameMat = client.getGameMat();
 			//update scroll after angular renders changes to dom
 			$scope.$evalAsync($timeout($scope.updateScroll), 0);
 		});
