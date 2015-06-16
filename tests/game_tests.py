@@ -5,6 +5,7 @@ import game as g
 import card as crd
 import base_set as base
 import cardpile as cp
+import kingdomGenerator as kg
 
 import sys
 import os
@@ -29,13 +30,12 @@ class TestGame(unittest.TestCase):
 		self.player1 = c.DmClient("player1", 0, DummyHandler())
 		self.player2 = c.DmClient("player2", 1, SilentHandler())
 		self.player3 = c.DmClient("player3", 2, SilentHandler())
-		self.game = g.DmGame([self.player1, self.player2, self.player3], [], [])
+		self.game = g.DmGame([self.player1, self.player2, self.player3], kg.all_card_titles(), [])
 		self.game.players = [self.player1, self.player2, self.player3]
 		for i in self.game.players:
 			i.game = self.game
-			i.setup()
-		for x in self.game.supply.unique_cards():
-			self.game.price_modifier[x.title] = 0
+		self.game.start_game()
+		self.player1.take_turn()
 
 	def test_initial_decks(self):
 		tu.print_test_header("test initial decks")

@@ -19,18 +19,11 @@ class TestProsperity(unittest.TestCase):
 		self.player1 = c.DmClient("player1", 0, tu.PlayerHandler())
 		self.player2 = c.DmClient("player2", 1, tu.PlayerHandler())
 		self.player3 = c.DmClient("player3", 2, tu.PlayerHandler())
-		self.game = g.DmGame([self.player1, self.player2, self.player3], [], [])
-		#todo use game initialization setup
-		self.game.supply = self.game.init_supply(kg.all_cards(self.game))
-		for x in self.game.supply.unique_cards():
-			x.on_supply_init()
-		for x in self.game.supply.unique_cards():
-			self.game.price_modifier[x.title] = 0
+		self.game = g.DmGame([self.player1, self.player2, self.player3], kg.all_card_titles(), [])
+		self.game.players = [self.player1, self.player2, self.player3]
 		for i in self.game.players:
 			i.game = self.game
-			i.setup()
-			i.handler.log = []
-		self.game.players = [self.player1, self.player2, self.player3]
+		self.game.start_game()
 		self.player1.take_turn()
 
 	# --------------------------------------------------------
@@ -507,6 +500,7 @@ class TestProsperity(unittest.TestCase):
 		tu.send_input(self.player1, "buyCard", "Estate")
 		self.player1.end_turn()
 
+		trade_route2.play()
 		tu.send_input(self.player2, "post_selection", ["Copper"])
 		self.assertTrue(self.player2.balance == 1)
 		self.assertTrue(self.player2.buys == 2)

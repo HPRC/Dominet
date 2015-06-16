@@ -522,7 +522,7 @@ class Ironworks(crd.Card):
 				self.game.announce("-- " + " and ".join(effects))
 			crd.Card.on_finished(self)
 
-		self.played_by.gain(selection[0], True, done_gaining=lambda : post_gain)
+		self.played_by.gain(selection[0], True, done_gaining=lambda : post_gain())
 
 
 class Mining_Village(crd.Card):

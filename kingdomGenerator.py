@@ -8,14 +8,15 @@ import string
 
 
 class kingdomGenerator():
+	avail_sets = [base, intrigue, prosperity]
 	def __init__(self, game, required_cards=[], excluded_cards=[]):
+
 		self.game = game
 		self.avail_cards = {}
 		self.required_cards = card_title_to_class_name(required_cards)
 		self.excluded_cards = card_title_to_class_name(excluded_cards)
-		self.load_set(base)
-		self.load_set(intrigue)
-		self.load_set(prosperity)
+		for each_set in kingdomGenerator.avail_sets:
+			self.load_set(each_set)
 
 	def gen_kingdom(self):
 		kingdom = []
@@ -49,20 +50,15 @@ def card_title_to_class_name(lst):
 		result.append(x)
 	return result 
 
+def all_card_titles():
+	titles = []
+	for each_set in kingdomGenerator.avail_sets:
+		for name, obj in inspect.getmembers(each_set):
+			if inspect.isclass(obj):
+				titles.append(obj(None, None).title)
+	for name,obj in inspect.getmembers(crd):
+		if inspect.isclass(obj):
+			if name != "Card" and name != "Money" and name != "AttackCard" and name != "VictoryCard":
+				titles.append(obj(None, None).title)
+	return titles	
 
-def all_cards(game):
-	all_cards = []
-	for name, obj in inspect.getmembers(base):
-		if inspect.isclass(obj):
-			all_cards.append(obj(game, None))
-	for name, obj in inspect.getmembers(crd):
-		if inspect.isclass(obj):
-			if obj.__name__ != "Card" and obj.__name__ != "Money" and obj.__name__ != "AttackCard":
-				all_cards.append(obj(game, None))
-	for name, obj in inspect.getmembers(intrigue):
-		if inspect.isclass(obj):
-			all_cards.append(obj(game, None))
-	for name, obj in inspect.getmembers(prosperity):
-		if inspect.isclass(obj):
-			all_cards.append(obj(game, None))
-	return all_cards

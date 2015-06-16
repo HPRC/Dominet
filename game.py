@@ -154,6 +154,9 @@ class DmGame(Game):
 			i.write_json(command="updateAllPrices", modifier=self.price_modifier)
 
 	def update_mat(self):
+		display_mat = {}
+		for key, item in self.mat.items():
+			display_mat[key] = " ".join(item)
 		for i in self.players:
 			i.write_json(command="updateMat", mat=self.mat)
 

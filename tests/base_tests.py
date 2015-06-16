@@ -17,18 +17,11 @@ class TestCard(unittest.TestCase):
 		self.player1 = c.DmClient("player1", 0, tu.PlayerHandler())
 		self.player2 = c.DmClient("player2", 1, tu.PlayerHandler())
 		self.player3 = c.DmClient("player3", 2, tu.PlayerHandler())
-		self.game = g.DmGame([self.player1, self.player2, self.player3], [], [])
-		#hard code order of players so that random turn order doesn't interfere with tests
+		self.game = g.DmGame([self.player1, self.player2, self.player3], kg.all_card_titles(), [])
 		self.game.players = [self.player1, self.player2, self.player3]
-		self.game.supply = self.game.init_supply(kg.all_cards(self.game))
-		for x in self.game.supply.unique_cards():
-			x.on_supply_init()
-		for x in self.game.supply.unique_cards():
-			self.game.price_modifier[x.title] = 0
 		for i in self.game.players:
 			i.game = self.game
-			i.setup()
-			i.handler.log = []
+		self.game.start_game()
 		self.player1.take_turn()
 
 	# --------------------------------------------------------
@@ -52,9 +45,9 @@ class TestCard(unittest.TestCase):
 		tu.print_test_header("test Militia")
 		self.player1.hand.add(base.Militia(self.game, self.player1))
 		self.player1.hand.play("Militia")
-		self.assertTrue(self.player2.handler.log[0]["command"] == "updateMode")
-		self.assertTrue(self.player2.handler.log[0]["mode"] == "select")
-		self.assertTrue(self.player2.handler.log[0]["select_from"] == crd.card_list_to_titles(self.player2.hand.card_array()))
+		self.assertTrue(self.player2.handler.log[-1]["command"] == "updateMode")
+		self.assertTrue(self.player2.handler.log[-1]["mode"] == "select")
+		self.assertTrue(self.player2.handler.log[-1]["select_from"] == crd.card_list_to_titles(self.player2.hand.card_array()))
 		self.assertTrue(self.player2.waiting["cb"] != None)
 
 		selection = crd.card_list_to_titles(self.player2.hand.card_array())[:2]
@@ -66,7 +59,7 @@ class TestCard(unittest.TestCase):
 		self.player2.hand.add(base.Moat(self.game, self.player2))
 		self.player1.hand.add(base.Witch(self.game, self.player1))
 		self.player1.hand.play("Witch")
-		self.assertTrue("Reveal" in self.player2.handler.log[0]["select_from"])
+		self.assertTrue("Reveal" in self.player2.handler.log[-1]["select_from"])
 
 		tu.send_input(self.player2, "post_selection", ["Reveal"])
 		# didn't gain curse
