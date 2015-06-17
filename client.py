@@ -335,7 +335,7 @@ class DmClient(Client):
 			self.hand.do_reactions("Gain", done_gaining, new_card)
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
-			donge_gaining()
+			done_gaining()
 
 	def gain_to_hand(self, card, from_supply=True, done_gaining=lambda : None):
 		new_card = self.get_card_from_supply(card, from_supply)

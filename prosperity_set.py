@@ -157,7 +157,6 @@ class Trade_Route(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		mat_value = len(self.game.mat["Trade Route"])
-		print(mat_value)
 		self.played_by.balance += mat_value
 		self.played_by.buys += 1
 		self.game.announce("-- gaining a buy and $" + str(mat_value))
@@ -168,8 +167,9 @@ class Trade_Route(crd.Card):
 			self.trash_select([])
 
 	def trash_select(self, selection):
-		trash = self.played_by.hand.extract(selection[0])
-		self.game.trash_pile.append(trash)
+		trashed = self.played_by.hand.extract(selection[0])
+		self.game.announce("-- trashing " + trashed.log_string())
+		self.game.trash_pile.append(trashed)
 		self.game.update_trash_pile()
 		crd.Card.on_finished(self)
 
