@@ -25,7 +25,7 @@ class Client():
 	def write_json(self, **kwargs):
 		self.handler.write_json(**kwargs)
 		if self.game is not None and kwargs["command"] != "announce":
-			self.game.log_json_data(str(self.name + ": " + json.dumps(kwargs)), True)
+			self.game.logger.log_json_data(str(self.name + ": " + json.dumps(kwargs)), True)
 
 	def take_turn(self):
 		self.write_json(command="startTurn")
@@ -41,7 +41,7 @@ class Client():
 		if cmd == "chat":
 			self.game.chat(data["msg"], self.name)
 
-		self.game.log_json_data(str(self.name + ": " + json.dumps(data)), False)
+		self.game.logger.log_json_data(str(self.name + ": " + json.dumps(data)), False)
 
 
 class DmClient(Client):

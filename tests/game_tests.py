@@ -7,10 +7,7 @@ import sets.base as base
 import cardpile as cp
 import kingdomGenerator as kg
 
-import sys
-import os
-sys.path.append(os.path.dirname(__file__))
-import test_utils as tu
+import tests.test_utils as tu
 
 
 class DummyHandler():

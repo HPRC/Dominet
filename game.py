@@ -6,10 +6,7 @@ import net
 import cardpile as cp
 import random
 import time
-import os
-
-LOGS_DIR = "logs"
-CSS_LINK = "<link rel=\"stylesheet\" href=\"../static/css/bootstrap.min.css\"/>"
+import log_handler
 
 class Game():
 	def __init__(self, players, supply_set="default"):
@@ -18,8 +15,7 @@ class Game():
 		self.turn = self.first
 		self.turn_count = 0
 		self.supply_set = supply_set
-		self.file_title =  ", ".join(map(lambda x: x.name, self.players)) + " " + time.ctime(time.time())
-		self.flagged = False
+		self.logger = log_handler.LogHandler(", ".join(map(lambda x: x.name, self.players)) + " " + time.ctime(time.time()))
 
 	def chat(self, msg, speaker):
 		for i in self.players:
@@ -27,7 +23,7 @@ class Game():
 
 	def start_game(self):
 		self.announce("Starting game with " + " and ".join(map(lambda x: str(x.name), self.players)))
-		self.setup_log_file()
+		self.logger.setup_log_file()
 
 		for i in self.players:
 			i.setup()
@@ -37,7 +33,7 @@ class Game():
 	def announce(self, msg):
 		for i in self.players:
 			i.write_json(command="announce", msg=msg)
-		self.log_html_data(msg)
+		self.logger.log_html_data(msg)
 
 	def change_turn(self):
 		self.turn = (self.turn + 1) % len(self.players)
@@ -48,44 +44,6 @@ class Game():
 
 	def get_turn_owner(self):
 		return self.players[self.turn]
-
-	def setup_log_file(self):
-		header = "<html><head>" + CSS_LINK + "</head>"
-		file = open(self.get_log_file_path(), 'w')
-		file.write(header + "\n<h3>" + self.file_title + "</h3><br>")
-		file.close()
-
-	def get_log_file_path(self):
-		flagged = "flagged_" if self.flagged else ""
-		return LOGS_DIR + '/' + flagged + self.file_title + '.html'
-
-	def log_json_data(self, data, sent):
-		path = self.get_log_file_path()
-		if os.path.exists(path):
-			file = open(path, 'a')
-			if sent:
-				file.write("\n<pre>" + data + "</pre>")
-			else:
-				file.write("\n<pre><kbd>" + data + "</kbd></pre>")
-			file.close()
-
-	def log_html_data(self, data):
-		path = self.get_log_file_path()
-		if os.path.exists(path):
-			file = open(path, 'a')
-			file.write("\n" + data + "<br>")
-			file.close()
-
-	def rename_log_file(self, new_name):
-		# Purpose for this check is because when game ends file path is prefixed with 'finished_'
-		# get_log_file_path is naive of this. probably should be adjusted
-		if os.path.exists(self.get_log_file_path()):
-			os.rename(self.get_log_file_path(), new_name)
-			if "finished_" in new_name:
-				file = open(path, 'a')
-				file.write("</html>")
-				file.close()
-
 
 class DmGame(Game):
 	def __init__(self, players, required_cards, excluded_cards, supply_set="default"):
@@ -225,15 +183,7 @@ class DmGame(Game):
 			for i in self.players:
 				i.write_json(command="updateMode", mode="gameover", decklists="".join(decklists))
 
-			#TODO separate log logic into diff method/class
-			if os.path.exists(self.get_log_file_path()):
-				if not self.flagged:
-					os.remove(self.get_log_file_path())
-				else:
-					os.rename(self.get_log_file_path(), LOGS_DIR + "/finished_" + self.file_title + ".html")
-			else:
-				print("Game ended with no log found at " + self.get_log_file_path())
-
+			self.logger.finish_game()
 			return True
 		else:
 			return False

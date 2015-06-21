@@ -6,11 +6,7 @@ import sets.card as crd
 import game as g
 import kingdomGenerator as kg
 
-import sys
-import os
-#add this file's path to the sys for importing test_utils
-sys.path.append(os.path.dirname(__file__))
-import test_utils as tu
+import tests.test_utils as tu
 
 
 class TestIntrigue(unittest.TestCase):
@@ -331,6 +327,7 @@ class TestIntrigue(unittest.TestCase):
 		
 		tu.clear_player_hand(self.player3)
 
+		self.player1.deck.append(crd.Copper(self.game, self.player1))
 		self.player1.deck.append(crd.Copper(self.game, self.player1))
 		self.player2.hand.add(base.Militia(self.game, self.player2))
 		self.player2.hand.play("Militia")
