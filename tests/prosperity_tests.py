@@ -1,9 +1,9 @@
 import unittest
 import client as c
-import base_set as base
-import intrigue_set as intrigue
-import prosperity_set as prosperity
-import card as crd
+import sets.base as base
+import sets.intrigue as intrigue
+import sets.prosperity as prosperity
+import sets.card as crd
 import game as g
 import kingdomGenerator as kg
 
@@ -479,9 +479,6 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.game.card_from_title("Peddler").get_price() == 0)
 
 	def test_Trade_Route(self):
-		'''
-		This fails currently because our tests are not isolated games and other tests can affect the current state
-		'''
 		tu.print_test_header("test Trade Route")
 		trade_route = prosperity.Trade_Route(self.game, self.player1)
 		copper = crd.Copper(self.game, self.player1)

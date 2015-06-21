@@ -1,7 +1,7 @@
-import card as crd
-import base_set as base
-import intrigue_set as intrigue
-import prosperity_set as prosperity
+import sets.card as crd
+import sets.base as base
+import sets.intrigue as intrigue
+import sets.prosperity as prosperity
 import inspect
 import random
 import string

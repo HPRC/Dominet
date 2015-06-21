@@ -1,9 +1,9 @@
 import unittest
 import client as c
-import base_set as base
-import intrigue_set as intrigue
-import prosperity_set as prosperity
-import card as crd
+import sets.base as base
+import sets.intrigue as intrigue
+import sets.prosperity as prosperity
+import sets.card as crd
 import game as g
 import kingdomGenerator as kg
 

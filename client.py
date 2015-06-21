@@ -1,9 +1,9 @@
 import json
-import card as crd
+import sets.card as crd
 import cardpile as cp
 import random
-import base_set as b
-import intrigue_set as intr
+import sets.base as b
+import sets.intrigue as intr
 import html
 import game as g
 

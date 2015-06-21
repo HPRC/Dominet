@@ -1,5 +1,5 @@
 import cardpile as cp
-import base_set as b
+import sets.base as b
 
 def set_player_hand(player, cards):
 	player.hand = cp.HandPile(player)

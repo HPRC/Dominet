@@ -1,6 +1,6 @@
 import client as c
 import kingdomGenerator as kg
-import card
+import sets.card as card
 import json
 import net
 import cardpile as cp

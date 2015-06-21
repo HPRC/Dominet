@@ -1,4 +1,4 @@
-import card as crd
+import sets.card as crd
 import math
 
 # --------------------------------------------------------

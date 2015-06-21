@@ -2,8 +2,8 @@ import unittest
 import net
 import client as c
 import game as g
-import card as crd
-import base_set as base
+import sets.card as crd
+import sets.base as base
 import cardpile as cp
 import kingdomGenerator as kg
 
