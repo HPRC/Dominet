@@ -45,7 +45,7 @@ class LogHandler():
 				file.write("</html>")
 				file.close()
 
-	def finish_game():
+	def finish_game(self):
 		if os.path.exists(self.get_log_file_path()):
 			if not self.flagged:
 				os.remove(self.get_log_file_path())
