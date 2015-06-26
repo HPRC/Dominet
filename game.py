@@ -6,7 +6,7 @@ import net
 import cardpile as cp
 import random
 import time
-import log_handler
+import logHandler
 
 class Game():
 	def __init__(self, players, supply_set="default"):
@@ -15,7 +15,7 @@ class Game():
 		self.turn = self.first
 		self.turn_count = 0
 		self.supply_set = supply_set
-		self.logger = log_handler.LogHandler(", ".join(map(lambda x: x.name, self.players)) + " " + time.ctime(time.time()))
+		self.logger = logHandler.LogHandler(", ".join(map(lambda x: x.name, self.players)) + " " + time.ctime(time.time()))
 
 	def chat(self, msg, speaker):
 		for i in self.players:
