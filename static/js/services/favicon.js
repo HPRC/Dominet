@@ -34,11 +34,13 @@ clientModule.factory('favicon', function($interval){
 
 
 	this.stopAlert = function(){
-		$interval.cancel(flashing);
-		favicon.href = "static/favicon.ico";
-		document.title = "Dominet"
-		isActive = false;
-		flashing = null;
+		if (flashing !== null){
+			$interval.cancel(flashing);
+			favicon.href = "static/favicon.ico";
+			document.title = "Dominet"
+			isActive = false;
+			flashing = null;
+		}
 	};
 
 	return {

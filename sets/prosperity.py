@@ -143,20 +143,20 @@ class Trade_Route(crd.Card):
 				#Here we store the on_gain function of this card and override it with our own gained_to_mat function
 				default_on_gain_function = supply_card.on_gain
 				supply_card.on_gain = lambda x=supply_card : self.gained_to_mat(x, default_on_gain_function)
-		self.game.mat["Trade Route"] = []
+		self.game.mat["Trade Route Mat"] = []
 
 	#this is set to be the on_gain function for all cards with trade route tokens on it. It increases the mat value
 	#when the card is gained the first time and then removes this function as the on_gain and resets it to the previous
 	#function.
 	def gained_to_mat(self, supply_card, previous_gain_func):
-		self.game.mat["Trade Route"].append(supply_card.log_string())
+		self.game.mat["Trade Route Mat"].append(supply_card.log_string())
 		self.game.update_mat()
 		supply_card.on_gain = previous_gain_func
 		supply_card.on_gain()
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		mat_value = len(self.game.mat["Trade Route"])
+		mat_value = len(self.game.mat["Trade Route Mat"])
 		self.played_by.balance += mat_value
 		self.played_by.buys += 1
 		self.game.announce("-- gaining a buy and $" + str(mat_value))

@@ -1,4 +1,4 @@
-clientModule.controller("selectController", function($scope, socket, client, favicon){
+clientModule.controller("selectController", function($scope, socket, client){
     $scope.$watch('modeJson', function(newValue, oldValue) {
 		if ($scope.modeJson.min_cards){
 			$scope.canBeDone = false;
@@ -72,11 +72,11 @@ clientModule.controller("selectController", function($scope, socket, client, fav
 	};
 
 	$scope.doneSelection = function(){
+		client.updateMode({"mode":"wait"});
+
 		//we reverse the selection array because on the server cards are stored [bottom, top]
 		socket.send(JSON.stringify({"command": "post_selection", "selection": $scope.selected.reverse(), "act_on":$scope.modeJson.act_on}));
 		$scope.selected = [];
-		favicon.stopAlert();
-		client.updateMode({"mode":"wait"});
 	};
 
 });

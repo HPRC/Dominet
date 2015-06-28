@@ -183,7 +183,6 @@ class DmClient(Client):
 		elif cmd == "post_selection": 
 			self.exec_selected_choice(data["selection"])
 		elif cmd == "selectSupply":
-			self.update_wait()
 			self.exec_selected_choice(data["card"])
 		elif cmd == "spendAllMoney":
 			self.spend_all_money()
@@ -271,7 +270,6 @@ class DmClient(Client):
 				select_from=select_from, msg=msg, ordered=ordered)
 			return True
 		else:
-			# self.update_mode() Do we need this? or handle in caller
 			return False
 
 	def wait(self, msg):

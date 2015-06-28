@@ -74,8 +74,18 @@ clientModule.factory('client', function(socket, favicon) {
 
 	constructor.prototype.updateMode = function(json){
 		this.modeJson = json;
-		if (this.modeJson.mode === "selectSupply" || this.modeJson.mode === "select"){
-			favicon.alertFavicon();
+		if (!this.turn){
+			if (this.modeJson.mode === "selectSupply" || this.modeJson.mode === "select"){
+				favicon.alertFavicon();
+			} else {
+				favicon.stopAlert();
+			}
+		} else {
+			if (this.modeJson.mode === "wait"){
+				favicon.stopAlert();
+			} else {
+				favicon.alertFavicon();
+			}
 		}
 	};
 

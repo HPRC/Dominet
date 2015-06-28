@@ -1,4 +1,4 @@
-clientModule.controller("supplyController", function($scope, socket, client, cardStyle, favicon){
+clientModule.controller("supplyController", function($scope, socket, client, cardStyle){
 	var getSupplyArray = function(supply){
 		arr = [];
 		for (var key in supply){
@@ -53,8 +53,6 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 		if ($scope.modeJson.mode === "selectSupply"){
 			//wait to update ui until server responds
 			client.updateMode({"mode":"wait"});
-			//refactor into method (?)
-			favicon.stopAlert();
 			socket.send(JSON.stringify({"command": "selectSupply", "card": [card.title]}));
 		} else {
 			$scope.modeJson.bought_cards = true;
@@ -71,7 +69,7 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 	};
 
     $scope.selectNone = function() {
-    	favicon.stopAlert();
+		client.updateMode({"mode":"wait"});
         socket.send(JSON.stringify({"command": "selectSupply", "card": ["None"]}));
     };
 
