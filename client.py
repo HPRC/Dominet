@@ -6,6 +6,7 @@ import sets.base as b
 import sets.intrigue as intr
 import html
 import game as g
+import waitHandler as w
 
 class Client():
 	hand_size = 5
@@ -114,8 +115,8 @@ class DmClient(Client):
 		self.balance = 0
 		self.draw(self.hand_size)
 		self.update_hand()
-		# List of players waiting for, callback called after select/gain gets response
-		self.waiting = {"on": [], "cb": None}
+		self.waiter = w.WaitHandler(self)
+		self.cb = None
 		self.protection = 0
 		#boolean to keep track of if we bought a card to disable spending treasure afterwards
 		self.bought_cards = False
@@ -131,7 +132,8 @@ class DmClient(Client):
 		new_conn.actions = self.actions
 		new_conn.buys = self.buys
 		new_conn.balance = self.balance
-		new_conn.waiting = self.waiting
+		new_conn.waiter = self.waiter
+		new_conn.cb = self.cb
 		new_conn.last_mode = self.last_mode
 		new_conn.protection = self.protection
 		new_conn.vp = self.vp
@@ -171,7 +173,7 @@ class DmClient(Client):
 				self.resume()
 		elif cmd == "play":
 			if not data["card"] in self.hand:
-				print("Error " + data["card"] + " not in " + self.hand)
+				print("Error " + data["card"] + " not in " + ",".join(self.hand.card_array()))
 			else:
 				self.hand.play(data["card"])
 		elif cmd == "discard":
@@ -196,11 +198,11 @@ class DmClient(Client):
 
 
 	def exec_selected_choice(self, choice):
-		self.update_wait()
+		self.opponents_unwait()
 		# choice(the parameter) to waiting callback is always a list
-		if self.waiting["cb"] is not None:
-			temp = self.waiting["cb"]
-			self.waiting["cb"] = None
+		if self.cb is not None:
+			temp = self.cb
+			self.cb = None
 			temp(choice)
 
 	def resume(self):
@@ -272,15 +274,22 @@ class DmClient(Client):
 		else:
 			return False
 
+	#TODO remove
 	def wait(self, msg):
-		self.write_json(command="updateMode", mode="wait", msg=msg)
+		self.waiter.wait(msg)
 
-	def update_wait(self):
+	def opponents_wait(self, msg, locked=False):
 		for i in self.game.players:
-			if self in i.waiting["on"]:
-				i.waiting["on"].remove(self)
-			if len(i.waiting["on"]) == 0:
-				i.update_mode()
+			if i.name != self.name:
+				i.waiter.setLock(locked)
+				i.waiter.append_wait(self)
+				i.waiter.wait(msg)
+
+	def opponents_unwait(self, manually_called=False):
+		for i in self.get_opponents():
+			if manually_called:
+				i.waiter.setLock(not manually_called)
+			i.waiter.notify(self)
 
 	def discard(self, cards, pile):
 		for x in cards:

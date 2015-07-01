@@ -28,7 +28,7 @@ class Card():
 			self.played_by.update_hand()
 		self.played_by.update_mode()
 		if waiting_cleanup:
-			self.played_by.waiting["cb"] = None
+			self.played_by.cb = None
 		self.done()
 
 	def to_json(self):
