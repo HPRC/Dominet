@@ -274,8 +274,9 @@ class DmClient(Client):
 		else:
 			return False
 
-	#TODO remove
-	def wait(self, msg):
+	def wait(self, msg, on):
+		for i in on:
+			self.waiter.append_wait(i)
 		self.waiter.wait(msg)
 
 	def opponents_wait(self, msg, locked=False):

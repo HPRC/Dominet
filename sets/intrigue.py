@@ -186,7 +186,6 @@ class Masquerade(crd.Card):
 			self.fire(self.game.players[next_player_index])
 		else:
 			self.played_by.select(None, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Select a card to trash")
-			self.played_by.waiting["on"].append(self.played_by)
 			self.played_by.cb = self.trash_select
 
 	def fire(self, player):
@@ -199,7 +198,6 @@ class Masquerade(crd.Card):
 		if card is not None:
 			player.hand.add(card)
 
-		player.waiting["on"].append(player)
 		player.cb = post_fire
 
 	def post_select(self, selection, player):
@@ -210,9 +208,7 @@ class Masquerade(crd.Card):
 			player.write_json(command="announce", msg="-- you received " + self.game.log_string_from_title(self.passed_card))
 		else:
 			# we are the first player, wait for everyone
-			self.played_by.wait("Waiting for other players to pass")
-			for i in self.played_by.get_opponents():
-				self.played_by.waiting["on"].append(i)
+			self.played_by.wait("Waiting for other players to pass", self.played_by.get_opponents())
 		self.passed_card = selection[0]
 		card = player.hand.extract(selection[0])
 		card.played_by = left_opponent
