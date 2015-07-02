@@ -126,7 +126,7 @@ class AttackCard(Card):
 		if not self.reacting_players:
 			self.attack()
 		else:
-			self.played_by.wait("waiting for other players to react")
+			self.played_by.wait_many("to react", self.reacting_players)
 
 	def is_blocked(self, target):
 		# shouldnt need to block against own attacks (i.e. spy)
@@ -319,10 +319,8 @@ def reorder_top(player, cards_to_reorder, callback):
 
 		turn_owner = player.game.get_turn_owner()
 		if turn_owner != player:
-			turn_owner.wait("Waiting for " + player.name + " to reorder cards")
-			turn_owner.waiting["on"].append(player)
-		player.waiting["on"].append(player)
-		player.waiting["cb"] = post_reorder_with
+			turn_owner.wait("to reorder cards", player)
+		player.cb = post_reorder_with
 
 		player.select(len(cards_to_reorder), len(cards_to_reorder), card_list_to_titles(cards_to_reorder), 
 			"Rearrange the cards to put back on top of deck (#1 is on top)", True)
@@ -376,10 +374,8 @@ def discard_down(player, reduced_hand_size, callback):
 			post_discard_down(player, selection, reduced_hand_size, callback)
 
 		turn_owner = player.game.get_turn_owner()
-		player.waiting["on"].append(player)
-		player.waiting["cb"] = discard_cb
-		turn_owner.waiting["on"].append(player)
-		turn_owner.wait("Waiting for other players to discard")
+		player.cb = discard_cb
+		turn_owner.wait("to discard", player)
 	else:
 		player.game.announce("-- " + player.name_string() + " has " + str(reduced_hand_size) + " or less cards in hand")
 		callback()
@@ -389,7 +385,7 @@ def post_discard_down(player, selection, reduced_hand_size, callback):
 	player.discard(selection, player.discard_pile)
 	player.update_hand()
 	turn_owner = player.game.get_turn_owner()
-	if len(turn_owner.waiting["on"]) == 0:
+	if not turn_owner.is_waiting():
 		callback()
 
 

@@ -208,7 +208,7 @@ class Masquerade(crd.Card):
 			player.write_json(command="announce", msg="-- you received " + self.game.log_string_from_title(self.passed_card))
 		else:
 			# we are the first player, wait for everyone
-			self.played_by.wait("Waiting for other players to pass", self.played_by.get_opponents())
+			self.played_by.wait_many("to pass", self.played_by.get_opponents())
 		self.passed_card = selection[0]
 		card = player.hand.extract(selection[0])
 		card.played_by = left_opponent
@@ -270,7 +270,6 @@ class Steward(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		self.played_by.select(1, 1, ["+$2", "+2 Cards", "Trash 2 cards from hand"], "Choose One:")
-		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.cb = self.post_select
 
 	def post_select(self, selection):
@@ -288,7 +287,6 @@ class Steward(crd.Card):
 
 			if len(self.played_by.hand) > 2 and not self.played_by.hand.is_homogeneous():
 				self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "select cards to trash")
-				self.played_by.waiting["on"].append(self.played_by)
 				self.played_by.cb = self.trash_select
 			else:
 				card_selection = self.played_by.hand.auto_select(2, True)
@@ -335,7 +333,6 @@ class Swindler(crd.AttackCard):
 					self.post_select(selection, player)
 
 				if self.played_by.select_from_supply(topdeck.get_price(), True):
-					self.played_by.waiting["on"].append(self.played_by)
 					self.played_by.cb = post_select_on
 				else:
 					crd.AttackCard.get_next(self, player)
@@ -363,7 +360,6 @@ class Wishing_Well(crd.Card):
 		self.game.announce("-- gaining +1 action and drawing a card")
 
 		self.played_by.select_from_supply(allow_empty=True)
-		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.cb = self.post_select
 
 	def post_select(self, selection):
@@ -399,7 +395,6 @@ class Baron(crd.Card):
 
 		if "Estate" in self.played_by.hand:
 			self.played_by.select(1, 1, ["Yes", "No"], "Would you like to discard an Estate for +$4?")
-			self.played_by.waiting["on"].append(self.played_by)
 			self.played_by.cb = self.post_select
 
 		else:
@@ -488,7 +483,6 @@ class Ironworks(crd.Card):
 		self.game.announce("Gain a card costing up to $4")
 
 		if self.played_by.select_from_supply(4):
-			self.played_by.waiting["on"].append(self.played_by)
 			self.played_by.cb = self.post_select
 		else:
 			crd.Card.on_finished(self, False, False)
@@ -529,8 +523,6 @@ class Mining_Village(crd.Card):
 		self.game.announce("-- gaining 2 actions and drawing " + drawn)
 		self.played_by.update_hand()
 		self.played_by.select(1, 1, ["Yes", "No"], "Trash Mining Village for $2?")
-
-		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.cb = self.post_select
 
 	def post_select(self, selection):
@@ -620,7 +612,6 @@ class Minion(crd.AttackCard):
 		self.played_by.update_resources()
 		self.game.announce("-- gaining 1 action")
 		self.played_by.select(1, 1, ["+$2", "discard hand and draw 4 cards"], "Choose one:")
-		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.cb = self.post_selection
 
 	def post_selection(self, selection):
@@ -773,7 +764,6 @@ class Upgrade(crd.Card):
 		else:
 			if self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), 
 				"Choose a card to trash:"):
-				self.played_by.waiting["on"].append(self.played_by)
 				self.played_by.cb = self.trash_select
 			else:
 				crd.Card.on_finished(self)
@@ -785,7 +775,6 @@ class Upgrade(crd.Card):
 		self.played_by.update_hand()
 
 		if self.played_by.select_from_supply(card.get_price() + 1, True):
-			self.played_by.waiting["on"].append(self.played_by)
 			self.played_by.cb = self.post_select
 		else:
 			crd.Card.on_finished(self)
@@ -835,10 +824,8 @@ class Saboteur(crd.AttackCard):
 			self.game.announce("-- " + victim.name_string() + " gains a card costing "
 			                   + str(card.get_price() - 2) + " or less")
 			victim.select_from_supply(price_limit=card.get_price() - 2, optional=True)
-			victim.waiting["on"].append(victim)
 			victim.cb = post_select_cb
-			self.played_by.waiting["on"].append(victim)
-			self.played_by.wait("waiting for " + victim.name + " to gain a card")
+			self.played_by.wait("to gain a card", victim)
 
 	def post_select(self, selection, victim):
 		if selection[0] != "None":
@@ -866,7 +853,6 @@ class Trading_Post(crd.Card):
 			self.post_select(selection)
 		else:
 			self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "Trash 2 cards from your hand")
-			self.played_by.waiting["on"].append(self.played_by)
 			self.played_by.cb = self.post_select
 
 	def post_select(self, selection):
@@ -915,7 +901,6 @@ class Nobles(crd.VictoryCard):
 		crd.Card.play(self, skip)
 
 		self.played_by.select(1, 1, ["+2 Actions", "+3 Cards"], "Choose one: +3 Cards; or +2 Actions.")
-		self.played_by.waiting["on"].append(self.played_by)
 		self.played_by.cb = self.post_select
 
 	def post_select(self, selection):

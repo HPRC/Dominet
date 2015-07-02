@@ -274,10 +274,17 @@ class DmClient(Client):
 		else:
 			return False
 
-	def wait(self, msg, on):
+	def wait_many(self, msg, on):
 		for i in on:
 			self.waiter.append_wait(i)
 		self.waiter.wait(msg)
+
+	def wait(self, msg, on):
+		self.waiter.append_wait(on)
+		self.waiter.wait(msg)
+
+	def is_waiting(self):
+		return self.waiter.is_waiting()
 
 	def opponents_wait(self, msg, locked=False):
 		for i in self.game.players:

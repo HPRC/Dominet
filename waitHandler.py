@@ -35,3 +35,6 @@ class WaitHandler():
 
 	def is_waiting_on(self, player):
 		return player in self.waiting_on
+
+	def is_waiting(self):
+		return len(self.waiting_on) == 0
