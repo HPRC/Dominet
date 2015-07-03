@@ -210,7 +210,7 @@ class TestProsperity(unittest.TestCase):
 		forge.play()
 		# trash prices total to 13 -- nothing to gain
 		tu.send_input(self.player1, "post_selection", ["Torturer", "Secret Chamber", "Gold"])
-		self.assertTrue(self.player1.waiting["cb"] is None)
+		self.assertTrue(self.player1.cb is None)
 
 	def test_City(self):
 		tu.print_test_header("test City")

@@ -30,22 +30,18 @@ class Watchtower(crd.Card):
 		self.reacted_to_callback = reacted_to_callback
 		turn_owner = self.game.get_turn_owner()
 		if self.played_by != turn_owner:
-			turn_owner.wait("Waiting for other players to react")
-			#need to add two because we have two choices to make and don't want to preemptively update wait
-			turn_owner.waiting["on"] += [self.played_by, self.played_by]
+			self.played_by.opponents_wait("to react", True)
 
 		self.played_by.select(1, 1, ["Reveal", "Hide"],  
 			"Reveal " + self.title + " to trash " + to_gain.title + " or put it on top of deck?")
 			
-		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = self.post_reveal
+		self.played_by.set_cb(self.post_reveal)
 
 	def post_reveal(self, selection):
 		if selection[0] == "Reveal":
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
 			self.played_by.select(1, 1, ["Trash", "Put on top of deck"], "Choose to trash")
-			self.played_by.waiting["on"].append(self.played_by)
-			self.played_by.waiting["cb"] = self.trash_or_gain
+			self.played_by.set_cb(self.trash_or_gain)
 		else:
 			#clear 2nd wait since we selected hide
 			self.played_by.update_wait()
@@ -108,8 +104,7 @@ class Loan(crd.Money):
 			self.game.announce("-- revealing " + topdeck.log_string())
 
 			self.played_by.select(1, 1, ["Discard", "Trash"], "Discard or Trash " + topdeck.title)
-			self.played_by.waiting["on"].append(self.played_by)
-			self.played_by.waiting["cb"] = self.post_select
+			self.played_by.set_cb(self.post_select)
 		else:
 			self.game.announce("-- but could not find any treasures in his or her deck.")
 			crd.Money.on_finished(self)
@@ -161,8 +156,7 @@ class Trade_Route(crd.Card):
 		self.played_by.buys += 1
 		self.game.announce("-- gaining a buy and $" + str(mat_value))
 		if self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Choose a card to trash"):
-			self.played_by.waiting["on"].append(self.played_by)
-			self.played_by.waiting["cb"] = self.trash_select
+			self.played_by.set_cb(self.trash_select)
 		else:
 			self.trash_select([])
 
@@ -194,8 +188,7 @@ class Bishop(crd.Card):
 
 		self.game.announce("-- gaining +$1 and +1 VP")
 		if self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Choose a card to trash"):
-			self.played_by.waiting["on"].append(self.played_by)
-			self.played_by.waiting["cb"] = self.vp_trash_select
+			self.played_by.set_cb(self.vp_trash_select)
 		else:
 			self.vp_trash_select([])
 
@@ -211,9 +204,7 @@ class Bishop(crd.Card):
 
 			self.game.announce("-- trashing " + trash.log_string() + " gaining " + str(half_vp) + " VP")
 
-		self.played_by.wait("Waiting for other players to trash")
-		for i in self.played_by.get_opponents():
-			self.played_by.waiting["on"].append(i)
+		self.played_by.wait_many("to trash", self.played_by.get_opponents())
 
 		self.get_next(self.played_by)
 
@@ -228,8 +219,7 @@ class Bishop(crd.Card):
 
 			next_player.select(1, 1, crd.card_list_to_titles(next_player.hand.card_array()) + ["None"],
 			                   "Choose a card to trash")
-			next_player.waiting["on"].append(next_player)
-			next_player.waiting["cb"] = trash_select_cb
+			next_player.set_cb(trash_select_cb)
 
 	def trash_select(self, selection, player):
 		if selection[0] != "None":
@@ -376,11 +366,9 @@ class Contraband(crd.Money):
 
 		left_opponent = self.played_by.get_left_opponent()
 		left_opponent.select_from_supply()
-		left_opponent.waiting["on"].append(left_opponent)
-		left_opponent.waiting["cb"] = self.contraband_select
+		left_opponent.set_cb(self.contraband_select)
 
-		self.played_by.wait("Waiting for " + left_opponent.name + " to choose a card for contraband")
-		self.played_by.waiting["on"].append(left_opponent)
+		self.played_by.wait("to choose a card for contraband", left_opponent)
 
 	def contraband_select(self, selection):
 		left_opponent = self.played_by.get_left_opponent()
@@ -404,8 +392,7 @@ class Counting_House(crd.Card):
 			crd.Card.on_finished(self, False, True)
 		else:
 			self.played_by.select(1, 1, [str(i) for i in range(0, len(coppers))], "Choose number of coppers to put into hand.")
-			self.played_by.waiting["on"].append(self.played_by)
-			self.played_by.waiting["cb"] = self.select_copper
+			self.played_by.set_cb(self.select_copper)
 
 	def select_copper(self, selection):
 		num_revealed = int(selection[0])
@@ -445,9 +432,7 @@ class Mint(crd.Card):
 			self.reveal(treasures)
 		else:
 			self.played_by.select(1, 1, treasures, "Choose a card to reveal")
-
-			self.played_by.waiting["on"].append(self.played_by)
-			self.played_by.waiting["cb"] = self.reveal
+			self.played_by.set_cb(self.reveal)
 
 	def reveal(self, selection):
 		self.game.announce("-- revealing " + self.game.log_string_from_title(selection[0]) + " gaining a copy of it.")
@@ -491,9 +476,8 @@ class Mountebank(crd.AttackCard):
 				def post_select_on(selection, player=player):
 					self.post_select(selection, player)
 				player.select(1, 1, ["Yes", "No"], "Discard a curse?")
-				self.played_by.wait("Waiting for other players to choose")
-				player.waiting["on"].append(player)
-				player.waiting["cb"] = post_select_on
+				self.played_by.wait("to choose", player)
+				player.set_cb(post_select_on)
 			else:
 				player.gain("Curse", done_gaining=
 					lambda : player.gain("Copper", done_gaining=
@@ -564,7 +548,7 @@ class Rabble(crd.AttackCard):
 			crd.Card.on_finished(self, False, False)
 
 	def finish(self):
-		if len(self.played_by.waiting["on"]) == 0:
+		if not self.played_by.is_waiting():
 			crd.Card.on_finished(self, False, False)
 
 class Royal_Seal(crd.Money):
@@ -579,8 +563,7 @@ class Royal_Seal(crd.Money):
 
 	def on_buy_effect(self, purchased_card):
 		self.played_by.select(1, 1, ["Yes", "No"], "Place " + purchased_card.title + " on top of deck?")
-		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = self.post_buy
+		self.played_by.set_cb(self.post_buy)
 
 	def post_buy(self, selection):
 		if selection[0] == "Yes":
@@ -607,8 +590,7 @@ class Vault(crd.Card):
 
 		self.played_by.select(None, len(self.played_by.hand.card_array()),
 		                      crd.card_list_to_titles(self.played_by.hand.card_array()), "Discard any number of cards")
-		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = self.post_discard
+		self.played_by.set_cb(self.post_discard)
 
 	def post_discard(self, selection):
 		self.played_by.discard(selection, self.played_by.discard_pile)
@@ -618,17 +600,14 @@ class Vault(crd.Card):
 		self.game.announce("-- discarding " + str(len(selection)) +
 		                   ", gaining +$" + str(len(selection)))
 
-		self.played_by.wait("Waiting for other players to discard")
-
+		self.played_by.wait_many("to discard", self.played_by.get_opponents(), True)
 		for i in self.played_by.get_opponents():
 			#callback for each opponent
 			def discard_choice_cb(selection, player=i):
 				self.discard_choice(selection, player)
 
-			self.played_by.waiting["on"].append(i)
 			i.select(1, 1, ["Yes", "No"], "Discard 2 cards to draw 1?")
-			i.waiting["on"].append(i)
-			i.waiting["cb"] = discard_choice_cb
+			i.set_cb(discard_choice_cb)
 
 	def discard_choice(self, selection, player):
 		if selection[0] == "Yes":
@@ -636,11 +615,10 @@ class Vault(crd.Card):
 				self.discard_select(selection, player)
 
 			player.select(min(len(player.hand.card_array()), 2), 2, crd.card_list_to_titles(player.hand.card_array()), "Discard up to 2")
-			self.played_by.wait("Waiting for " + player.name + " to discard")
-			self.played_by.waiting["on"].append(player)
-			player.waiting["on"].append(player)
-			player.waiting["cb"] = discard_select_cb
-		elif len(self.played_by.waiting["on"]) == 0:
+			player.set_cb(discard_select_cb)
+		else:
+			player.update_wait(True)
+		if not self.played_by.is_waiting():
 			crd.Card.on_finished(self, False, True)
 
 	def discard_select(self, selection, player):
@@ -650,7 +628,8 @@ class Vault(crd.Card):
 			drawn = player.draw(1)
 			player.update_hand()
 		self.game.announce(player.name_string() + " discards " + str(len(selection)) + " cards and draws " + drawn)
-		if len(self.played_by.waiting["on"]) == 0:
+		player.update_wait(True)
+		if not self.played_by.is_waiting():
 			crd.Card.on_finished(self)
 
 class Venture(crd.Money):
@@ -792,8 +771,7 @@ class Expand(crd.Card):
 		crd.Card.play(self, skip)
 		if self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),
 		                      "select card to expand"):
-			self.played_by.waiting["on"].append(self.played_by)
-			self.played_by.waiting["cb"] = self.post_select
+			self.played_by.set_cb(self.post_select)
 		else:
 			self.game.announce("-- but has nothing to expand.")
 			self.played_by.update_resources()
@@ -804,8 +782,7 @@ class Expand(crd.Card):
 		self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
 		self.played_by.select_from_supply(card_trashed.price + 3, False)
 
-		self.played_by.waiting["on"].append(self.played_by)
-		self.played_by.waiting["cb"] = self.post_gain
+		self.played_by.set_cb(self.post_gain)
 		self.played_by.update_hand()
 
 	def post_gain(self, selected):
@@ -827,8 +804,7 @@ class Kings_Court(crd.Card):
 			self.done = lambda : None
 			self.game.announce(" -- but has no action cards")
 		else:
-			self.played_by.waiting["on"].append(self.played_by)
-			self.played_by.waiting["cb"] = self.post_select
+			self.played_by.set_cb(self.post_select)
 		self.played_by.update_resources()
 
 	def post_select(self, selection):
@@ -871,11 +847,9 @@ class Forge(crd.Card):
 		crd.Card.play(self, skip)
 		if self.played_by.select(None, len(self.played_by.hand.card_array()), 
 			crd.card_list_to_titles(self.played_by.hand.card_array()), "Trash any number of cards"):
-			self.played_by.waiting["on"].append(self.played_by)
-			self.played_by.waiting["cb"] = self.trash_select
+			self.played_by.set_cb(self.trash_select)
 		elif self.played_by.select_from_supply(price_limit=0, equal_only=True, optional=False):
-			self.played_by.waiting["on"].append(self.played_by)
-			self.played_by.waiting["cb"] = self.gain_select
+			self.played_by.set_cb(self.gain_select)
 		else:
 			crd.Card.on_finished(self)
 
@@ -895,8 +869,7 @@ class Forge(crd.Card):
 		self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(announce_string) + " to gain a card with cost " + str(trash_sum))
 
 		if self.played_by.select_from_supply(price_limit=trash_sum, equal_only=True, optional=False):
-			self.played_by.waiting["on"].append(self.played_by)
-			self.played_by.waiting["cb"] = self.gain_select
+			self.played_by.set_cb(self.gain_select)
 		else:
 			crd.Card.on_finished(self)
 
@@ -921,7 +894,7 @@ class Peddler(crd.Card):
 		crd.Card.play(self, skip)
 		self.played_by.balance += 1
 		drawn = self.played_by.draw(1)
-		self.game.announce("-- drawing " + drawn)
+		self.game.announce("-- drawing " + drawn + " gaining $1 and 1 action")
 		self.played_by.actions += 1
 		crd.Card.on_finished(self)
 

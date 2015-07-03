@@ -277,17 +277,19 @@ class DmClient(Client):
 	def set_cb(self, cb, selflock= False):
 		if cb != None:
 			self.waiter.append_wait(self)
-			self.waiter.setLock(selflock)
+		self.waiter.setLock(selflock)
 		self.cb = cb
 
-	def wait_many(self, msg, on):
+	def wait_many(self, msg, on, locked=False):
 		for i in on:
 			self.waiter.append_wait(i)
 		self.waiter.wait(msg)
+		self.waiter.setLock(locked)
 
-	def wait(self, msg, on):
+	def wait(self, msg, on, locked=False):
 		self.waiter.append_wait(on)
 		self.waiter.wait(msg)
+		self.waiter.setLock(locked)
 
 	def is_waiting(self):
 		return self.waiter.is_waiting()
