@@ -256,8 +256,7 @@ class ReactionHandler():
 		else:
 			num_reactions = len(reaction_titles)
 
-			self.player.waiting["cb"] = self.finish_ordering_reactions
-			self.player.waiting["on"].append(self.player)
+			self.player.cb = self.finish_ordering_reactions
 			self.player.select(num_reactions, num_reactions, reaction_titles, 
 				"Choose the order for your reactions to resolve, #1 is first.", True)
 			return True

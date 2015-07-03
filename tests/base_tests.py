@@ -81,12 +81,10 @@ class TestCard(unittest.TestCase):
 		throne_room_card.post_select(["Workshop"])
 		self.assertTrue(workshopCard.done.__name__ == "second_play")
 
-		self.player1.update_wait()
 		tu.send_input(self.player1, "selectSupply", ["Silver"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
 		self.assertTrue(workshopCard.done.__name__ == "final_done")
 
-		self.player1.update_wait()
 		tu.send_input(self.player1, "selectSupply", ["Estate"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Estate")
 
