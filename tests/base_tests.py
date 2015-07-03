@@ -32,7 +32,7 @@ class TestCard(unittest.TestCase):
 		self.player1.hand.play("Cellar")
 		self.assertTrue(self.player1.handler.log[-1]["command"] == "updateMode")
 		self.assertTrue(self.player1.handler.log[-1]["mode"] == "select")
-		self.assertTrue(self.player1.waiting["cb"] != None)
+		self.assertTrue(self.player1.cb != None)
 
 		selection = crd.card_list_to_titles(self.player1.hand.card_array())
 		tu.send_input(self.player1, "post_selection", selection)
@@ -45,7 +45,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.player2.handler.log[-1]["command"] == "updateMode")
 		self.assertTrue(self.player2.handler.log[-1]["mode"] == "select")
 		self.assertTrue(self.player2.handler.log[-1]["select_from"] == crd.card_list_to_titles(self.player2.hand.card_array()))
-		self.assertTrue(self.player2.waiting["cb"] != None)
+		self.assertTrue(self.player2.cb != None)
 
 		selection = crd.card_list_to_titles(self.player2.hand.card_array())[:2]
 		tu.send_input(self.player2, "post_selection", selection)

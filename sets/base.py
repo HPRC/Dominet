@@ -223,7 +223,7 @@ class Bureaucrat(crd.AttackCard):
 		victim.discard(selection, victim.deck)
 		self.game.announce(victim.name_string() + " puts " + self.game.card_from_title(selection[0]).log_string() + " back on top of the deck")
 		victim.update_hand()
-		if len(self.played_by.waiting["on"]) == 0:
+		if not self.played_by.is_waiting():
 			crd.Card.on_finished(self, False, False)
 
 
@@ -695,8 +695,7 @@ class Mine(crd.Card):
 		card_trashed = self.game.card_from_title(selection[0])
 		self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
 		if self.played_by.select_from_supply(card_trashed.get_price() + 3, False, "Treasure"):
-			self.played_by.waiting["on"].append(self.played_by)
-			self.played_by.set_cb(self.post_gain	)
+			self.played_by.set_cb(self.post_gain)
 		else:
 			crd.Card.on_finished(self, False, False)
 
