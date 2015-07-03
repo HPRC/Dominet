@@ -19,7 +19,7 @@ class WaitHandler():
 		if not self.locked:
 			if notifier in self.waiting_on:
 				self.waiting_on.remove(notifier)
-			if len(self.waiting_on) == 0:
+			if not self.is_waiting():
 				self.player.update_mode()
 			else:
 				self.wait("Waiting for " + self.waiting_on_string() + " " + self.msg)
@@ -37,4 +37,4 @@ class WaitHandler():
 		return player in self.waiting_on
 
 	def is_waiting(self):
-		return len(self.waiting_on) == 0
+		return len(self.waiting_on) > 0

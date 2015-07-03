@@ -198,7 +198,7 @@ class DmClient(Client):
 
 
 	def exec_selected_choice(self, choice):
-		self.opponents_unwait()
+		self.update_wait()
 		# choice(the parameter) to waiting callback is always a list
 		if self.cb is not None:
 			temp = self.cb
@@ -274,6 +274,12 @@ class DmClient(Client):
 		else:
 			return False
 
+	def set_cb(self, cb, selflock= False):
+		if cb != None:
+			self.waiter.append_wait(self)
+			self.waiter.setLock(selflock)
+		self.cb = cb
+
 	def wait_many(self, msg, on):
 		for i in on:
 			self.waiter.append_wait(i)
@@ -293,8 +299,8 @@ class DmClient(Client):
 				i.waiter.append_wait(self)
 				i.waiter.wait(msg)
 
-	def opponents_unwait(self, manually_called=False):
-		for i in self.get_opponents():
+	def update_wait(self, manually_called=False):
+		for i in self.game.players:
 			if manually_called:
 				i.waiter.setLock(not manually_called)
 			i.waiter.notify(self)

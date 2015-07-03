@@ -320,7 +320,7 @@ def reorder_top(player, cards_to_reorder, callback):
 		turn_owner = player.game.get_turn_owner()
 		if turn_owner != player:
 			turn_owner.wait("to reorder cards", player)
-		player.cb = post_reorder_with
+		player.set_cb(post_reorder_with)
 
 		player.select(len(cards_to_reorder), len(cards_to_reorder), card_list_to_titles(cards_to_reorder), 
 			"Rearrange the cards to put back on top of deck (#1 is on top)", True)
@@ -366,6 +366,7 @@ def search_deck_for(player, search_criteria, callback):
 # reduced_hand_size = number of cards to discard down to
 # callback = callback function called after player discarded, default is card on_finished
 def discard_down(player, reduced_hand_size, callback):
+	turn_owner = player.game.get_turn_owner()
 	if len(player.hand) > reduced_hand_size:
 		player.select(len(player.hand) - reduced_hand_size, len(player.hand) - reduced_hand_size, 
 			card_list_to_titles(player.hand.card_array()), "discard down to " + str(reduced_hand_size) + " cards")
@@ -373,18 +374,18 @@ def discard_down(player, reduced_hand_size, callback):
 		def discard_cb(selection, player=player, reduced_hand_size=reduced_hand_size, callback=callback):
 			post_discard_down(player, selection, reduced_hand_size, callback)
 
-		turn_owner = player.game.get_turn_owner()
-		player.cb = discard_cb
+		player.set_cb(discard_cb)
 		turn_owner.wait("to discard", player)
 	else:
 		player.game.announce("-- " + player.name_string() + " has " + str(reduced_hand_size) + " or less cards in hand")
-		callback()
+		if not turn_owner.is_waiting():
+			callback()
 
 def post_discard_down(player, selection, reduced_hand_size, callback):
+	turn_owner = player.game.get_turn_owner()
 	player.game.announce("-- " + player.name_string() + " discards down to " + str(reduced_hand_size))
 	player.discard(selection, player.discard_pile)
 	player.update_hand()
-	turn_owner = player.game.get_turn_owner()
 	if not turn_owner.is_waiting():
 		callback()
 

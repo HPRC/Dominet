@@ -324,12 +324,13 @@ class TestIntrigue(unittest.TestCase):
 		tu.clear_player_hand(self.player1)
 		tu.add_many_to_hand(self.player1, estate, 4)
 		self.player1.hand.add(secret_chamber)
-		
+		#clear player3's hand no reaction
 		tu.clear_player_hand(self.player3)
 
 		self.player1.deck.append(crd.Copper(self.game, self.player1))
 		self.player1.deck.append(crd.Copper(self.game, self.player1))
 		self.player2.hand.add(base.Militia(self.game, self.player2))
+
 		self.player2.hand.play("Militia")
 		tu.send_input(self.player1, "post_selection", ["Reveal"])
 		tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])

@@ -20,7 +20,7 @@ class Courtyard(crd.Card):
 		self.played_by.update_resources()
 		self.played_by.update_hand()
 		if self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Choose a card to put back on top of your deck."):
-			self.played_by.cb = self.post_select
+			self.played_by.set_cb(self.post_select)
 		else:
 			crd.Card.on_finished(self, True, False)
 
@@ -42,7 +42,7 @@ class Pawn(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		self.played_by.select(2, 2, ["+$1", "+1 Action", "+1 Buy", "+1 Card"], "Choose Two:")
-		self.played_by.cb = self.post_select
+		self.played_by.set_cb(self.post_select)
 
 	def post_select(self, selection):
 		announcements = []
@@ -82,7 +82,7 @@ class Secret_Chamber(crd.Card):
 
 		self.played_by.select(None, None,
 		                      crd.card_list_to_titles(self.played_by.hand.card_array()), "select cards to discard")
-		self.played_by.cb = self.post_select
+		self.played_by.set_cb(self.post_select)
 
 	def post_select(self, selection):
 		self.played_by.discard(selection, self.played_by.discard_pile)
@@ -96,8 +96,8 @@ class Secret_Chamber(crd.Card):
 		self.played_by.select(1, 1, ["Reveal", "Hide"],
 		                      "Reveal " + self.title + " to draw 2 and place 2 back to deck?")
 
-		self.played_by.opponents_wait("Waiting for other players to react", True)
-		self.played_by.cb = self.post_reveal
+		self.played_by.opponents_wait("to react", True)
+		self.played_by.set_cb(self.post_reveal, True)
 
 	def post_reveal(self, selection):
 		if selection[0] == "Reveal":
@@ -110,14 +110,14 @@ class Secret_Chamber(crd.Card):
 
 			if self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), 
 				"Put two cards to the top of your deck (#1 is on top)", True):
-				self.played_by.cb = post_react_draw_select_cb
+				self.played_by.set_cb(post_react_draw_select_cb, True)
 			else:
 				#temp to clear our reacted callback before calling it
 				temp = self.reacted_to_callback
 				self.reacted_to_callback = None
 				temp()
 		else:
-			self.played_by.opponents_unwait(True)
+			self.played_by.update_wait(True)
 			#temp to clear our reacted callback before calling it
 			temp = self.reacted_to_callback
 			self.reacted_to_callback = None
@@ -129,7 +129,7 @@ class Secret_Chamber(crd.Card):
 		self.played_by.update_hand()
 		#if we put back the drawn card then remove from drawn list
 		final_drawn = [x for x in drawn_cards if x != self.played_by.deck[-1] and x!= self.played_by.deck[-2]]
-		self.played_by.opponents_unwait(True)
+		self.played_by.update_wait(True)
 		#temp to clear our reacted callback before calling it
 		#pass in newly drawn cards to check for new reactions
 		temp = self.reacted_to_callback
@@ -186,7 +186,7 @@ class Masquerade(crd.Card):
 			self.fire(self.game.players[next_player_index])
 		else:
 			self.played_by.select(None, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Select a card to trash")
-			self.played_by.cb = self.trash_select
+			self.played_by.set_cb(self.trash_select)
 
 	def fire(self, player):
 		def post_fire(selection, player=player):
@@ -198,7 +198,7 @@ class Masquerade(crd.Card):
 		if card is not None:
 			player.hand.add(card)
 
-		player.cb = post_fire
+		player.set_cb(post_fire)
 
 	def post_select(self, selection, player):
 		left_opponent = player.get_left_opponent()
@@ -270,7 +270,7 @@ class Steward(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		self.played_by.select(1, 1, ["+$2", "+2 Cards", "Trash 2 cards from hand"], "Choose One:")
-		self.played_by.cb = self.post_select
+		self.played_by.set_cb(self.post_select)
 
 	def post_select(self, selection):
 		if "+$2" in selection:
@@ -287,7 +287,7 @@ class Steward(crd.Card):
 
 			if len(self.played_by.hand) > 2 and not self.played_by.hand.is_homogeneous():
 				self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "select cards to trash")
-				self.played_by.cb = self.trash_select
+				self.played_by.set_cb(self.trash_select)
 			else:
 				card_selection = self.played_by.hand.auto_select(2, True)
 				self.trash_select(card_selection)
@@ -333,7 +333,7 @@ class Swindler(crd.AttackCard):
 					self.post_select(selection, player)
 
 				if self.played_by.select_from_supply(topdeck.get_price(), True):
-					self.played_by.cb = post_select_on
+					self.played_by.set_cb(post_select_on)
 				else:
 					crd.AttackCard.get_next(self, player)
 			else:
@@ -360,7 +360,7 @@ class Wishing_Well(crd.Card):
 		self.game.announce("-- gaining +1 action and drawing a card")
 
 		self.played_by.select_from_supply(allow_empty=True)
-		self.played_by.cb = self.post_select
+		self.played_by.set_cb(self.post_select)
 
 	def post_select(self, selection):
 		topdeck = self.played_by.topdeck()
@@ -395,7 +395,7 @@ class Baron(crd.Card):
 
 		if "Estate" in self.played_by.hand:
 			self.played_by.select(1, 1, ["Yes", "No"], "Would you like to discard an Estate for +$4?")
-			self.played_by.cb = self.post_select
+			self.played_by.set_cb(self.post_select)
 
 		else:
 			self.played_by.gain("Estate", done_gaining=lambda : crd.Card.on_finished(self, False))
@@ -483,7 +483,7 @@ class Ironworks(crd.Card):
 		self.game.announce("Gain a card costing up to $4")
 
 		if self.played_by.select_from_supply(4):
-			self.played_by.cb = self.post_select
+			self.played_by.set_cb(self.post_select)
 		else:
 			crd.Card.on_finished(self, False, False)
 
@@ -523,7 +523,7 @@ class Mining_Village(crd.Card):
 		self.game.announce("-- gaining 2 actions and drawing " + drawn)
 		self.played_by.update_hand()
 		self.played_by.select(1, 1, ["Yes", "No"], "Trash Mining Village for $2?")
-		self.played_by.cb = self.post_select
+		self.played_by.set_cb(self.post_select)
 
 	def post_select(self, selection):
 		if "Yes" in selection:
@@ -612,7 +612,7 @@ class Minion(crd.AttackCard):
 		self.played_by.update_resources()
 		self.game.announce("-- gaining 1 action")
 		self.played_by.select(1, 1, ["+$2", "discard hand and draw 4 cards"], "Choose one:")
-		self.played_by.cb = self.post_selection
+		self.played_by.set_cb(self.post_selection)
 
 	def post_selection(self, selection):
 		if "+$2" in selection[0]:
@@ -665,12 +665,12 @@ class Torturer(crd.AttackCard):
 			
 			player.select(1, 1, ["Discard 2 cards", "Gain a Curse"], "Choose one:")
 			player.opponents_wait("to choose", True)
-			player.cb = post_select_on
+			player.set_cb(post_select_on)
 			
 	def post_select(self, selection, victim):
 		if selection[0] == 'Gain a Curse':
 			victim.gain_to_hand('Curse', done_gaining= lambda : crd.AttackCard.get_next(self, victim))
-			victim.opponents_unwait(True)
+			victim.update_wait(True)
 		else:
 			discard_selection = victim.hand.auto_select(2, True)
 			if discard_selection:
@@ -687,13 +687,13 @@ class Torturer(crd.AttackCard):
 					self.post_discard_select(discard_selection, victim)
 
 				victim.select(2, 2, crd.card_list_to_titles(victim.hand.card_array()), "Discard two cards from hand")
-				victim.cb = post_discard_select_on
+				victim.set_cb(post_discard_select_on)
 
 	def post_discard_select(self, selection, victim):
 		self.game.announce(victim.name_string() + " discards " + str(len(selection)) + " cards")
 		victim.discard(selection, victim.discard_pile)
 		victim.update_hand()
-		victim.opponents_unwait(True)
+		victim.update_wait(True)
 		crd.AttackCard.get_next(self, victim)
 
 
@@ -764,7 +764,7 @@ class Upgrade(crd.Card):
 		else:
 			if self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), 
 				"Choose a card to trash:"):
-				self.played_by.cb = self.trash_select
+				self.played_by.set_cb(self.trash_select)
 			else:
 				crd.Card.on_finished(self)
 
@@ -775,7 +775,7 @@ class Upgrade(crd.Card):
 		self.played_by.update_hand()
 
 		if self.played_by.select_from_supply(card.get_price() + 1, True):
-			self.played_by.cb = self.post_select
+			self.played_by.set_cb(self.post_select)
 		else:
 			crd.Card.on_finished(self)
 
@@ -824,7 +824,7 @@ class Saboteur(crd.AttackCard):
 			self.game.announce("-- " + victim.name_string() + " gains a card costing "
 			                   + str(card.get_price() - 2) + " or less")
 			victim.select_from_supply(price_limit=card.get_price() - 2, optional=True)
-			victim.cb = post_select_cb
+			victim.set_cb(post_select_cb)
 			self.played_by.wait("to gain a card", victim)
 
 	def post_select(self, selection, victim):
@@ -853,7 +853,7 @@ class Trading_Post(crd.Card):
 			self.post_select(selection)
 		else:
 			self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "Trash 2 cards from your hand")
-			self.played_by.cb = self.post_select
+			self.played_by.set_cb(self.post_select)
 
 	def post_select(self, selection):
 		if len(selection) == 0:
@@ -901,7 +901,7 @@ class Nobles(crd.VictoryCard):
 		crd.Card.play(self, skip)
 
 		self.played_by.select(1, 1, ["+2 Actions", "+3 Cards"], "Choose one: +3 Cards; or +2 Actions.")
-		self.played_by.cb = self.post_select
+		self.played_by.set_cb(self.post_select)
 
 	def post_select(self, selection):
 		if "+2 Actions" in selection:
