@@ -247,8 +247,11 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.player3.last_mode["mode"] == "select")
 		self.player3.exec_commands({"command":"post_selection", "selection":["Moat", "Secret Chamber"]})
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+
+		#player3 reveals secret chamber
 		self.assertTrue("Secret Chamber" in self.player3.last_mode["msg"])
 		self.player3.exec_commands({"command":"post_selection", "selection": ["Reveal"]})
+		
 		#player3 chooses to put back secret chamber and moat in secret chamber reaction 
 		self.player3.exec_commands({"command":"post_selection", "selection": ["Secret Chamber", "Moat"]})
 		self.assertTrue(self.player3.deck[-1].title == "Moat")
@@ -266,14 +269,92 @@ class TestCard(unittest.TestCase):
 		self.player2.exec_commands({"command":"post_selection", "selection": ["Moat", "Estate"]})
 		self.assertTrue(self.player2.deck[-1].title == "Estate")
 		self.assertTrue(self.player2.deck[-2].title == "Moat")
-
 		
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		#player3 discards 2 silver
 		self.player3.exec_commands({"command":"post_selection", "selection": ["Silver", "Silver"]})
 
 		self.assertTrue(len(self.player3.hand)==3)
 		#player1 resumes
 		self.assertTrue(self.player1.last_mode["mode"] == "buy")
+
+	def test_2_reaction_waits(self):
+		tu.print_test_header("test 2 reaction waits")
+		militia = base.Militia(self.game, self.player1)
+		moat = base.Moat(self.game, self.player2)
+		secret_chamber = intrigue.Secret_Chamber(self.game, self.player2)
+		self.player2.hand.add(moat)
+		self.player2.hand.add(secret_chamber)
+		self.player2.deck.append(crd.Estate(self.game, self.player2))
+		self.player2.deck.append(crd.Estate(self.game, self.player2))
+
+		moat3 = base.Moat(self.game, self.player3)
+		secret_chamber3 = intrigue.Secret_Chamber(self.game, self.player3)
+		silver = crd.Silver(self.game, self.player3)
+		tu.set_player_hand(self.player3, [silver, silver, silver, moat3, secret_chamber3])
+
+		militia.play()
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		self.assertTrue(self.player2.last_mode["mode"] != "wait")
+		self.assertTrue(self.player3.last_mode["mode"] != "wait")
+
+		#player 2 choose order, moat then secret chamber
+		tu.send_input(self.player2, "post_selection", ["Secret Chamber", "Moat"])
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		self.assertTrue(self.player2.last_mode["mode"] != "wait")
+		self.assertTrue(self.player3.last_mode["mode"] != "wait")
+
+		#player 2 reveals moat
+		tu.send_input(self.player2, "post_selection", ["Reveal"])
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		self.assertTrue(self.player2.last_mode["mode"] != "wait")
+		self.assertTrue(self.player3.last_mode["mode"] != "wait")
+
+		#player 3 chooses same order, moat then secret chamber
+		tu.send_input(self.player3, "post_selection", ["Secret Chamber", "Moat"])
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		self.assertTrue(self.player2.last_mode["mode"] != "wait")
+		self.assertTrue(self.player3.last_mode["mode"] != "wait")
+
+		#player 2 reveals secret chamber
+		tu.send_input(self.player2, "post_selection", ["Reveal"])
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		self.assertTrue(self.player2.last_mode["mode"] != "wait")
+		self.assertTrue(self.player3.last_mode["mode"] != "wait")
+
+		#player 2 draws 2 estates, puts back 1 and a copper
+		tu.send_input(self.player2, "post_selection", ["Estate", "Copper"])
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		self.assertTrue(self.player2.last_mode["mode"] != "wait")
+		self.assertTrue(self.player3.last_mode["mode"] != "wait")
+
+		#player 3 reveals moat
+		tu.send_input(self.player3, "post_selection", ["Reveal"])
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		self.assertTrue(self.player2.last_mode["mode"] != "wait")
+		self.assertTrue(self.player3.last_mode["mode"] != "wait")
+
+		#player 3 hides secret chamber
+		tu.send_input(self.player3, "post_selection", ["Hide"])
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		self.assertTrue(self.player2.last_mode["mode"] != "wait")
+		self.assertTrue(self.player3.last_mode["mode"] != "wait")
+
+		#player 2 drew cards so is reprompted and chooses order again
+		tu.send_input(self.player2, "post_selection", ["Secret Chamber", "Moat"])
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		self.assertTrue(self.player2.last_mode["mode"] != "wait")
+		self.assertTrue(self.player3.last_mode["mode"] != "wait")
+
+		#player 2 hides moat
+		tu.send_input(self.player2, "post_selection", ["Hide"])
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		self.assertTrue(self.player2.last_mode["mode"] != "wait")
+		self.assertTrue(self.player3.last_mode["mode"] != "wait")
+
+		#player 2 hides secret chamber
+		tu.send_input(self.player2, "post_selection", ["Hide"])
+		self.assertTrue(self.player1.last_mode["mode"] != "wait")
 
 
 if __name__ == '__main__':

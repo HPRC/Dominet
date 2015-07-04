@@ -30,7 +30,7 @@ class Watchtower(crd.Card):
 		self.reacted_to_callback = reacted_to_callback
 		turn_owner = self.game.get_turn_owner()
 		if self.played_by != turn_owner:
-			turn_owner.wait("to react", True)
+			turn_owner.wait("to react", self.played_by, True)
 
 		self.played_by.select(1, 1, ["Reveal", "Hide"],  
 			"Reveal " + self.title + " to trash " + to_gain.title + " or put it on top of deck?")

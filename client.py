@@ -287,7 +287,7 @@ class DmClient(Client):
 			self.waiter.append_wait(i)
 			#only change lock if we are locking, update_wait must be called to unlock
 			if locked:
-				self.waiter.setLock(i ,True)
+				self.waiter.set_lock(i ,True)
 		self.waiter.wait(msg)
 
 
@@ -306,7 +306,7 @@ class DmClient(Client):
 			if i.name != self.name:
 				#only change lock if we are locking, update_wait must be called to unlock
 				if locked:
-					i.waiter.setLock(self, locked)
+					i.waiter.set_lock(self, locked)
 				i.waiter.append_wait(self)
 				i.waiter.wait(msg)
 

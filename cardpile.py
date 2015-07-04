@@ -282,10 +282,13 @@ class ReactionHandler():
 		#want to reveal cards again, should only re-prompt with attack reactions
 		if drew_cards and self.trigger == "Attack":
 			new_reactions = self.player.hand.get_reactions_for(self.trigger)
-			self.reactions_queue = [c.react for c in new_reactions]
 			if len(new_reactions) > 0:
 				self.initiate_reactions()
+				self.game.get_turn_owner().wait("to react", self.player)
 				return
+			else:
+				self.player.update_mode()
+				self.resume()
 		if len(self.reactions_queue) == 0:
 			self.player.update_mode()
 			self.resume()
