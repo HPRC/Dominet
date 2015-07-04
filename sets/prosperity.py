@@ -30,21 +30,20 @@ class Watchtower(crd.Card):
 		self.reacted_to_callback = reacted_to_callback
 		turn_owner = self.game.get_turn_owner()
 		if self.played_by != turn_owner:
-			self.played_by.opponents_wait("to react", True)
+			turn_owner.wait("to react", True)
 
 		self.played_by.select(1, 1, ["Reveal", "Hide"],  
 			"Reveal " + self.title + " to trash " + to_gain.title + " or put it on top of deck?")
 			
-		self.played_by.set_cb(self.post_reveal)
+		self.played_by.set_cb(self.post_reveal, True)
 
 	def post_reveal(self, selection):
 		if selection[0] == "Reveal":
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
 			self.played_by.select(1, 1, ["Trash", "Put on top of deck"], "Choose to trash")
-			self.played_by.set_cb(self.trash_or_gain)
+			self.played_by.set_cb(self.trash_or_gain, True)
 		else:
-			#clear 2nd wait since we selected hide
-			self.played_by.update_wait()
+			self.played_by.update_wait(True)
 			temp = self.reacted_to_callback
 			self.reacted_to_callback = None
 			temp()
@@ -60,6 +59,7 @@ class Watchtower(crd.Card):
 			self.played_by.deck.append(to_gain)
 			self.played_by.update_deck_size()
 
+		self.played_by.update_wait(True)
 		temp = self.reacted_to_callback
 		self.reacted_to_callback = None
 		temp()
@@ -601,6 +601,7 @@ class Vault(crd.Card):
 		                   ", gaining +$" + str(len(selection)))
 
 		self.played_by.wait_many("to discard", self.played_by.get_opponents(), True)
+		
 		for i in self.played_by.get_opponents():
 			#callback for each opponent
 			def discard_choice_cb(selection, player=i):

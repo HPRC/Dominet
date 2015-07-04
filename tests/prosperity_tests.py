@@ -97,22 +97,35 @@ class TestProsperity(unittest.TestCase):
 		self.player1.buy_card("Silver")
 		#0 buys should end turn normally but we have a reaction so should still be player1's turn
 		self.assertTrue(self.game.get_turn_owner().name == self.player1.name)
+		#shouldn't trigger reaction wait for opponents
+		self.assertTrue(self.player2.last_mode["mode"] != "wait")
+		self.assertTrue(self.player3.last_mode["mode"] != "wait")
 
 		self.player1.exec_commands({"command":"post_selection", "selection":["Reveal"]})
 		self.player1.exec_commands({"command":"post_selection", "selection":["Put on top of deck"]})
 		self.assertTrue(len(self.player1.discard_pile) == 0)
 		self.assertTrue(self.player1.deck[-1].title == "Silver")
 
+
+	def test_Watchtower_Witch(self):
+		tu.print_test_header("testing Watchtower witch")
 		self.player1.end_turn()
+		self.assertTrue(self.game.get_turn_owner().name == self.player2.name)
+
 		witch = base.Witch(self.game, self.player2)
 		self.player2.hand.add(witch)
 		watchtower2 = prosperity.Watchtower(self.game, self.player1)
 		self.player1.hand.add(watchtower2)
 
 		witch.play()
-		self.player1.exec_commands({"command":"post_selection", "selection":["Reveal"]})
-		self.player1.exec_commands({"command":"post_selection", "selection":["Trash"]})
+		self.assertTrue(self.player2.last_mode["mode"] == "wait")
+		self.assertTrue(self.player3.discard_pile[-1].title == "Curse")
+		tu.send_input(self.player1, "post_selection", ["Reveal"])
+		self.assertTrue(self.player2.last_mode["mode"] == "wait")
+		tu.send_input(self.player1, "post_selection", ["Trash"])
+		self.assertTrue(self.player2.last_mode["mode"] != "wait")
 		self.assertTrue(self.game.trash_pile[-1].title == "Curse")
+
 
 	def test_Kings_Court(self):
 		tu.print_test_header("testing King's Court")
@@ -143,10 +156,10 @@ class TestProsperity(unittest.TestCase):
 		mint.play()
 		tu.send_input(self.player1, "post_selection", ["Silver"])
 		self.assertTrue(self.player1.discard_pile[1].title == "Silver")
-
+		num_money = len(self.player1.hand.get_cards_by_type("Treasure"))
 		self.player1.spend_all_money()
 		self.player1.buy_card('Mint')
-		self.assertTrue(len(self.game.trash_pile) >= 5)
+		self.assertTrue(len(self.game.trash_pile) >= num_money)
 
 	def test_Mountebank(self):
 		tu.print_test_header("test Mountebank")

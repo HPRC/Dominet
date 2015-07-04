@@ -260,6 +260,38 @@ class TestIntrigue(unittest.TestCase):
 
 		self.assertTrue(self.player2.hand.get_count('Curse') == 1)
 
+	def test_Torturer_Throne_Room(self):
+		tu.print_test_header("test Torturer Throne Room")
+		throne_room = base.Throne_Room(self.game, self.player1)
+		torturer = intrigue.Torturer(self.game, self.player1)
+		self.player1.hand.add(torturer)
+
+		throne_room.play()
+		#Throne room a torturer
+		tu.send_input(self.player1, "post_selection", ["Torturer"])
+		#Player 2 is choosing, everyone else waits
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		self.assertTrue("player2" in self.player1.last_mode["msg"])
+		self.assertTrue(self.player3.last_mode["mode"] == "wait")
+
+		tu.send_input(self.player2, "post_selection", ["Gain a Curse"])
+		#player3's turn to get torturered
+		self.assertTrue("player3" in self.player1.last_mode["msg"])
+		self.assertTrue(self.player3.last_mode["mode"] != "wait")
+		self.assertTrue(self.player2.last_mode["mode"] == "wait")
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+
+		tu.send_input(self.player3, "post_selection", ["Gain a Curse"])
+		self.assertTrue("Curse" in self.player3.hand)
+		#Second torturer
+		tu.send_input(self.player2, "post_selection", ["Discard two cards"])
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		self.assertTrue(self.player3.last_mode["mode"] == "wait")
+		tu.send_input(self.player2, "post_selection", ["Curse", "Copper"])
+		self.assertTrue(self.player3.last_mode["mode"] != "wait")
+		tu.send_input(self.player3, "post_selection", ["Gain a Curse"])
+		self.assertTrue(self.player1.last_mode["mode"] != "wait")
+
 	def test_Trading_Post(self):
 		tu.print_test_header("test Trading Post")
 		trading_post = intrigue.Trading_Post(self.game, self.player1)
@@ -333,6 +365,7 @@ class TestIntrigue(unittest.TestCase):
 
 		self.player2.hand.play("Militia")
 		tu.send_input(self.player1, "post_selection", ["Reveal"])
+		self.assertTrue(self.player2.last_mode["mode"] == "wait")
 		tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
 		tu.send_input(self.player1, "post_selection", ["Hide"])
 		tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])

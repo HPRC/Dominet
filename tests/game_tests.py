@@ -103,7 +103,7 @@ class TestGame(unittest.TestCase):
 		self.player1.exec_commands({"command":"play", "card": "Remodel"})
 		self.player1.exec_commands({"command":"post_selection", "selection": ["Silver"]})
 		self.player1.exec_commands({"command":"selectSupply", "card": ["Duchy"]})
-		self.assertTrue(self.player1.waiting["cb"] == None)
+		self.assertTrue(self.player1.cb == None)
 		self.player1.exec_commands({"command":"selectSupply", "card": ["Duchy"]})
 		self.assertTrue(len(self.player1.discard_pile) == 1)
 

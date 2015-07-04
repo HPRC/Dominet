@@ -286,8 +286,12 @@ class Militia(crd.AttackCard):
 		for i in self.played_by.get_opponents():
 			if not crd.AttackCard.is_blocked(self, i):
 				attacking = True
-				crd.discard_down(i, 3, lambda : crd.Card.on_finished(self, False, False))
+				crd.discard_down(i, 3, self.finished_discarding)
 		if not attacking:
+			crd.Card.on_finished(self, False, False)
+
+	def finished_discarding(self):
+		if not self.played_by.is_waiting():
 			crd.Card.on_finished(self, False, False)
 
 class Moneylender(crd.Card):
@@ -719,15 +723,13 @@ class Witch(crd.AttackCard):
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	def attack(self):
-		num_attacked = 0
-		for i in self.played_by.get_opponents():
-			if not crd.AttackCard.is_blocked(self, i):
-				num_attacked += 1
-				i.gain("Curse", done_gaining=lambda x=num_attacked: self.curse_finished(x-1))
+		crd.AttackCard.get_next(self, self.played_by)
 
-	def curse_finished(self, count):
-		if count == 0:
-			crd.Card.on_finished(self, False, False)
+	def fire(self, victim):
+		if not crd.AttackCard.is_blocked(self, victim):
+			victim.gain("Curse", done_gaining= lambda : crd.AttackCard.get_next(self, victim))
+		else:
+			crd.AttackCard.get_next(self, victim)
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-danger'>", self.title, "es</span>" if plural else "</span>"])

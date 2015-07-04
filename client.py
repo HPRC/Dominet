@@ -277,19 +277,26 @@ class DmClient(Client):
 	def set_cb(self, cb, selflock= False):
 		if cb != None:
 			self.waiter.append_wait(self)
-		self.waiter.setLock(selflock)
+			#only change lock if we are locking, update_wait must be called to unlock
+			if selflock:
+				self.waiter.set_lock(self, selflock)
 		self.cb = cb
 
 	def wait_many(self, msg, on, locked=False):
 		for i in on:
 			self.waiter.append_wait(i)
+			#only change lock if we are locking, update_wait must be called to unlock
+			if locked:
+				self.waiter.setLock(i ,True)
 		self.waiter.wait(msg)
-		self.waiter.setLock(locked)
+
 
 	def wait(self, msg, on, locked=False):
 		self.waiter.append_wait(on)
 		self.waiter.wait(msg)
-		self.waiter.setLock(locked)
+		#only change lock if we are locking, update_wait must be called to unlock
+		if locked:
+			self.waiter.set_lock(on, True)
 
 	def is_waiting(self):
 		return self.waiter.is_waiting()
@@ -297,14 +304,16 @@ class DmClient(Client):
 	def opponents_wait(self, msg, locked=False):
 		for i in self.game.players:
 			if i.name != self.name:
-				i.waiter.setLock(locked)
+				#only change lock if we are locking, update_wait must be called to unlock
+				if locked:
+					i.waiter.setLock(self, locked)
 				i.waiter.append_wait(self)
 				i.waiter.wait(msg)
 
 	def update_wait(self, manually_called=False):
 		for i in self.game.players:
 			if manually_called:
-				i.waiter.setLock(not manually_called)
+				i.waiter.set_lock(self, False)
 			i.waiter.notify(self)
 
 	def discard(self, cards, pile):

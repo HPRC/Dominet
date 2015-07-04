@@ -206,6 +206,14 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(len(self.player1.hand) == 7)
 		self.assertTrue(self.player1.discard_pile[-1] == village)
 
+	def test_Witch(self):
+		tu.print_test_header("test Witch")
+		witch = base.Witch(self.game, self.player1)
+		witch.play()
+		self.assertTrue(self.player2.discard_pile[-1].title == "Curse")
+		self.assertTrue(self.player3.discard_pile[-1].title == "Curse")
+		self.assertTrue(self.player1.last_mode["mode"] != "wait")
+
 	def test_2_Reactions(self):
 		tu.print_test_header("test 2 reaction secret chamber moat")
 		militia = base.Militia(self.game, self.player1)
@@ -229,7 +237,6 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.player2.last_mode["mode"] == "select")
 		self.assertTrue("Secret Chamber" in self.player2.last_mode["select_from"])		
 		self.assertTrue("Moat" in self.player2.last_mode["select_from"])
-
 		self.player2.exec_commands({"command":"post_selection", "selection":["Secret Chamber", "Moat"]})
 		#moat trigger first
 		self.assertTrue("Moat" in self.player2.last_mode["msg"])
@@ -237,6 +244,7 @@ class TestCard(unittest.TestCase):
 
 		#while player2 is deciding to reveal moat or not,
 		#player3 chose order Secret chamber first
+		self.assertTrue(self.player3.last_mode["mode"] == "select")
 		self.player3.exec_commands({"command":"post_selection", "selection":["Moat", "Secret Chamber"]})
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		self.assertTrue("Secret Chamber" in self.player3.last_mode["msg"])
@@ -245,12 +253,16 @@ class TestCard(unittest.TestCase):
 		self.player3.exec_commands({"command":"post_selection", "selection": ["Secret Chamber", "Moat"]})
 		self.assertTrue(self.player3.deck[-1].title == "Moat")
 		self.assertTrue(self.player3.deck[-2].title == "Secret Chamber")
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		#player2 reveals moat
+		self.assertTrue(self.player2.last_mode["mode"] == "select")
 		self.player2.exec_commands({"command":"post_selection", "selection": ["Reveal"]})
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		#player2 reveals secret chamber
 		self.player2.exec_commands({"command":"post_selection", "selection": ["Reveal"]})
 		#player2 puts back Estate, moat
 		self.assertTrue(self.player2.protection == 1)
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		self.player2.exec_commands({"command":"post_selection", "selection": ["Moat", "Estate"]})
 		self.assertTrue(self.player2.deck[-1].title == "Estate")
 		self.assertTrue(self.player2.deck[-2].title == "Moat")
@@ -262,6 +274,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(len(self.player3.hand)==3)
 		#player1 resumes
 		self.assertTrue(self.player1.last_mode["mode"] == "buy")
+
 
 if __name__ == '__main__':
 	unittest.main()

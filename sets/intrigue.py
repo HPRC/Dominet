@@ -96,7 +96,7 @@ class Secret_Chamber(crd.Card):
 		self.played_by.select(1, 1, ["Reveal", "Hide"],
 		                      "Reveal " + self.title + " to draw 2 and place 2 back to deck?")
 
-		self.played_by.opponents_wait("to react", True)
+		self.game.get_turn_owner().wait("to react", self.played_by, True)
 		self.played_by.set_cb(self.post_reveal, True)
 
 	def post_reveal(self, selection):
@@ -662,15 +662,14 @@ class Torturer(crd.AttackCard):
 		if crd.AttackCard.fire(self, player):
 			def post_select_on(selection, player=player):
 				self.post_select(selection, player)
-			
 			player.select(1, 1, ["Discard 2 cards", "Gain a Curse"], "Choose one:")
 			player.opponents_wait("to choose", True)
 			player.set_cb(post_select_on)
 			
 	def post_select(self, selection, victim):
 		if selection[0] == 'Gain a Curse':
-			victim.gain_to_hand('Curse', done_gaining= lambda : crd.AttackCard.get_next(self, victim))
 			victim.update_wait(True)
+			victim.gain_to_hand('Curse', done_gaining= lambda : crd.AttackCard.get_next(self, victim))
 		else:
 			discard_selection = victim.hand.auto_select(2, True)
 			if discard_selection:

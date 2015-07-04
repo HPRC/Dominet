@@ -2,10 +2,10 @@ class WaitHandler():
 	def __init__(self, player):
 		self.player = player
 		# on = list of players waiting for, callback called after select/gain gets response, 
-		#locked = false if update waits on callback automatically, true if it will be resolved manually by card
 		self.waiting_on = []
 		self.msg = ""
-		self.locked = False
+		#locked = set of players we ignore auto updates (and keep waiting) until manually removed from locked set
+		self.locked = set()
 
 	def wait(self, msg):
 		self.msg = msg
@@ -16,22 +16,28 @@ class WaitHandler():
 			self.waiting_on.append(to_append)
 
 	def notify(self, notifier):
-		if not self.locked:
+		if not notifier in self.locked:
 			if notifier in self.waiting_on:
 				self.waiting_on.remove(notifier)
 			if not self.is_waiting():
 				self.player.update_mode()
-			else:
-				self.wait("Waiting for " + self.waiting_on_string() + " " + self.msg)
+			elif not self.waiting_only_myself():
+				self.wait(self.msg)
 
-	def setLock(self, lock):
-		self.locked = lock
+	def set_lock(self, locked_person, locked):
+		if locked:
+			self.locked.add(locked_person)
+		elif locked_person in self.locked:
+			self.locked.remove(locked_person)
 
 	def update_msg(self, msg):
 		self.wait(msg)
 
 	def waiting_on_string(self):
 		return ", ".join(list(set(map(lambda x: x.name, self.waiting_on))))
+
+	def waiting_only_myself(self):
+		return len(self.waiting_on) == 1 and self.is_waiting_on(self.player)
 
 	def is_waiting_on(self, player):
 		return player in self.waiting_on

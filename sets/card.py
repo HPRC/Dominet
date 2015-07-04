@@ -110,7 +110,7 @@ class AttackCard(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
 		self.type = "Action|Attack"
-		#list of players with reactions to attack
+		#list of players with reactions to attacks
 		self.reacting_players = []
 
 	def player_finished_reacting(self, player):
