@@ -96,7 +96,6 @@ class Secret_Chamber(crd.Card):
 		self.played_by.select(1, 1, ["Reveal", "Hide"],
 		                      "Reveal " + self.title + " to draw 2 and place 2 back to deck?")
 
-		self.game.get_turn_owner().wait("to react", self.played_by, True)
 		self.played_by.set_cb(self.post_reveal, True)
 
 	def post_reveal(self, selection):
@@ -117,7 +116,6 @@ class Secret_Chamber(crd.Card):
 				self.reacted_to_callback = None
 				temp()
 		else:
-			self.played_by.update_wait(True)
 			#temp to clear our reacted callback before calling it
 			temp = self.reacted_to_callback
 			self.reacted_to_callback = None
@@ -129,7 +127,6 @@ class Secret_Chamber(crd.Card):
 		self.played_by.update_hand()
 		#if we put back the drawn card then remove from drawn list
 		final_drawn = [x for x in drawn_cards if x != self.played_by.deck[-1] and x!= self.played_by.deck[-2]]
-		self.played_by.update_wait(True)
 		#temp to clear our reacted callback before calling it
 		#pass in newly drawn cards to check for new reactions
 		temp = self.reacted_to_callback

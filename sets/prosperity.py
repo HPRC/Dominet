@@ -43,7 +43,6 @@ class Watchtower(crd.Card):
 			self.played_by.select(1, 1, ["Trash", "Put on top of deck"], "Choose to trash")
 			self.played_by.set_cb(self.trash_or_gain, True)
 		else:
-			self.played_by.update_wait(True)
 			temp = self.reacted_to_callback
 			self.reacted_to_callback = None
 			temp()
@@ -59,7 +58,6 @@ class Watchtower(crd.Card):
 			self.played_by.deck.append(to_gain)
 			self.played_by.update_deck_size()
 
-		self.played_by.update_wait(True)
 		temp = self.reacted_to_callback
 		self.reacted_to_callback = None
 		temp()

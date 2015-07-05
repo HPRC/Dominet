@@ -277,6 +277,7 @@ class ReactionHandler():
 			else:
 				cb(self.reacted, self.react_data)
 
+	#called after a reaction resolves
 	def reacted(self, drew_cards=False):
 		#if we drew any new cards during a card's reaction reprompt all reactions since player may
 		#want to reveal cards again, should only re-prompt with attack reactions
@@ -285,11 +286,12 @@ class ReactionHandler():
 			if len(new_reactions) > 0:
 				self.initiate_reactions()
 				self.game.get_turn_owner().wait("to react", self.player)
-				return
 			else:
 				self.player.update_mode()
 				self.resume()
-		if len(self.reactions_queue) == 0:
+		elif len(self.reactions_queue) == 0:
+			#finished all our reactions, unlock reaction wait on me
+			self.player.update_wait(True)
 			self.player.update_mode()
 			self.resume()
 		else:

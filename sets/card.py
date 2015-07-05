@@ -126,7 +126,7 @@ class AttackCard(Card):
 		if not self.reacting_players:
 			self.attack()
 		else:
-			self.played_by.wait_many("to react", self.reacting_players)
+			self.played_by.wait_many("to react", self.reacting_players, True)
 
 	def is_blocked(self, target):
 		# shouldnt need to block against own attacks (i.e. spy)

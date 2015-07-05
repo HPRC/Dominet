@@ -227,10 +227,7 @@ class TestCard(unittest.TestCase):
 		moat3 = base.Moat(self.game, self.player3)
 		secret_chamber3 = intrigue.Secret_Chamber(self.game, self.player3)
 		silver = crd.Silver(self.game, self.player3)
-		self.player3.hand.data = {"Silver": [silver, silver, silver]}
-		self.player3.hand.add(moat3)
-		self.player3.hand.add(secret_chamber3)
-		
+		tu.set_player_hand(self.player3, [silver, silver, silver, moat3, secret_chamber3])
 
 		militia.play()
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
@@ -251,7 +248,7 @@ class TestCard(unittest.TestCase):
 		#player3 reveals secret chamber
 		self.assertTrue("Secret Chamber" in self.player3.last_mode["msg"])
 		self.player3.exec_commands({"command":"post_selection", "selection": ["Reveal"]})
-		
+
 		#player3 chooses to put back secret chamber and moat in secret chamber reaction 
 		self.player3.exec_commands({"command":"post_selection", "selection": ["Secret Chamber", "Moat"]})
 		self.assertTrue(self.player3.deck[-1].title == "Moat")
@@ -355,7 +352,7 @@ class TestCard(unittest.TestCase):
 		#player 2 hides secret chamber
 		tu.send_input(self.player2, "post_selection", ["Hide"])
 		self.assertTrue(self.player1.last_mode["mode"] != "wait")
-
+		
 
 if __name__ == '__main__':
 	unittest.main()
