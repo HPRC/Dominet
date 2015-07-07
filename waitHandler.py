@@ -30,9 +30,6 @@ class WaitHandler():
 		elif locked_person in self.locked:
 			self.locked.remove(locked_person)
 
-	def update_msg(self, msg):
-		self.wait(msg)
-
 	def waiting_on_string(self):
 		return ", ".join(list(set(map(lambda x: x.name, self.waiting_on))))
 

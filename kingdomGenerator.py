@@ -9,6 +9,8 @@ import string
 
 class kingdomGenerator():
 	avail_sets = [base, intrigue, prosperity]
+	kingdom_size = 10
+
 	def __init__(self, game, required_cards=[], excluded_cards=[]):
 
 		self.game = game
@@ -26,11 +28,11 @@ class kingdomGenerator():
 				del self.avail_cards[x]
 
 		for x in self.required_cards:
-			if x in self.avail_cards:
+			if x in self.avail_cards and len(kingdom) < kingdomGenerator.kingdom_size:
 				kingdom.append(self.avail_cards[x])
 				del self.avail_cards[x]
 		# choose random cards to fill out the rest
-		if 10 - len(kingdom) > 0:
+		if kingdomGenerator.kingdom_size - len(kingdom) > 0:
 			kingdom += [self.avail_cards[i] for i in random.sample(list(self.avail_cards), 10 - len(kingdom))]
 
 		return kingdom
