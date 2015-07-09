@@ -248,7 +248,7 @@ class DmHandler(GameHandler):
 						if len(self.client.game.players) == 0:
 							GameHandler.games.remove(self.client.game)
 					else:
-						i.wait(", they have disconnected!", self)
+						i.wait(", they have disconnected!", self.client)
 
 
 def main():

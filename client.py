@@ -132,13 +132,17 @@ class DmClient(Client):
 		new_conn.actions = self.actions
 		new_conn.buys = self.buys
 		new_conn.balance = self.balance
-		new_conn.waiter = self.waiter
 		new_conn.cb = self.cb
 		new_conn.last_mode = self.last_mode
 		new_conn.protection = self.protection
 		new_conn.vp = self.vp
 		new_conn.bought_cards = self.bought_cards
 		new_conn.banned = self.banned
+
+		#reassign waiter
+		new_conn.waiter = self.waiter
+		#reassign waiter's reference to player
+		new_conn.waiter.player = new_conn
 
 		for card in self.all_cards():
 			card.played_by = new_conn

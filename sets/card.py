@@ -314,8 +314,8 @@ def reorder_top(player, cards_to_reorder, callback):
 		player.update_deck_size()
 		callback()
 	else:
-		def post_reorder_with(order, player=player, cards=cards_to_reorder, callback=callback):
-			post_reorder(player, order, cards, callback)
+		def post_reorder_with(order, player=player, cards=cards_to_reorder, callback=callback, game=player.game):
+			post_reorder(player, order, cards, callback, game)
 
 		turn_owner = player.game.get_turn_owner()
 		if turn_owner != player:
@@ -326,7 +326,10 @@ def reorder_top(player, cards_to_reorder, callback):
 			"Rearrange the cards to put back on top of deck (#1 is on top)", True)
 
 #this is used by reorder top to place ordered selections back on top of deck
-def post_reorder(player, selection, cards, callback):
+def post_reorder(player, selection, cards, callback, game):
+	#check for disconnected in callback
+	if not player.game:
+		player = game.get_player_from_name(player.name)
 		for x in selection:
 			for y in cards:
 				if x == y.title:
@@ -371,8 +374,8 @@ def discard_down(player, reduced_hand_size, callback):
 		player.select(len(player.hand) - reduced_hand_size, len(player.hand) - reduced_hand_size, 
 			card_list_to_titles(player.hand.card_array()), "discard down to " + str(reduced_hand_size) + " cards")
 
-		def discard_cb(selection, player=player, reduced_hand_size=reduced_hand_size, callback=callback):
-			post_discard_down(player, selection, reduced_hand_size, callback)
+		def discard_cb(selection, player=player, reduced_hand_size=reduced_hand_size, callback=callback, game=player.game):
+			post_discard_down(player, selection, reduced_hand_size, callback, game=game)
 
 		player.set_cb(discard_cb)
 		turn_owner.wait("to discard", player)
@@ -381,7 +384,10 @@ def discard_down(player, reduced_hand_size, callback):
 		if not turn_owner.is_waiting():
 			callback()
 
-def post_discard_down(player, selection, reduced_hand_size, callback):
+def post_discard_down(player, selection, reduced_hand_size, callback, game):
+	#check for disconnected in callback
+	if not player.game:
+		player = game.get_player_from_name(player.name)
 	turn_owner = player.game.get_turn_owner()
 	player.game.announce("-- " + player.name_string() + " discards down to " + str(reduced_hand_size))
 	player.discard(selection, player.discard_pile)
