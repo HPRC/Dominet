@@ -291,6 +291,9 @@ class Colony(VictoryCard):
 		return "".join(["<span class='label label-success'>", "Colonies</span>" if plural else self.title, "</span>"])
 
 # Utility
+# Note using static callbacks needs reference for game and to check for player's game in case a player 
+# disconnects during callback resolution
+
 # returns list of card titles from list of card jsons or card objects
 def card_list_to_titles(lst):
 	if len(lst) == 0:

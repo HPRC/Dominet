@@ -202,23 +202,20 @@ class DmHandler(GameHandler):
 			for p in each_game.players:
 				if self.client.name == p.name:
 					p.handler.disconnected = False
+
 					self.client.game = p.game
 					p.resume_state(self.client)
 					#clear game of old connection
 					p.game = None
 					# update game players
 					self.write_json(command="init", id=p.id, name=p.name)
+					#replace player positon in game list, preserving order
 					index = self.client.game.players.index(p)
 					self.client.game.players.pop(index)
 					self.client.game.players.insert(index, self.client)
+					
 					self.write_json(command="resume")
 					turn_owner = self.client.game.get_turn_owner()
-					if self.client.last_mode["mode"] != "gameover":
-						for i in self.client.get_opponents():
-							if i == turn_owner:
-								turn_owner.write_json(command="startTurn", actions=turn_owner.actions, 
-								buys=turn_owner.buys, balance=turn_owner.balance)
-							i.write_json(**i.last_mode)
 					return
 		GameHandler.open(self)
 	
@@ -228,13 +225,14 @@ class DmHandler(GameHandler):
 		if self.client.game is None:
 			GameHandler.on_close(self)
 			return
-		self.client.ready = False
 
-		# abandoned if everyone left game
+		self.client.ready = False
+		# check if abandoned (if everyone left game) and remove game if so
 		abandoned = True
 		for i in self.client.game.players:
 			if i.ready is True:
 				abandoned = False
+
 		if abandoned:
 			GameHandler.games.remove(self.client.game)
 			self.client.game = None
@@ -248,7 +246,7 @@ class DmHandler(GameHandler):
 						if len(self.client.game.players) == 0:
 							GameHandler.games.remove(self.client.game)
 					else:
-						i.wait(", they have disconnected!", self.client)
+						i.wait(": they have disconnected!", self.client)
 
 
 def main():
