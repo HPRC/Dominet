@@ -27,7 +27,7 @@ class TestGame(unittest.TestCase):
 		self.player1 = c.DmClient("player1", 0, DummyHandler())
 		self.player2 = c.DmClient("player2", 1, SilentHandler())
 		self.player3 = c.DmClient("player3", 2, SilentHandler())
-		self.game = g.DmGame([self.player1, self.player2, self.player3], kg.all_card_titles(), [])
+		self.game = g.DmGame([self.player1, self.player2, self.player3], [], [], test=True)
 		self.game.players = [self.player1, self.player2, self.player3]
 		for i in self.game.players:
 			i.game = self.game

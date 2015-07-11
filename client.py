@@ -232,8 +232,8 @@ class DmClient(Client):
 		if turn_owner != self:
 			turn_owner.write_json(**turn_owner.last_mode)
 			
-		turn_owner.write_json(command="startTurn", actions=self.actions, 
-				buys=self.buys, balance=self.balance)
+		turn_owner.write_json(command="startTurn", actions=turn_owner.actions, 
+				buys=turn_owner.buys, balance=turn_owner.balance)
 
 	def end_turn(self):
 		# cleanup before game ends

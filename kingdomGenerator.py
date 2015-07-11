@@ -37,6 +37,13 @@ class kingdomGenerator():
 
 		return kingdom
 
+	def every_card_kingdom(self):
+		kingdom = []
+		for x in all_card_titles():
+			if x in self.avail_cards:
+				kingdom.append(self.avail_cards[x])
+		return kingdom
+
 	def load_set(self, card_set):
 		for name, obj in inspect.getmembers(card_set):
 			if inspect.isclass(obj):

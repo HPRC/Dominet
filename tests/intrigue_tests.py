@@ -14,7 +14,7 @@ class TestIntrigue(unittest.TestCase):
 		self.player1 = c.DmClient("player1", 0, tu.PlayerHandler())
 		self.player2 = c.DmClient("player2", 1, tu.PlayerHandler())
 		self.player3 = c.DmClient("player3", 2, tu.PlayerHandler())
-		self.game = g.DmGame([self.player1, self.player2, self.player3], kg.all_card_titles(), [])
+		self.game = g.DmGame([self.player1, self.player2, self.player3], [], [], test=True)
 		#hard code order of players so that random turn order doesn't interfere with tests
 		self.game.players = [self.player1, self.player2, self.player3]
 		for i in self.game.players:

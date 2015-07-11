@@ -333,13 +333,13 @@ def post_reorder(player, selection, cards, callback, game):
 	#check for disconnected in callback
 	if not player.game:
 		player = game.get_player_from_name(player.name)
-		for x in selection:
-			for y in cards:
-				if x == y.title:
-					player.deck.append(y)
-					break
-		player.update_deck_size()
-		callback()
+	for x in selection:
+		for y in cards:
+			if x == y.title:
+				player.deck.append(y)
+				break
+	player.update_deck_size()
+	callback()
 
 #search through a players deck and discard until findng a specific card
 # player = player who owns deck to search through
