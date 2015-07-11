@@ -291,9 +291,6 @@ class Colony(VictoryCard):
 		return "".join(["<span class='label label-success'>", "Colonies</span>" if plural else self.title, "</span>"])
 
 # Utility
-# Note using static callbacks needs reference for game and to check for player's game in case a player 
-# disconnects during callback resolution
-
 # returns list of card titles from list of card jsons or card objects
 def card_list_to_titles(lst):
 	if len(lst) == 0:
@@ -330,9 +327,6 @@ def reorder_top(player, cards_to_reorder, callback):
 
 #this is used by reorder top to place ordered selections back on top of deck
 def post_reorder(player, selection, cards, callback, game):
-	#check for disconnected in callback
-	if not player.game:
-		player = game.get_player_from_name(player.name)
 	for x in selection:
 		for y in cards:
 			if x == y.title:
@@ -388,9 +382,6 @@ def discard_down(player, reduced_hand_size, callback):
 			callback()
 
 def post_discard_down(player, selection, reduced_hand_size, callback, game):
-	#check for disconnected in callback
-	if not player.game:
-		player = game.get_player_from_name(player.name)
 	turn_owner = player.game.get_turn_owner()
 	player.game.announce("-- " + player.name_string() + " discards down to " + str(reduced_hand_size))
 	player.discard(selection, player.discard_pile)

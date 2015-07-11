@@ -123,30 +123,6 @@ class DmClient(Client):
 		#cards banned from buying
 		self.banned = []
 
-	def resume_state(self, new_conn):
-		new_conn.discard_pile = self.discard_pile
-		new_conn.deck = self.deck
-		new_conn.hand = self.hand
-		new_conn.played = self.played
-		new_conn.played_actions = self.played_actions
-		new_conn.actions = self.actions
-		new_conn.buys = self.buys
-		new_conn.balance = self.balance
-		new_conn.cb = self.cb
-		new_conn.last_mode = self.last_mode
-		new_conn.protection = self.protection
-		new_conn.vp = self.vp
-		new_conn.bought_cards = self.bought_cards
-		new_conn.banned = self.banned
-
-		#reassign waiter
-		new_conn.waiter = self.waiter
-		#reassign waiter's reference to player
-		new_conn.waiter.player = new_conn
-
-		for card in self.all_cards():
-			card.played_by = new_conn
-
 	def update_hand(self):
 		self.write_json(command="updateHand", hand=[x.to_json() for x in self.hand.card_array()])
 
