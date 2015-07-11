@@ -149,11 +149,12 @@ class DmClient(Client):
 					self.game.turn_count = 1
 					self.game.start_game()
 				else:
-					self.reconnect()
 					self.resume()
+					self.reconnect()
 			elif self.game.turn_count != 0:
 				#not all players are ready wait for disconnected ones
 				self.reconnect()
+				self.update_wait()
 				#update wait msgs
 				for i in self.game.players:
 					if i.ready:
@@ -185,12 +186,12 @@ class DmClient(Client):
 
 
 	def exec_selected_choice(self, choice):
-		self.update_wait()
 		# choice(the parameter) to waiting callback is always a list
 		if self.cb is not None:
 			temp = self.cb
 			self.cb = None
 			temp(choice)
+		self.update_wait()
 
 	def reconnect(self):
 		self.game.announce(self.name_string() + " has reconnected!")
@@ -198,16 +199,13 @@ class DmClient(Client):
 		self.update_hand()
 		self.update_resources()
 		self.game.update_trash_pile()
-		self.update_wait()
 
 	#resumes game after all players ready
 	def resume(self):
-		self.write_json(**self.last_mode)
-
+		for i in self.game.players:
+			i.write_json(**i.last_mode)
+		
 		turn_owner = self.game.get_turn_owner()
-		if turn_owner != self:
-			turn_owner.write_json(**turn_owner.last_mode)
-			
 		turn_owner.write_json(command="startTurn", actions=turn_owner.actions, 
 				buys=turn_owner.buys, balance=turn_owner.balance)
 
