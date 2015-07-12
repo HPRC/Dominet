@@ -42,16 +42,6 @@ class mainHandler(web.RequestHandler):
 			else:
 				self.render(INDEX, error="You are already connected!")
 
-	def is_disconnected(self, name):
-		for eg in GameHandler.games:
-			if name in list(map(lambda x: x.name, [e for e in eg.players if e.handler.disconnected])):
-				return True
-		for client_name, client in GameHandler.unattachedClients.items():
-			if name == client_name and client.handler.disconnected:
-				return True
-		return False
-
-
 
 class GameHandler(websocket.WebSocketHandler):
 	# name => client obj
