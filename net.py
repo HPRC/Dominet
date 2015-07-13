@@ -216,7 +216,8 @@ class DmHandler(GameHandler):
 	# override
 	def on_close(self):
 		GameHandler.on_close(self)
-
+		if self.client.game == None:
+			return
 		self.client.ready = False
 		# check if abandoned (if everyone left game) and remove game if so
 		abandoned = True
