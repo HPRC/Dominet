@@ -20,9 +20,9 @@ def add_many_to_hand(player, card, count):
 def send_input(player, command, selection):
 	if command == "post_selection":
 		player.exec_commands({"command":command, "selection":selection})
-	elif command == "selectSupply" or command == "buyCard":
-		player.exec_commands({"command":command, "card":selection})
-
+	elif command == "selectSupply" or command == "buyCard" or command == "play":
+		player.exec_commands({"command":command, "card":selection}) 
+		
 def print_test_header(msg):
 	print(" ---------------------------------------- ")
 	print("\t" + msg)
@@ -35,4 +35,3 @@ class PlayerHandler():
 	def write_json(self, **kwargs):
 		if kwargs["command"] != "announce":
 			self.log.append(kwargs)
-
