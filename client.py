@@ -123,30 +123,6 @@ class DmClient(Client):
 		#cards banned from buying
 		self.banned = []
 
-	def resume_state(self, new_conn):
-		new_conn.discard_pile = self.discard_pile
-		new_conn.deck = self.deck
-		new_conn.hand = self.hand
-		new_conn.played = self.played
-		new_conn.played_actions = self.played_actions
-		new_conn.actions = self.actions
-		new_conn.buys = self.buys
-		new_conn.balance = self.balance
-		new_conn.cb = self.cb
-		new_conn.last_mode = self.last_mode
-		new_conn.protection = self.protection
-		new_conn.vp = self.vp
-		new_conn.bought_cards = self.bought_cards
-		new_conn.banned = self.banned
-
-		#reassign waiter
-		new_conn.waiter = self.waiter
-		#reassign waiter's reference to player
-		new_conn.waiter.player = new_conn
-
-		for card in self.all_cards():
-			card.played_by = new_conn
-
 	def update_hand(self):
 		self.write_json(command="updateHand", hand=[x.to_json() for x in self.hand.card_array()])
 
@@ -168,13 +144,21 @@ class DmClient(Client):
 		print(self.name + " \033[94m" + json.dumps(data) + "\033[0m")
 		if cmd == "ready":
 			self.ready = True
-			if self.game.players_ready() and self.game.turn_count == 0:
-				self.game.turn_count = 1
-				self.game.start_game()
-			elif self.game.players_ready():
-				self.game.load_supplies()
-				self.game.update_all_prices()
-				self.resume()
+			if self.game.players_ready():
+				if self.game.turn_count == 0:
+					self.game.turn_count = 1
+					self.game.start_game()
+				else:
+					self.resume()
+					self.reconnect()
+			elif self.game.turn_count != 0:
+				#not all players are ready wait for disconnected ones
+				self.reconnect()
+				self.update_wait()
+				#update wait msgs
+				for i in self.game.players:
+					if i.ready:
+						i.waiter.wait(self.waiter.msg)
 		elif cmd == "play":
 			if not data["card"] in self.hand:
 				print("Error " + data["card"] + " not in " + ",".join(self.hand.card_array()))
@@ -202,22 +186,28 @@ class DmClient(Client):
 
 
 	def exec_selected_choice(self, choice):
-		self.update_wait()
 		# choice(the parameter) to waiting callback is always a list
 		if self.cb is not None:
 			temp = self.cb
 			self.cb = None
 			temp(choice)
+		self.update_wait()
 
-	def resume(self):
+	def reconnect(self):
+		self.game.announce(self.name_string() + " has reconnected!")
+		self.game.load_supplies()
 		self.update_hand()
 		self.update_resources()
 		self.game.update_trash_pile()
-		self.write_json(**self.last_mode)
-		self.game.announce(self.name_string() + " has reconnected!")
-		if self.game.get_turn_owner() == self:
-			self.write_json(command="startTurn", actions=self.actions, 
-				buys=self.buys, balance=self.balance)
+
+	#resumes game after all players ready
+	def resume(self):
+		for i in self.game.players:
+			i.write_json(**i.last_mode)
+		
+		turn_owner = self.game.get_turn_owner()
+		turn_owner.write_json(command="startTurn", actions=turn_owner.actions, 
+				buys=turn_owner.buys, balance=turn_owner.balance)
 
 	def end_turn(self):
 		# cleanup before game ends

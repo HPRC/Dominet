@@ -17,7 +17,7 @@ class WaitHandler():
 
 	def notify(self, notifier):
 		if not notifier.name in self.locked:
-			if notifier.name in self.waiting_on:
+			if self.is_waiting_on(notifier):
 				self.waiting_on.remove(notifier.name)
 			if not self.is_waiting():
 				self.player.update_mode()
@@ -34,10 +34,11 @@ class WaitHandler():
 		return ", ".join(self.waiting_on)
 
 	def waiting_only_myself(self):
-		return len(self.waiting_on) == 1 and self.is_waiting_on(self.player.name)
+		return len(self.waiting_on) == 1 and self.is_waiting_on(self.player)
 
 	def is_waiting_on(self, player):
 		return player.name in self.waiting_on
 
 	def is_waiting(self):
 		return len(self.waiting_on) > 0
+

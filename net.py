@@ -23,11 +23,11 @@ class mainHandler(web.RequestHandler):
 		input_name = str(self.get_argument("username"))
 		cookie_name = self.get_cookie("DMTusername")
 		#no cookie and no name conflicts
-		if not self.in_game_or_lobby(input_name) and cookie_name is None:
+		if not GameHandler.in_game_or_lobby(input_name) and cookie_name is None:
 			self.set_cookie("DMTusername", input_name, expires_days=None)
 			self.render("main.html")
 		#new user, name conflict
-		elif self.in_game_or_lobby(input_name) and cookie_name is None:
+		elif GameHandler.in_game_or_lobby(input_name) and cookie_name is None:
 			self.render(INDEX, error="That username is currently being used!")
 		#we have a cookie already 
 		elif cookie_name == input_name:
@@ -35,7 +35,7 @@ class mainHandler(web.RequestHandler):
 			self.render("main.html")
 		else:
 			#have old name in cookie but requesting new name
-			if not self.in_game_or_lobby(cookie_name):
+			if not GameHandler.in_game_or_lobby(cookie_name):
 				self.set_cookie("DMTusername", input_name, expires_days=None)
 				self.render("main.html")
 			#trying to play in new tab with new name while connected as another name conflict
@@ -51,15 +51,6 @@ class mainHandler(web.RequestHandler):
 				return True
 		return False
 
-	def in_game_or_lobby(self, name):
-		#check if player is in a game
-		for eg in GameHandler.games:
-			if name in list(map(lambda x: x.name, [e for e in eg.players if not e.handler.disconnected])):
-				return True
-		#check if player is in the lobby
-		if name in list(GameHandler.unattachedClients.keys()):
-			return True
-		return False
 
 
 class GameHandler(websocket.WebSocketHandler):
@@ -70,7 +61,6 @@ class GameHandler(websocket.WebSocketHandler):
 	game_tables = {}
 
 	def initialize(self):
-		self.client = c.DmClient(self.get_cookie("DMTusername"), self.application.unassigned_id, self)
 		self.application.unassigned_id += 1
 		self.table = None
 		self.disconnected = False
@@ -84,11 +74,22 @@ class GameHandler(websocket.WebSocketHandler):
 			print("Tried to write to closed socket")
 
 	def open(self):
-		self.unattachedClients[self.client.name] = self.client
-		# init client
-		self.write_json(command="init", id=self.client.id, name=self.client.name)
-		self.chat(self.client.name + " has joined the lobby", None)
-		GameHandler.update_lobby()
+		name = self.get_cookie("DMTusername")
+		print("\033[96m " + name + " has opened connection \033[0m")
+		disconnected = GameHandler.disconnected_clients()
+		if name in disconnected:
+			self.client = disconnected[name]
+			self.client.handler = self
+			self.write_json(command="init", id=self.client.id, name=self.client.name)
+			return True
+		else:
+			self.client = c.DmClient(name, self.application.unassigned_id, self)
+			self.unattachedClients[self.client.name] = self.client
+			# init client
+			self.write_json(command="init", id=self.client.id, name=self.client.name)
+			self.chat(self.client.name + " has joined the lobby", None)
+			GameHandler.update_lobby()
+			return False
 
 	def start_game(self, table):
 		game = g.DmGame(table.players, table.required, table.excluded, table.supply_set)
@@ -185,6 +186,7 @@ class GameHandler(websocket.WebSocketHandler):
 			p.write_json(command="chat", msg=msg)
 
 	def on_close(self):
+		print("\033[96m " + self.client.name + " has closed the SOCKET! \033[0m")
 		self.disconnected = True
 		if self.client.name in GameHandler.unattachedClients:
 			del GameHandler.unattachedClients[self.client.name]
@@ -192,49 +194,46 @@ class GameHandler(websocket.WebSocketHandler):
 			self.leave_table({"host":self.table.host.name})
 		GameHandler.update_lobby()
 
+	#static util
+	def in_game_or_lobby(name):
+		#check if player is in a game
+		for eg in GameHandler.games:
+			if name in list(map(lambda x: x.name, [e for e in eg.players if not e.handler.disconnected])):
+				return True
+		#check if player is in the lobby
+		if name in list(GameHandler.unattachedClients.keys()):
+			return True
+		return False
+
+	#returns dict of name to player object of d/ced players
+	def disconnected_clients():
+		dced = {}
+		for eg in GameHandler.games:
+			for i in [x for x in eg.players if x.handler.disconnected]:
+				dced[i.name] = i
+		return dced
+
 class DmHandler(GameHandler):
 
 	# override
 	def open(self):
 		# resume on player reconnect
-		print("\033[96m " + self.client.name + " has opened connection \033[0m")
-		for each_game in self.games:
-			for p in each_game.players:
-				if self.client.name == p.name:
-					p.handler.disconnected = False
-					self.client.game = p.game
-					p.resume_state(self.client)
-					#clear game of old connection
-					p.game = None
-					# update game players
-					self.write_json(command="init", id=p.id, name=p.name)
-					index = self.client.game.players.index(p)
-					self.client.game.players.pop(index)
-					self.client.game.players.insert(index, self.client)
-					self.write_json(command="resume")
-					turn_owner = self.client.game.get_turn_owner()
-					if self.client.last_mode["mode"] != "gameover":
-						for i in self.client.get_opponents():
-							if i == turn_owner:
-								turn_owner.write_json(command="startTurn", actions=turn_owner.actions, 
-								buys=turn_owner.buys, balance=turn_owner.balance)
-							i.write_json(**i.last_mode)
-					return
-		GameHandler.open(self)
+		if GameHandler.open(self):
+			#resuming
+			# update game players
+			self.write_json(command="resume")
 	
 	# override
 	def on_close(self):
-		print("\033[96m " + self.client.name + " has closed the SOCKET! \033[0m")
-		if self.client.game is None:
-			GameHandler.on_close(self)
-			return
-		self.client.ready = False
+		GameHandler.on_close(self)
 
-		# abandoned if everyone left game
+		self.client.ready = False
+		# check if abandoned (if everyone left game) and remove game if so
 		abandoned = True
 		for i in self.client.game.players:
 			if i.ready is True:
 				abandoned = False
+
 		if abandoned:
 			GameHandler.games.remove(self.client.game)
 			self.client.game = None
@@ -248,7 +247,7 @@ class DmHandler(GameHandler):
 						if len(self.client.game.players) == 0:
 							GameHandler.games.remove(self.client.game)
 					else:
-						i.wait(", they have disconnected!", self.client)
+						i.wait(": they have disconnected!", self.client)
 
 
 def main():

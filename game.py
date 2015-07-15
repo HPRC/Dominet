@@ -46,7 +46,7 @@ class Game():
 		return self.players[self.turn]
 
 class DmGame(Game):
-	def __init__(self, players, required_cards, excluded_cards, supply_set="default"):
+	def __init__(self, players, required_cards, excluded_cards, supply_set="default", test=False):
 		Game.__init__(self, players, supply_set)
 		# randomize turn order
 		random.shuffle(self.players)
@@ -69,9 +69,11 @@ class DmGame(Game):
 			base_supply.append(card.Platinum(self, None))
 
 		self.base_supply = self.init_supply(base_supply)
-
 		generator = kg.kingdomGenerator(self, required_cards, excluded_cards)
-		self.kingdom = self.init_supply(generator.gen_kingdom())
+		if not test:
+			self.kingdom = self.init_supply(generator.gen_kingdom())
+		else:
+			self.kingdom = self.init_supply(generator.every_card_kingdom())
 
 		self.supply = cp.CardPile()
 		self.supply.combine(self.base_supply)
