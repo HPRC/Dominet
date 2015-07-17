@@ -2,13 +2,14 @@ import sets.card as crd
 import sets.base as base
 import sets.intrigue as intrigue
 import sets.prosperity as prosperity
+import sets.hinterlands as hl
 import inspect
 import random
 import string
 
 
 class kingdomGenerator():
-	avail_sets = [base, intrigue, prosperity]
+	avail_sets = [base, intrigue, prosperity, hl]
 	kingdom_size = 10
 
 	def __init__(self, game, required_cards=[], excluded_cards=[]):
