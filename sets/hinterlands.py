@@ -62,7 +62,7 @@ class Trader(crd.Card):
 			turn_owner.wait("to react", self.played_by)
 
 		self.played_by.select(1, 1, ["Reveal", "Hide"],  
-			"Reveal " + self.title + " to trash " + to_gain.title + " or put it on top of deck?")
+			"Reveal " + self.title + " to trash " + to_gain.title + " and gain a Silver instead?")
 			
 		self.played_by.set_cb(self.post_reveal)
 
