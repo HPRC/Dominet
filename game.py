@@ -104,10 +104,13 @@ class DmGame(Game):
 			self.kingdom.extract(card_title)
 		else:
 			self.base_supply.extract(card_title)
-		for i in self.players:
-			i.write_json(command="updatePiles", card=card_title, count=self.supply.get_count(card_title))
+		self.update_supply_pile(card_title)
 		if self.supply.get_count(card_title) == 0:
 			self.empty_piles += 1
+
+	def update_supply_pile(self, card_title):
+		for i in self.players:
+			i.write_json(command="updatePiles", card=card_title, count=self.supply.get_count(card_title))
 
 	def update_all_prices(self):
 		for i in self.players:

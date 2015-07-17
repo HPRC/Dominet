@@ -50,10 +50,13 @@ class Trader(crd.Card):
 
 	def post_select(self, selection):
 		trashed = self.played_by.hand.get_card(selection[0])
+		self.played_by.discard(selection, self.game.trash_pile)
+		self.game.update_trash_pile()
+		self.game.announce("-- trashing " + self.game.log_string_from_title(selection[0]))
 		for i in range(0, trashed.get_price()):
 			self.played_by.gain("Silver", suppress_announcement=True)
 		self.game.announce("-- gaining " + str(trashed.get_price()) + " " + self.game.log_string_from_title("Silver", trashed.price > 1))
-		crd.Card.on_finished(self, False)
+		crd.Card.on_finished(self, True)
 
 	def react(self, reacted_to_callback, to_gain):
 		self.reacted_to_callback = reacted_to_callback
@@ -62,7 +65,7 @@ class Trader(crd.Card):
 			turn_owner.wait("to react", self.played_by)
 
 		self.played_by.select(1, 1, ["Reveal", "Hide"],  
-			"Reveal " + self.title + " to trash " + to_gain.title + " and gain a Silver instead?")
+			"Reveal " + self.title + " return " + to_gain.title + " to supply and gain a Silver instead?")
 			
 		self.played_by.set_cb(self.post_reveal)
 
@@ -70,9 +73,9 @@ class Trader(crd.Card):
 		if selection[0] == "Reveal":
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
 			to_gain = self.played_by.discard_pile.pop()
-			self.game.trash_pile.append(to_gain)
-			self.game.update_trash_pile()
-			self.game.announce("-- trashing " + to_gain.log_string())
+			self.game.supply.add(to_gain)
+			self.game.update_supply_pile(to_gain.title)
+			self.game.announce("-- returning " + to_gain.log_string() + " to supply")
 			self.played_by.gain("Silver")
 		temp = self.reacted_to_callback
 		self.reacted_to_callback = None
