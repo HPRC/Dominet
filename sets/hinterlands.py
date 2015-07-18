@@ -55,7 +55,7 @@ class Trader(crd.Card):
 		self.game.announce("-- trashing " + self.game.log_string_from_title(selection[0]))
 		for i in range(0, trashed.get_price()):
 			self.played_by.gain("Silver", suppress_announcement=True)
-		self.game.announce("-- gaining " + str(trashed.get_price()) + " " + self.game.log_string_from_title("Silver", trashed.price > 1))
+		self.game.announce("-- gaining " + str(trashed.get_price()) + " " + self.game.log_string_from_title("Silver", trashed.get_price() > 1))
 		crd.Card.on_finished(self, True)
 
 	def react(self, reacted_to_callback, to_gain):
@@ -65,7 +65,7 @@ class Trader(crd.Card):
 			turn_owner.wait("to react", self.played_by)
 
 		self.played_by.select(1, 1, ["Reveal", "Hide"],  
-			"Reveal " + self.title + " return " + to_gain.title + " to supply and gain a Silver instead?")
+			"Reveal " + self.title + " to return " + to_gain.title + " to the supply and gain a Silver instead?")
 			
 		self.played_by.set_cb(self.post_reveal)
 
