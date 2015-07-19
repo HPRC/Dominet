@@ -48,5 +48,30 @@ class TestHinterland(unittest.TestCase):
 		expected_drawn = min(deck_size, num_victory_cards)
 		self.assertTrue(len(self.player1.hand) == expected_drawn + base_hand_size - 1) 
 
+	def test_Trader(self):
+		tu.print_test_header("test Trader")
+		witch = base.Witch(self.game, self.player1)
+		trader = hl.Trader(self.game, self.player2)
+
+		self.player1.hand.add(witch)
+		self.player2.hand.add(trader)
+		#reaction
+		tu.send_input(self.player1, "play", "Witch")
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		tu.send_input(self.player2, "post_selection", ["Reveal"])
+		#no curse from witch
+		self.assertTrue(len(self.game.trash_pile) == 0)
+		self.assertTrue(self.game.supply.get_count("Curse") == 20)
+		#and gained a silver
+		self.assertTrue(self.player2.discard_pile[-1].title == "Silver")
+		self.assertTrue(self.player1.last_mode["mode"] != "wait")
+		self.player1.end_turn()
+
+		self.player2.hand.add(crd.Estate(self.game, self.player2))
+		tu.send_input(self.player2, "play", "Trader")
+		tu.send_input(self.player2, "post_selection", ["Estate"])
+		self.assertTrue(len(self.player2.discard_pile) == 3)
+
+
 if __name__ == '__main__':
 	unittest.main()

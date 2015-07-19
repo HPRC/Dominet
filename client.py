@@ -186,12 +186,12 @@ class DmClient(Client):
 
 
 	def exec_selected_choice(self, choice):
+		self.update_wait()
 		# choice(the parameter) to waiting callback is always a list
 		if self.cb is not None:
 			temp = self.cb
 			self.cb = None
 			temp(choice)
-		self.update_wait()
 
 	def reconnect(self):
 		self.game.announce(self.name_string() + " has reconnected!")
