@@ -8,6 +8,7 @@ import random
 import time
 import logHandler
 
+
 class Game():
 	def __init__(self, players, supply_set="default"):
 		self.players = players
@@ -82,7 +83,7 @@ class DmGame(Game):
 		for x in self.kingdom.unique_cards():
 			x.on_supply_init()
 
-		#dictionary of card title => price modifier for that card
+		# dictionary of card title => price modifier for that card
 		self.price_modifier = {}
 		for x in self.supply.unique_cards():
 			self.price_modifier[x.title] = 0

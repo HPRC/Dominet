@@ -1,5 +1,6 @@
 import os
 
+
 class LogHandler():
 	LOGS_DIR = "logs"
 	CSS_LINK = "<link rel=\"stylesheet\" href=\"../static/css/bootstrap.min.css\"/>"

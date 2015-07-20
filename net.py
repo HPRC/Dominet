@@ -209,14 +209,14 @@ class DmHandler(GameHandler):
 	def open(self):
 		# resume on player reconnect
 		if GameHandler.open(self):
-			#resuming
+			# resuming
 			# update game players
 			self.write_json(command="resume")
 	
 	# override
 	def on_close(self):
 		GameHandler.on_close(self)
-		if self.client.game == None:
+		if self.client.game is None:
 			return
 		self.client.ready = False
 		# check if abandoned (if everyone left game) and remove game if so
@@ -233,7 +233,7 @@ class DmHandler(GameHandler):
 				if i != self.client:
 					if self.client.last_mode["mode"] == "gameover":
 						i.write_json(command="chat", msg = self.client.name + " has left.", speaker=None)
-						#remove me from the game
+						# remove me from the game
 						self.client.game.players.remove(self.client)
 						if len(self.client.game.players) == 0:
 							GameHandler.games.remove(self.client.game)

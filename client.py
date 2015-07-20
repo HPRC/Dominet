@@ -367,10 +367,11 @@ class DmClient(Client):
 		new_card = self.get_card_from_supply(card, from_supply)
 		if new_card is not None:
 			self.game.announce(self.name_string() + " gains " + new_card.log_string() + " to their hand.")
-			#add to discard first for reactions so that they can access and manipulate the new card from discard
+			# add to discard first for reactions so that they can access and manipulate the new card from discard
 			self.discard_pile.append(new_card)
+
 			def done_react():
-				#if the gained card is still in discard pile, then we can remove and add to hand
+				# if the gained card is still in discard pile, then we can remove and add to hand
 				if self.discard_pile and new_card == self.discard_pile[-1]:
 					self.hand.add(self.discard_pile.pop())
 					self.update_hand()
@@ -398,7 +399,7 @@ class DmClient(Client):
 	def total_deck_size(self):
 		return len(self.deck) + len(self.discard_pile) + len(self.played) + len(self.hand)
 
-	#by default returns list in order starting with players after you
+	# by default returns list in order starting with players after you
 	def get_opponents(self):
 		my_index = self.game.players.index(self)
 		opponents = []

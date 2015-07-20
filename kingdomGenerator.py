@@ -60,6 +60,7 @@ def card_title_to_class_name(lst):
 		result.append(x)
 	return result 
 
+
 def all_card_titles():
 	titles = []
 	for each_set in kingdomGenerator.avail_sets:
