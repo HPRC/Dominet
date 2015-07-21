@@ -15,7 +15,7 @@ class TestHinterland(unittest.TestCase):
 		self.player1 = c.DmClient("player1", 0, tu.PlayerHandler())
 		self.player2 = c.DmClient("player2", 1, tu.PlayerHandler())
 		self.player3 = c.DmClient("player3", 2, tu.PlayerHandler())
-		self.game = g.DmGame([self.player1, self.player2, self.player3], kg.all_card_titles(), [])
+		self.game = g.DmGame([self.player1, self.player2, self.player3], kg.all_card_titles(), [], test=True)
 		#hard code order of players so that random turn order doesn't interfere with tests
 		self.game.players = [self.player1, self.player2, self.player3]
 		for i in self.game.players:
@@ -72,6 +72,33 @@ class TestHinterland(unittest.TestCase):
 		tu.send_input(self.player2, "post_selection", ["Estate"])
 		self.assertTrue(len(self.player2.discard_pile) == 3)
 
+
+	def test_Mandarin(self):
+		tu.print_test_header("test Mandarin")
+		tu.add_many_to_hand(self.player1, crd.Silver(self.game, self.player1), 3)
+		tu.add_many_to_hand(self.player1, crd.Gold(self.game, self.player1), 2)
+
+		tu.send_input(self.player1, "play", "Gold")
+		tu.send_input(self.player1, "play", "Silver")
+		tu.send_input(self.player1, "play", "Silver")
+
+		tu.send_input(self.player1, "buyCard", "Mandarin")
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
+		tu.send_input(self.player1, "post_selection", ["Silver", "Silver", "Gold"])
+		self.assertTrue(len(self.player1.played) == 0)
+		self.assertTrue(self.player1.deck[-1].title == "Gold")
+		self.assertTrue(self.player1.deck[-2].title == "Silver")
+		self.assertTrue(self.player1.deck[-3].title == "Silver")
+
+		self.player1.end_turn()
+		self.player2.hand.add(hl.Mandarin(self.game, self.player2))
+		tu.send_input(self.player2, "play", "Mandarin")
+		self.assertTrue(self.player2.balance == 3)
+		self.assertTrue(self.player2.last_mode["mode"] == "select")
+		tu.send_input(self.player2, "post_selection", ["Copper"])
+		self.assertTrue(self.player2.deck[-1].title == "Copper")
+		#start 5, add mandarin = 6 play mandarin = 5 put back copper = 4
+		self.assertTrue(len(self.player2.hand) == 4)
 
 if __name__ == '__main__':
 	unittest.main()

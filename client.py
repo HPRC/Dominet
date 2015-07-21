@@ -326,7 +326,7 @@ class DmClient(Client):
 		if (len(self.hand.get_cards_by_type("Action")) == 0 or self.actions == 0) and len(self.hand.get_cards_by_type("Treasure")) == 0:
 			self.update_mode_buy_phase()
 		else:
-			if not played_money and self.actions > 0 and len(self.hand.get_cards_by_type("Action")) != 0:
+			if not played_money and self.actions > 0 and len(self.hand.get_cards_by_type("Action")) != 0 and not self.bought_cards:
 				self.write_json(command="updateMode", mode="action")
 			else:
 				self.update_mode_buy_phase()

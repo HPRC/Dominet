@@ -36,7 +36,7 @@ class Trader(crd.Card):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Trader"
 		self.description = "Trash a card from your hand, Gain X Silvers where X is the cost of the trash card. Whenever you gain a card, you may\
-			reveal Trader to trash it and gain a Silver instead"
+			reveal Trader to gain a Silver instead"
 		self.price = 4
 		self.type = "Action|Reaction"
 		self.trigger = "Gain"
@@ -83,3 +83,51 @@ class Trader(crd.Card):
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
+
+# --------------------------------------------------------
+# ------------------------ 5 Cost ------------------------
+# --------------------------------------------------------
+
+class Mandarin(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Mandarin"
+		self.description = "+$3, Put a card from your hand on top of your deck. \
+		When you gain this, put all treasures in play on top of your deck in any order."
+		self.price = 5
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.balance += 3
+		self.game.announce("-- gaining +$3")
+		top_select = self.played_by.hand.auto_select(1, False)
+		if top_select:
+			self.post_select(top_select)
+		else:
+			self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),  
+				"Select card to put back on top of your deck")
+			self.played_by.set_cb(self.post_select)
+
+	def post_select(self, selection):
+		self.played_by.discard(selection, self.played_by.deck)
+		self.played_by.announce_opponents("-- placing a card back on top of their deck")
+		card_string = self.game.log_string_from_title(selection[0])
+		self.played_by.write_json(command="announce",msg="-- You place " + card_string + " back on top of your deck")
+		crd.Card.on_finished(self, True)
+
+	def on_gain(self):
+		played_treasures = [x for x in self.played_by.played if "Treasure" in x.type]
+		#remove treasures from played pile
+		self.played_by.played = [x for x in self.played_by.played if "Treasure" not in x.type]
+		if len(played_treasures) == 1 or len(set(map(lambda x: x.title, played_treasures))) == 1:
+			self.game.announce("-- placing treasures back on top of their deck")
+			self.played_by.deck += played_treasures
+		else:
+			crd.reorder_top(self.played_by, played_treasures, self.done_gaining)
+
+	def done_gaining(self):
+		self.game.announce("-- placing treasures back on top of their deck")
+		if self.game.get_turn_owner() == self.played_by:
+			self.played_by.update_mode()
+
