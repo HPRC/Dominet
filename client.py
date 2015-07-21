@@ -160,8 +160,8 @@ class DmClient(Client):
 					if i.ready:
 						i.waiter.wait(self.waiter.msg)
 		elif cmd == "play":
-			if not data["card"] in self.hand:
-				print("Error " + data["card"] + " not in " + ",".join(self.hand.card_array()))
+			if data["card"] not in self.hand:
+				print("Error " + data["card"] + " not in Hand: " + ",".join(map(lambda x: x.title, self.hand.card_array())))
 			else:
 				self.hand.play(data["card"])
 		elif cmd == "discard":
