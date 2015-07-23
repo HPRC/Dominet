@@ -321,6 +321,7 @@ class Swindler(crd.AttackCard):
 		if crd.AttackCard.fire(self, player):
 			topdeck = player.topdeck()
 			if topdeck is not None:
+				player.update_deck_size()
 				player.game.trash_pile.append(topdeck)
 				player.game.update_trash_pile()
 				self.game.announce(self.played_by.name_string() + " trashes " + self.game.log_string_from_title(topdeck.title)

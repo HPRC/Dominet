@@ -160,8 +160,8 @@ class DmClient(Client):
 					if i.ready:
 						i.waiter.wait(self.waiter.msg)
 		elif cmd == "play":
-			if not data["card"] in self.hand:
-				print("Error " + data["card"] + " not in " + ",".join(self.hand.card_array()))
+			if data["card"] not in self.hand:
+				print("Error " + data["card"] + " not in Hand: " + ",".join(map(lambda x: x.title, self.hand.card_array())))
 			else:
 				self.hand.play(data["card"])
 		elif cmd == "discard":
@@ -181,8 +181,8 @@ class DmClient(Client):
 			self.ready = False
 			self.game = None
 		elif cmd == "submitBugReport":
-			self.game.rename_log_file(g.LOGS_DIR + "/flagged_" + str(self.game.file_title) + ".html")
-			self.game.flagged = True
+			self.game.logger.rename_log_file(g.LOGS_DIR + "/flagged_" + str(self.game.file_title) + ".html")
+			self.game.logger.flagged = True
 
 
 	def exec_selected_choice(self, choice):
@@ -326,7 +326,7 @@ class DmClient(Client):
 		if (len(self.hand.get_cards_by_type("Action")) == 0 or self.actions == 0) and len(self.hand.get_cards_by_type("Treasure")) == 0:
 			self.update_mode_buy_phase()
 		else:
-			if not played_money and self.actions > 0 and len(self.hand.get_cards_by_type("Action")) != 0:
+			if not played_money and self.actions > 0 and len(self.hand.get_cards_by_type("Action")) != 0 and not self.bought_cards:
 				self.write_json(command="updateMode", mode="action")
 			else:
 				self.update_mode_buy_phase()
