@@ -72,7 +72,6 @@ class TestHinterland(unittest.TestCase):
 		tu.send_input(self.player2, "post_selection", ["Estate"])
 		self.assertTrue(len(self.player2.discard_pile) == 3)
 
-
 	def test_Mandarin(self):
 		tu.print_test_header("test Mandarin")
 		tu.add_many_to_hand(self.player1, crd.Silver(self.game, self.player1), 3)
@@ -92,13 +91,13 @@ class TestHinterland(unittest.TestCase):
 
 		self.player1.end_turn()
 		self.player2.hand.add(hl.Mandarin(self.game, self.player2))
+		self.player2.hand.add(crd.Silver(self.game, self.player2))
 		tu.send_input(self.player2, "play", "Mandarin")
 		self.assertTrue(self.player2.balance == 3)
 		self.assertTrue(self.player2.last_mode["mode"] == "select")
 		tu.send_input(self.player2, "post_selection", ["Copper"])
 		self.assertTrue(self.player2.deck[-1].title == "Copper")
-		#start 5, add mandarin = 6 play mandarin = 5 put back copper = 4
-		self.assertTrue(len(self.player2.hand) == 4)
+		self.assertTrue(len(self.player2.hand) == 5)
 
 if __name__ == '__main__':
 	unittest.main()
