@@ -199,10 +199,10 @@ class Masquerade(crd.Card):
 
 	def post_select(self, selection, player):
 		left_opponent = player.get_left_opponent()
-		player.write_json(command="announce", msg="-- you pass " + self.game.log_string_from_title(selection[0]))
+		player.announce_self("-- you pass " + self.game.log_string_from_title(selection[0]))
 		# logging what we received after we pass our card
 		if self.passed_card != "":
-			player.write_json(command="announce", msg="-- you received " + self.game.log_string_from_title(self.passed_card))
+			player.announce_self("-- you received " + self.game.log_string_from_title(self.passed_card))
 		else:
 			# we are the first player, wait for everyone
 			self.played_by.wait_many("to pass", self.played_by.get_opponents())
@@ -214,7 +214,7 @@ class Masquerade(crd.Card):
 
 		# if we are last, update the first person's receive log
 		if left_opponent == self.played_by:
-			self.played_by.write_json(command="announce", msg="-- you received " + self.game.log_string_from_title(selection[0]))
+			self.played_by.announce_self("-- you received " + self.game.log_string_from_title(selection[0]))
 			self.played_by.update_hand()
 
 		self.get_next(player)

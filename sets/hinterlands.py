@@ -113,7 +113,7 @@ class Mandarin(crd.Card):
 		self.played_by.discard(selection, self.played_by.deck)
 		self.played_by.announce_opponents("-- placing a card back on top of their deck")
 		card_string = self.game.log_string_from_title(selection[0])
-		self.played_by.write_json(command="announce",msg="-- You place " + card_string + " back on top of your deck")
+		self.played_by.announce_self("-- You place " + card_string + " back on top of your deck")
 		crd.Card.on_finished(self, True)
 
 	def on_gain(self):
