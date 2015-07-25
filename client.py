@@ -241,8 +241,8 @@ class DmClient(Client):
 		#patch the on buy and on gain functions in case they were overriden at supply initialization
 		#used for example with trade route
 		supply_card.played_by = self
-		new_card.on_gain = supply_card.on_gain
-		new_card.on_buy = supply_card.on_buy
+		new_card.on_gain = supply_card.on_gain.__get__(new_card, crd.Card)
+		new_card.on_buy = supply_card.on_buy.__get__(new_card, crd.Card)
 		return new_card
 
 
@@ -251,8 +251,8 @@ class DmClient(Client):
 			new_card = self.gen_new_card(card_title)
 			self.game.announce("<b>" + self.name + "</b> buys " + new_card.log_string())
 			new_card.on_buy()
-			new_card.on_gain()
 			self.discard_pile.append(new_card)
+			new_card.on_gain()
 			self.game.remove_from_supply(card_title)
 			self.resolve_on_buy_effects(new_card)
 			self.buys -= 1

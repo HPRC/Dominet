@@ -72,6 +72,14 @@ class TestHinterland(unittest.TestCase):
 		tu.send_input(self.player2, "post_selection", ["Estate"])
 		self.assertTrue(len(self.player2.discard_pile) == 3)
 
+	def test_Nomad_Camp(self):
+		tu.print_test_header("test Nomad Camp")
+		self.player1.hand.add(base.Workshop(self.game, self.player1))
+		tu.send_input(self.player1, "play", "Workshop")
+		tu.send_input(self.player1, "post_selection", ["Nomad Camp"])
+		
+		self.assertTrue(self.player1.deck[-1].title == "Nomad Camp")
+
 	def test_Mandarin(self):
 		tu.print_test_header("test Mandarin")
 		tu.add_many_to_hand(self.player1, crd.Silver(self.game, self.player1), 3)

@@ -31,6 +31,26 @@ class Crossroads(crd.Card):
 # --------------------------------------------------------
 
 
+class Nomad_Camp(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Nomad Camp"
+		self.description = "+1 Buy, +$2\n When you gain this, put it on top of your deck"
+		self.price = 4
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.balance += 2
+		self.played_by.buys += 1
+		crd.Card.on_finished(self, False)
+
+	def on_gain(self):
+		self.played_by.discard_pile.remove(self)
+		self.played_by.deck.append(self)
+		self.game.announce("-- adding " + self.log_string() + " to the top of their deck")
+
+
 class Trader(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
