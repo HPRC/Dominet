@@ -48,6 +48,37 @@ class TestHinterland(unittest.TestCase):
 		expected_drawn = min(deck_size, num_victory_cards)
 		self.assertTrue(len(self.player1.hand) == expected_drawn + base_hand_size - 1) 
 
+	def test_Duchess(self):
+		tu.print_test_header("Test Duchess")
+		duchess = hl.Duchess(self.game, self.player1)
+		self.player1.hand.add(duchess)
+
+		player1top = self.player1.deck[-1]
+		player2top = self.player2.deck[-1]
+		player3top = self.player3.deck[-1]
+
+		tu.send_input(self.player1, "play", "Duchess")
+		self.assertTrue(self.player1.balance == 2)
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
+		self.assertTrue(self.player2.last_mode["mode"] == "select")
+		self.assertTrue(self.player3.last_mode["mode"] == "select")
+		tu.send_input(self.player2, "post_selection", ["Discard"])
+		self.assertTrue(self.player2.discard_pile[-1] == player2top)
+		self.assertTrue(self.player2.last_mode["mode"] != "select")
+		tu.send_input(self.player1, "post_selection", ["Put back"])
+		self.assertTrue(self.player1.deck[-1] == player1top)
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		tu.send_input(self.player3, "post_selection", ["Discard"])
+		self.assertTrue(self.player1.last_mode["mode"] != "wait")
+
+		self.player1.end_turn()
+		self.player2.balance = 5
+		tu.send_input(self.player2, "buyCard", "Duchy")
+		self.assertTrue(self.player2.last_mode["mode"] == "select")
+		tu.send_input(self.player2, "post_selection", ["Yes"])
+		self.assertTrue(self.player2.last_mode["mode"] != "select")
+		self.assertTrue(self.player2.discard_pile[-1].title == "Duchess")
+
 	def test_Trader(self):
 		tu.print_test_header("test Trader")
 		witch = base.Witch(self.game, self.player1)

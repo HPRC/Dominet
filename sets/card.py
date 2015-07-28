@@ -48,7 +48,7 @@ class Card():
 	def on_supply_init(self):
 		pass
 
-	# called at the end of turn if this card was played
+	#called at the end of turn if this card was played
 	def cleanup(self):
 		pass
 
