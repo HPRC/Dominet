@@ -675,7 +675,7 @@ class Torturer(crd.AttackCard):
 				self.game.announce(victim.name_string() + " discards " + str(len(discard_selection)) + " cards")
 				victim.update_hand()
 				crd.AttackCard.get_next(self, victim)
-			elif victim.hand == 0:
+			elif len(victim.hand) == 0:
 				crd.AttackCard.get_next(self, victim)
 			else:
 				victim.opponents_wait("to discard", locked=False)
