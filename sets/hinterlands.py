@@ -25,10 +25,70 @@ class Crossroads(crd.Card):
 			self.played_by.actions += 3
 		crd.Card.on_finished(self, True)
 
+class Duchess(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Duchess"
+		self.description = "+$2, every player looks at the top card of their deck and can choose to discard it.\nWhen you gain a Duchy, you may gain a Duchess."
+		self.price = 2
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.balance += 2
+		for i in self.game.players:
+			top_card = i.topdeck()
+
+			def post_select_on(selection, caller=i, card=top_card):
+				self.post_select(selection, caller, card)
+
+			i.select(1, 1, ["Discard", "Put Back"], "Discard " + top_card.title + " from the top of your deck?")
+			i.set_cb(post_select_on)
+			self.played_by.wait_modeless("to choose", i)
+	
+	def post_select(self, selection, caller, card):
+		if selection[0] == "Discard":
+			caller.discard_pile.append(card)
+			self.game.announce("-- " + caller.name_string() + " discards " + card.log_string())
+		else:
+			caller.deck.append(card)
+			self.game.announce("-- " + caller.name_string() + " puts back a card")
+		if not self.played_by.is_waiting():
+			crd.Card.on_finished(self)
+
+	def on_supply_init(self):
+		supply_duchy = self.game.supply.get_card("Duchy")
+		default_on_gain_function = supply_duchy.on_gain
+		supply_duchy.on_gain = staticmethod(lambda x=supply_duchy : self.gain_duchy(x, default_on_gain_function))
+
+	def gain_duchy(self, duchy, default_function):
+		duchy.played_by.select(1, 1, ["Yes", "No"], "Gain a Duchess?")
+		duchy.played_by.set_cb(lambda x: duchy.played_by.gain("Duchess") if x[0] == "Yes" else None)
+		default_function.__get__(duchy, crd.Card)()
 
 # --------------------------------------------------------
 # ------------------------ 4 Cost ------------------------
 # --------------------------------------------------------
+
+
+class Nomad_Camp(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Nomad Camp"
+		self.description = "+1 Buy, +$2\n When you gain this, put it on top of your deck"
+		self.price = 4
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.balance += 2
+		self.played_by.buys += 1
+		crd.Card.on_finished(self, False)
+
+	def on_gain(self):
+		self.played_by.discard_pile.remove(self)
+		self.played_by.deck.append(self)
+		self.game.announce("-- adding " + self.log_string() + " to the top of their deck")
 
 
 class Trader(crd.Card):
@@ -113,7 +173,7 @@ class Mandarin(crd.Card):
 		self.played_by.discard(selection, self.played_by.deck)
 		self.played_by.announce_opponents("-- placing a card back on top of their deck")
 		card_string = self.game.log_string_from_title(selection[0])
-		self.played_by.write_json(command="announce",msg="-- You place " + card_string + " back on top of your deck")
+		self.played_by.announce_self("-- You place " + card_string + " back on top of your deck")
 		crd.Card.on_finished(self, True)
 
 	def on_gain(self):

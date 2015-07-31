@@ -7,6 +7,11 @@ class Card():
 		self.description = None
 		self.price = 0
 
+		# setting lifecycle methods as attributes allows the methods to be unbound and able to dynamically bound at runtime or
+		# at supply initialization
+		self.on_buy = self.__class__.on_buy
+		self.on_gain = self.__class__.on_gain
+
 	def play(self, skip=False):
 		if "Action" in self.type:
 			self.played_by.played_actions += 1
@@ -43,7 +48,7 @@ class Card():
 	def on_supply_init(self):
 		pass
 
-	# called at the end of turn if this card was played
+	#called at the end of turn if this card was played
 	def cleanup(self):
 		pass
 
