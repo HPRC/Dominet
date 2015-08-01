@@ -25,6 +25,9 @@ class Crossroads(crd.Card):
 			self.played_by.actions += 3
 		crd.Card.on_finished(self, True)
 
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-default'>", self.title, "</span>"])
+
 class Duchess(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -65,6 +68,10 @@ class Duchess(crd.Card):
 		duchy.played_by.select(1, 1, ["Yes", "No"], "Gain a Duchess?")
 		duchy.played_by.set_cb(lambda x: duchy.played_by.gain("Duchess") if x[0] == "Yes" else None)
 		default_function.__get__(duchy, crd.Card)()
+
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-default'>", self.title, "</span>"])
+
 
 # --------------------------------------------------------
 # ------------------------ 4 Cost ------------------------
