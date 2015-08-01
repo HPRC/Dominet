@@ -74,9 +74,6 @@ clientModule.factory('client', function(socket, favicon) {
 
 	constructor.prototype.updateMode = function(json){
 		this.modeJson = json;
-		if (this.modeJson.mode === "buy" && this.buys === 0){
-			this.endTurn();
-		}
 		if (!this.turn){
 			if (this.modeJson.mode === "selectSupply" || this.modeJson.mode === "select"){
 				favicon.alertFavicon();
@@ -84,7 +81,9 @@ clientModule.factory('client', function(socket, favicon) {
 				favicon.stopAlert();
 			}
 		} else {
-			if (this.modeJson.mode === "wait"){
+			if (this.modeJson.mode === "buy" && this.buys === 0){
+				this.endTurn();
+			} else if (this.modeJson.mode === "wait"){
 				favicon.stopAlert();
 			} else {
 				favicon.alertFavicon();
