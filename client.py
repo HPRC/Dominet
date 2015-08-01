@@ -181,9 +181,7 @@ class DmClient(Client):
 			self.ready = False
 			self.game = None
 		elif cmd == "submitBugReport":
-			self.game.logger.rename_log_file(g.LOGS_DIR + "/flagged_" + str(self.game.file_title) + ".html")
-			self.game.logger.flagged = True
-
+			self.game.logger.flag_me()
 
 	def exec_selected_choice(self, choice):
 		self.update_wait()
