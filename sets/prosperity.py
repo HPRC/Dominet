@@ -848,7 +848,7 @@ class Forge(crd.Card):
 			crd.card_list_to_titles(self.played_by.hand.card_array()), "Trash any number of cards"):
 			self.played_by.set_cb(self.trash_select)
 		elif self.played_by.select_from_supply(price_limit=0, equal_only=True, optional=False):
-			self.played_by.set_cb(self.gain_select)
+			self.played_by.set_cb(self.gain_select, True)
 		else:
 			crd.Card.on_finished(self)
 
@@ -868,13 +868,13 @@ class Forge(crd.Card):
 		self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(announce_string) + " to gain a card with cost " + str(trash_sum))
 
 		if self.played_by.select_from_supply(price_limit=trash_sum, equal_only=True, optional=False):
-			self.played_by.set_cb(self.gain_select)
+			self.played_by.set_cb(self.gain_select, True)
 		else:
 			crd.Card.on_finished(self)
 
 	def gain_select(self, selection):
 		self.played_by.gain(selection[0], done_gaining=lambda : crd.Card.on_finished(self))
-
+		self.played_by.update_wait(True)
 
 # --------------------------------------------------------
 # ------------------------ 8 Cost ------------------------

@@ -79,6 +79,16 @@ class TestHinterland(unittest.TestCase):
 		self.assertTrue(self.player2.last_mode["mode"] != "select")
 		self.assertTrue(self.player2.discard_pile[-1].title == "Duchess")
 
+	def test_Duchess_Feast(self):
+		tu.print_test_header("Test Duchess Feast")
+		feast = base.Feast(self.game, self.player1)
+		self.player1.hand.add(feast)
+
+		tu.send_input(self.player1, "play", "Feast")
+		tu.send_input(self.player1, "post_select", ["Duchy"])
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
+
+
 	def test_Trader(self):
 		tu.print_test_header("test Trader")
 		witch = base.Witch(self.game, self.player1)

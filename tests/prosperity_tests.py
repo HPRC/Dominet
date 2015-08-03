@@ -487,6 +487,25 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.game.price_modifier["Peddler"] == -10)
 		self.assertTrue(self.game.card_from_title("Peddler").get_price() == 0)
 
+	def test_Forge_Peddler(self):
+		tu.print_test_header("test Forge Peddler")
+		peddler = prosperity.Peddler(self.game, self.player1)
+		self.player1.hand.add(peddler)
+		#add one lab to hand
+		self.player1.hand.add(base.Laboratory(self.game, self.player1))
+		#add forge
+		self.player1.hand.add(prosperity.Forge(self.game, self.player1))
+
+		self.assertTrue(self.game.price_modifier["Peddler"] == 0)
+		tu.send_input(self.player1, "play", "Laboratory")
+		self.assertTrue(self.game.price_modifier["Peddler"] == 0)
+		tu.send_input(self.player1, "play", "Forge")
+		self.assertTrue(self.game.card_from_title("Peddler").get_price() == 8)
+		tu.send_input(self.player1, "post_selection", ["Peddler"])
+		tu.send_input(self.player1, "post_selection", ["Province"])
+		self.player1.spend_all_money()
+		self.assertTrue(self.game.card_from_title("Peddler").get_price() == 4)
+
 	def test_Trade_Route(self):
 		tu.print_test_header("test Trade Route")
 		trade_route = prosperity.Trade_Route(self.game, self.player1)
