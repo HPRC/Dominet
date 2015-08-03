@@ -389,7 +389,7 @@ class Counting_House(crd.Card):
 			self.game.announce("-- but has no copper in their discard pile")
 			crd.Card.on_finished(self, False, True)
 		else:
-			self.played_by.select(1, 1, [str(i) for i in range(0, len(coppers))], "Choose number of coppers to put into hand.")
+			self.played_by.select(1, 1, [str(i) for i in range(0, len(coppers)+1)], "Choose number of coppers to put into hand.")
 			self.played_by.set_cb(self.select_copper)
 
 	def select_copper(self, selection):
