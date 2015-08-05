@@ -502,6 +502,7 @@ class TestProsperity(unittest.TestCase):
 		tu.send_input(self.player1, "play", "Forge")
 		self.assertTrue(self.game.card_from_title("Peddler").get_price() == 8)
 		tu.send_input(self.player1, "post_selection", ["Peddler"])
+		self.assertTrue(self.game.card_from_title("Peddler").get_price() == 8)
 		tu.send_input(self.player1, "post_selection", ["Province"])
 		self.player1.spend_all_money()
 		self.assertTrue(self.game.card_from_title("Peddler").get_price() == 4)

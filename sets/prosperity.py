@@ -846,9 +846,9 @@ class Forge(crd.Card):
 		crd.Card.play(self, skip)
 		if self.played_by.select(None, len(self.played_by.hand.card_array()), 
 			crd.card_list_to_titles(self.played_by.hand.card_array()), "Trash any number of cards"):
-			self.played_by.set_cb(self.trash_select)
+			self.played_by.set_cb(self.trash_select, True)
 		elif self.played_by.select_from_supply(price_limit=0, equal_only=True, optional=False):
-			self.played_by.set_cb(self.gain_select, True)
+			self.played_by.set_cb(self.gain_select)
 		else:
 			crd.Card.on_finished(self)
 
