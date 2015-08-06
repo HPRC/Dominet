@@ -141,7 +141,6 @@ class DmClient(Client):
 		if self.game is None:
 			return
 		cmd = data["command"]
-		print(self.name + " \033[94m" + json.dumps(data) + "\033[0m")
 		if cmd == "ready":
 			self.ready = True
 			if self.game.players_ready():

@@ -19,8 +19,8 @@ class LogHandler():
 		return '{}{}{}.html'.format(LogHandler.LOGS_DIR, flagged, self.file_title)
 
 	def flag_me(self):
-		self.flagged = True
 		self.rename_log_file(LogHandler.LOGS_DIR + "/flagged_" + self.file_title + ".html")
+		self.flagged = True
 
 	def log_json_data(self, data, sent):
 		path = self.get_log_file_path()
