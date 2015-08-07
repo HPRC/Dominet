@@ -22,10 +22,10 @@ class Cellar(crd.Card):
 
 	def post_select(self, selection):
 		if len(selection) > 0:
-			self.played_by.write_json(command="announce", msg="-- you discard " + 
+			self.played_by.announce_self("-- you discard " + 
 				" , ".join(list(map(lambda x: self.game.card_from_title(x).log_string(), selection))))
 		else:
-			self.played_by.write_json(command="announce", msg="-- you discard nothing")
+			self.played_by.announce_self("-- you discard nothing")
 		self.played_by.announce_opponents("-- discarding and drawing " + str(len(selection)) + " cards")
 		self.played_by.discard(selection, self.played_by.discard_pile)
 		self.played_by.draw(len(selection))
@@ -619,22 +619,22 @@ class Library(crd.Card):
 					self.played_by.set_cb(post_select_card)
 					return
 				else:
-					self.played_by.write_json(command="announce",msg="-- You draw " + top_card.log_string())
+					self.played_by.announce_self("-- You draw " + top_card.log_string())
 					self.played_by.announce_opponents(msg="-- drawing 1 card")
 					self.played_by.hand.add(top_card)
 					self.played_by.update_hand()
 			else:
-				self.played_by.write_json(command="announce",msg="-- You have no cards left to draw")
+				self.played_by.announce_self("-- You have no cards left to draw")
 				break
 		self.on_finish()
 
 	def post_select(self, selection, card):
 		if selection[0] == "No":
-			self.played_by.write_json(command="announce", msg="-- You draw " + card.log_string())
+			self.played_by.announce_self("-- You draw " + card.log_string())
 			self.played_by.hand.add(card)
 			self.played_by.update_hand()
 		else:
-			self.played_by.write_json(command="announce", msg="-- You set aside " + card.log_string())
+			self.played_by.announce_self("-- You set aside " + card.log_string())
 			self.set_aside.append(card)
 		self.played_by.update_deck_size()
 		self.played_by.update_discard_size()

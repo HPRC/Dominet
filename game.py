@@ -101,10 +101,7 @@ class DmGame(Game):
 		self.update_mat()
 
 	def remove_from_supply(self, card_title):
-		if card_title in self.kingdom:
-			self.kingdom.extract(card_title)
-		else:
-			self.base_supply.extract(card_title)
+		self.supply.extract(card_title)
 		self.update_supply_pile(card_title)
 		if self.supply.get_count(card_title) == 0:
 			self.empty_piles += 1

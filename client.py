@@ -160,8 +160,8 @@ class DmClient(Client):
 					if i.ready:
 						i.waiter.wait(self.waiter.msg)
 		elif cmd == "play":
-			if not data["card"] in self.hand:
-				print("Error " + data["card"] + " not in " + ",".join(self.hand.card_array()))
+			if data["card"] not in self.hand:
+				print("Error " + data["card"] + " not in Hand: " + ",".join(map(lambda x: x.title, self.hand.card_array())))
 			else:
 				self.hand.play(data["card"])
 		elif cmd == "discard":
@@ -181,8 +181,8 @@ class DmClient(Client):
 			self.ready = False
 			self.game = None
 		elif cmd == "submitBugReport":
-			self.game.rename_log_file(g.LOGS_DIR + "/flagged_" + str(self.game.file_title) + ".html")
-			self.game.flagged = True
+			self.game.logger.rename_log_file(g.LOGS_DIR + "/flagged_" + str(self.game.file_title) + ".html")
+			self.game.logger.flagged = True
 
 
 	def exec_selected_choice(self, choice):
@@ -238,11 +238,11 @@ class DmClient(Client):
 		# we instantiate a new card by getting the class from the kingdom instance 
 		# and instantiating it
 		new_card = type(supply_card)(self.game, self)
-		#patch the on buy and on gain functions in case they were overriden at supply initialization
-		#used for example with trade route
+		# patch the on buy and on gain functions in case they were overriden at supply initialization
+		# used for example with trade route
 		supply_card.played_by = self
-		new_card.on_gain = supply_card.on_gain
-		new_card.on_buy = supply_card.on_buy
+		new_card.on_gain = supply_card.on_gain.__get__(new_card, crd.Card)
+		new_card.on_buy = supply_card.on_buy.__get__(new_card, crd.Card)
 		return new_card
 
 
@@ -251,8 +251,8 @@ class DmClient(Client):
 			new_card = self.gen_new_card(card_title)
 			self.game.announce("<b>" + self.name + "</b> buys " + new_card.log_string())
 			new_card.on_buy()
-			new_card.on_gain()
 			self.discard_pile.append(new_card)
+			new_card.on_gain()
 			self.game.remove_from_supply(card_title)
 			self.resolve_on_buy_effects(new_card)
 			self.buys -= 1
@@ -268,13 +268,20 @@ class DmClient(Client):
 		else:
 			return False
 
-	def set_cb(self, cb, selflock= False):
+	def set_cb(self, cb, selflock=False):
 		if cb != None:
 			self.waiter.append_wait(self)
 			#only change lock if we are locking, update_wait must be called to unlock
 			if selflock:
 				self.waiter.set_lock(self, selflock)
 		self.cb = cb
+
+	#doesnt update mode to wait immediately
+	def wait_modeless(self, msg, on, locked=False):
+		self.waiter.append_wait(on)
+		if locked:
+			self.waiter.set_lock(on ,True)
+		self.waiter.msg = msg
 
 	def wait_many(self, msg, on, locked=False):
 		for i in on:
@@ -326,7 +333,7 @@ class DmClient(Client):
 		if (len(self.hand.get_cards_by_type("Action")) == 0 or self.actions == 0) and len(self.hand.get_cards_by_type("Treasure")) == 0:
 			self.update_mode_buy_phase()
 		else:
-			if not played_money and self.actions > 0 and len(self.hand.get_cards_by_type("Action")) != 0:
+			if not played_money and self.actions > 0 and len(self.hand.get_cards_by_type("Action")) != 0 and not self.bought_cards:
 				self.write_json(command="updateMode", mode="action")
 			else:
 				self.update_mode_buy_phase()
@@ -418,6 +425,9 @@ class DmClient(Client):
 
 	def announce_opponents(self, msg):
 		self.game.announce_to(self.get_opponents(), msg)
+
+	def announce_self(self, msg):
+		self.write_json(command="announce",msg=msg)
 
 	def spend_all_money(self):
 		to_log = []

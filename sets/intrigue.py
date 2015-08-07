@@ -199,10 +199,10 @@ class Masquerade(crd.Card):
 
 	def post_select(self, selection, player):
 		left_opponent = player.get_left_opponent()
-		player.write_json(command="announce", msg="-- you pass " + self.game.log_string_from_title(selection[0]))
+		player.announce_self("-- you pass " + self.game.log_string_from_title(selection[0]))
 		# logging what we received after we pass our card
 		if self.passed_card != "":
-			player.write_json(command="announce", msg="-- you received " + self.game.log_string_from_title(self.passed_card))
+			player.announce_self("-- you received " + self.game.log_string_from_title(self.passed_card))
 		else:
 			# we are the first player, wait for everyone
 			self.played_by.wait_many("to pass", self.played_by.get_opponents())
@@ -214,7 +214,7 @@ class Masquerade(crd.Card):
 
 		# if we are last, update the first person's receive log
 		if left_opponent == self.played_by:
-			self.played_by.write_json(command="announce", msg="-- you received " + self.game.log_string_from_title(selection[0]))
+			self.played_by.announce_self("-- you received " + self.game.log_string_from_title(selection[0]))
 			self.played_by.update_hand()
 
 		self.get_next(player)
@@ -321,6 +321,7 @@ class Swindler(crd.AttackCard):
 		if crd.AttackCard.fire(self, player):
 			topdeck = player.topdeck()
 			if topdeck is not None:
+				player.update_deck_size()
 				player.game.trash_pile.append(topdeck)
 				player.game.update_trash_pile()
 				self.game.announce(self.played_by.name_string() + " trashes " + self.game.log_string_from_title(topdeck.title)
@@ -674,7 +675,7 @@ class Torturer(crd.AttackCard):
 				self.game.announce(victim.name_string() + " discards " + str(len(discard_selection)) + " cards")
 				victim.update_hand()
 				crd.AttackCard.get_next(self, victim)
-			elif victim.hand == 0:
+			elif len(victim.hand) == 0:
 				crd.AttackCard.get_next(self, victim)
 			else:
 				victim.opponents_wait("to discard", locked=False)

@@ -12,6 +12,9 @@ class ReactionHandler():
 		self.react_data = react_data
 
 	def initiate_reactions(self):
+		if len(self.player.hand.get_reactions_for(self.trigger)) > 1:
+			#more than 1 reaction: lock player with dummy callback to be overridden
+			self.player.set_cb(lambda : None, True)
 		if not self.need_order_reactions():
 			self.trigger_reactions()
 
