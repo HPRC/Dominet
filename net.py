@@ -233,16 +233,14 @@ class DmHandler(GameHandler):
 			GameHandler.games.remove(self.client.game)
 			self.client.game = None
 		else:
-			for i in self.client.game.players:
-				if i != self.client:
-					if self.client.last_mode["mode"] == "gameover":
-						i.write_json(command="chat", msg = self.client.name + " has left.", speaker=None)
-						#remove me from the game
-						self.client.game.players.remove(self.client)
-						if len(self.client.game.players) == 0:
-							GameHandler.games.remove(self.client.game)
-					else:
-						i.wait(": they have disconnected!", self.client)
+			if self.client.last_mode["mode"] == "gameover":
+				#remove me from the game
+				self.client.game.players.remove(self.client)
+				for i in self.client.game.players:
+					i.write_json(command="chat", msg = self.client.name + " has left.", speaker=None)
+			else:
+				for i in self.client.get_opponents():
+					i.wait(": they have disconnected!", self.client)
 
 
 def main():
