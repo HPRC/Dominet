@@ -132,6 +132,7 @@ class Chancellor(crd.Card):
 
 	def post_select(self, selection):
 		if selection[0] == "Yes":
+			self.game.announce("-- puting their deck into their discard pile")
 			self.played_by.discard_pile += self.played_by.deck
 			self.played_by.deck = []
 			self.played_by.update_discard_size()
