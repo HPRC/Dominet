@@ -1,5 +1,5 @@
 import sets.card as crd
-
+import tornado.gen as gen
 
 # --------------------------------------------------------
 # ------------------------ 2 Cost ------------------------
@@ -656,42 +656,37 @@ class Torturer(crd.AttackCard):
 	def attack(self):
 		crd.AttackCard.get_next(self, self.played_by)
 
+	@gen.coroutine
 	def fire(self, player):
 		if crd.AttackCard.fire(self, player):
-			def post_select_on(selection, player=player):
-				self.post_select(selection, player)
 			player.select(1, 1, ["Discard 2 cards", "Gain a Curse"], "Choose one:")
 			player.opponents_wait("to choose", True)
-			player.set_cb(post_select_on)
-			
-	def post_select(self, selection, victim):
-		if selection[0] == 'Gain a Curse':
-			victim.update_wait(True)
-			victim.gain_to_hand('Curse', done_gaining= lambda : crd.AttackCard.get_next(self, victim))
-		else:
-			discard_selection = victim.hand.auto_select(2, True)
-			if discard_selection:
-				victim.discard(discard_selection, victim.discard_pile)
-				self.game.announce(victim.name_string() + " discards " + str(len(discard_selection)) + " cards")
-				victim.update_hand()
-				crd.AttackCard.get_next(self, victim)
-			elif len(victim.hand) == 0:
-				crd.AttackCard.get_next(self, victim)
+			selection = yield player.set_cb()
+			if selection[0] == 'Gain a Curse':
+				player.update_wait(True)
+				player.gain_to_hand('Curse', done_gaining= lambda : crd.AttackCard.get_next(self, player))
 			else:
-				victim.opponents_wait("to discard", locked=False)
+				discard_selection = player.hand.auto_select(2, True)
+				if discard_selection:
+					player.discard(discard_selection, player.discard_pile)
+					self.game.announce(player.name_string() + " discards " + str(len(discard_selection)) + " cards")
+					player.update_hand()
+					crd.AttackCard.get_next(self, player)
+				elif len(player.hand) == 0:
+					crd.AttackCard.get_next(self, player)
+				else:
+					player.opponents_wait("to discard", locked=False)
 
-				def post_discard_select_on(discard_selection, victim=victim):
-					self.post_discard_select(discard_selection, victim)
+					def post_discard_select_on(discard_selection, player=player):
+						self.post_discard_select(discard_selection, player)
 
-				victim.select(2, 2, crd.card_list_to_titles(victim.hand.card_array()), "Discard two cards from hand")
-				victim.set_cb(post_discard_select_on)
-
-	def post_discard_select(self, selection, victim):
-		self.game.announce(victim.name_string() + " discards " + str(len(selection)) + " cards")
-		victim.discard(selection, victim.discard_pile)
-		victim.update_hand()
-		victim.update_wait(True)
-		crd.AttackCard.get_next(self, victim)
+					player.select(2, 2, crd.card_list_to_titles(player.hand.card_array()), "Discard two cards from hand")
+					discard_selection = yield player.set_cb()
+					self.game.announce(player.name_string() + " discards " + str(len(discard_selection)) + " cards")
+					player.discard(discard_selection, player.discard_pile)
+					player.update_hand()
+					player.update_wait(True)
+					crd.AttackCard.get_next(self, player)
 
 
 class Tribute(crd.Card):

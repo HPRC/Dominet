@@ -7,6 +7,7 @@ import sets.intrigue as intr
 import html
 import game as g
 import waitHandler as w
+import tornado.concurrent
 
 class Client():
 	hand_size = 5
@@ -186,9 +187,7 @@ class DmClient(Client):
 		self.update_wait()
 		# choice(the parameter) to waiting callback is always a list
 		if self.cb is not None:
-			temp = self.cb
-			self.cb = None
-			temp(choice)
+			self.cb.set_result(choice)
 
 	def reconnect(self):
 		self.game.announce(self.name_string() + " has reconnected!")
@@ -265,13 +264,14 @@ class DmClient(Client):
 		else:
 			return False
 
-	def set_cb(self, cb, selflock=False):
-		if cb != None:
-			self.waiter.append_wait(self)
-			#only change lock if we are locking, update_wait must be called to unlock
-			if selflock:
-				self.waiter.set_lock(self, selflock)
-		self.cb = cb
+	def set_cb(self, selflock=False):
+		future = tornado.concurrent.Future()
+		self.waiter.append_wait(self)
+		#only change lock if we are locking, update_wait must be called to unlock
+		if selflock:
+			self.waiter.set_lock(self, selflock)
+		self.cb = future
+		return future
 
 	#doesnt update mode to wait immediately
 	def wait_modeless(self, msg, on, locked=False):
