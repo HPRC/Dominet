@@ -7,6 +7,8 @@ import sets.intrigue as intr
 import html
 import game as g
 import waitHandler as w
+
+import tornado.gen as gen
 import tornado.concurrent
 
 class Client():
@@ -185,7 +187,10 @@ class DmClient(Client):
 
 	def exec_selected_choice(self, choice):
 		self.update_wait()
-		# choice(the parameter) to waiting callback is always a list
+		# choice(the parameter) to waiting callback is 
+		# a list for post_selection
+		# a string for selectSupply
+		# a string for buyCard
 		if self.cb is not None:
 			self.cb.set_result(choice)
 
@@ -256,22 +261,25 @@ class DmClient(Client):
 			self.hand.do_reactions("Gain", lambda : self.update_resources(), new_card)
 			self.bought_cards = True
 
-	def select(self, min_cards, max_cards, select_from, msg, ordered=False):
+	def select(self, min_cards, max_cards, select_from, msg, ordered=False, selflock=False):
 		if len(select_from) > 0:
 			self.write_json(command="updateMode", mode="select", min_cards=min_cards, max_cards=max_cards,
 				select_from=select_from, msg=msg, ordered=ordered)
-			return True
-		else:
-			return False
 
+			future = tornado.concurrent.Future()
+			self.cb = future
+			self.waiter.append_wait(self)
+			#only change lock if we are locking, update_wait must be called to unlock
+			if selflock:
+				self.waiter.set_lock(self, selflock)
+
+			return future
+		else:
+			return []
+
+	#deprecated
 	def set_cb(self, selflock=False):
-		future = tornado.concurrent.Future()
-		self.waiter.append_wait(self)
-		#only change lock if we are locking, update_wait must be called to unlock
-		if selflock:
-			self.waiter.set_lock(self, selflock)
-		self.cb = future
-		return future
+		pass
 
 	#doesnt update mode to wait immediately
 	def wait_modeless(self, msg, on, locked=False):

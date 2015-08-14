@@ -659,9 +659,8 @@ class Torturer(crd.AttackCard):
 	@gen.coroutine
 	def fire(self, player):
 		if crd.AttackCard.fire(self, player):
-			player.select(1, 1, ["Discard 2 cards", "Gain a Curse"], "Choose one:")
+			selection = yield player.select(1, 1, ["Discard 2 cards", "Gain a Curse"], "Choose one:")
 			player.opponents_wait("to choose", True)
-			selection = yield player.set_cb()
 			if selection[0] == 'Gain a Curse':
 				player.update_wait(True)
 				player.gain_to_hand('Curse', done_gaining= lambda : crd.AttackCard.get_next(self, player))
@@ -676,12 +675,7 @@ class Torturer(crd.AttackCard):
 					crd.AttackCard.get_next(self, player)
 				else:
 					player.opponents_wait("to discard", locked=False)
-
-					def post_discard_select_on(discard_selection, player=player):
-						self.post_discard_select(discard_selection, player)
-
-					player.select(2, 2, crd.card_list_to_titles(player.hand.card_array()), "Discard two cards from hand")
-					discard_selection = yield player.set_cb()
+					discard_selection = yield player.select(2, 2, crd.card_list_to_titles(player.hand.card_array()), "Discard two cards from hand")
 					self.game.announce(player.name_string() + " discards " + str(len(discard_selection)) + " cards")
 					player.discard(discard_selection, player.discard_pile)
 					player.update_hand()
