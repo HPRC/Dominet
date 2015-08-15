@@ -246,18 +246,18 @@ class TestIntrigue(unittest.TestCase):
 	def test_Torturer(self):
 		tu.print_test_header("test Torturer")
 		torturer = intrigue.Torturer(self.game, self.player1)
-		self.player1.hand.add(torturer)
-		self.player1.hand.add(torturer)
+		tu.add_many_to_hand(self.player1, torturer, 2)
 		self.player1.actions = 2
 
-		torturer.play()
+		tu.send_input(self.player1, "play", "Torturer")
 		# choosing to discard 2
 		tu.send_input(self.player2, "post_selection", ["Discard 2 cards"])
 		tu.send_input(self.player2, "post_selection", ["Copper", "Copper"])
+		tu.send_input(self.player3, "post_selection", ["Gain a Curse"])
 
-		torturer.play()
+		tu.send_input(self.player1, "play", "Torturer")
 		tu.send_input(self.player2, "post_selection", ["Gain a Curse"])
-
+		tu.send_input(self.player3, "post_selection", ["Gain a Curse"])
 		self.assertTrue(self.player2.hand.get_count('Curse') == 1)
 
 	def test_Torturer_Throne_Room(self):

@@ -189,7 +189,7 @@ class DmClient(Client):
 		self.update_wait()
 		# choice(the parameter) to waiting callback is 
 		# a list for post_selection
-		# a string for selectSupply
+		# a list for selectSupply
 		# a string for buyCard
 		if self.cb is not None:
 			self.cb.set_result(choice)
@@ -393,14 +393,22 @@ class DmClient(Client):
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 			done_gaining()
 
-	def select_from_supply(self, price_limit=None, equal_only=False, type_constraint=None, allow_empty=False, optional=False):
+	def select_from_supply(self, price_limit=None, equal_only=False, type_constraint=None, allow_empty=False, optional=False, selflock=False):
 		if allow_empty or self.game.supply.has_selectable(price_limit, equal_only, type_constraint):
 			self.write_json(command="updateMode", mode="selectSupply", price=price_limit, equal_only=equal_only,
 				type_constraint=type_constraint, allow_empty=allow_empty, optional=optional)
-			return True
+
+			future = tornado.concurrent.Future()
+			self.cb = future
+			self.waiter.append_wait(self)
+			#only change lock if we are locking, update_wait must be called to unlock
+			if selflock:
+				self.waiter.set_lock(self, selflock)
+
+			return future
 		else:
 			self.game.announce("-- but there is nothing available")
-			return False
+			return []
 
 	def update_resources(self, playedMoney=False):
 		if playedMoney:
