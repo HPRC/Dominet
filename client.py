@@ -8,7 +8,6 @@ import html
 import game as g
 import waitHandler as w
 
-import tornado.gen as gen
 import tornado.concurrent
 
 class Client():
@@ -193,6 +192,7 @@ class DmClient(Client):
 		# a string for buyCard
 		if self.cb is not None:
 			self.cb.set_result(choice)
+			self.cb = None
 
 	def reconnect(self):
 		self.game.announce(self.name_string() + " has reconnected!")

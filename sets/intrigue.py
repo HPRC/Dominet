@@ -170,7 +170,7 @@ class Masquerade(crd.Card):
 	def get_next(self, player):
 		next_player_index = (self.game.players.index(player) + 1) % len(self.game.players)
 		if self.game.players[next_player_index] != self.played_by:
-			self.fire(self.game.players[next_player_index])
+			yield self.fire(self.game.players[next_player_index])
 		else:
 			#everyone finished passing, trash
 			trash_selection = yield self.played_by.select(None, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Select a card to trash")
@@ -184,20 +184,20 @@ class Masquerade(crd.Card):
 	def fire(self, player):
 		# need to know which card was passed to them so we can know which card to NOT show user and remove from card_array()
 		card = player.hand.extract(self.passed_card)
-		passed = yield player.select(1, 1, crd.card_list_to_titles(player.hand.card_array()), "Select a card to pass to player on your left")
+		im_passing = yield player.select(1, 1, crd.card_list_to_titles(player.hand.card_array()), "Select a card to pass to player on your left")
 		# add back card to hand after displaying cards to pass selection
 		if card is not None:
 			player.hand.add(card)
 		left_opponent = player.get_left_opponent()
-		player.announce_self("-- you pass " + self.game.log_string_from_title(passed[0]))
+		player.announce_self("-- you pass " + self.game.log_string_from_title(im_passing[0]))
 		# logging what we received after we pass our card
 		if self.passed_card != "":
 			player.announce_self("-- you received " + self.game.log_string_from_title(self.passed_card))
 		else:
 			# we are the first player, wait for everyone
 			self.played_by.wait_many("to pass", self.played_by.get_opponents())
-		self.passed_card = passed[0]
-		card = player.hand.extract(passed[0])
+		self.passed_card = im_passing[0]
+		card = player.hand.extract(im_passing[0])
 		card.played_by = left_opponent
 		left_opponent.hand.add(card)
 		player.update_hand()
@@ -206,7 +206,6 @@ class Masquerade(crd.Card):
 		if left_opponent == self.played_by:
 			self.played_by.announce_self("-- you received " + self.game.log_string_from_title(selection[0]))
 			self.played_by.update_hand()
-
 		self.get_next(player)
 
 class Shanty_Town(crd.Card):
@@ -246,6 +245,7 @@ class Steward(crd.Card):
 		self.price = 3
 		self.type = "Action"
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		selection = yield self.played_by.select(1, 1, ["+$2", "+2 Cards", "Trash 2 cards from hand"], "Choose One:")
@@ -452,7 +452,7 @@ class Ironworks(crd.Card):
 
 		selection = yield self.played_by.select_from_supply(4)
 		if selection:
-			self.played_by.set_cb(self.post_select)
+			self.post_select(selection)
 		else:
 			crd.Card.on_finished(self, False, False)
 
@@ -485,6 +485,7 @@ class Mining_Village(crd.Card):
 		self.price = 4
 		self.type = "Action"
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		self.played_by.actions += 2
@@ -711,7 +712,16 @@ class Upgrade(crd.Card):
 		self.played_by.update_hand()
 		self.game.announce("-- gaining +1 action and drawing a card.")
 
-		selection = self.played_by.hand.auto_select(1, False)
+		auto_select = self.played_by.hand.auto_select(1, False)
+		if auto_select:
+			self.trash_select(auto_select)
+		else:
+			selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), 
+				"Choose a card to trash:")
+			self.trash_select(selection)
+
+	@gen.coroutine
+	def trash_select(self, selection):
 		if selection:
 			card = self.played_by.hand.get_card(selection[0])
 			self.played_by.discard([card.title], self.game.trash_pile)
@@ -720,15 +730,11 @@ class Upgrade(crd.Card):
 
 			select_gain = yield self.played_by.select_from_supply(card.get_price() + 1, True)
 			if select_gain:
-				self.played_by.gain(selection[0], done_gaining=lambda : crd.Card.on_finished(self))
+				self.played_by.gain(select_gain[0], done_gaining=lambda : crd.Card.on_finished(self))
 			else:
 				crd.Card.on_finished(self)
 		else:
-			if self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), 
-				"Choose a card to trash:"):
-				self.played_by.set_cb(self.trash_select)
-			else:
-				crd.Card.on_finished(self)
+			crd.Card.on_finished(self)
 
 class Saboteur(crd.AttackCard):
 	def __init__(self, game, played_by):
@@ -757,6 +763,7 @@ class Saboteur(crd.AttackCard):
 		sabotaged = False
 		crd.search_deck_for(victim, lambda x : x.price >=3, lambda c: self.found(c, victim=victim))
 
+	@gen.coroutine
 	def found(self, card, victim):
 		if card is None:
 			self.game.announce("-- but there was nothing to sabotage")
@@ -771,18 +778,13 @@ class Saboteur(crd.AttackCard):
 
 			self.game.announce("-- " + victim.name_string() + " gains a card costing "
 			                   + str(card.get_price() - 2) + " or less")
-			victim.select_from_supply(price_limit=card.get_price() - 2, optional=True)
-			victim.set_cb(post_select_cb)
+			selection = yield victim.select_from_supply(price_limit=card.get_price() - 2, optional=True)
+			if selection[0] != "None":
+				victim.gain(selection[0], done_gaining=lambda : crd.AttackCard.get_next(self, victim))
+			else:
+				self.game.announce("-- " + victim.name_string() + " gains nothing")
+				crd.AttackCard.get_next(self, victim)
 			self.played_by.wait("to gain a card", victim)
-
-	def post_select(self, selection, victim):
-		if selection[0] != "None":
-			victim.gain(selection[0], done_gaining=lambda : crd.AttackCard.get_next(self, victim))
-		else:
-			self.game.announce("-- " + victim.name_string() + " gains nothing")
-			crd.AttackCard.get_next(self, victim)
-		
-
 
 class Trading_Post(crd.Card):
 	def __init__(self, game, played_by):
@@ -792,9 +794,9 @@ class Trading_Post(crd.Card):
 		self.price = 5
 		self.type = "Action"
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-
 		auto_select = self.played_by.hand.auto_select(2, True)
 		if auto_select:
 			self.post_select(auto_select)

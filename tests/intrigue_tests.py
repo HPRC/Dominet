@@ -6,11 +6,12 @@ import sets.card as crd
 import game as g
 import kingdomGenerator as kg
 
+import tornado.testing
 import tests.test_utils as tu
 
-
-class TestIntrigue(unittest.TestCase):
+class TestIntrigue(tornado.testing.AsyncTestCase):
 	def setUp(self):
+		super().setUp()
 		self.player1 = c.DmClient("player1", 0, tu.PlayerHandler())
 		self.player2 = c.DmClient("player2", 1, tu.PlayerHandler())
 		self.player3 = c.DmClient("player3", 2, tu.PlayerHandler())
@@ -22,17 +23,17 @@ class TestIntrigue(unittest.TestCase):
 		self.game.start_game()
 		self.player1.take_turn()
 
-
 	# --------------------------------------------------------
 	# ----------------------- Intrigue -----------------------
 	# --------------------------------------------------------
 
+	@tornado.testing.gen_test
 	def test_Pawn(self):
 		tu.print_test_header("test Pawn")
 		pawn = intrigue.Pawn(self.game, self.player1)
 		self.player1.hand.add(pawn)
 		pawn.play()
-		tu.send_input(self.player1, "post_selection", ["+$1", "+1 Action"])
+		yield tu.send_input(self.player1, "post_selection", ["+$1", "+1 Action"])
 		self.assertTrue(self.player1.balance == 1)
 		self.assertTrue(self.player1.actions == 1)
 
@@ -45,6 +46,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue((self.player1.actions == 1))
 		self.assertTrue((self.player1.total_vp()) == player1_vp + 1)
 
+	@tornado.testing.gen_test
 	def test_Steward(self):
 		tu.print_test_header("test Steward")
 		steward = intrigue.Steward(self.game, self.player1)
@@ -61,19 +63,19 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.actions = 5
 		# +$2
 		steward.play()
-		tu.send_input(self.player1, "post_selection", ["+$2"])
+		yield tu.send_input(self.player1, "post_selection", ["+$2"])
 		self.assertTrue(self.player1.balance == 2)
 
 		# Trash 2 with more than 2 in hand
 		steward2.play()
 		trash_size = len(self.game.trash_pile)
-		tu.send_input(self.player1, "post_selection", ["Trash 2 cards from hand"])
-		tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
+		yield tu.send_input(self.player1, "post_selection", ["Trash 2 cards from hand"])
+		yield tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
 		self.assertTrue(len(self.game.trash_pile) == trash_size + 2)
 
 		# Trash 2 with homogeneous hand
 		steward3.play()
-		tu.send_input(self.player1, "post_selection", ["Trash 2 cards from hand"])
+		yield tu.send_input(self.player1, "post_selection", ["Trash 2 cards from hand"])
 		self.assertTrue(self.player1.hand.get_count("Copper") == 1)
 
 		self.player1.hand.add(steward)
@@ -81,9 +83,10 @@ class TestIntrigue(unittest.TestCase):
 		# Trash 2 with 1 in hand
 		self.player1.hand.data["Steward"] = [intrigue.Steward(self.game, self.player1)]
 		steward.play()
-		tu.send_input(self.player1, "post_selection", ["Trash 2 cards from hand"])
+		yield tu.send_input(self.player1, "post_selection", ["Trash 2 cards from hand"])
 		self.assertTrue(len(self.player1.hand) == 0)
 
+	@tornado.testing.gen_test
 	def test_Baron(self):
 		tu.print_test_header("test Baron")
 		baron = intrigue.Baron(self.game, self.player1)
@@ -96,13 +99,13 @@ class TestIntrigue(unittest.TestCase):
 
 		# decline Estate discard, gain Estate to discard pile.
 		baron.play()
-		tu.send_input(self.player1, "post_selection", ["No"])
+		yield tu.send_input(self.player1, "post_selection", ["No"])
 		self.assertTrue(self.player1.buys == 2)
 		self.assertTrue(len(self.player1.discard_pile) == 1)
 
 		# accept Estate discard, do not gain Estate to discard pile, gain $4
 		baron.play()
-		tu.send_input(self.player1, "post_selection", ["Yes"])
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.buys == 3)
 		self.assertTrue(self.player1.balance == 4)
 		self.assertFalse("Estate" in self.player1.hand)
@@ -158,6 +161,7 @@ class TestIntrigue(unittest.TestCase):
 		#discard conspirator, draw 1 card should have same handsize
 		self.assertTrue(handsize == len(self.player1.hand))
 
+	@tornado.testing.gen_test
 	def test_Courtyard(self):
 		tu.print_test_header("test Courtyard")
 		courtyard = intrigue.Courtyard(self.game, self.player1)
@@ -166,27 +170,29 @@ class TestIntrigue(unittest.TestCase):
 		cards_in_hand = len(self.player1.hand)
 
 		courtyard.play()
-		tu.send_input(self.player1, "post_selection", ["Copper"])
+		yield tu.send_input(self.player1, "post_selection", ["Copper"])
 
 		self.assertTrue(len(self.player1.hand) == cards_in_hand + 1)
 		topdeck = self.player1.topdeck()
 		self.assertTrue(topdeck.title == "Copper")
 
+	@tornado.testing.gen_test
 	def test_Nobles(self):
 		tu.print_test_header("test Nobles")
 		nobles = intrigue.Nobles(self.game, self.player1)
 		tu.add_many_to_hand(self.player1, nobles, 2)
 
 		nobles.play()
-		tu.send_input(self.player1, "post_selection", ["+2 Actions"])
+		yield tu.send_input(self.player1, "post_selection", ["+2 Actions"])
 		self.assertTrue(self.player1.actions == 2)
 
 		cards_in_hand = len(self.player1.hand)
 
 		nobles.play()
-		tu.send_input(self.player1, "post_selection", ["+3 Cards"])
+		yield tu.send_input(self.player1, "post_selection", ["+3 Cards"])
 		self.assertTrue(len(self.player1.hand) == cards_in_hand + 2)
 
+	@tornado.testing.gen_test
 	def test_Swindler(self):
 		tu.print_test_header("test Swindler")
 		swindler = intrigue.Swindler(self.game, self.player1)
@@ -194,7 +200,8 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.hand.add(swindler)
 
 		swindler.play()
-		tu.send_input(self.player1, "selectSupply", ["Curse"])
+		yield tu.send_input(self.player1, "selectSupply", ["Curse"])
+		self.assertTrue(self.player2.discard_pile[-1].title == "Curse")
 
 
 	def test_Duke(self):
@@ -209,6 +216,7 @@ class TestIntrigue(unittest.TestCase):
 
 		self.assertTrue(duke.get_vp() == 3)
 
+	@tornado.testing.gen_test
 	def test_Wishing_Well(self):
 		tu.print_test_header("test Wishing Well")
 		wishing_well = intrigue.Wishing_Well(self.game, self.player1)
@@ -219,14 +227,15 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.deck.append(province)
 
 		wishing_well.play()
-		tu.send_input(self.player1, "selectSupply", ["Curse"])
-		tu.send_input(self.player1, "selectSupply", ["Province"])
+		yield tu.send_input(self.player1, "selectSupply", ["Curse"])
+		yield tu.send_input(self.player1, "selectSupply", ["Province"])
 		self.assertTrue(self.player1.hand.get_count('Province') == 1)
 
 		wishing_well.play()
-		tu.send_input(self.player1, "selectSupply", ["Copper"])
+		yield tu.send_input(self.player1, "selectSupply", ["Copper"])
 		self.assertTrue(self.player1.hand.get_count('Province') == 1)
 
+	@tornado.testing.gen_test
 	def test_Upgrade(self):
 		tu.print_test_header("test Upgrade")
 		upgrade = intrigue.Upgrade(self.game, self.player1)
@@ -236,30 +245,30 @@ class TestIntrigue(unittest.TestCase):
 
 		upgrade.play()
 
-		tu.send_input(self.player1, "post_selection", ["Copper"])
+		yield tu.send_input(self.player1, "post_selection", ["Copper"])
 		upgrade.play()
-		tu.send_input(self.player1, "post_selection", ["Estate"])
-		tu.send_input(self.player1, "selectSupply", ["Silver"])
-
+		yield tu.send_input(self.player1, "post_selection", ["Estate"])
+		yield tu.send_input(self.player1, "selectSupply", ["Silver"])
 		self.assertTrue("Silver" == self.player1.discard_pile[-1].title)
 
+	@tornado.testing.gen_test
 	def test_Torturer(self):
 		tu.print_test_header("test Torturer")
 		torturer = intrigue.Torturer(self.game, self.player1)
 		tu.add_many_to_hand(self.player1, torturer, 2)
 		self.player1.actions = 2
-
 		tu.send_input(self.player1, "play", "Torturer")
 		# choosing to discard 2
-		tu.send_input(self.player2, "post_selection", ["Discard 2 cards"])
-		tu.send_input(self.player2, "post_selection", ["Copper", "Copper"])
-		tu.send_input(self.player3, "post_selection", ["Gain a Curse"])
-
+		yield tu.send_input(self.player2, "post_selection", ["Discard 2 cards"])
+		yield tu.send_input(self.player2, "post_selection", ["Copper", "Copper"])
+		yield tu.send_input(self.player3, "post_selection", ["Gain a Curse"])
+		self.assertTrue(len(self.player2.hand) == 3)
 		tu.send_input(self.player1, "play", "Torturer")
-		tu.send_input(self.player2, "post_selection", ["Gain a Curse"])
-		tu.send_input(self.player3, "post_selection", ["Gain a Curse"])
+		yield tu.send_input(self.player2, "post_selection", ["Gain a Curse"])
+		yield tu.send_input(self.player3, "post_selection", ["Gain a Curse"])
 		self.assertTrue(self.player2.hand.get_count('Curse') == 1)
 
+	@tornado.testing.gen_test
 	def test_Torturer_Throne_Room(self):
 		tu.print_test_header("test Torturer Throne Room")
 		throne_room = base.Throne_Room(self.game, self.player1)
@@ -268,43 +277,44 @@ class TestIntrigue(unittest.TestCase):
 
 		throne_room.play()
 		#Throne room a torturer
-		tu.send_input(self.player1, "post_selection", ["Torturer"])
+		yield tu.send_input(self.player1, "post_selection", ["Torturer"])
 		#Player 2 is choosing, everyone else waits
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		self.assertTrue("player2" in self.player1.last_mode["msg"])
 		self.assertTrue(self.player3.last_mode["mode"] == "wait")
 
-		tu.send_input(self.player2, "post_selection", ["Gain a Curse"])
+		yield tu.send_input(self.player2, "post_selection", ["Gain a Curse"])
 		#player3's turn to get torturered
 		self.assertTrue("player3" in self.player1.last_mode["msg"])
 		self.assertTrue(self.player3.last_mode["mode"] != "wait")
 		self.assertTrue(self.player2.last_mode["mode"] == "wait")
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 
-		tu.send_input(self.player3, "post_selection", ["Gain a Curse"])
+		yield tu.send_input(self.player3, "post_selection", ["Gain a Curse"])
 		self.assertTrue("Curse" in self.player3.hand)
 		#Second torturer
-		tu.send_input(self.player2, "post_selection", ["Discard two cards"])
+		yield tu.send_input(self.player2, "post_selection", ["Discard two cards"])
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		self.assertTrue(self.player3.last_mode["mode"] == "wait")
-		tu.send_input(self.player2, "post_selection", ["Curse", "Copper"])
+		yield tu.send_input(self.player2, "post_selection", ["Curse", "Copper"])
 		self.assertTrue(self.player3.last_mode["mode"] != "wait")
-		tu.send_input(self.player3, "post_selection", ["Gain a Curse"])
+		yield tu.send_input(self.player3, "post_selection", ["Gain a Curse"])
 		self.assertTrue(self.player1.last_mode["mode"] != "wait")
 
+	@tornado.testing.gen_test
 	def test_Trading_Post(self):
 		tu.print_test_header("test Trading Post")
 		trading_post = intrigue.Trading_Post(self.game, self.player1)
 		copper = crd.Copper(self.game, self.player1)
-		self.player1.hand.data = {}
+		tu.clear_player_hand(self.player1)
 		self.player1.hand.add(copper)
 		self.player1.hand.add(trading_post)
 		self.player1.actions = 3
 
-		trading_post.play()
-		self.assertTrue(len(self.player1.hand.data) == 0)
+		yield tu.send_input(self.player1, "play", "Trading Post")
+		self.assertTrue(len(self.player1.hand) == 0)
 
-		self.player1.hand.data = {}
+		tu.clear_player_hand(self.player1)
 		self.player1.hand.add(copper)
 		self.player1.hand.add(copper)
 		self.player1.hand.add(trading_post)
@@ -316,29 +326,32 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.hand.add(trading_post)
 		self.player1.hand.add(trading_post)
 		trading_post.play()
-		tu.send_input(self.player1, "post_selection", ["Trading Post", "Trading Post"])
+		yield tu.send_input(self.player1, "post_selection", ["Trading Post", "Trading Post"])
 		self.assertTrue(self.player1.hand.get_count("Silver") == 2)
 
+	@tornado.testing.gen_test
 	def test_Ironworks(self):
 		tu.print_test_header("test Ironworks")
 		ironworks = intrigue.Ironworks(self.game, self.player1)
 		tu.add_many_to_hand(self.player1, ironworks, 4)
 		self.player1.actions = 2
 
-		ironworks.play()
-		tu.send_input(self.player1, "selectSupply", ["Steward"])
-		self.assertTrue(self.player1.actions, 2)
+		tu.send_input(self.player1, "play", "Ironworks")
+		yield tu.send_input(self.player1, "selectSupply", ["Steward"])
+		self.assertTrue(self.player1.actions == 2)
 
-		ironworks.play()
-		tu.send_input(self.player1, "selectSupply", ["Silver"])
-		self.assertTrue(self.player1.balance, 1)
+		tu.send_input(self.player1, "play", "Ironworks")
+		yield tu.send_input(self.player1, "selectSupply", ["Silver"])
+		self.assertTrue(self.player1.balance == 1)
+		self.assertTrue(self.player1.actions == 1)
 
-		ironworks.play()
+		tu.send_input(self.player1, "play", "Ironworks")
 		cards_in_hand = len(self.player1.hand.card_array())
-		tu.send_input(self.player1, "selectSupply", ["Great Hall"])
-		self.assertTrue(self.player1.actions, 1)
+		yield tu.send_input(self.player1, "selectSupply", ["Great Hall"])
+		self.assertTrue(self.player1.actions == 1)
 		self.assertTrue(self.player1.hand, cards_in_hand + 1)
 
+	@tornado.testing.gen_test
 	def test_Secret_Chamber(self):
 		tu.print_test_header("test Secret Chamber")
 		secret_chamber = intrigue.Secret_Chamber(self.game, self.player1)
@@ -349,7 +362,7 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.hand.add(secret_chamber)
 
 		secret_chamber.play()
-		tu.send_input(self.player1, "post_selection", ["Estate", "Estate", "Estate", "Estate"])
+		yield tu.send_input(self.player1, "post_selection", ["Estate", "Estate", "Estate", "Estate"])
 		self.assertTrue(self.player1.balance == 4)
 		self.player1.end_turn()
 		
@@ -364,11 +377,11 @@ class TestIntrigue(unittest.TestCase):
 		self.player2.hand.add(base.Militia(self.game, self.player2))
 
 		self.player2.hand.play("Militia")
-		tu.send_input(self.player1, "post_selection", ["Reveal"])
+		yield tu.send_input(self.player1, "post_selection", ["Reveal"])
 		self.assertTrue(self.player2.last_mode["mode"] == "wait")
-		tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
-		tu.send_input(self.player1, "post_selection", ["Hide"])
-		tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
+		yield tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
+		yield tu.send_input(self.player1, "post_selection", ["Hide"])
+		yield tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
 		self.assertTrue(len(self.player1.hand.card_array()) == 3)
 		estates = self.player1.hand.get_count("Estate")
 		self.player1.draw(2)
@@ -396,6 +409,7 @@ class TestIntrigue(unittest.TestCase):
 		tribute.play()
 		self.assertTrue(self.player1.balance == 2)
 
+	@tornado.testing.gen_test
 	def test_Mining_Village(self):
 		tu.print_test_header("test Mining Village")
 		mining_village = intrigue.Mining_Village(self.game, self.player1)
@@ -404,19 +418,20 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.hand.add(mining_village2)
 
 		mining_village.play()
-		tu.send_input(self.player1, "post_selection", ["No"])
+		yield tu.send_input(self.player1, "post_selection", ["No"])
 		self.assertTrue(self.player1.actions == 2)
 		self.assertTrue(mining_village not in self.game.trash_pile)
 
 		# note discard takes in a string as a parameter so the trashed mining village
 		# could be mining_village or mining_village2 it is not guaranteed to be the same
 		mining_village2.play()
-		tu.send_input(self.player1, "post_selection", ["Yes"])
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.actions == 3)
 		self.assertTrue(self.game.trash_pile[-1].title == "Mining Village")
 		self.assertTrue(len(self.player1.played)==1)
 		self.assertTrue(self.player1.balance == 2)
 
+	@tornado.testing.gen_test
 	def test_Mining_Village_Throne_Room(self):
 		tu.print_test_header("test Mining Village Throne Room")
 		mining_village = intrigue.Mining_Village(self.game, self.player1)
@@ -427,11 +442,11 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.hand.add(throne_room)
 
 		throne_room.play()
-		tu.send_input(self.player1, "post_selection", ["Mining Village"])
+		yield tu.send_input(self.player1, "post_selection", ["Mining Village"])
 		self.assertTrue(self.player1.actions, 2)
-		tu.send_input(self.player1, "post_selection", ["Yes"])
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.balance == 2)
-		tu.send_input(self.player1, "post_selection", ["Yes"])
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.balance == 2)
 
 	def test_Bridge(self):
@@ -479,6 +494,7 @@ class TestIntrigue(unittest.TestCase):
 		coppersmiths = [x for x in self.player1.all_cards() if x.title == "Coppersmith"]
 		self.assertTrue(len(coppersmiths) == 1)
 
+	@tornado.testing.gen_test
 	def test_Scout(self):
 		tu.print_test_header("test Scout")
 		scout = intrigue.Scout(self.game, self.player1)
@@ -498,7 +514,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(province.title in self.player1.hand)
 		self.assertFalse(silver.title in self.player1.hand)
 		self.assertFalse(scout2.title in self.player1.hand)
-		tu.send_input(self.player1, "post_selection", ["Scout", "Silver"])
+		yield tu.send_input(self.player1, "post_selection", ["Scout", "Silver"])
 		self.assertTrue(self.player1.deck[-1].title == "Silver")
 		self.assertTrue(self.player1.deck[-2].title == "Scout")
 		#decksize should be 2 less since we took province and great hall out
@@ -517,7 +533,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.deck[-1].title == "Copper")
 		self.assertTrue(self.player1.deck[-2].title == "Copper")
 
-
+	@tornado.testing.gen_test
 	def test_Minion(self):
 		tu.print_test_header("test Minion")
 		minion = intrigue.Minion(self.game, self.player1)
@@ -528,8 +544,8 @@ class TestIntrigue(unittest.TestCase):
 		top4 = self.player2.deck[-4:]
 		discard_size = len(self.player2.discard_pile)
 		minion.play()
-		self.player1.exec_commands({"command": "post_selection", "selection": ["discard hand and draw 4 cards"]})
-		self.player3.exec_commands({"command": "post_selection", "selection": ["Reveal"]})
+		yield tu.send_input(self.player1, "post_selection", ["discard hand and draw 4 cards"])
+		yield tu.send_input(self.player3, "post_selection", ["Reveal"])
 		self.assertTrue(len(self.player1.hand) == 4)
 		self.assertTrue(len(self.player2.hand) == 4)
 		for x in top4:
@@ -550,6 +566,7 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(len(self.player1.hand) == 4)
 		self.assertTrue(self.player1.balance == 2)
 
+	@tornado.testing.gen_test
 	def test_Masquerade(self):
 		tu.print_test_header("test Masquerade")
 		masquerade = intrigue.Masquerade(self.game, self.player1)
@@ -564,25 +581,24 @@ class TestIntrigue(unittest.TestCase):
 
 		masquerade.play()
 		self.assertTrue(self.player1.hand.get_count("Curse") == 1)
-		tu.send_input(self.player1, "post_selection", ["Curse"])
+		yield tu.send_input(self.player1, "post_selection", ["Curse"])
 		self.assertTrue(self.player1.hand.get_count("Curse") == 0)
-		self.assertTrue(self.player2.hand.get_count("Curse") == 1)
-
 
 		self.assertTrue(self.player2.hand.get_count("Baron") == 1)
-		tu.send_input(self.player2, "post_selection", ["Baron"])
+		yield tu.send_input(self.player2, "post_selection", ["Baron"])
+		self.assertTrue(self.player2.hand.get_count("Curse") == 1)
 		self.assertTrue(self.player2.hand.get_count("Baron") == 0)
 
-		self.assertTrue(self.player3.hand.get_count("Baron") == 1)
-
 		self.assertTrue(self.player3.hand.get_count("Tribute") == 1)
-		tu.send_input(self.player3, "post_selection", ["Tribute"])
+		yield tu.send_input(self.player3, "post_selection", ["Tribute"])
+		self.assertTrue(self.player3.hand.get_count("Baron") == 1)
 		self.assertTrue(self.player3.hand.get_count("Tribute") == 0)
 		self.assertTrue(self.player1.hand.get_count("Tribute") == 1)
 
-		tu.send_input(self.player1, "post_selection", ["Tribute"])
+		yield tu.send_input(self.player1, "post_selection", ["Tribute"])
 		self.assertTrue(self.player1.hand.get_count("Tribute") == 0)
 
+	@tornado.testing.gen_test
 	def test_Masquerade_waits(self):
 		tu.print_test_header("test Masquerade waits")
 		masquerade = intrigue.Masquerade(self.game, self.player1)
@@ -595,13 +611,14 @@ class TestIntrigue(unittest.TestCase):
 		self.player3.hand.add(estate3)
 
 		masquerade.play()
-		self.player1.exec_commands({"command": "post_selection", "selection": ["Curse"]})
+		yield tu.send_input(self.player1, "post_selection", ["Curse"])
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
-		self.player2.exec_commands({"command": "post_selection", "selection": ["Estate"]})
+		yield tu.send_input(self.player2, "post_selection", ["Estate"])
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
-		self.player3.exec_commands({"command": "post_selection", "selection": ["Estate"]})
+		yield tu.send_input(self.player3, "post_selection", ["Estate"])
 		self.assertTrue(self.player1.last_mode["mode"] == "select")
 
+	@tornado.testing.gen_test
 	def test_Saboteur(self):
 		tu.print_test_header("test Saboteur")
 		saboteur = intrigue.Saboteur(self.game, self.player1)
@@ -614,7 +631,7 @@ class TestIntrigue(unittest.TestCase):
 
 		saboteur.play()
 
-		tu.send_input(self.player2, "selectSupply", ["Curse"])
+		yield tu.send_input(self.player2, "selectSupply", ["Curse"])
 
 		self.assertTrue(self.player2.discard_pile.pop().title == "Curse")
 		self.assertTrue(self.player2.discard_pile.pop().title == "Copper")
@@ -622,10 +639,10 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(player3_decksize == len(self.player3.discard_pile))
 		self.player2.deck.append(steward)
 		saboteur.play()
-		tu.send_input(self.player2, "selectSupply", ["None"])
+		yield tu.send_input(self.player2, "selectSupply", ["None"])
 		self.assertTrue(len(self.player2.discard_pile) == 0)
 
-
+	@tornado.testing.gen_test
 	def test_Upgrade_Selection_issue_21(self):
 		tu.print_test_header("test Upgrade selection issue 21")
 		upgrade = intrigue.Upgrade(self.game, self.player1)
@@ -636,15 +653,16 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.hand.add(upgrade)
 		self.player1.hand.add(throne_room)
 		throne_room.play()
-		self.player1.exec_commands({"command": "post_selection", "selection": ["Upgrade"]})
-		self.player1.exec_commands({"command": "post_selection", "selection": ["Silver"]})
-		self.player1.exec_commands({"command": "selectSupply", "card": ["Coppersmith"]})
+		yield tu.send_input(self.player1, "post_selection", ["Upgrade"])
+		yield tu.send_input(self.player1, "post_selection", ["Silver"])
+		yield tu.send_input(self.player1, "selectSupply", ["Coppersmith"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Coppersmith")
-		self.player1.exec_commands({"command": "post_selection", "selection": ["Estate"]})
-		self.player1.exec_commands({"command": "selectSupply", "card": ["Silver"]})
+		yield tu.send_input(self.player1, "post_selection", ["Estate"])
+		yield tu.send_input(self.player1, "selectSupply", ["Silver"])
 		
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
 
+	@tornado.testing.gen_test
 	def test_Mining_Village_Conspirator(self):
 		tu.print_test_header("test Mining Village Conspirator")
 		mv = intrigue.Mining_Village(self.game, self.player1)
@@ -655,7 +673,7 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.hand.add(conspirator)
 		village.play()
 		mv.play()
-		self.player1.exec_commands({"command": "post_selection", "selection": ["Yes"]})
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertFalse(mv in self.player1.played)
 		self.assertTrue(mv in self.game.trash_pile)
 		self.assertTrue(self.player1.actions == 3)
