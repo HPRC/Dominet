@@ -170,7 +170,7 @@ class Masquerade(crd.Card):
 	def get_next(self, player):
 		next_player_index = (self.game.players.index(player) + 1) % len(self.game.players)
 		if self.game.players[next_player_index] != self.played_by:
-			yield self.fire(self.game.players[next_player_index])
+			self.fire(self.game.players[next_player_index])
 		else:
 			#everyone finished passing, trash
 			trash_selection = yield self.played_by.select(None, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Select a card to trash")
@@ -204,7 +204,7 @@ class Masquerade(crd.Card):
 
 		# if we are last, update the first person's receive log
 		if left_opponent == self.played_by:
-			self.played_by.announce_self("-- you received " + self.game.log_string_from_title(selection[0]))
+			self.played_by.announce_self("-- you received " + self.game.log_string_from_title(im_passing[0]))
 			self.played_by.update_hand()
 		self.get_next(player)
 
@@ -262,8 +262,8 @@ class Steward(crd.Card):
 			self.game.announce("-- choosing to trash 2 cards from hand")
 
 			if len(self.played_by.hand) > 2 and not self.played_by.hand.is_homogeneous():
-				self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "select cards to trash")
-				self.played_by.set_cb(self.trash_select)
+				to_trash = yield self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "select cards to trash")
+				self.trash_select(to_trash)
 			else:
 				card_selection = self.played_by.hand.auto_select(2, True)
 				self.trash_select(card_selection)

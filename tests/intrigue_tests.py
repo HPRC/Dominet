@@ -565,7 +565,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		self.player1.exec_commands({"command": "post_selection", "selection": ["discard hand and draw 4 cards"]})
 		self.assertTrue(len(self.player1.hand) == 4)
 		self.assertTrue(self.player1.balance == 2)
-
+		
 	@tornado.testing.gen_test
 	def test_Masquerade(self):
 		tu.print_test_header("test Masquerade")
@@ -594,7 +594,6 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player3.hand.get_count("Baron") == 1)
 		self.assertTrue(self.player3.hand.get_count("Tribute") == 0)
 		self.assertTrue(self.player1.hand.get_count("Tribute") == 1)
-
 		yield tu.send_input(self.player1, "post_selection", ["Tribute"])
 		self.assertTrue(self.player1.hand.get_count("Tribute") == 0)
 
