@@ -35,9 +35,12 @@ class Watchtower(crd.Card):
 		self.played_by.select(1, 1, ["Reveal", "Hide"],  
 			"Reveal " + self.title + " to trash " + to_gain.title + " or put it on top of deck?")
 			
-		self.played_by.set_cb(self.post_reveal, True)
+		def post_reveal_cb(selection, to_gain=to_gain):
+			self.post_reveal(selection, to_gain)
 
-	def post_reveal(self, selection):
+		self.played_by.set_cb(self.post_reveal_cb, True)
+
+	def post_reveal(self, selection, to_gain):
 		if selection[0] == "Reveal":
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
 			self.played_by.select(1, 1, ["Trash", "Put on top of deck"], "Choose to trash")

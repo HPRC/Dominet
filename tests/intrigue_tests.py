@@ -148,6 +148,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player1.actions == 1)
 		self.assertTrue(len(self.player1.hand) == cards_in_hand)
 
+	@tornado.testing.gen_test
 	def test_Conspirator_Throne_Room(self):
 		tu.print_test_header("test Conspirator Throne Room")
 		conspirator = intrigue.Conspirator(self.game, self.player1)
@@ -155,7 +156,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		tu.set_player_hand(self.player1, [conspirator, throne_room])
 		throne_room.play()
 		handsize = len(self.player1.hand)
-		tu.send_input(self.player1, "post_selection", ["Conspirator"])
+		yield tu.send_input(self.player1, "post_selection", ["Conspirator"])
 		self.assertTrue(self.player1.actions == 1)
 		self.assertTrue(self.player1.balance == 4)
 		#discard conspirator, draw 1 card should have same handsize
@@ -473,6 +474,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		self.player1.end_turn()
 		self.assertTrue(copper.value == 1)
 
+	@tornado.testing.gen_test
 	def test_Coppersmith_Throne_Room(self):
 		tu.print_test_header("test Coppersmith Throne Room")
 		coppersmith = intrigue.Coppersmith(self.game, self.player1)
@@ -483,7 +485,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		self.player1.hand.add(copper)
 
 		throneroom.play()
-		tu.send_input(self.player1, "post_selection", ["Coppersmith"])
+		yield tu.send_input(self.player1, "post_selection", ["Coppersmith"])
 		copper.play()
 		self.assertTrue(self.player1.balance == 3)
 		#we played throne room, coppersmith, copper
@@ -553,6 +555,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		self.assertTrue(discard_size + 5 == len(self.player2.discard_pile))
 		self.assertTrue(len(self.player3.hand) > 4)
 
+	@tornado.testing.gen_test
 	def test_Minion_Throne_Room(self):
 		tu.print_test_header("test Minion Throne Room")
 		minion = intrigue.Minion(self.game, self.player1)
@@ -560,12 +563,12 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		self.player1.hand.add(minion)
 		self.player1.hand.add(throneroom)
 		throneroom.play()
-		self.player1.exec_commands({"command": "post_selection", "selection": ["Minion"]})
-		self.player1.exec_commands({"command": "post_selection", "selection": ["+$2"]})
-		self.player1.exec_commands({"command": "post_selection", "selection": ["discard hand and draw 4 cards"]})
+		yield tu.send_input(self.player1, "post_selection", ["Minion"])
+		yield tu.send_input(self.player1, "post_selection", ["+$2"])
+		yield tu.send_input(self.player1, "post_selection", ["discard hand and draw 4 cards"])
 		self.assertTrue(len(self.player1.hand) == 4)
 		self.assertTrue(self.player1.balance == 2)
-		
+
 	@tornado.testing.gen_test
 	def test_Masquerade(self):
 		tu.print_test_header("test Masquerade")
