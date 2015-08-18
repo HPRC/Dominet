@@ -15,14 +15,15 @@ class Crossroads(crd.Card):
 	def play(self, skip=False):
 		cards_played = list(map(lambda x : x.title, self.played_by.played))
 		crd.Card.play(self, skip)
+		if "Crossroads" not in cards_played:
+			self.played_by.actions += 3
+			self.game.announce("-- gaining 3 actions")
 		#Announce announces everything to all players in log, reveal_string adds css to cards in log 
 		self.game.announce("-- reveals " + self.played_by.hand.reveal_string())
 		num_victory_cards = len(self.played_by.hand.get_cards_by_type("Victory"))
 		drawn = self.played_by.draw(num_victory_cards)
 		#needs to be part of crossroads log
 		self.game.announce("-- draws " + drawn)
-		if "Crossroads" not in cards_played:
-			self.played_by.actions += 3
 		crd.Card.on_finished(self, True)
 
 	def log_string(self, plural=False):
