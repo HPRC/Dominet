@@ -7,10 +7,12 @@ import sets.card as crd
 import game as g
 import kingdomGenerator as kg
 
+import tornado.testing
 import tests.test_utils as tu
 
-class TestCard(unittest.TestCase):
+class TestCard(tornado.testing.AsyncTestCase):
 	def setUp(self):
+		super().setUp()
 		self.player1 = c.DmClient("player1", 0, tu.PlayerHandler())
 		self.player2 = c.DmClient("player2", 1, tu.PlayerHandler())
 		self.player3 = c.DmClient("player3", 2, tu.PlayerHandler())
@@ -25,6 +27,7 @@ class TestCard(unittest.TestCase):
 	# ------------------------- Base -------------------------
 	# --------------------------------------------------------
 
+	@tornado.testing.gen_test
 	def test_Cellar(self):
 		tu.print_test_header("test Cellar")
 
@@ -32,12 +35,13 @@ class TestCard(unittest.TestCase):
 		self.player1.hand.play("Cellar")
 		self.assertTrue(self.player1.handler.log[-1]["command"] == "updateMode")
 		self.assertTrue(self.player1.handler.log[-1]["mode"] == "select")
-		self.assertTrue(self.player1.cb != None)
 
 		selection = crd.card_list_to_titles(self.player1.hand.card_array())
-		tu.send_input(self.player1, "post_selection", selection)
+		yield tu.send_input(self.player1, "post_selection", selection)
 		self.assertTrue(len(self.player1.discard_pile) == 5)
+		self.assertTrue(len(self.player1.hand) == 5)
 
+	@tornado.testing.gen_test
 	def test_Militia(self):
 		tu.print_test_header("test Militia")
 		self.player1.hand.add(base.Militia(self.game, self.player1))
@@ -45,11 +49,14 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.player2.handler.log[-1]["command"] == "updateMode")
 		self.assertTrue(self.player2.handler.log[-1]["mode"] == "select")
 		self.assertTrue(self.player2.handler.log[-1]["select_from"] == crd.card_list_to_titles(self.player2.hand.card_array()))
-		self.assertTrue(self.player2.cb != None)
 
 		selection = crd.card_list_to_titles(self.player2.hand.card_array())[:2]
-		tu.send_input(self.player2, "post_selection", selection)
+		yield tu.send_input(self.player2, "post_selection", selection)
 		self.assertTrue(len(self.player2.hand) == 3)
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		yield tu.send_input(self.player3, "post_selection", ["Copper", "Copper"])
+		self.assertTrue(self.player1.last_mode["mode"] != "wait")
+		self.assertTrue(len(self.player3.hand) == 3)
 
 	def test_Moat_reaction(self):
 		tu.print_test_header("test Moat Reaction")
@@ -62,15 +69,17 @@ class TestCard(unittest.TestCase):
 		# didn't gain curse
 		self.assertTrue(len(self.player2.discard_pile) == 0)
 
+	@tornado.testing.gen_test
 	def test_Throne_Room_on_Village(self):
 		tu.print_test_header("test Throne Room Village")
 		throne_room_card = base.Throne_Room(self.game, self.player1)
 		self.player1.hand.add(throne_room_card)
 		self.player1.hand.add(base.Village(self.game, self.player1))
 		throne_room_card.play()
-		throne_room_card.post_select(["Village"])
+		yield tu.send_input(self.player1, "post_selection", ["Village"])
 		self.assertTrue(self.player1.actions == 4)
 
+	@tornado.testing.gen_test
 	def test_Throne_Room_on_Workshop(self):
 		tu.print_test_header("test Throne Room workshop")
 		throne_room_card = base.Throne_Room(self.game, self.player1)
@@ -78,16 +87,17 @@ class TestCard(unittest.TestCase):
 		workshopCard = base.Workshop(self.game, self.player1)
 		self.player1.hand.add(workshopCard)
 		throne_room_card.play()
-		throne_room_card.post_select(["Workshop"])
+		yield tu.send_input(self.player1, "post_selection", ["Workshop"])
 		self.assertTrue(workshopCard.done.__name__ == "second_play")
 
-		tu.send_input(self.player1, "selectSupply", ["Silver"])
+		yield tu.send_input(self.player1, "selectSupply", ["Silver"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
 		self.assertTrue(workshopCard.done.__name__ == "final_done")
 
-		tu.send_input(self.player1, "selectSupply", ["Estate"])
+		yield tu.send_input(self.player1, "selectSupply", ["Estate"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Estate")
 
+	@tornado.testing.gen_test
 	def test_Feast(self):
 		tu.print_test_header("test Feast")
 		feast_card = base.Feast(self.game, self.player1)
@@ -96,7 +106,10 @@ class TestCard(unittest.TestCase):
 
 		self.assertTrue(self.player1.handler.log[-1]["mode"] == "selectSupply")
 		self.assertTrue(self.game.trash_pile[-1] == feast_card)
+		yield tu.send_input(self.player1, "post_selection", ["Duchy"])
+		self.assertTrue(self.player1.discard_pile[-1].title == "Duchy")
 
+	@tornado.testing.gen_test
 	def test_Thief_2_treasures(self):
 		tu.print_test_header("test Thief on 2 treasures")
 		thief_card = base.Thief(self.game, self.player1)
@@ -106,11 +119,12 @@ class TestCard(unittest.TestCase):
 		thief_card.play()
 		self.assertTrue("Copper" in self.player1.handler.log[-1]['select_from'])
 		self.assertTrue("Silver" in self.player1.handler.log[-1]['select_from'])
-		tu.send_input(self.player1, "post_selection", ["Silver"])
+		yield tu.send_input(self.player1, "post_selection", ["Silver"])
 		self.assertTrue(self.game.trash_pile[-1].title == "Silver")
-		tu.send_input(self.player1, "post_selection", ["Yes"])
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
 
+	@tornado.testing.gen_test
 	def test_Thief_1_treasure(self):
 		tu.print_test_header("test Thief on 1 treasure")
 		thief_card = base.Thief(self.game, self.player1)
@@ -119,9 +133,10 @@ class TestCard(unittest.TestCase):
 		self.player2.deck.append(crd.Gold(self.game, self.player2))
 		thief_card.play()
 		self.assertTrue(self.game.trash_pile[-1].title == "Gold")
-		tu.send_input(self.player1, "post_selection", ["Yes"])
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Gold")
 
+	@tornado.testing.gen_test
 	def test_Thief_3_players(self):
 		tu.print_test_header("test Thief 3 players")
 		thief_card = base.Thief(self.game, self.player1)
@@ -131,12 +146,10 @@ class TestCard(unittest.TestCase):
 		self.player3.deck.append(crd.Copper(self.game, self.player2))
 		self.player3.deck.append(crd.Estate(self.game, self.player2))
 		thief_card.play()
-		tu.send_input(self.player1, "post_selection", ["Yes"])
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Gold")
-		tu.send_input(self.player1, "post_selection", ["Yes"])
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Copper")
-		thief_card.play()
-
 
 	def test_Gardens(self):
 		tu.print_test_header("test Gardens")
@@ -150,6 +163,7 @@ class TestCard(unittest.TestCase):
 		self.player1.deck.append(crd.Copper(self.game, self.player1))
 		self.assertTrue(self.player1.total_vp() == 23)
 
+	@tornado.testing.gen_test
 	def test_Chancellor(self):
 		tu.print_test_header("test Chancellor")
 		self.player1.discard_pile.append(crd.Copper(self.game, self.player1))
@@ -159,7 +173,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(self.player1.handler.log[-1]["command"] == "updateMode")
 		self.assertTrue(len(self.player1.discard_pile) == 1)
 		decksize = len(self.player1.deck)
-		tu.send_input(self.player1, "post_selection", ["Yes"])
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
 
 		self.assertTrue(len(self.player1.discard_pile) == decksize + 1)
 		self.assertTrue(len(self.player1.deck) == 0)
@@ -192,6 +206,7 @@ class TestCard(unittest.TestCase):
 		self.assertTrue(len(self.player1.deck) == 0)
 		self.assertTrue(len(self.player1.discard_pile) == 0)
 
+	@tornado.testing.gen_test
 	def test_Library(self):
 		tu.print_test_header("test Library")
 		library = base.Library(self.game, self.player1)
@@ -202,9 +217,10 @@ class TestCard(unittest.TestCase):
 		library.play()
 		self.assertTrue(len(self.player1.hand) == 6)
 		self.assertTrue(self.player1.handler.log[-1]["command"] == "updateMode")
-		tu.send_input(self.player1, "post_selection", ["Yes"])
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(len(self.player1.hand) == 7)
 		self.assertTrue(self.player1.discard_pile[-1] == village)
+		self.assertTrue("Village" not in self.player1.hand)
 
 	def test_Witch(self):
 		tu.print_test_header("test Witch")
