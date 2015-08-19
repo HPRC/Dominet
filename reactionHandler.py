@@ -1,3 +1,5 @@
+import tornado.gen as gen
+
 class ReactionHandler():
 	def __init__(self, player, trigger, resume=lambda : None, react_data=None):
 		self.player = player
@@ -11,33 +13,28 @@ class ReactionHandler():
 		#extra parameter to pass into react function of card
 		self.react_data = react_data
 
+	@gen.coroutine
 	def initiate_reactions(self):
 		if len(self.player.hand.get_reactions_for(self.trigger)) > 1:
-			#more than 1 reaction: lock player with dummy callback to be overridden
-			self.player.set_cb(lambda : None, True)
-		if not self.need_order_reactions():
-			self.trigger_reactions()
+			#more than 1 reaction: lock player as he/she chooses order
+			self.player.wait_modeless("", self.player, True)
+		yield self.need_order_reactions()
+		self.trigger_reactions()
 
+	@gen.coroutine
 	def need_order_reactions(self):
 		reactions = self.player.hand.get_reactions_for(self.trigger)
 		reaction_titles = list(map(lambda x: x.title, reactions))
 		if len(set(reaction_titles)) == 1:
 			self.reactions_queue = list(map(lambda x: x.react, reactions))
-			return False
 		else:
 			num_reactions = len(reaction_titles)
 
-			self.player.set_cb(self.finish_ordering_reactions)
-			self.player.select(num_reactions, num_reactions, reaction_titles, 
+			selected_order = yield self.player.select(num_reactions, num_reactions, reaction_titles, 
 				"Choose the order for your reactions to resolve, #1 is first.", True)
-			return True
-
-	def finish_ordering_reactions(self, order):
-		for card_title in order:
-			cb = self.player.hand.get_card(card_title).react
-			self.reactions_queue.append(cb)
-
-		self.trigger_reactions()
+			for card_title in selected_order:
+				cb = self.player.hand.get_card(card_title).react
+				self.reactions_queue.append(cb)
 
 	#trigger next reaction
 	def trigger_reactions(self):

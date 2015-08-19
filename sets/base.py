@@ -72,7 +72,6 @@ class Moat(crd.Card):
 	@gen.coroutine
 	def react(self, reacted_to_callback):
 		self.reacted_to_callback = reacted_to_callback
-		
 		selection = yield self.played_by.select(1, 1, ["Reveal", "Hide"],  
 			"Reveal " + self.title + " to prevent attack?")
 		if selection[0] == "Reveal":

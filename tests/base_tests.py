@@ -58,6 +58,7 @@ class TestCard(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player1.last_mode["mode"] != "wait")
 		self.assertTrue(len(self.player3.hand) == 3)
 
+	@tornado.testing.gen_test
 	def test_Moat_reaction(self):
 		tu.print_test_header("test Moat Reaction")
 		self.player2.hand.add(base.Moat(self.game, self.player2))
@@ -65,7 +66,7 @@ class TestCard(tornado.testing.AsyncTestCase):
 		self.player1.hand.play("Witch")
 		self.assertTrue("Reveal" in self.player2.handler.log[-1]["select_from"])
 
-		tu.send_input(self.player2, "post_selection", ["Reveal"])
+		yield tu.send_input(self.player2, "post_selection", ["Reveal"])
 		# didn't gain curse
 		self.assertTrue(len(self.player2.discard_pile) == 0)
 
@@ -230,6 +231,7 @@ class TestCard(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player3.discard_pile[-1].title == "Curse")
 		self.assertTrue(self.player1.last_mode["mode"] != "wait")
 
+	@tornado.testing.gen_test
 	def test_2_Reactions(self):
 		tu.print_test_header("test 2 reaction secret chamber moat")
 		militia = base.Militia(self.game, self.player1)
@@ -250,7 +252,7 @@ class TestCard(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player2.last_mode["mode"] == "select")
 		self.assertTrue("Secret Chamber" in self.player2.last_mode["select_from"])		
 		self.assertTrue("Moat" in self.player2.last_mode["select_from"])
-		self.player2.exec_commands({"command":"post_selection", "selection":["Secret Chamber", "Moat"]})
+		yield tu.send_input(self.player2, "post_selection", ["Secret Chamber", "Moat"])
 		#moat trigger first
 		self.assertTrue("Moat" in self.player2.last_mode["msg"])
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
@@ -258,39 +260,39 @@ class TestCard(tornado.testing.AsyncTestCase):
 		#while player2 is deciding to reveal moat or not,
 		#player3 chose order Secret chamber first
 		self.assertTrue(self.player3.last_mode["mode"] == "select")
-		self.player3.exec_commands({"command":"post_selection", "selection":["Moat", "Secret Chamber"]})
+		yield tu.send_input(self.player3, "post_selection", ["Moat", "Secret Chamber"])
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 
 		#player3 reveals secret chamber
 		self.assertTrue("Secret Chamber" in self.player3.last_mode["msg"])
-		self.player3.exec_commands({"command":"post_selection", "selection": ["Reveal"]})
+		yield tu.send_input(self.player3, "post_selection", ["Reveal"])
 
-		#player3 chooses to put back secret chamber and moat in secret chamber reaction 
-		self.player3.exec_commands({"command":"post_selection", "selection": ["Secret Chamber", "Moat"]})
+		#player3 chooses to put back secret chamber and moat in secret chamber reaction
+		yield tu.send_input(self.player3, "post_selection", ["Secret Chamber", "Moat"])
 		self.assertTrue(self.player3.deck[-1].title == "Moat")
 		self.assertTrue(self.player3.deck[-2].title == "Secret Chamber")
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		#player2 reveals moat
 		self.assertTrue(self.player2.last_mode["mode"] == "select")
-		self.player2.exec_commands({"command":"post_selection", "selection": ["Reveal"]})
+		yield tu.send_input(self.player2, "post_selection", ["Reveal"])
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		#player2 reveals secret chamber
-		self.player2.exec_commands({"command":"post_selection", "selection": ["Reveal"]})
+		yield tu.send_input(self.player2, "post_selection", ["Reveal"])
 		#player2 puts back Estate, moat
 		self.assertTrue(self.player2.protection == 1)
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
-		self.player2.exec_commands({"command":"post_selection", "selection": ["Moat", "Estate"]})
+		yield tu.send_input(self.player2, "post_selection", ["Moat", "Estate"])
 		self.assertTrue(self.player2.deck[-1].title == "Estate")
 		self.assertTrue(self.player2.deck[-2].title == "Moat")
 		
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		#player3 discards 2 silver
-		self.player3.exec_commands({"command":"post_selection", "selection": ["Silver", "Silver"]})
-
+		yield tu.send_input(self.player3, "post_selection", ["Silver", "Silver"])
 		self.assertTrue(len(self.player3.hand)==3)
 		#player1 resumes
 		self.assertTrue(self.player1.last_mode["mode"] == "buy")
 
+	@tornado.testing.gen_test
 	def test_2_reaction_waits(self):
 		tu.print_test_header("test 2 reaction waits")
 		militia = base.Militia(self.game, self.player1)
@@ -312,61 +314,61 @@ class TestCard(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player3.last_mode["mode"] != "wait")
 
 		#player 2 choose order, moat then secret chamber
-		tu.send_input(self.player2, "post_selection", ["Secret Chamber", "Moat"])
+		yield tu.send_input(self.player2, "post_selection", ["Secret Chamber", "Moat"])
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		self.assertTrue(self.player2.last_mode["mode"] != "wait")
 		self.assertTrue(self.player3.last_mode["mode"] != "wait")
 
 		#player 2 reveals moat
-		tu.send_input(self.player2, "post_selection", ["Reveal"])
+		yield tu.send_input(self.player2, "post_selection", ["Reveal"])
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		self.assertTrue(self.player2.last_mode["mode"] != "wait")
 		self.assertTrue(self.player3.last_mode["mode"] != "wait")
 
 		#player 3 chooses same order, moat then secret chamber
-		tu.send_input(self.player3, "post_selection", ["Secret Chamber", "Moat"])
+		yield tu.send_input(self.player3, "post_selection", ["Secret Chamber", "Moat"])
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		self.assertTrue(self.player2.last_mode["mode"] != "wait")
 		self.assertTrue(self.player3.last_mode["mode"] != "wait")
 
 		#player 2 reveals secret chamber
-		tu.send_input(self.player2, "post_selection", ["Reveal"])
+		yield tu.send_input(self.player2, "post_selection", ["Reveal"])
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		self.assertTrue(self.player2.last_mode["mode"] != "wait")
 		self.assertTrue(self.player3.last_mode["mode"] != "wait")
 
 		#player 2 draws 2 estates, puts back 1 and a copper
-		tu.send_input(self.player2, "post_selection", ["Estate", "Copper"])
+		yield tu.send_input(self.player2, "post_selection", ["Estate", "Copper"])
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		self.assertTrue(self.player2.last_mode["mode"] != "wait")
 		self.assertTrue(self.player3.last_mode["mode"] != "wait")
 
 		#player 3 reveals moat
-		tu.send_input(self.player3, "post_selection", ["Reveal"])
+		yield tu.send_input(self.player3, "post_selection", ["Reveal"])
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		self.assertTrue(self.player2.last_mode["mode"] != "wait")
 		self.assertTrue(self.player3.last_mode["mode"] != "wait")
 
 		#player 3 hides secret chamber
-		tu.send_input(self.player3, "post_selection", ["Hide"])
+		yield tu.send_input(self.player3, "post_selection", ["Hide"])
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		self.assertTrue(self.player2.last_mode["mode"] != "wait")
 		self.assertTrue(self.player3.last_mode["mode"] != "wait")
 
 		#player 2 drew cards so is reprompted and chooses order again
-		tu.send_input(self.player2, "post_selection", ["Secret Chamber", "Moat"])
+		yield tu.send_input(self.player2, "post_selection", ["Secret Chamber", "Moat"])
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		self.assertTrue(self.player2.last_mode["mode"] != "wait")
 		self.assertTrue(self.player3.last_mode["mode"] != "wait")
 
 		#player 2 hides moat
-		tu.send_input(self.player2, "post_selection", ["Hide"])
+		yield tu.send_input(self.player2, "post_selection", ["Hide"])
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		self.assertTrue(self.player2.last_mode["mode"] != "wait")
 		self.assertTrue(self.player3.last_mode["mode"] != "wait")
 
 		#player 2 hides secret chamber
-		tu.send_input(self.player2, "post_selection", ["Hide"])
+		yield tu.send_input(self.player2, "post_selection", ["Hide"])
 		self.assertTrue(self.player1.last_mode["mode"] != "wait")
 		
 
