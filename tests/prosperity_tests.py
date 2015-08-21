@@ -7,11 +7,13 @@ import sets.card as crd
 import game as g
 import kingdomGenerator as kg
 
+import tornado.testing
 import tests.test_utils as tu
 
 
-class TestProsperity(unittest.TestCase):
+class TestProsperity(tornado.testing.AsyncTestCase):
 	def setUp(self):
+		super().setUp()
 		self.player1 = c.DmClient("player1", 0, tu.PlayerHandler())
 		self.player2 = c.DmClient("player2", 1, tu.PlayerHandler())
 		self.player3 = c.DmClient("player3", 2, tu.PlayerHandler())
@@ -35,6 +37,7 @@ class TestProsperity(unittest.TestCase):
 
 		self.assertTrue(self.player1.total_vp() == 4)
 
+	@tornado.testing.gen_test
 	def test_Counting_House(self):
 		tu.print_test_header("test Counting House")
 		counting_house = prosperity.Counting_House(self.game, self.player1)
@@ -50,7 +53,7 @@ class TestProsperity(unittest.TestCase):
 		all_copper = len([x for x in self.player1.all_cards() if x.title == "Copper"])
 		
 		counting_house.play()
-		tu.send_input(self.player1, "post_selection", [2])
+		yield tu.send_input(self.player1, "post_selection", [2])
 		self.assertTrue(self.player1.hand.get_count('Copper') == num_coppers + 2)
 		self.assertTrue(len(self.player1.discard_pile) == 1)
 		self.assertTrue(len([x for x in self.player1.all_cards() if x.title == "Copper"]) == all_copper)
