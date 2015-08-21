@@ -136,6 +136,15 @@ class HandPile():
 		else:
 			return None
 
+	def extract_specific(self, card):
+		if card.title in self.data:
+			extracted_card = self.data[card_title].pop(card)
+			if self.get_count(card.title) == 0:
+				del self.data[card.title]
+			return extracted_card
+		else:
+			return None
+
 	def get_count(self, card_title):
 		if card_title not in self.data:
 			return 0

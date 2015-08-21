@@ -415,6 +415,27 @@ class DmClient(Client):
 			self.update_mode_buy_phase()
 		self.write_json(command="updateResources", actions=self.actions, buys=self.buys, balance=self.balance)
 
+	def search_and_extract_card(self, card):
+		try:
+			self.deck.remove(card)
+			return card
+		except ValueError:
+			pass
+		try:
+			self.discard_pile.remove(card)
+		except ValueError:
+			pass
+		for x in self.hand:
+			if x == card:
+				return self.hand.extract_specific(x)
+		try:
+			self.played.remove(card)
+			return card
+		except ValueError:
+			pass
+		return None
+
+
 	def total_deck_size(self):
 		return len(self.deck) + len(self.discard_pile) + len(self.played) + len(self.hand)
 
