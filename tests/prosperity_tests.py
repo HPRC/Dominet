@@ -310,7 +310,6 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		#both players should be able to choose to discard at the same time
 		self.assertTrue(self.player2.last_mode["mode"] == "select")
-		print(self.player3.last_mode)
 		self.assertTrue(self.player3.last_mode["mode"] == "select")
 		yield tu.send_input(self.player2, "post_selection", ["Yes"])		
 		cards_in_hand = len(self.player2.hand.card_array())

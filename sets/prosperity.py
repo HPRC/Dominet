@@ -568,22 +568,29 @@ class Vault(crd.Card):
 		self.played_by.wait_many("to discard", self.played_by.get_opponents(), True)
 		
 		#ask opponents to discard 2 to draw 1
-		for i in self.played_by.get_opponents():
-			m
-			selection = yield i.select(1, 1, ["Yes", "No"], "Discard 2 cards to draw 1?")
-			if selection[0] == "Yes":
-				discard_selection = i.select(min(len(i.hand.card_array()), 2), 2, crd.card_list_to_titles(i.hand.card_array()), "Discard up to 2")
-				i.discard(selection, i.discard_pile)
-				drawn = 0
-				if len(selection) >= 2:
-					drawn = i.draw(1)
-					i.update_hand()
-				self.game.announce(i.name_string() + " discards " + str(len(selection)) + " cards and draws " + drawn)
-				i.update_wait(True)
-			else:
-				i.update_wait(True)
-			if not self.played_by.is_waiting():
-				crd.Card.on_finished(self, False, True)
+		wait_iterator = gen.WaitIterator(*list(map(lambda x: x.select(1, 1, ["Yes", "No"], "Discard 2 cards to draw 1?"), 
+			self.played_by.get_opponents())))
+		while not wait_iterator.done():
+			selected = yield wait_iterator.next()
+			selecting_player_index = wait_iterator.current_index
+			vaulting_player = self.played_by.get_opponents()[selecting_player_index]
+			self.discard_2_for_1(selected, vaulting_player)
+
+	@gen.coroutine
+	def discard_2_for_1(self, selection, player):
+		if selection[0] == "Yes":
+			discard_selection = yield player.select(min(len(player.hand.card_array()), 2), 2, crd.card_list_to_titles(player.hand.card_array()), "Discard up to 2")
+			player.discard(discard_selection, player.discard_pile)
+			drawn = "nothing"
+			if len(discard_selection) >= 2:
+				drawn = player.draw(1)
+				player.update_hand()
+			self.game.announce(player.name_string() + " discards " + str(len(discard_selection)) + " cards and draws " + drawn)
+			player.update_wait(True)
+		else:
+			player.update_wait(True)
+		if not self.played_by.is_waiting():
+			crd.Card.on_finished(self, False, True)
 
 
 class Venture(crd.Money):
