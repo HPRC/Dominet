@@ -308,6 +308,18 @@ def card_list_to_titles(lst):
 def card_list_log_strings(lst):
 	return list(map(lambda x: x.log_string(), lst))
 
+# runs futures in parallel and call the callbacks with responses as they come in
+# futures = list of futures
+# players = list of players mapping to futures
+# callback = function called with data and player params after player selects data
+@gen.coroutine
+def parallel_selects(futures, players, callback):
+	wait_iterator = gen.WaitIterator(*futures) 
+	while not wait_iterator.done():
+		selected = yield wait_iterator.next()
+		selecting_player_index = wait_iterator.current_index
+		selecting_player = players[selecting_player_index]
+		callback(selected, selecting_player)
 
 # asks player to reorder input list of cards
 # player = player who is reordering

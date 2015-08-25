@@ -566,13 +566,9 @@ class Vault(crd.Card):
 		self.played_by.wait_many("to discard", self.played_by.get_opponents(), True)
 		
 		#ask opponents to discard 2 to draw 1
-		wait_iterator = gen.WaitIterator(*list(map(lambda x: x.select(1, 1, ["Yes", "No"], "Discard 2 cards to draw 1?"), 
-			self.played_by.get_opponents())))
-		while not wait_iterator.done():
-			selected = yield wait_iterator.next()
-			selecting_player_index = wait_iterator.current_index
-			vaulting_player = self.played_by.get_opponents()[selecting_player_index]
-			self.discard_2_for_1(selected, vaulting_player)
+		opponents = self.played_by.get_opponents()
+		crd.parallel_selects(map(lambda x: x.select(1, 1, ["Yes", "No"], "Discard 2 cards to draw 1?"), 
+			opponents), opponents, self.discard_2_for_1)
 
 	@gen.coroutine
 	def discard_2_for_1(self, selection, player):
