@@ -144,23 +144,21 @@ class Trade_Route(crd.Card):
 		#call overriden on_gain
 		previous_gain_func.__get__(supply_card, crd.Card)()
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		mat_value = len(self.game.mat["Trade Route Mat"])
 		self.played_by.balance += mat_value
 		self.played_by.buys += 1
 		self.game.announce("-- gaining a buy and $" + str(mat_value))
-		if self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Choose a card to trash"):
-			self.played_by.set_cb(self.trash_select)
-		else:
-			self.trash_select([])
-
-	def trash_select(self, selection):
-		trashed = self.played_by.hand.extract(selection[0])
-		self.game.announce("-- trashing " + trashed.log_string())
-		self.game.trash_pile.append(trashed)
-		self.game.update_trash_pile()
+		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Choose a card to trash")
+		if selection:
+			trashed = self.played_by.hand.extract(selection[0])
+			self.game.announce("-- trashing " + trashed.log_string())
+			self.game.trash_pile.append(trashed)
+			self.game.update_trash_pile()
 		crd.Card.on_finished(self)
+
 
 # --------------------------------------------------------
 # ------------------------ 4 Cost ------------------------
@@ -350,8 +348,8 @@ class Contraband(crd.Money):
 		left_opponent = self.played_by.get_left_opponent()
 		self.played_by.wait("to choose a card for contraband", left_opponent)
 		banned = yield left_opponent.select_from_supply()
-		self.game.announce(left_opponent.name_string() + " bans " + self.game.log_string_from_title(selection[0]))
-		self.played_by.banned.append(selection[0])
+		self.game.announce(left_opponent.name_string() + " bans " + self.game.log_string_from_title(banned[0]))
+		self.played_by.banned.append(banned[0])
 		crd.Money.on_finished(self)
 
 class Counting_House(crd.Card):
