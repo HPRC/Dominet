@@ -9,6 +9,7 @@ import game as g
 import waitHandler as w
 
 import tornado.concurrent
+import tornado.gen as gen
 
 class Client():
 	hand_size = 5
@@ -362,6 +363,7 @@ class DmClient(Client):
 			self.game.remove_from_supply(card)
 		return self.gen_new_card(card)
 
+	@gen.coroutine
 	def gain(self, card, from_supply=True, suppress_announcement=False, done_gaining=lambda : None):
 		new_card = self.get_card_from_supply(card, from_supply)
 		if new_card is not None:
@@ -369,7 +371,9 @@ class DmClient(Client):
 				self.game.announce(self.name_string() + " gains " + new_card.log_string())
 			self.discard_pile.append(new_card)
 			self.update_discard_size()
-			new_card.on_gain()
+			# yield for the new_card on_gain function to finish executing before continuing
+			# need to yield a future so call maybe_future
+			yield gen.maybe_future(new_card.on_gain())
 			self.hand.do_reactions("Gain", done_gaining, new_card)
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")

@@ -63,6 +63,7 @@ class Card():
 		pass
 
 	#called when you gain this card
+	@gen.coroutine
 	def on_gain(self):
 		pass
 

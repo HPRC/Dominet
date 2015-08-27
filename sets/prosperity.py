@@ -137,12 +137,13 @@ class Trade_Route(crd.Card):
 	#this is set to be the on_gain function for all cards with trade route tokens on it. It increases the mat value
 	#when the card is gained the first time and then removes this function as the on_gain and resets it to the previous
 	#function.
+	@gen.coroutine
 	def gained_to_mat(self, supply_card, previous_gain_func):
 		if (supply_card.log_string() not in self.game.mat["Trade Route Mat"]):
 			self.game.mat["Trade Route Mat"].append(supply_card.log_string())
 			self.game.update_mat()
 		#call overriden on_gain
-		previous_gain_func.__get__(supply_card, crd.Card)()
+		yield previous_gain_func.__get__(supply_card, crd.Card)()
 
 	@gen.coroutine
 	def play(self, skip=False):
@@ -210,7 +211,7 @@ class Bishop(crd.Card):
 				self.game.update_trash_pile()
 				next_player.update_hand()
 				self.game.announce("-- " + next_player.name + " trashes " + trash.log_string())
-		self.get_next(next_player)
+			self.get_next(next_player)
 
 class Monument(crd.Card):
 	def __init__(self, game, played_by):

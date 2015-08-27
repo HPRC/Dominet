@@ -77,7 +77,7 @@ class Duchess(crd.Card):
 		selection = yield duchy.played_by.select(1, 1, ["Yes", "No"], "Gain a Duchess?")
 		if selection[0] == "Yes":
 			duchy.played_by.gain("Duchess")
-		default_function.__get__(duchy, crd.Card)()
+		yield default_function.__get__(duchy, crd.Card)()
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-default'>", self.title, "</span>"])
@@ -106,7 +106,6 @@ class Nomad_Camp(crd.Card):
 		self.played_by.discard_pile.remove(self)
 		self.played_by.deck.append(self)
 		self.game.announce("-- adding " + self.log_string() + " to the top of their deck")
-
 
 class Trader(crd.Card):
 	def __init__(self, game, played_by):
