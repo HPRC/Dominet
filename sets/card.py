@@ -55,18 +55,22 @@ class Card():
 		pass
 
 	#called when you buy this card 
+	@gen.coroutine
 	def on_buy(self):
 		pass
 
 	#called when you buy a card with this card in play
+	@gen.coroutine
 	def on_buy_effect(self, purchased_card):
 		pass
 
 	#called when you gain this card
-	def on_gain(self, done):
-		done()
+	@gen.coroutine
+	def on_gain(self):
+		pass
 
 	#called when you gain a card with this card in play
+	@gen.coroutine
 	def on_gain_effect(self, gained_card):
 		pass
 

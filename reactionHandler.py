@@ -1,4 +1,4 @@
-from tornado import gen
+from tornado import gen, concurrent
 
 class ReactionHandler():
 	def __init__(self, player, trigger, resume=lambda : None, react_data=None):
@@ -12,14 +12,17 @@ class ReactionHandler():
 		self.resume = resume
 		#extra parameter to pass into react function of card
 		self.react_data = react_data
+		self.done_reacting_future = None
 
 	@gen.coroutine
 	def initiate_reactions(self):
+		self.done_reacting_future = concurrent.Future()
 		if len(self.player.hand.get_reactions_for(self.trigger)) > 1:
 			#more than 1 reaction: lock player as he/she chooses order
 			self.player.wait_modeless("", self.player, True)
 		yield self.need_order_reactions()
 		self.trigger_reactions()
+		yield self.done_reacting_future
 
 	@gen.coroutine
 	def need_order_reactions(self):
@@ -58,11 +61,13 @@ class ReactionHandler():
 				#finished all our reactions, unlock reaction wait on me
 				self.player.update_wait(True)
 				self.player.update_mode()
+				self.done_reacting_future.set_result("finished reactions")
 				self.resume()
 		elif len(self.reactions_queue) == 0:
 			#finished all our reactions, unlock reaction wait on me
 			self.player.update_wait(True)
 			self.player.update_mode()
+			self.done_reacting_future.set_result("finished reactions")
 			self.resume()
 		else:
 			#cannot get here without having had a reaction first so the reactions are ordered

@@ -202,13 +202,14 @@ class HandPile():
 		return reactions
 		
 	#triggers reactions in hand
+	@gen.coroutine
 	def do_reactions(self, trigger, final_cb, react_data=None):
 		reactions = self.get_reactions_for(trigger)
 		if len(reactions) == 0:
 			final_cb()
 		else:
 			rh = reactionHandler.ReactionHandler(self.player, trigger, final_cb, react_data)
-			rh.initiate_reactions()
+			yield rh.initiate_reactions()
 
 	def is_homogeneous(self):
 		return len(self.data) == 1

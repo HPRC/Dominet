@@ -70,16 +70,14 @@ class Duchess(crd.Card):
 	def on_supply_init(self):
 		supply_duchy = self.game.supply.get_card("Duchy")
 		default_on_gain_function = supply_duchy.on_gain
-		supply_duchy.on_gain = staticmethod(lambda done, x=supply_duchy : self.gain_duchy(x, default_on_gain_function, done))
+		supply_duchy.on_gain = staticmethod(lambda x=supply_duchy : self.gain_duchy(x, default_on_gain_function))
 
 	@gen.coroutine
-	def gain_duchy(self, duchy, default_function, done):
-		selection = yield duchy.played_by.select(1, 1, ["Yes", "No"], "Gain a Duchess?")
-		if selection[0] == "Yes":
-			duchy.played_by.gain("Duchess", 
-				done_gaining=lambda : default_function.__get__(duchy, crd.Card)(done))
-		else:
-			default_function.__get__(duchy, crd.Card)(done)
+	def gain_duchy(self, duchy, default_function):
+			selection = yield duchy.played_by.select(1, 1, ["Yes", "No"], "Gain a Duchess?")
+			if selection[0] == "Yes":
+				yield duchy.played_by.gain("Duchess")
+			yield default_function.__get__(duchy, crd.Card)()
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-default'>", self.title, "</span>"])
@@ -104,11 +102,10 @@ class Nomad_Camp(crd.Card):
 		self.played_by.buys += 1
 		crd.Card.on_finished(self, False)
 
-	def on_gain(self, done):
+	def on_gain(self):
 		self.played_by.discard_pile.remove(self)
 		self.played_by.deck.append(self)
 		self.game.announce("-- adding " + self.log_string() + " to the top of their deck")
-		done()
 
 class Trader(crd.Card):
 	def __init__(self, game, played_by):
@@ -185,18 +182,17 @@ class Mandarin(crd.Card):
 				self.played_by.announce_self("-- You place " + card_string + " back on top of your deck")
 			crd.Card.on_finished(self, True)
 
-	def on_gain(self, done):
+	def on_gain(self):
 		played_treasures = [x for x in self.played_by.played if "Treasure" in x.type]
 		#remove treasures from played pile
 		self.played_by.played = [x for x in self.played_by.played if "Treasure" not in x.type]
 		if len(played_treasures) == 1 or len(set(map(lambda x: x.title, played_treasures))) == 1:
 			self.game.announce("-- placing treasures back on top of their deck")
 			self.played_by.deck += played_treasures
-			done()
 		else:
-			crd.reorder_top(self.played_by, played_treasures, lambda done=done:self.done_gaining(done))
+			crd.reorder_top(self.played_by, played_treasures, lambda :self.done_gaining())
 
-	def done_gaining(self, done):
+	def done_gaining(self):
 		self.game.announce("-- placing treasures back on top of their deck")
 		if self.game.get_turn_owner() == self.played_by:
 			self.played_by.update_mode()

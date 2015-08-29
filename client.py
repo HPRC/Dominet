@@ -249,20 +249,20 @@ class DmClient(Client):
 		new_card.on_buy = supply_card.on_buy.__get__(new_card, crd.Card)
 		return new_card
 
-
+	@gen.coroutine
 	def buy_card(self, card_title):
 		if self.buys > 0 and self.game.supply.get_count(card_title) > 0 and card_title not in self.banned:
 			new_card = self.gen_new_card(card_title)
 			self.game.announce("<b>" + self.name + "</b> buys " + new_card.log_string())
-			new_card.on_buy()
-			self.discard_pile.append(new_card)
-			new_card.on_gain(done= 
-				lambda : self.hand.do_reactions("Gain", lambda : self.update_resources(), new_card))
-			self.game.remove_from_supply(card_title)
-			self.resolve_on_buy_effects(new_card)
 			self.buys -= 1
 			self.balance -= new_card.get_price()
 			self.bought_cards = True
+			yield gen.maybe_future(new_card.on_buy())
+			self.discard_pile.append(new_card)
+			yield gen.maybe_future(new_card.on_gain())
+			self.hand.do_reactions("Gain", lambda : self.update_resources(), new_card)
+			self.game.remove_from_supply(card_title)
+			yield gen.maybe_future(self.resolve_on_buy_effects(new_card))
 
 	def select(self, min_cards, max_cards, select_from, msg, ordered=False, selflock=False):
 		if len(select_from) > 0:
@@ -365,6 +365,7 @@ class DmClient(Client):
 			self.game.remove_from_supply(card)
 		return self.gen_new_card(card)
 
+	@gen.coroutine
 	def gain(self, card, from_supply=True, suppress_announcement=False, done_gaining=lambda : None):
 		new_card = self.get_card_from_supply(card, from_supply)
 		if new_card is not None:
@@ -372,12 +373,14 @@ class DmClient(Client):
 				self.game.announce(self.name_string() + " gains " + new_card.log_string())
 			self.discard_pile.append(new_card)
 			self.update_discard_size()
-			new_card.on_gain(done=
-				lambda : self.hand.do_reactions("Gain", done_gaining, new_card))
+			yield gen.maybe_future(new_card.on_gain())
+			yield gen.maybe_future(self.hand.do_reactions("Gain", done_gaining, new_card))
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 			done_gaining()
+			return
 
+	@gen.coroutine
 	def gain_to_hand(self, card, from_supply=True, done_gaining=lambda : None):
 		new_card = self.get_card_from_supply(card, from_supply)
 		if new_card is not None:
@@ -391,8 +394,8 @@ class DmClient(Client):
 					self.update_hand()
 					done_gaining()
 
-			new_card.on_gain(done=
-				lambda : self.hand.do_reactions("Gain", add_back_to_hand, new_card))
+			yield gen.maybe_future(new_card.on_gain())
+			yield gen.maybe_future(self.hand.do_reactions("Gain", add_back_to_hand, new_card))
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 			done_gaining()
@@ -536,7 +539,9 @@ class DmClient(Client):
 	def all_cards(self):
 		return self.deck + self.discard_pile + self.played + self.hand.card_array()
 
+	@gen.coroutine
 	def resolve_on_buy_effects(self, purchased_card):
 		for card in self.played:
-			card.on_buy_effect(purchased_card)
+			yield card.on_buy_effect(purchased_card)
+
 

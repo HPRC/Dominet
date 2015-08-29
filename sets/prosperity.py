@@ -121,19 +121,19 @@ class Trade_Route(crd.Card):
 			if "Victory" in supply_card.type:
 				#Here we store the on_gain function of this card and override it with our own gained_to_mat function
 				default_on_gain_function = supply_card.on_gain
-				supply_card.on_gain = staticmethod(lambda done, x=supply_card, y=default_on_gain_function : self.gained_to_mat(x, y, done))
+				supply_card.on_gain = staticmethod(lambda x=supply_card, y=default_on_gain_function : self.gained_to_mat(x, y))
 		self.game.mat["Trade Route Mat"] = []
 
 	#this is set to be the on_gain function for all cards with trade route tokens on it. It increases the mat value
 	#when the card is gained the first time and then removes this function as the on_gain and resets it to the previous
 	#function.
 	@gen.coroutine
-	def gained_to_mat(self, supply_card, previous_gain_func, done):
+	def gained_to_mat(self, supply_card, previous_gain_func):
 		if (supply_card.log_string() not in self.game.mat["Trade Route Mat"]):
 			self.game.mat["Trade Route Mat"].append(supply_card.log_string())
 			self.game.update_mat()
 		#call overriden on_gain
-		previous_gain_func.__get__(supply_card, crd.Card)(done)
+		yield previous_gain_func.__get__(supply_card, crd.Card)()
 
 	@gen.coroutine
 	def play(self, skip=False):
@@ -250,14 +250,14 @@ class Talisman(crd.Money):
 		self.type = "Treasure"
 		self.spend_all = False
 
+	@gen.coroutine
 	def on_buy_effect(self, purchased_card):
 		if purchased_card.get_price() <= 4 and "Victory" not in purchased_card.type:
 			card = self.played_by.get_card_from_supply(purchased_card.title, True)
 			if card is not None:
-				self.played_by.discard_pile.append(card)
-				self.played_by.update_discard_size()
+				yield self.played_by.gain(purchased_card.title, suppress_announcement=True)
 				self.game.announce("-- gaining another " + card.log_string())
-		crd.Money.on_finished(self)
+		return
 
 
 class Quarry(crd.Money):
@@ -638,6 +638,7 @@ class Goons(crd.AttackCard):
 		if not attacking:
 			crd.Card.on_finished(self, False, False)
 
+	@gen.coroutine
 	def on_buy_effect(self, purchased_card):
 		self.played_by.vp += 1
 		self.game.announce("-- gaining +1 VP")
@@ -655,11 +656,11 @@ class Hoard(crd.Money):
 		self.type = "Treasure"
 		self.spend_all = False
 
+	@gen.coroutine
 	def on_buy_effect(self, purchased_card):
 		if "Victory" in purchased_card.type:
-			self.played_by.gain("Gold", True, True, done_gaining= lambda : 
+			yield self.played_by.gain("Gold", True, True, done_gaining= lambda : 
 				self.game.announce("-- gaining a " + self.played_by.get_card_from_supply("Gold", False).log_string()))
-		crd.Money.on_finished(self)
 
 class Grand_Market(crd.Card):
 	def __init__(self, game, played_by):

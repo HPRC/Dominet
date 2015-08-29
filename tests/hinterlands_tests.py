@@ -175,8 +175,7 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "post_selection", ["Reveal"])
 		yield tu.send_input(self.player1, "post_selection", ["Put on top of deck"])
 		self.assertTrue(self.player1.deck[-1].title == "Duchess")
-
-		# yield tu.send_input(self.player1, "post_selection", ["Hide"])
+		yield tu.send_input(self.player1, "post_selection", ["Hide"])
 
 if __name__ == '__main__':
 	unittest.main()
