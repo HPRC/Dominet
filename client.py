@@ -382,16 +382,17 @@ class DmClient(Client):
 		new_card = self.get_card_from_supply(card, from_supply)
 		if new_card is not None:
 			self.game.announce(self.name_string() + " gains " + new_card.log_string() + " to their hand.")
-			#add to discard first for reactions so that they can access and manipulate the new card from discard
+            #add to discard first for reactions so that they can access and manipulate the new card from discard
 			self.discard_pile.append(new_card)
-			def done_react():
+			def add_back_to_hand():
 				#if the gained card is still in discard pile, then we can remove and add to hand
 				if self.discard_pile and new_card == self.discard_pile[-1]:
 					self.hand.add(self.discard_pile.pop())
 					self.update_hand()
-				done_gaining()
+					done_gaining()
+
 			new_card.on_gain(done=
-				lambda : self.hand.do_reactions("Gain", done_react, new_card))
+				lambda : self.hand.do_reactions("Gain", add_back_to_hand, new_card))
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 			done_gaining()
@@ -418,6 +419,7 @@ class DmClient(Client):
 			self.update_mode_buy_phase()
 		self.write_json(command="updateResources", actions=self.actions, buys=self.buys, balance=self.balance)
 
+	# searches all player's cards for specific card object and removes and returns it (if found)
 	def search_and_extract_card(self, card):
 		try:
 			self.deck.remove(card)
@@ -426,6 +428,7 @@ class DmClient(Client):
 			pass
 		try:
 			self.discard_pile.remove(card)
+			return card
 		except ValueError:
 			pass
 		for x in self.hand:

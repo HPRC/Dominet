@@ -102,7 +102,7 @@ class TestGame(unittest.TestCase):
 		self.player1.hand.add(crd.Silver(self.game, self.player1))
 		self.player1.hand.add(crd.Silver(self.game, self.player1))
 
-		self.player1.exec_commands({"command":"play", "card": "Remodel"})
+		tu.send_input(self.player1, "play", "Remodel")
 		yield tu.send_input(self.player1, "post_selection", ["Silver"])
 		yield tu.send_input(self.player1, "selectSupply", ["Duchy"])
 		self.assertTrue(self.player1.cb == None)
@@ -118,7 +118,7 @@ class TestGame(unittest.TestCase):
 		#nothing in supply except remodel and gold both at 0 left
 		self.game.supply.data = {"Remodel": [base.Remodel(self.game, None), 0], "Gold": [crd.Gold(self.game, None), 0]}
 		#try to remodel another remodel
-		self.player1.exec_commands({"command":"play", "card": "Remodel"})
+		tu.send_input(self.player1, "play", "Remodel")
 		self.assertTrue(self.player1.last_mode["mode"] == "select")
 		yield tu.send_input(self.player1, "post_selection", ["Remodel"])
 		self.assertTrue(self.player1.last_mode["mode"] != "selectSupply")
