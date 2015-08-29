@@ -34,6 +34,7 @@ class Client():
 	def take_turn(self):
 		self.write_json(command="startTurn")
 
+	@gen.coroutine
 	def exec_commands(self, data):
 		cmd = data["command"]
 
@@ -138,6 +139,7 @@ class DmClient(Client):
 			balance=self.balance)
 
 	# override
+	@gen.coroutine
 	def exec_commands(self, data):
 		Client.exec_commands(self, data)
 		#if we reconnected and an old connection is sending input, ignore
@@ -254,12 +256,12 @@ class DmClient(Client):
 			self.game.announce("<b>" + self.name + "</b> buys " + new_card.log_string())
 			new_card.on_buy()
 			self.discard_pile.append(new_card)
-			new_card.on_gain()
+			new_card.on_gain(done= 
+				lambda : self.hand.do_reactions("Gain", lambda : self.update_resources(), new_card))
 			self.game.remove_from_supply(card_title)
 			self.resolve_on_buy_effects(new_card)
 			self.buys -= 1
 			self.balance -= new_card.get_price()
-			self.hand.do_reactions("Gain", lambda : self.update_resources(), new_card)
 			self.bought_cards = True
 
 	def select(self, min_cards, max_cards, select_from, msg, ordered=False, selflock=False):
@@ -363,7 +365,6 @@ class DmClient(Client):
 			self.game.remove_from_supply(card)
 		return self.gen_new_card(card)
 
-	@gen.coroutine
 	def gain(self, card, from_supply=True, suppress_announcement=False, done_gaining=lambda : None):
 		new_card = self.get_card_from_supply(card, from_supply)
 		if new_card is not None:
@@ -371,10 +372,8 @@ class DmClient(Client):
 				self.game.announce(self.name_string() + " gains " + new_card.log_string())
 			self.discard_pile.append(new_card)
 			self.update_discard_size()
-			# yield for the new_card on_gain function to finish executing before continuing
-			# need to yield a future so call maybe_future
-			yield gen.maybe_future(new_card.on_gain())
-			self.hand.do_reactions("Gain", done_gaining, new_card)
+			new_card.on_gain(done=
+				lambda : self.hand.do_reactions("Gain", done_gaining, new_card))
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 			done_gaining()
@@ -391,8 +390,8 @@ class DmClient(Client):
 					self.hand.add(self.discard_pile.pop())
 					self.update_hand()
 				done_gaining()
-			new_card.on_gain()
-			self.hand.do_reactions("Gain", done_react, new_card)
+			new_card.on_gain(done=
+				lambda : self.hand.do_reactions("Gain", done_react, new_card))
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 			done_gaining()

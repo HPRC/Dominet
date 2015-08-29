@@ -4,7 +4,7 @@ This is a wrapper structure to abstract the data structure for hand and supply p
 
 import random
 import reactionHandler
-
+from tornado import gen
 
 class CardPile():
 	def __init__(self):

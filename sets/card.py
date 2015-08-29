@@ -63,9 +63,8 @@ class Card():
 		pass
 
 	#called when you gain this card
-	@gen.coroutine
-	def on_gain(self):
-		pass
+	def on_gain(self, done):
+		done()
 
 	#called when you gain a card with this card in play
 	def on_gain_effect(self, gained_card):

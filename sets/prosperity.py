@@ -37,9 +37,7 @@ class Watchtower(crd.Card):
 		self.played_by.wait_modeless("", self.played_by, True)
 		reveal_choice = yield self.played_by.select(1, 1, ["Reveal", "Hide"],  
 			"Reveal " + self.title + " to trash " + to_gain.title + " or put it on top of deck?")
-
 		if reveal_choice[0] == "Reveal":
-
 			#remove the to_gained card from discard or player's piles
 			self.played_by.search_and_extract_card(to_gain)
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
@@ -131,19 +129,19 @@ class Trade_Route(crd.Card):
 			if "Victory" in supply_card.type:
 				#Here we store the on_gain function of this card and override it with our own gained_to_mat function
 				default_on_gain_function = supply_card.on_gain
-				supply_card.on_gain = staticmethod(lambda x=supply_card, y=default_on_gain_function : self.gained_to_mat(x, y))
+				supply_card.on_gain = staticmethod(lambda done, x=supply_card, y=default_on_gain_function : self.gained_to_mat(x, y, done))
 		self.game.mat["Trade Route Mat"] = []
 
 	#this is set to be the on_gain function for all cards with trade route tokens on it. It increases the mat value
 	#when the card is gained the first time and then removes this function as the on_gain and resets it to the previous
 	#function.
 	@gen.coroutine
-	def gained_to_mat(self, supply_card, previous_gain_func):
+	def gained_to_mat(self, supply_card, previous_gain_func, done):
 		if (supply_card.log_string() not in self.game.mat["Trade Route Mat"]):
 			self.game.mat["Trade Route Mat"].append(supply_card.log_string())
 			self.game.update_mat()
 		#call overriden on_gain
-		yield previous_gain_func.__get__(supply_card, crd.Card)()
+		previous_gain_func.__get__(supply_card, crd.Card)(done)
 
 	@gen.coroutine
 	def play(self, skip=False):

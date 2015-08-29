@@ -1,4 +1,4 @@
-import tornado.gen as gen
+from tornado import gen, concurrent
 
 class ReactionHandler():
 	def __init__(self, player, trigger, resume=lambda : None, react_data=None):

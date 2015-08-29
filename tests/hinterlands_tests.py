@@ -3,6 +3,7 @@ import client as c
 import sets.base as base
 import sets.intrigue as intrigue
 import sets.hinterlands as hl
+import sets.prosperity as prosperity
 import sets.card as crd
 import game as g
 import kingdomGenerator as kg
@@ -154,6 +155,27 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player2, "post_selection", ["Copper"])
 		self.assertTrue(self.player2.deck[-1].title == "Copper")
 		self.assertTrue(len(self.player2.hand) == 5)
+
+	@tornado.testing.gen_test
+	def test_duchess_watchtower(self):
+		tu.print_test_header("test Duchess Watchtower")
+		feast = base.Feast(self.game, self.player1)
+		watchtower = prosperity.Watchtower(self.game, self.player1)
+		self.player1.hand.add(watchtower)
+		self.player1.hand.add(feast)
+
+		tu.send_input(self.player1, "play", "Feast")
+		yield tu.send_input(self.player1, "selectSupply", ["Duchy"])
+		#choose to gain the duchess
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
+		self.assertTrue(self.player1.discard_pile[-1].title == "Duchess")
+		#choose to reveal Watchtower
+		yield tu.send_input(self.player1, "post_selection", ["Reveal"])
+		yield tu.send_input(self.player1, "post_selection", ["Put on top of deck"])
+		self.assertTrue(self.player1.deck[-1].title == "Duchess")
+
+		# yield tu.send_input(self.player1, "post_selection", ["Hide"])
 
 if __name__ == '__main__':
 	unittest.main()
