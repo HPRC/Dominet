@@ -15,7 +15,6 @@ class Watchtower(crd.Card):
 		self.price = 3
 		self.type = "Action|Reaction"
 		self.trigger = "Gain"
-		self.reacted_to_callback = None
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
@@ -29,7 +28,6 @@ class Watchtower(crd.Card):
 
 	@gen.coroutine
 	def react(self, reacted_to_callback, to_gain):
-		self.reacted_to_callback = reacted_to_callback
 		turn_owner = self.game.get_turn_owner()
 		if self.played_by != turn_owner:
 			turn_owner.wait("to react", self.played_by, True)
@@ -51,13 +49,7 @@ class Watchtower(crd.Card):
 				self.game.announce("-- putting " + to_gain.log_string() + " on the top of their deck")
 				self.played_by.deck.append(to_gain)
 				self.played_by.update_deck_size()
-			temp = self.reacted_to_callback
-			self.reacted_to_callback = None
-			temp()
-		else:
-			temp = self.reacted_to_callback
-			self.reacted_to_callback = None
-			temp()
+		reacted_to_callback()
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])

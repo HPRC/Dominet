@@ -109,7 +109,8 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player2, "post_selection", ["Reveal"])
 		#no curse from witch
 		self.assertTrue(len(self.game.trash_pile) == 0)
-		self.assertTrue(self.game.supply.get_count("Curse") == 20)
+		self.assertTrue(self.player3.discard_pile[-1].title == "Curse")
+		self.assertTrue(self.game.supply.get_count("Curse") == 19)
 		#and gained a silver
 		self.assertTrue(self.player2.discard_pile[-1].title == "Silver")
 		self.assertTrue(self.player1.last_mode["mode"] != "wait")

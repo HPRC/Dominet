@@ -72,7 +72,6 @@ class Secret_Chamber(crd.Card):
 		self.price = 2
 		self.type = "Action|Reaction"
 		self.trigger = "Attack"
-		self.reacted_to_callback = None
 
 	@gen.coroutine
 	def play(self, skip=False):
@@ -87,7 +86,6 @@ class Secret_Chamber(crd.Card):
 	# below is reaction code
 	@gen.coroutine
 	def react(self, reacted_to_callback):
-		self.reacted_to_callback = reacted_to_callback
 		selection = yield self.played_by.select(1, 1, ["Reveal", "Hide"],
 		                      "Reveal " + self.title + " to draw 2 and place 2 back to deck?", selflock=True)
 		if selection[0] == "Reveal":
@@ -98,17 +96,11 @@ class Secret_Chamber(crd.Card):
 			put_back = yield self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), 
 				"Put two cards to the top of your deck (#1 is on top)", True, True)
 			if put_back:
-				self.post_react_draw_select(put_back, drawn_cards)
-			else:
-				#temp to clear our reacted callback before calling it
-				temp = self.reacted_to_callback
-				self.reacted_to_callback = None
-				temp()
+				drawn_cards = self.post_react_draw_select(put_back, drawn_cards)
+				#pass in newly drawn cards to check for new reactions
+				reacted_to_callback(drawn_cards)
 		else:
-			#temp to clear our reacted callback before calling it
-			temp = self.reacted_to_callback
-			self.reacted_to_callback = None
-			temp()
+			reacted_to_callback()
 
 	def post_react_draw_select(self, selection, drawn_cards):
 		self.played_by.discard(selection, self.played_by.deck)
@@ -116,11 +108,7 @@ class Secret_Chamber(crd.Card):
 		self.played_by.update_hand()
 		#if we put back the drawn card then remove from drawn list
 		final_drawn = [x for x in drawn_cards if x != self.played_by.deck[-1] and x!= self.played_by.deck[-2]]
-		#temp to clear our reacted callback before calling it
-		#pass in newly drawn cards to check for new reactions
-		temp = self.reacted_to_callback
-		self.reacted_to_callback = None
-		temp(final_drawn)
+		return final_drawn
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])

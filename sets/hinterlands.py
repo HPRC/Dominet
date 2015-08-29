@@ -119,7 +119,6 @@ class Trader(crd.Card):
 		self.price = 4
 		self.type = "Action|Reaction"
 		self.trigger = "Gain"
-		self.reacted_to_callback = None
 
 	@gen.coroutine
 	def play(self, skip=False):
@@ -137,7 +136,6 @@ class Trader(crd.Card):
 
 	@gen.coroutine
 	def react(self, reacted_to_callback, to_gain):
-		self.reacted_to_callback = reacted_to_callback
 		turn_owner = self.game.get_turn_owner()
 		if self.played_by != turn_owner:
 			turn_owner.wait("to react", self.played_by)
@@ -151,9 +149,7 @@ class Trader(crd.Card):
 			self.game.update_supply_pile(to_gain.title)
 			self.game.announce("-- returning " + to_gain.log_string() + " to supply")
 			self.played_by.gain("Silver")
-		temp = self.reacted_to_callback
-		self.reacted_to_callback = None
-		temp()
+		reacted_to_callback()
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
