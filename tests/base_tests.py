@@ -260,6 +260,7 @@ class TestCard(tornado.testing.AsyncTestCase):
 		#while player2 is deciding to reveal moat or not,
 		#player3 chose order Secret chamber first
 		self.assertTrue(self.player3.last_mode["mode"] == "select")
+
 		yield tu.send_input(self.player3, "post_selection", ["Moat", "Secret Chamber"])
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 

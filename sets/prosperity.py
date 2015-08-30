@@ -28,27 +28,27 @@ class Watchtower(crd.Card):
 
 	@gen.coroutine
 	def react(self, reacted_to_callback, to_gain):
-		turn_owner = self.game.get_turn_owner()
-		if self.played_by != turn_owner:
-			turn_owner.wait("to react", self.played_by, True)
-
 		self.played_by.wait_modeless("", self.played_by, True)
 		reveal_choice = yield self.played_by.select(1, 1, ["Reveal", "Hide"],  
 			"Reveal " + self.title + " to trash " + to_gain.title + " or put it on top of deck?")
+
 		if reveal_choice[0] == "Reveal":
 			#remove the to_gained card from discard or player's piles
-			self.played_by.search_and_extract_card(to_gain)
+			to_gain = self.played_by.search_and_extract_card(to_gain)
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
 			self.played_by.wait_modeless("", self.played_by, True)
-			selection = yield self.played_by.select(1, 1, ["Trash", "Put on top of deck"], "Choose to trash")
-			if selection[0] == "Trash":
-				self.game.announce("-- trashing " + to_gain.log_string() + " instead of gaining it")
-				self.game.trash_pile.append(to_gain)
-				self.game.update_trash_pile()
+			if to_gain:
+				selection = yield self.played_by.select(1, 1, ["Trash", "Put on top of deck"], "Choose to trash")
+				if selection[0] == "Trash":
+					self.game.announce("-- trashing " + to_gain.log_string() + " instead of gaining it")
+					self.game.trash_pile.append(to_gain)
+					self.game.update_trash_pile()
+				else:
+					self.game.announce("-- putting " + to_gain.log_string() + " on the top of their deck")
+					self.played_by.deck.append(to_gain)
+					self.played_by.update_deck_size()
 			else:
-				self.game.announce("-- putting " + to_gain.log_string() + " on the top of their deck")
-				self.played_by.deck.append(to_gain)
-				self.played_by.update_deck_size()
+				self.game.announce("-- but has nothing to watchtower")
 		reacted_to_callback()
 
 	def log_string(self, plural=False):
@@ -257,7 +257,6 @@ class Talisman(crd.Money):
 			if card is not None:
 				yield self.played_by.gain(purchased_card.title, suppress_announcement=True)
 				self.game.announce("-- gaining another " + card.log_string())
-		return
 
 
 class Quarry(crd.Money):

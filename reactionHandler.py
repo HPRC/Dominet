@@ -12,16 +12,17 @@ class ReactionHandler():
 		self.resume = resume
 		#extra parameter to pass into react function of card
 		self.react_data = react_data
-		self.done_reacting_future = None
+		self.done_reacting_future = concurrent.Future()
 
 	@gen.coroutine
 	def initiate_reactions(self):
-		self.done_reacting_future = concurrent.Future()
 		if len(self.player.hand.get_reactions_for(self.trigger)) > 1:
 			#more than 1 reaction: lock player as he/she chooses order
 			self.player.wait_modeless("", self.player, True)
+		if self.player != self.turn_owner:
+			self.turn_owner.wait("to react", self.player, True)
 		yield self.need_order_reactions()
-		self.trigger_reactions()
+		yield self.trigger_reactions()
 		yield self.done_reacting_future
 
 	@gen.coroutine
@@ -40,15 +41,17 @@ class ReactionHandler():
 				self.reactions_queue.append(cb)
 
 	#trigger next reaction
+	@gen.coroutine
 	def trigger_reactions(self):
 		if self.reactions_queue:
 			cb = self.reactions_queue.pop()
 			if self.react_data is None:
-				cb(self.reacted)
+				yield gen.maybe_future(cb(self.reacted))
 			else:
-				cb(self.reacted, self.react_data)
+				yield gen.maybe_future(cb(self.reacted, self.react_data))
 
 	#called after a reaction resolves
+	@gen.coroutine
 	def reacted(self, drew_cards=False):
 		#if we drew any new cards during a card's reaction reprompt all reactions since player may
 		#want to reveal cards again, should only re-prompt with attack reactions
@@ -56,21 +59,19 @@ class ReactionHandler():
 			new_reactions = self.player.hand.get_reactions_for(self.trigger)
 			if len(new_reactions) > 0:
 				self.initiate_reactions()
-				self.game.get_turn_owner().wait("to react", self.player)
+				self.turn_owner.wait("to react", self.player)
 			else:
 				#finished all our reactions, unlock reaction wait on me
 				self.player.update_wait(True)
-				self.player.update_mode()
 				self.done_reacting_future.set_result("finished reactions")
 				self.resume()
 		elif len(self.reactions_queue) == 0:
 			#finished all our reactions, unlock reaction wait on me
 			self.player.update_wait(True)
-			self.player.update_mode()
 			self.done_reacting_future.set_result("finished reactions")
 			self.resume()
 		else:
 			#cannot get here without having had a reaction first so the reactions are ordered
-			self.trigger_reactions()
+			yield self.trigger_reactions()
 
 

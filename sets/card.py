@@ -129,15 +129,19 @@ class AttackCard(Card):
 		if not self.reacting_players:
 			self.attack()
 
+	@gen.coroutine
 	def check_reactions(self, targets):
+		reaction_futures = []
 		for i in targets:
 			if len(i.hand.get_reactions_for("Attack")) > 0:
 				self.reacting_players.append(i)
-				i.hand.do_reactions("Attack", lambda x=i: self.player_finished_reacting(x))
+				reaction_futures.append(i.hand.do_reactions("Attack", lambda x=i: self.player_finished_reacting(x)))
 		if not self.reacting_players:
 			self.attack()
 		else:
 			self.played_by.wait_many("to react", self.reacting_players, True)
+			#fire all the reactions in parallel
+			yield reaction_futures
 
 	def is_blocked(self, target):
 		# shouldnt need to block against own attacks (i.e. spy)
@@ -158,10 +162,11 @@ class AttackCard(Card):
 	
 	# should call get next of player of the attack first (or player if inclusive)
 	# chooses the next person from the last until we reach the player to stop
+	@gen.coroutine
 	def get_next(self, victim):
 		next_player_index = (self.game.players.index(victim) + 1) % len(self.game.players)
 		if self.game.players[next_player_index] != self.played_by:
-			self.fire(self.game.players[next_player_index])
+			yield gen.maybe_future(self.fire(self.game.players[next_player_index]))
 		else:
 			Card.on_finished(self)
 

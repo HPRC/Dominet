@@ -9,6 +9,8 @@ import game as g
 import kingdomGenerator as kg
 
 import tornado.testing
+import tornado.gen as gen
+
 import tests.test_utils as tu
 
 
@@ -107,13 +109,16 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		tu.send_input(self.player1, "play", "Witch")
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		yield tu.send_input(self.player2, "post_selection", ["Reveal"])
-		#no curse from witch
+		yield tu.send_input(self.player2, "post_selection", ["Hide"])
+		#workaround for heavily nested coroutines not finishing before test occur causing failure
+		yield gen.sleep(.2)
 		self.assertTrue(len(self.game.trash_pile) == 0)
-		self.assertTrue(self.player3.discard_pile[-1].title == "Curse")
-		self.assertTrue(self.game.supply.get_count("Curse") == 19)
 		#and gained a silver
 		self.assertTrue(self.player2.discard_pile[-1].title == "Silver")
 		self.assertTrue(self.player1.last_mode["mode"] != "wait")
+		self.assertTrue(self.player3.discard_pile[-1].title == "Curse")
+		self.assertTrue(self.game.supply.get_count("Curse") == 19)
+
 		self.player1.end_turn()
 
 		self.player2.hand.add(crd.Estate(self.game, self.player2))
@@ -169,13 +174,44 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "selectSupply", ["Duchy"])
 		#choose to gain the duchess
 		yield tu.send_input(self.player1, "post_selection", ["Yes"])
-		self.assertTrue(self.player1.last_mode["mode"] == "select")
 		self.assertTrue(self.player1.discard_pile[-1].title == "Duchess")
 		#choose to reveal Watchtower
 		yield tu.send_input(self.player1, "post_selection", ["Reveal"])
 		yield tu.send_input(self.player1, "post_selection", ["Put on top of deck"])
+
 		self.assertTrue(self.player1.deck[-1].title == "Duchess")
 		yield tu.send_input(self.player1, "post_selection", ["Hide"])
+
+	@tornado.testing.gen_test
+	def test_watchtower_trader(self):
+		tu.print_test_header("test Watchtower Trader")
+		watchtower = prosperity.Watchtower(self.game, self.player1)
+		trader = hl.Trader(self.game, self.player1)
+		self.player1.hand.add(watchtower)
+		self.player1.hand.add(trader)
+
+		self.player1.spend_all_money()
+		yield tu.send_input(self.player1, "buyCard", "Copper")
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
+		#order reactions, reveal trader then watchtower
+		yield tu.send_input(self.player1, "post_selection", ["Watchtower", "Trader"])
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
+		#reveal trader
+		yield tu.send_input(self.player1, "post_selection", ["Reveal"])
+		self.assertTrue(self.game.supply.get_count("Copper") == 30)
+		#gaining silver now
+
+		yield tu.send_input(self.player1, "post_selection", ["Watchtower", "Trader"])
+		yield tu.send_input(self.player1, "post_selection", ["Hide"])
+		yield tu.send_input(self.player1, "post_selection", ["Reveal"])
+		yield tu.send_input(self.player1, "post_selection", ["Put on top of deck"])
+		self.assertTrue(self.player1.deck[-1].title == "Silver")
+
+		#watchtower from the copper earlier
+		yield tu.send_input(self.player1, "post_selection", ["Reveal"])
+		yield tu.send_input(self.player1, "post_selection", ["Put on top of deck"])
+		self.assertTrue(self.player1.deck[-1].title == "Silver")
+
 
 if __name__ == '__main__':
 	unittest.main()

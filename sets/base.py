@@ -216,7 +216,7 @@ class Feast(crd.Card):
 		self.played_by.update_resources()
 		selection = yield self.played_by.select_from_supply(5, False)
 		if selection:
-			self.played_by.gain(selection[0], done_gaining=lambda : crd.Card.on_finished(self, False, False))
+			yield self.played_by.gain(selection[0], done_gaining=lambda : crd.Card.on_finished(self, False, False))
 		else:
 			crd.Card.on_finished(self, False, False)
 
@@ -663,9 +663,10 @@ class Witch(crd.AttackCard):
 	def attack(self):
 		crd.AttackCard.get_next(self, self.played_by)
 
+	@gen.coroutine
 	def fire(self, victim):
 		if not crd.AttackCard.is_blocked(self, victim):
-			victim.gain("Curse", done_gaining= lambda : crd.AttackCard.get_next(self, victim))
+			yield victim.gain("Curse", done_gaining= lambda : crd.AttackCard.get_next(self, victim))
 		else:
 			crd.AttackCard.get_next(self, victim)
 
