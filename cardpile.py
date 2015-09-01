@@ -207,7 +207,6 @@ class HandPile():
 		reactions = self.get_reactions_for(trigger)
 		if len(reactions) == 0:
 			final_cb()
-			return []
 		else:
 			rh = reactionHandler.ReactionHandler(self.player, trigger, final_cb, react_data)
 			yield rh.initiate_reactions()

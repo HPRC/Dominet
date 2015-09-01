@@ -397,11 +397,9 @@ class Mint(crd.Card):
 			self.reveal(treasures)
 		else:
 			selection = yield self.played_by.select(1, 1, treasures, "Choose a card to reveal")
-			self.reveal(selection)
-
-	def reveal(self, selection):
-		self.game.announce("-- revealing " + self.game.log_string_from_title(selection[0]) + " gaining a copy of it.")
-		self.played_by.gain(selection[0], done_gaining=lambda : crd.Card.on_finished(self, False, False))
+			self.game.announce("-- revealing " + self.game.log_string_from_title(selection[0]) + ", gaining a copy of it.")
+			yield self.played_by.gain(selection[0])
+			crd.Card.on_finished(self, False, False)
 
 	def on_buy(self):
 		trashed_treasures = list()
@@ -450,9 +448,9 @@ class Mountebank(crd.AttackCard):
 					self.game.announce("-- " + player.name_string() + " discards a " + curse.log_string())
 					crd.AttackCard.get_next(self, player)
 					return
-			player.gain("Curse", done_gaining=
-				lambda : player.gain("Copper", done_gaining=
-					lambda : crd.AttackCard.get_next(self, player)))
+			yield player.gain("Curse")
+			yield player.gain("Copper")
+			crd.AttackCard.get_next(self, player)
 
 class Rabble(crd.AttackCard):
 	def __init__(self, game, played_by):
@@ -523,7 +521,7 @@ class Royal_Seal(crd.Money):
 	def on_buy_effect(self, purchased_card):
 		selection = yield self.played_by.select(1, 1, ["Yes", "No"], "Place " + purchased_card.title + " on top of deck?")
 		if selection[0] == "Yes":
-			purchased_card = self.played_by.discard_pile.pop()
+			purchased_card = self.played_by.search_and_extract_card(purchased_card)
 			self.game.announce(self.played_by.name_string() + " uses " + self.log_string() + " to place "
 				+ purchased_card.log_string() + " on the top of their deck")
 			self.played_by.deck.append(purchased_card)
@@ -658,8 +656,8 @@ class Hoard(crd.Money):
 	@gen.coroutine
 	def on_buy_effect(self, purchased_card):
 		if "Victory" in purchased_card.type:
-			yield self.played_by.gain("Gold", True, True, done_gaining= lambda : 
-				self.game.announce("-- gaining a " + self.played_by.get_card_from_supply("Gold", False).log_string()))
+			yield self.played_by.gain("Gold", True, True) 
+			self.game.announce("-- gaining a " + self.played_by.get_card_from_supply("Gold", False).log_string())
 
 class Grand_Market(crd.Card):
 	def __init__(self, game, played_by):
@@ -725,7 +723,8 @@ class Expand(crd.Card):
 			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
 			selected = yield self.played_by.select_from_supply(card_trashed.price + 3, False)
 			if selected:
-				self.played_by.gain(selected[0], done_gaining=lambda : crd.Card.on_finished(self, False, False))
+				yield self.played_by.gain(selected[0])
+				crd.Card.on_finished(self, False, False)
 		else:
 			self.game.announce("-- but has nothing to expand.")
 			self.played_by.update_resources()
@@ -805,7 +804,8 @@ class Forge(crd.Card):
 
 			gained = yield self.played_by.select_from_supply(price_limit=trash_sum, equal_only=True, optional=False)
 			if gained:
-				self.played_by.gain(gained[0], done_gaining=lambda : crd.Card.on_finished(self))
+				yield self.played_by.gain(gained[0])
+				crd.Card.on_finished(self)
 			self.played_by.update_wait(True)
 		crd.Card.on_finished(self)
 

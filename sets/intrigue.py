@@ -297,9 +297,8 @@ class Swindler(crd.AttackCard):
 
 				selection = yield self.played_by.select_from_supply(topdeck.get_price(), True)
 				if selection:
-					player.gain(selection[0], done_gaining= lambda : crd.AttackCard.get_next(self, player))
-				else:
-					crd.AttackCard.get_next(self, player)
+					yield player.gain(selection[0])
+				crd.AttackCard.get_next(self, player)
 			else:
 				self.game.announce(player.name_string() + " has no cards to Swindle.")
 				crd.AttackCard.get_next(self, player)
@@ -360,10 +359,11 @@ class Baron(crd.Card):
 				self.game.announce("-- discarding an " + self.played_by.hand.data['Estate'][0].log_string() + " and gaining +$4 ")
 				self.played_by.discard(["Estate"], self.played_by.discard_pile)
 			else:
-				self.played_by.gain("Estate", done_gaining=lambda : crd.Card.on_finished(self))
+				yield self.played_by.gain("Estate")
 			crd.Card.on_finished(self)
 		else:
-			self.played_by.gain("Estate", done_gaining=lambda : crd.Card.on_finished(self, False))
+			yield self.played_by.gain("Estate")
+			crd.Card.on_finished(self, False)
 
 class Bridge(crd.Card):
 	def __init__(self, game, played_by):
@@ -444,6 +444,7 @@ class Ironworks(crd.Card):
 		else:
 			crd.Card.on_finished(self, False, False)
 
+	@gen.coroutine
 	def post_select(self, selection):
 		card = self.game.card_from_title(selection[0])
 		
@@ -462,7 +463,8 @@ class Ironworks(crd.Card):
 				self.game.announce("-- " + " and ".join(effects))
 			crd.Card.on_finished(self)
 
-		self.played_by.gain(selection[0], True, done_gaining=lambda : post_gain())
+		yield self.played_by.gain(selection[0], True)
+		post_gain()
 
 
 class Mining_Village(crd.Card):
@@ -618,7 +620,8 @@ class Torturer(crd.AttackCard):
 			selection = yield player.select(1, 1, ["Discard 2 cards", "Gain a Curse"], "Choose one:")
 			if selection[0] == 'Gain a Curse':
 				player.update_wait(True)
-				player.gain_to_hand('Curse', done_gaining= lambda : crd.AttackCard.get_next(self, player))
+				yield player.gain_to_hand('Curse')
+				crd.AttackCard.get_next(self, player)
 			else:
 				discard_selection = player.hand.auto_select(2, True)
 				if discard_selection:
@@ -718,9 +721,8 @@ class Upgrade(crd.Card):
 
 			select_gain = yield self.played_by.select_from_supply(card.get_price() + 1, True)
 			if select_gain:
-				self.played_by.gain(select_gain[0], done_gaining=lambda : crd.Card.on_finished(self))
-			else:
-				crd.Card.on_finished(self)
+				yield self.played_by.gain(select_gain[0])
+			crd.Card.on_finished(self)
 		else:
 			crd.Card.on_finished(self)
 
@@ -766,13 +768,15 @@ class Saboteur(crd.AttackCard):
 
 			self.game.announce("-- " + victim.name_string() + " gains a card costing "
 			                   + str(card.get_price() - 2) + " or less")
+			
+			self.played_by.wait("to gain a card", victim)
 			selection = yield victim.select_from_supply(price_limit=card.get_price() - 2, optional=True)
 			if selection[0] != "None":
-				victim.gain(selection[0], done_gaining=lambda : crd.AttackCard.get_next(self, victim))
+				victim.gain(selection[0])
+				crd.AttackCard.get_next(self, victim)
 			else:
 				self.game.announce("-- " + victim.name_string() + " gains nothing")
 				crd.AttackCard.get_next(self, victim)
-			self.played_by.wait("to gain a card", victim)
 
 class Trading_Post(crd.Card):
 	def __init__(self, game, played_by):
@@ -792,6 +796,7 @@ class Trading_Post(crd.Card):
 			selection = yield self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "Trash 2 cards from your hand")
 			self.post_select(selection)
 
+	@gen.coroutine
 	def post_select(self, selection):
 		if len(selection) == 0:
 			self.game.announce("But there was nothing to trash")
@@ -800,9 +805,8 @@ class Trading_Post(crd.Card):
 			self.played_by.discard(selection, self.game.trash_pile)
 
 		if len(selection) >= 2:
-			self.played_by.gain_to_hand("Silver", done_gaining=lambda : crd.Card.on_finished(self))
-		else:
-			crd.Card.on_finished(self)
+			yield self.played_by.gain_to_hand("Silver")
+		crd.Card.on_finished(self)
 
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------

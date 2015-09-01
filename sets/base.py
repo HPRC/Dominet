@@ -50,7 +50,7 @@ class Chapel(crd.Card):
 		else:
 			self.game.announce(self.played_by.name_string() + " trashes nothing")
 		self.played_by.discard(selection, self.game.trash_pile)
-		crd.Card.on_finished(self, False, False)
+		crd.Card.on_finished(self, True, False, False)
 
 class Moat(crd.Card):
 	def __init__(self, game, played_by):
@@ -151,9 +151,8 @@ class Workshop(crd.Card):
 		crd.Card.play(self, skip)
 		gaining_list = yield self.played_by.select_from_supply(4, False)
 		if gaining_list:
-			self.played_by.gain(gaining_list[0], done_gaining=lambda : crd.Card.on_finished(self, False, False))
-		else:
-			crd.Card.on_finished(self, False, False)
+			yield self.played_by.gain(gaining_list[0])
+		crd.Card.on_finished(self, False, False)
 
 # --------------------------------------------------------
 # ------------------------ 4 Cost ------------------------
@@ -216,9 +215,8 @@ class Feast(crd.Card):
 		self.played_by.update_resources()
 		selection = yield self.played_by.select_from_supply(5, False)
 		if selection:
-			yield self.played_by.gain(selection[0], done_gaining=lambda : crd.Card.on_finished(self, False, False))
-		else:
-			crd.Card.on_finished(self, False, False)
+			yield self.played_by.gain(selection[0])
+		crd.Card.on_finished(self, False, False)
 
 class Gardens(crd.VictoryCard):
 	def __init__(self, game, played_by):
@@ -301,8 +299,7 @@ class Remodel(crd.Card):
 			self.played_by.update_hand()
 			gain_list = yield self.played_by.select_from_supply(card_trashed.get_price() + 2, False)
 			if gain_list:
-				self.played_by.gain(gain_list[0], done_gaining=lambda : crd.Card.on_finished(self, False, False))
-			else:
+				yield self.played_by.gain(gain_list[0])
 				crd.Card.on_finished(self, False, False)
 		else:
 			crd.Card.on_finished(self)
@@ -406,24 +403,24 @@ class Thief(crd.AttackCard):
 
 					steal_trashed = yield self.played_by.select(1, 1, ["Yes", "No"],
 						"Gain " + revealed_treasure[0].title + "?")
-					self.post_select_gain(steal_trashed, player, revealed_treasure[0].title)
+					yield self.post_select_gain(steal_trashed, player, revealed_treasure[0].title)
 				else:
 					select_trash = yield self.played_by.select(1, 1, crd.card_list_to_titles(revealed_treasure),
 						"Choose " + player.name + "'s Treasure to trash")
-					self.post_select_trash(select_trash, player, revealed_treasure)
+					yield self.post_select_trash(select_trash, player, revealed_treasure)
 			else:
 				#if no treasure, add the revealed cards to the discard
 				player.discard_pile += revealed_cards
 				player.update_discard_size()
 				crd.AttackCard.get_next(self, player)
 
+	@gen.coroutine
 	def post_select_gain(self, selection, thieved, card):
 		if selection[0] == "Yes":
 			self.game.trash_pile.pop()
 			self.game.update_trash_pile()
-			self.played_by.gain(card, False, done_gaining=lambda : crd.AttackCard.get_next(self, thieved))
-		else:
-			crd.AttackCard.get_next(self, thieved)
+			yield self.played_by.gain(card, False)
+		crd.AttackCard.get_next(self, thieved)
 
 	@gen.coroutine
 	def post_select_trash(self, selection, thieved, cards):
@@ -436,7 +433,7 @@ class Thief(crd.AttackCard):
 				thieved.name_string() + "'s deck")
 		self.game.announce(thieved.name_string() + " discards " + cards[0].log_string() + " from their deck")
 		steal_trashed = yield self.played_by.select(1, 1, ["Yes", "No"], "Gain " + card_to_trash.title + "?")
-		self.post_select_gain(steal_trashed, thieved, card_to_trash.title)
+		yield self.post_select_gain(steal_trashed, thieved, card_to_trash.title)
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-danger'>", "Thieves" if plural else self.title, "</span>"])
@@ -636,11 +633,8 @@ class Mine(crd.Card):
 				self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
 				gain_treasure = yield self.played_by.select_from_supply(card_trashed.get_price() + 3, False, "Treasure")
 				if gain_treasure:
-					self.played_by.gain_to_hand(gain_treasure[0], done_gaining= lambda : crd.Card.on_finished(self, False, False))
-				else:
-					crd.Card.on_finished(self, False, False)
-			else:
-				crd.Card.on_finished(self, False, False)
+					yield self.played_by.gain_to_hand(gain_treasure[0])
+			crd.Card.on_finished(self, False, False)
 		else:
 			self.game.announce("-- but has no treasure cards to trash")
 			crd.Card.on_finished(self)
@@ -666,9 +660,8 @@ class Witch(crd.AttackCard):
 	@gen.coroutine
 	def fire(self, victim):
 		if not crd.AttackCard.is_blocked(self, victim):
-			yield victim.gain("Curse", done_gaining= lambda : crd.AttackCard.get_next(self, victim))
-		else:
-			crd.AttackCard.get_next(self, victim)
+			yield victim.gain("Curse")
+		crd.AttackCard.get_next(self, victim)
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-danger'>", self.title, "es</span>" if plural else "</span>"])
