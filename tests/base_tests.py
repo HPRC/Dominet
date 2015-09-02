@@ -7,6 +7,7 @@ import sets.card as crd
 import game as g
 import kingdomGenerator as kg
 
+from tornado import gen
 import tornado.testing
 import tests.test_utils as tu
 
@@ -285,7 +286,8 @@ class TestCard(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player2, "post_selection", ["Moat", "Estate"])
 		self.assertTrue(self.player2.deck[-1].title == "Estate")
 		self.assertTrue(self.player2.deck[-2].title == "Moat")
-		
+		#workaround to allow ioloop to process nested yields in time
+		yield gen.sleep(.2)
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		#player3 discards 2 silver
 		yield tu.send_input(self.player3, "post_selection", ["Silver", "Silver"])

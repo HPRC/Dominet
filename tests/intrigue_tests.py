@@ -6,6 +6,7 @@ import sets.card as crd
 import game as g
 import kingdomGenerator as kg
 
+from tornado import gen
 import tornado.testing
 import tests.test_utils as tu
 
@@ -382,6 +383,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player2.last_mode["mode"] == "wait")
 		yield tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
 		yield tu.send_input(self.player1, "post_selection", ["Hide"])
+		yield gen.sleep(.2)
 		yield tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
 		self.assertTrue(len(self.player1.hand.card_array()) == 3)
 		estates = self.player1.hand.get_count("Estate")
@@ -548,6 +550,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		minion.play()
 		yield tu.send_input(self.player1, "post_selection", ["discard hand and draw 4 cards"])
 		yield tu.send_input(self.player3, "post_selection", ["Reveal"])
+		yield gen.sleep(.2)
 		self.assertTrue(len(self.player1.hand) == 4)
 		self.assertTrue(len(self.player2.hand) == 4)
 		for x in top4:

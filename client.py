@@ -261,8 +261,9 @@ class DmClient(Client):
 			self.game.remove_from_supply(card_title)
 			self.discard_pile.append(new_card)
 			yield gen.maybe_future(new_card.on_gain())
-			yield gen.maybe_future(self.hand.do_reactions("Gain", lambda : self.update_resources(), new_card))
+			yield gen.maybe_future(self.hand.do_reactions("Gain", new_card))
 			yield gen.maybe_future(self.resolve_on_buy_effects(new_card))
+			self.update_resources()
 
 	def select(self, min_cards, max_cards, select_from, msg, ordered=False, selflock=False):
 		if len(select_from) > 0:
@@ -366,7 +367,7 @@ class DmClient(Client):
 		return self.gen_new_card(card)
 
 	@gen.coroutine
-	def gain(self, card, from_supply=True, suppress_announcement=False, done_gaining=lambda : None):
+	def gain(self, card, from_supply=True, suppress_announcement=False):
 		new_card = self.get_card_from_supply(card, from_supply)
 
 		if new_card is not None:
@@ -375,30 +376,26 @@ class DmClient(Client):
 			self.discard_pile.append(new_card)
 			self.update_discard_size()
 			yield gen.maybe_future(new_card.on_gain())
-			yield gen.maybe_future(self.hand.do_reactions("Gain", done_gaining, new_card))
+			yield gen.maybe_future(self.hand.do_reactions("Gain", new_card))
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
-			done_gaining()
 
 	@gen.coroutine
-	def gain_to_hand(self, card, from_supply=True, done_gaining=lambda : None):
+	def gain_to_hand(self, card, from_supply=True):
 		new_card = self.get_card_from_supply(card, from_supply)
 		if new_card is not None:
 			self.game.announce(self.name_string() + " gains " + new_card.log_string() + " to their hand.")
             #add to discard first for reactions so that they can access and manipulate the new card from discard
 			self.discard_pile.append(new_card)
-			def add_back_to_hand():
-				#if the gained card is still in discard pile, then we can remove and add to hand
-				if self.discard_pile and new_card == self.discard_pile[-1]:
-					self.hand.add(self.discard_pile.pop())
-					self.update_hand()
-					done_gaining()
 
 			yield gen.maybe_future(new_card.on_gain())
-			yield gen.maybe_future(self.hand.do_reactions("Gain", add_back_to_hand, new_card))
+			yield gen.maybe_future(self.hand.do_reactions("Gain", new_card))
+			#if the gained card is still in discard pile, then we can remove and add to hand
+			if self.discard_pile and new_card == self.discard_pile[-1]:
+				self.hand.add(self.discard_pile.pop())
+				self.update_hand()
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
-			done_gaining()
 
 	def select_from_supply(self, price_limit=None, equal_only=False, type_constraint=None, allow_empty=False, optional=False, selflock=False):
 		if allow_empty or self.game.supply.has_selectable(price_limit, equal_only, type_constraint):

@@ -1,15 +1,13 @@
 from tornado import gen, concurrent
 
 class ReactionHandler():
-	def __init__(self, player, trigger, resume=lambda : None, react_data=None):
+	def __init__(self, player, trigger, react_data=None):
 		self.player = player
 		self.game = self.player.game
 		self.trigger = trigger
 		self.turn_owner = self.game.get_turn_owner()
 		#we are using a list as a queue here since largest hand in dominion is <10 (most reactions < 10) hence performance not important
 		self.reactions_queue = []
-		#callback to call after finish all reactions
-		self.resume = resume
 		#extra parameter to pass into react function of card
 		self.react_data = react_data
 		self.done_reacting_future = concurrent.Future()
@@ -64,12 +62,10 @@ class ReactionHandler():
 				#finished all our reactions, unlock reaction wait on me
 				self.player.update_wait(True)
 				self.done_reacting_future.set_result("finished reactions")
-				self.resume()
 		elif len(self.reactions_queue) == 0:
 			#finished all our reactions, unlock reaction wait on me
 			self.player.update_wait(True)
 			self.done_reacting_future.set_result("finished reactions")
-			self.resume()
 		else:
 			#cannot get here without having had a reaction first so the reactions are ordered
 			yield self.trigger_reactions()

@@ -121,27 +121,22 @@ class AttackCard(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
 		self.type = "Action|Attack"
-		#list of players with reactions to attacks
-		self.reacting_players = []
-
-	def player_finished_reacting(self, player):
-		self.reacting_players.remove(player)
-		if not self.reacting_players:
-			self.attack()
 
 	@gen.coroutine
 	def check_reactions(self, targets):
 		reaction_futures = []
+		reacting_players = []
 		for i in targets:
 			if len(i.hand.get_reactions_for("Attack")) > 0:
-				self.reacting_players.append(i)
-				reaction_futures.append(i.hand.do_reactions("Attack", lambda x=i: self.player_finished_reacting(x)))
-		if not self.reacting_players:
+				reacting_players.append(i)
+				reaction_futures.append(i.hand.do_reactions("Attack"))
+		if not reacting_players:
 			self.attack()
 		else:
-			self.played_by.wait_many("to react", self.reacting_players, True)
+			self.played_by.wait_many("to react", reacting_players, True)
 			#fire all the reactions in parallel
 			yield reaction_futures
+			self.attack()
 
 	def is_blocked(self, target):
 		# shouldnt need to block against own attacks (i.e. spy)
