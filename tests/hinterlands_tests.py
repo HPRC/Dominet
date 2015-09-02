@@ -69,6 +69,7 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player2.last_mode["mode"] == "select")
 		self.assertTrue(self.player3.last_mode["mode"] == "select")
 		yield tu.send_input(self.player2, "post_selection", ["Discard"])
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
 		self.assertTrue(self.player2.discard_pile[-1] == player2top)
 		self.assertTrue(self.player2.last_mode["mode"] != "select")
 		yield tu.send_input(self.player1, "post_selection", ["Put back"])
