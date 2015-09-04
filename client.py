@@ -8,6 +8,9 @@ import html
 import game as g
 import waitHandler as w
 
+import tornado.concurrent
+import tornado.gen as gen
+
 class Client():
 	hand_size = 5
 
@@ -31,6 +34,7 @@ class Client():
 	def take_turn(self):
 		self.write_json(command="startTurn")
 
+	@gen.coroutine
 	def exec_commands(self, data):
 		cmd = data["command"]
 
@@ -135,13 +139,13 @@ class DmClient(Client):
 			balance=self.balance)
 
 	# override
+	@gen.coroutine
 	def exec_commands(self, data):
 		Client.exec_commands(self, data)
 		#if we reconnected and an old connection is sending input, ignore
 		if self.game is None:
 			return
 		cmd = data["command"]
-		print(self.name + " \033[94m" + json.dumps(data) + "\033[0m")
 		if cmd == "ready":
 			self.ready = True
 			if self.game.players_ready():
@@ -181,17 +185,17 @@ class DmClient(Client):
 			self.ready = False
 			self.game = None
 		elif cmd == "submitBugReport":
-			self.game.logger.rename_log_file(g.LOGS_DIR + "/flagged_" + str(self.game.file_title) + ".html")
-			self.game.logger.flagged = True
-
+			self.game.logger.flag_me()
 
 	def exec_selected_choice(self, choice):
 		self.update_wait()
-		# choice(the parameter) to waiting callback is always a list
+		# choice(the parameter) to waiting callback is 
+		# a list for post_selection
+		# a list for selectSupply
+		# a string for buyCard
 		if self.cb is not None:
-			temp = self.cb
+			self.cb.set_result(choice)
 			self.cb = None
-			temp(choice)
 
 	def reconnect(self):
 		self.game.announce(self.name_string() + " has reconnected!")
@@ -245,36 +249,41 @@ class DmClient(Client):
 		new_card.on_buy = supply_card.on_buy.__get__(new_card, crd.Card)
 		return new_card
 
-
+	@gen.coroutine
 	def buy_card(self, card_title):
 		if self.buys > 0 and self.game.supply.get_count(card_title) > 0 and card_title not in self.banned:
 			new_card = self.gen_new_card(card_title)
 			self.game.announce("<b>" + self.name + "</b> buys " + new_card.log_string())
-			new_card.on_buy()
-			self.discard_pile.append(new_card)
-			new_card.on_gain()
-			self.game.remove_from_supply(card_title)
-			self.resolve_on_buy_effects(new_card)
 			self.buys -= 1
 			self.balance -= new_card.get_price()
-			self.hand.do_reactions("Gain", lambda : self.update_resources(), new_card)
 			self.bought_cards = True
+			yield gen.maybe_future(new_card.on_buy())
+			self.game.remove_from_supply(card_title)
+			self.discard_pile.append(new_card)
+			yield gen.maybe_future(new_card.on_gain())
+			yield gen.maybe_future(self.hand.do_reactions("Gain", new_card))
+			yield gen.maybe_future(self.resolve_on_buy_effects(new_card))
+			self.update_resources()
 
-	def select(self, min_cards, max_cards, select_from, msg, ordered=False):
+	def select(self, min_cards, max_cards, select_from, msg, ordered=False, selflock=False):
 		if len(select_from) > 0:
 			self.write_json(command="updateMode", mode="select", min_cards=min_cards, max_cards=max_cards,
 				select_from=select_from, msg=msg, ordered=ordered)
-			return True
-		else:
-			return False
 
-	def set_cb(self, cb, selflock=False):
-		if cb != None:
+			future = tornado.concurrent.Future()
+			self.cb = future
 			self.waiter.append_wait(self)
 			#only change lock if we are locking, update_wait must be called to unlock
 			if selflock:
 				self.waiter.set_lock(self, selflock)
-		self.cb = cb
+
+			return future
+		else:
+			return []
+
+	#deprecated
+	def set_cb(self, selflock=False):
+		pass
 
 	#doesnt update mode to wait immediately
 	def wait_modeless(self, msg, on, locked=False):
@@ -357,50 +366,83 @@ class DmClient(Client):
 			self.game.remove_from_supply(card)
 		return self.gen_new_card(card)
 
-	def gain(self, card, from_supply=True, suppress_announcement=False, done_gaining=lambda : None):
+	@gen.coroutine
+	def gain(self, card, from_supply=True, suppress_announcement=False):
 		new_card = self.get_card_from_supply(card, from_supply)
+
 		if new_card is not None:
 			if not suppress_announcement:
 				self.game.announce(self.name_string() + " gains " + new_card.log_string())
 			self.discard_pile.append(new_card)
 			self.update_discard_size()
-			new_card.on_gain()
-			self.hand.do_reactions("Gain", done_gaining, new_card)
+			yield gen.maybe_future(new_card.on_gain())
+			yield gen.maybe_future(self.hand.do_reactions("Gain", new_card))
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
-			done_gaining()
 
-	def gain_to_hand(self, card, from_supply=True, done_gaining=lambda : None):
+	@gen.coroutine
+	def gain_to_hand(self, card, from_supply=True):
 		new_card = self.get_card_from_supply(card, from_supply)
 		if new_card is not None:
 			self.game.announce(self.name_string() + " gains " + new_card.log_string() + " to their hand.")
-			#add to discard first for reactions so that they can access and manipulate the new card from discard
+            #add to discard first for reactions so that they can access and manipulate the new card from discard
 			self.discard_pile.append(new_card)
-			def done_react():
-				#if the gained card is still in discard pile, then we can remove and add to hand
-				if self.discard_pile and new_card == self.discard_pile[-1]:
-					self.hand.add(self.discard_pile.pop())
-					self.update_hand()
-				done_gaining()
-			new_card.on_gain()
-			self.hand.do_reactions("Gain", done_react, new_card)
+
+			yield gen.maybe_future(new_card.on_gain())
+			yield gen.maybe_future(self.hand.do_reactions("Gain", new_card))
+			#if the gained card is still in discard pile, then we can remove and add to hand
+			if self.discard_pile and new_card == self.discard_pile[-1]:
+				self.hand.add(self.discard_pile.pop())
+				self.update_hand()
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
-			done_gaining()
 
-	def select_from_supply(self, price_limit=None, equal_only=False, type_constraint=None, allow_empty=False, optional=False):
+	def select_from_supply(self, price_limit=None, equal_only=False, type_constraint=None, allow_empty=False, optional=False, selflock=False):
 		if allow_empty or self.game.supply.has_selectable(price_limit, equal_only, type_constraint):
 			self.write_json(command="updateMode", mode="selectSupply", price=price_limit, equal_only=equal_only,
 				type_constraint=type_constraint, allow_empty=allow_empty, optional=optional)
-			return True
+
+			future = tornado.concurrent.Future()
+			self.cb = future
+			self.waiter.append_wait(self)
+			#only change lock if we are locking, update_wait must be called to unlock
+			if selflock:
+				self.waiter.set_lock(self, selflock)
+
+			return future
 		else:
 			self.game.announce("-- but there is nothing available")
-			return False
+			return []
 
 	def update_resources(self, playedMoney=False):
 		if playedMoney:
 			self.update_mode_buy_phase()
 		self.write_json(command="updateResources", actions=self.actions, buys=self.buys, balance=self.balance)
+
+	# searches all player's cards for specific card object and removes and returns it (if found)
+	def search_and_extract_card(self, card):
+		try:
+			self.deck.remove(card)
+			self.update_deck_size()
+			return card
+		except ValueError:
+			pass
+		try:
+			self.discard_pile.remove(card)
+			self.update_discard_size()	
+			return card
+		except ValueError:
+			pass
+		for x in self.hand:
+			if x == card:
+				return self.hand.extract_specific(x)
+		try:
+			self.played.remove(card)
+			return card
+		except ValueError:
+			pass
+		return None
+
 
 	def total_deck_size(self):
 		return len(self.deck) + len(self.discard_pile) + len(self.played) + len(self.hand)
@@ -496,7 +538,9 @@ class DmClient(Client):
 	def all_cards(self):
 		return self.deck + self.discard_pile + self.played + self.hand.card_array()
 
+	@gen.coroutine
 	def resolve_on_buy_effects(self, purchased_card):
 		for card in self.played:
-			card.on_buy_effect(purchased_card)
+			yield card.on_buy_effect(purchased_card)
+
 

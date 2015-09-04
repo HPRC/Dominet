@@ -9,12 +9,12 @@ import time
 import logHandler
 
 class Game():
-	def __init__(self, players, supply_set="default"):
+	def __init__(self, players, req_supply="default"):
 		self.players = players
 		self.first = 0
 		self.turn = self.first
 		self.turn_count = 0
-		self.supply_set = supply_set
+		self.req_supply = req_supply
 		self.logger = logHandler.LogHandler(", ".join(map(lambda x: x.name, self.players)) + " " + time.ctime(time.time()))
 
 	def chat(self, msg, speaker):
@@ -46,25 +46,24 @@ class Game():
 		return self.players[self.turn]
 
 class DmGame(Game):
-	def __init__(self, players, required_cards, excluded_cards, supply_set="default", test=False):
-		Game.__init__(self, players, supply_set)
+	def __init__(self, players, required_cards, excluded_cards, req_supply="default", test=False):
+		Game.__init__(self, players, req_supply)
 		# randomize turn order
 		random.shuffle(self.players)
 		self.trash_pile = []
 		self.empty_piles = 0
-		self.supply_set = supply_set
 		self.mat = {}
-		if supply_set == "default":
+		if req_supply == "default":
 			rand = random.randint(1, 10)
 			if rand < 2:
-				self.supply_set = "prosperity"
+				req_supply = "prosperity"
 
 		# kingdom = dictionary {card.title => [card, count]} i.e {"Copper": [card.Copper(self,None),10]}
 		base_supply = [card.Curse(self, None), card.Estate(self, None),
 		               card.Duchy(self, None), card.Province(self, None), card.Copper(self, None),
 		               card.Silver(self, None), card.Gold(self, None)]
 
-		if self.supply_set == "prosperity":
+		if req_supply == "prosperity":
 			base_supply.append(card.Colony(self, None))
 			base_supply.append(card.Platinum(self, None))
 
@@ -78,7 +77,6 @@ class DmGame(Game):
 		self.supply = cp.CardPile()
 		self.supply.combine(self.base_supply)
 		self.supply.combine(self.kingdom)
-
 		for x in self.kingdom.unique_cards():
 			x.on_supply_init()
 
@@ -158,7 +156,7 @@ class DmGame(Game):
 			i.write_json(command="updateTrash", trash=self.trash_string())
 
 	def detect_end(self):
-		if self.supply.get_count("Province") == 0 or self.empty_piles >= 3 or (self.supply_set == "prosperity" and self.supply.get_count("Colony") == 0):
+		if self.supply.get_count("Province") == 0 or self.empty_piles >= 3 or ("Colony" in self.supply and self.supply.get_count("Colony") == 0):
 			self.announce("GAME OVER")
 			player_vp_list = (list(map(lambda x: (x, x.total_vp()), self.players)))
 			win_vp = max(player_vp_list, key=lambda x: x[1])[1]

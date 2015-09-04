@@ -4,7 +4,7 @@ This is a wrapper structure to abstract the data structure for hand and supply p
 
 import random
 import reactionHandler
-
+from tornado import gen
 
 class CardPile():
 	def __init__(self):
@@ -136,6 +136,15 @@ class HandPile():
 		else:
 			return None
 
+	def extract_specific(self, card):
+		if card.title in self.data:
+			extracted_card = self.data[card_title].pop(card)
+			if self.get_count(card.title) == 0:
+				del self.data[card.title]
+			return extracted_card
+		else:
+			return None
+
 	def get_count(self, card_title):
 		if card_title not in self.data:
 			return 0
@@ -193,13 +202,14 @@ class HandPile():
 		return reactions
 		
 	#triggers reactions in hand
-	def do_reactions(self, trigger, final_cb, react_data=None):
+	@gen.coroutine
+	def do_reactions(self, trigger, react_data=None):
 		reactions = self.get_reactions_for(trigger)
 		if len(reactions) == 0:
-			final_cb()
+			return
 		else:
-			rh = reactionHandler.ReactionHandler(self.player, trigger, final_cb, react_data)
-			rh.initiate_reactions()
+			rh = reactionHandler.ReactionHandler(self.player, trigger, react_data)
+			yield rh.initiate_reactions()
 
 	def is_homogeneous(self):
 		return len(self.data) == 1

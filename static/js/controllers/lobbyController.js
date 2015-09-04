@@ -79,7 +79,7 @@ clientModule.controller("lobbyController", function($rootScope, $scope, $modal, 
     };
 
     $scope.supplyInfo = function(table){
-        return table.supply_set
+        return table.req_supply;
     };
 
 	$scope.openAdvGameModal = function () {

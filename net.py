@@ -1,7 +1,7 @@
 import client as c
 import json
 import os
-from tornado import httpserver, ioloop, web, websocket	
+from tornado import httpserver, ioloop, web, websocket, gen	
 import game as g
 import gametable as gt
 
@@ -82,7 +82,7 @@ class GameHandler(websocket.WebSocketHandler):
 			return False
 
 	def start_game(self, table):
-		game = g.DmGame(table.players, table.required, table.excluded, table.supply_set)
+		game = g.DmGame(table.players, table.required, table.excluded, table.req_supply)
 		for i in table.players:
 			i.write_json(command="resume")
 			i.game = game
@@ -126,11 +126,14 @@ class GameHandler(websocket.WebSocketHandler):
 		else:
 			for p in self.client.game.players:
 				p.write_json(command="chat", msg = self.client.name + " has returned to the lobby.", speaker=None)
-
+				
+	@gen.coroutine
 	def on_message(self,data):
 		jsondata = json.loads(data)
 		self.client.exec_commands(jsondata)
 		cmd = jsondata["command"]
+		print(self.client.name + " \033[94m" + json.dumps(jsondata) + "\033[0m")
+
 		if cmd == "createTable":
 			self.create_table(jsondata)
 		elif cmd == "leaveTable":
@@ -138,13 +141,15 @@ class GameHandler(websocket.WebSocketHandler):
 		elif cmd == "joinTable":
 			self.join_table(jsondata)
 		elif cmd == "startGame":
+			if jsondata["host"] not in GameHandler.game_tables:
+				print(GameHandler.game_tables)
 			table = GameHandler.game_tables[jsondata["host"]]
 			self.start_game(table)
 
 	def create_table(self, json):
 		tableData = json["table"]
 		newTable = GameHandler.game_tables[self.client.name] = gt.GameTable(
-			tableData["title"], self.client, tableData["seats"], tableData["required"], tableData["excluded"], "Base", tableData["supply"])
+			tableData["title"], self.client, tableData["seats"], tableData["required"], tableData["excluded"], "Base", tableData["req_supply"])
 		self.table = newTable
 		GameHandler.update_lobby()
 
@@ -229,16 +234,14 @@ class DmHandler(GameHandler):
 			GameHandler.games.remove(self.client.game)
 			self.client.game = None
 		else:
-			for i in self.client.game.players:
-				if i != self.client:
-					if self.client.last_mode["mode"] == "gameover":
-						i.write_json(command="chat", msg = self.client.name + " has left.", speaker=None)
-						#remove me from the game
-						self.client.game.players.remove(self.client)
-						if len(self.client.game.players) == 0:
-							GameHandler.games.remove(self.client.game)
-					else:
-						i.wait(": they have disconnected!", self.client)
+			if self.client.last_mode["mode"] == "gameover":
+				#remove me from the game
+				self.client.game.players.remove(self.client)
+				for i in self.client.game.players:
+					i.write_json(command="chat", msg = self.client.name + " has left.", speaker=None)
+			else:
+				for i in self.client.get_opponents():
+					i.wait(": they have disconnected!", self.client)
 
 
 def main():

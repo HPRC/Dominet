@@ -6,7 +6,7 @@ Browser based implementation of dominion.
 ## Dependencies
 
 * requires: python 3.4
-* [Tornado 4.0.2](http://www.tornadoweb.org/en/stable/) asynchronous library
+* [Tornado 4.2.1](http://www.tornadoweb.org/en/stable/) asynchronous library
 
 ## Start Server
 
