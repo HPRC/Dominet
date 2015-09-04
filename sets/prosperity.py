@@ -255,8 +255,7 @@ class Talisman(crd.Money):
 		if purchased_card.get_price() <= 4 and "Victory" not in purchased_card.type:
 			card = self.played_by.get_card_from_supply(purchased_card.title, True)
 			if card is not None:
-				yield self.played_by.gain(purchased_card.title, suppress_announcement=True)
-				self.game.announce("-- gaining another " + card.log_string())
+				yield self.played_by.gain(purchased_card.title, custom_announce="-- gaining another " + card.log_string())
 
 
 class Quarry(crd.Money):

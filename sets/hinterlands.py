@@ -127,7 +127,7 @@ class Trader(crd.Card):
 		self.game.update_trash_pile()
 		self.game.announce("-- trashing " + self.game.log_string_from_title(selection[0]))
 		for i in range(0, trashed.get_price()):
-			self.played_by.gain("Silver", suppress_announcement=True)
+			self.played_by.gain("Silver", custom_announce="")
 		self.game.announce("-- gaining " + str(trashed.get_price()) + " " + self.game.log_string_from_title("Silver", trashed.get_price() > 1))
 		crd.Card.on_finished(self, True)
 

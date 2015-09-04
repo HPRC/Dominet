@@ -367,12 +367,14 @@ class DmClient(Client):
 		return self.gen_new_card(card)
 
 	@gen.coroutine
-	def gain(self, card, from_supply=True, suppress_announcement=False):
+	def gain(self, card, from_supply=True, custom_announce=None):
 		new_card = self.get_card_from_supply(card, from_supply)
 
 		if new_card is not None:
-			if not suppress_announcement:
+			if custom_announce is None:
 				self.game.announce(self.name_string() + " gains " + new_card.log_string())
+			elif custom_announce != "":
+				self.game.announce(custom_announce)
 			self.discard_pile.append(new_card)
 			self.update_discard_size()
 			yield gen.maybe_future(new_card.on_gain())
