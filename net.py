@@ -1,7 +1,7 @@
 import client as c
 import json
 import os
-from tornado import httpserver, ioloop, web, websocket	
+from tornado import httpserver, ioloop, web, websocket, gen	
 import game as g
 import gametable as gt
 
@@ -126,7 +126,8 @@ class GameHandler(websocket.WebSocketHandler):
 		else:
 			for p in self.client.game.players:
 				p.write_json(command="chat", msg = self.client.name + " has returned to the lobby.", speaker=None)
-
+				
+	@gen.coroutine
 	def on_message(self,data):
 		jsondata = json.loads(data)
 		self.client.exec_commands(jsondata)

@@ -7,6 +7,7 @@ import sets.base as base
 import cardpile as cp
 import kingdomGenerator as kg
 
+import tornado.gen as gen
 import tests.test_utils as tu
 
 
@@ -94,20 +95,22 @@ class TestGame(unittest.TestCase):
 		self.player1.discard(["Copper"], self.player1.discard_pile)
 		self.assertTrue(len(self.player1.hand) == 0)
 
+	@gen.coroutine
 	def test_spam_cb(self):
 		tu.print_test_header("test spam cb")
 		self.player1.hand.add(base.Remodel(self.game, self.player1))
 		self.player1.hand.add(crd.Silver(self.game, self.player1))
 		self.player1.hand.add(crd.Silver(self.game, self.player1))
 
-		self.player1.exec_commands({"command":"play", "card": "Remodel"})
-		self.player1.exec_commands({"command":"post_selection", "selection": ["Silver"]})
-		self.player1.exec_commands({"command":"selectSupply", "card": ["Duchy"]})
+		tu.send_input(self.player1, "play", "Remodel")
+		yield tu.send_input(self.player1, "post_selection", ["Silver"])
+		yield tu.send_input(self.player1, "selectSupply", ["Duchy"])
 		self.assertTrue(self.player1.cb == None)
-		self.player1.exec_commands({"command":"selectSupply", "card": ["Duchy"]})
+		yield tu.send_input(self.player1, "selectSupply", ["Duchy"])
 		self.assertTrue(len(self.player1.discard_pile) == 1)
 
 	#tests gaining a card not available anymore doesnt lead to deadlock
+	@gen.coroutine
 	def test_has_selectable(self):
 		tu.print_test_header("test has selectable")
 		#2 Remodels in hand
@@ -115,10 +118,9 @@ class TestGame(unittest.TestCase):
 		#nothing in supply except remodel and gold both at 0 left
 		self.game.supply.data = {"Remodel": [base.Remodel(self.game, None), 0], "Gold": [crd.Gold(self.game, None), 0]}
 		#try to remodel another remodel
-		self.player1.exec_commands({"command":"play", "card": "Remodel"})
+		tu.send_input(self.player1, "play", "Remodel")
 		self.assertTrue(self.player1.last_mode["mode"] == "select")
-		self.player1.exec_commands({"command":"post_selection", "selection": ["Remodel"]})
-
+		yield tu.send_input(self.player1, "post_selection", ["Remodel"])
 		self.assertTrue(self.player1.last_mode["mode"] != "selectSupply")
 
 	def test_get_opponent_order(self):

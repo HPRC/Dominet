@@ -21,7 +21,7 @@ class WaitHandler():
 				self.waiting_on.remove(notifier.name)
 			if not self.is_waiting():
 				self.player.update_mode()
-			elif not self.waiting_only_myself():
+			elif not self.is_waiting_on(self.player):
 				self.wait(self.msg)
 
 	def set_lock(self, locked_person, locked):
@@ -32,9 +32,6 @@ class WaitHandler():
 
 	def waiting_on_string(self):
 		return ", ".join(self.waiting_on)
-
-	def waiting_only_myself(self):
-		return len(self.waiting_on) == 1 and self.is_waiting_on(self.player)
 
 	def is_waiting_on(self, player):
 		return player.name in self.waiting_on

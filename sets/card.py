@@ -1,3 +1,5 @@
+import tornado.gen as gen
+
 class Card():
 	def __init__(self, game, played_by):
 		self.game = game
@@ -53,18 +55,22 @@ class Card():
 		pass
 
 	#called when you buy this card 
+	@gen.coroutine
 	def on_buy(self):
 		pass
 
 	#called when you buy a card with this card in play
+	@gen.coroutine
 	def on_buy_effect(self, purchased_card):
 		pass
 
 	#called when you gain this card
+	@gen.coroutine
 	def on_gain(self):
 		pass
 
 	#called when you gain a card with this card in play
+	@gen.coroutine
 	def on_gain_effect(self, gained_card):
 		pass
 
@@ -115,23 +121,22 @@ class AttackCard(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
 		self.type = "Action|Attack"
-		#list of players with reactions to attacks
-		self.reacting_players = []
 
-	def player_finished_reacting(self, player):
-		self.reacting_players.remove(player)
-		if not self.reacting_players:
-			self.attack()
-
+	@gen.coroutine
 	def check_reactions(self, targets):
+		reaction_futures = []
+		reacting_players = []
 		for i in targets:
 			if len(i.hand.get_reactions_for("Attack")) > 0:
-				self.reacting_players.append(i)
-				i.hand.do_reactions("Attack", lambda x=i: self.player_finished_reacting(x))
-		if not self.reacting_players:
+				reacting_players.append(i)
+				reaction_futures.append(i.hand.do_reactions("Attack"))
+		if not reacting_players:
 			self.attack()
 		else:
-			self.played_by.wait_many("to react", self.reacting_players, True)
+			self.played_by.wait_many("to react", reacting_players, True)
+			#fire all the reactions in parallel
+			yield reaction_futures
+			self.attack()
 
 	def is_blocked(self, target):
 		# shouldnt need to block against own attacks (i.e. spy)
@@ -152,10 +157,11 @@ class AttackCard(Card):
 	
 	# should call get next of player of the attack first (or player if inclusive)
 	# chooses the next person from the last until we reach the player to stop
+	@gen.coroutine
 	def get_next(self, victim):
 		next_player_index = (self.game.players.index(victim) + 1) % len(self.game.players)
 		if self.game.players[next_player_index] != self.played_by:
-			self.fire(self.game.players[next_player_index])
+			yield gen.maybe_future(self.fire(self.game.players[next_player_index]))
 		else:
 			Card.on_finished(self)
 
@@ -306,11 +312,24 @@ def card_list_to_titles(lst):
 def card_list_log_strings(lst):
 	return list(map(lambda x: x.log_string(), lst))
 
+# runs futures in parallel and call the callbacks with responses as they come in
+# futures = list of futures
+# players = list of players mapping to futures
+# callback = function called with data and player params after player selects data
+@gen.coroutine
+def parallel_selects(futures, players, callback):
+	wait_iterator = gen.WaitIterator(*futures) 
+	while not wait_iterator.done():
+		selected = yield wait_iterator.next()
+		selecting_player_index = wait_iterator.current_index
+		selecting_player = players[selecting_player_index]
+		callback(selected, selecting_player)
 
 # asks player to reorder input list of cards
 # player = player who is reordering
 # cards_to_reorder = list of card objects have already been removed from the top of deck
 # callback = called when player finishes reordering the top of his/her deck
+@gen.coroutine
 def reorder_top(player, cards_to_reorder, callback):
 	if len(cards_to_reorder) == 0:
 		callback()
@@ -319,26 +338,18 @@ def reorder_top(player, cards_to_reorder, callback):
 		player.update_deck_size()
 		callback()
 	else:
-		def post_reorder_with(order, player=player, cards=cards_to_reorder, callback=callback, game=player.game):
-			post_reorder(player, order, cards, callback, game)
-
 		turn_owner = player.game.get_turn_owner()
 		if turn_owner != player:
 			turn_owner.wait("to reorder cards", player)
-		player.set_cb(post_reorder_with)
-
-		player.select(len(cards_to_reorder), len(cards_to_reorder), card_list_to_titles(cards_to_reorder), 
+		order = yield player.select(len(cards_to_reorder), len(cards_to_reorder), card_list_to_titles(cards_to_reorder), 
 			"Rearrange the cards to put back on top of deck (#1 is on top)", True)
-
-#this is used by reorder top to place ordered selections back on top of deck
-def post_reorder(player, selection, cards, callback, game):
-	for x in selection:
-		for y in cards:
-			if x == y.title:
-				player.deck.append(y)
-				break
-	player.update_deck_size()
-	callback()
+		for x in order:
+			for y in cards_to_reorder:
+				if x == y.title:
+					player.deck.append(y)
+					break
+		player.update_deck_size()
+		callback()
 
 #search through a players deck and discard until findng a specific card
 # player = player who owns deck to search through
@@ -370,29 +381,20 @@ def search_deck_for(player, search_criteria, callback):
 # player = player who needs to discard
 # reduced_hand_size = number of cards to discard down to
 # callback = callback function called after player discarded, default is card on_finished
+@gen.coroutine
 def discard_down(player, reduced_hand_size, callback):
 	turn_owner = player.game.get_turn_owner()
 	if len(player.hand) > reduced_hand_size:
-		player.select(len(player.hand) - reduced_hand_size, len(player.hand) - reduced_hand_size, 
-			card_list_to_titles(player.hand.card_array()), "discard down to " + str(reduced_hand_size) + " cards")
-
-		def discard_cb(selection, player=player, reduced_hand_size=reduced_hand_size, callback=callback, game=player.game):
-			post_discard_down(player, selection, reduced_hand_size, callback, game=game)
-
-		player.set_cb(discard_cb)
 		turn_owner.wait("to discard", player)
+		discard_selection = yield player.select(len(player.hand) - reduced_hand_size, len(player.hand) - reduced_hand_size, 
+			card_list_to_titles(player.hand.card_array()), "discard down to " + str(reduced_hand_size) + " cards")
+		player.game.announce("-- " + player.name_string() + " discards down to " + str(reduced_hand_size))
+		player.discard(discard_selection, player.discard_pile)
+		player.update_hand()
+		if not turn_owner.is_waiting():
+			callback()
 	else:
 		player.game.announce("-- " + player.name_string() + " has " + str(reduced_hand_size) + " or less cards in hand")
 		if not turn_owner.is_waiting():
 			callback()
-
-def post_discard_down(player, selection, reduced_hand_size, callback, game):
-	turn_owner = player.game.get_turn_owner()
-	player.game.announce("-- " + player.name_string() + " discards down to " + str(reduced_hand_size))
-	player.discard(selection, player.discard_pile)
-	player.update_hand()
-	if not turn_owner.is_waiting():
-		callback()
-
-
 

@@ -7,11 +7,13 @@ import sets.card as crd
 import game as g
 import kingdomGenerator as kg
 
+import tornado.testing
 import tests.test_utils as tu
 
 
-class TestProsperity(unittest.TestCase):
+class TestProsperity(tornado.testing.AsyncTestCase):
 	def setUp(self):
+		super().setUp()
 		self.player1 = c.DmClient("player1", 0, tu.PlayerHandler())
 		self.player2 = c.DmClient("player2", 1, tu.PlayerHandler())
 		self.player3 = c.DmClient("player3", 2, tu.PlayerHandler())
@@ -35,6 +37,7 @@ class TestProsperity(unittest.TestCase):
 
 		self.assertTrue(self.player1.total_vp() == 4)
 
+	@tornado.testing.gen_test
 	def test_Counting_House(self):
 		tu.print_test_header("test Counting House")
 		counting_house = prosperity.Counting_House(self.game, self.player1)
@@ -50,7 +53,7 @@ class TestProsperity(unittest.TestCase):
 		all_copper = len([x for x in self.player1.all_cards() if x.title == "Copper"])
 		
 		counting_house.play()
-		tu.send_input(self.player1, "post_selection", [2])
+		yield tu.send_input(self.player1, "post_selection", [2])
 		self.assertTrue(self.player1.hand.get_count('Copper') == num_coppers + 2)
 		self.assertTrue(len(self.player1.discard_pile) == 1)
 		self.assertTrue(len([x for x in self.player1.all_cards() if x.title == "Copper"]) == all_copper)
@@ -65,13 +68,14 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.player1.buys == 2)
 		self.assertTrue(self.player1.actions == 2)
 
+	@tornado.testing.gen_test
 	def test_Expand(self):
 		tu.print_test_header("testing expand")
 		expand = prosperity.Expand(self.game, self.player1)
 
 		expand.play()
-		tu.send_input(self.player1, "post_selection", ["Copper"])
-		tu.send_input(self.player1, "post_selection", ["Silver"])
+		yield tu.send_input(self.player1, "post_selection", ["Copper"])
+		yield tu.send_input(self.player1, "post_selection", ["Silver"])
 
 		self.assertTrue(self.player1.discard_pile[0].title == "Silver")
 
@@ -90,6 +94,7 @@ class TestProsperity(unittest.TestCase):
 		watchtower2.play()
 		self.assertTrue(len(self.player1.hand) == 6)
 
+	@tornado.testing.gen_test
 	def test_Watchtower_react(self):
 		tu.print_test_header("testing Watchtower reaction")
 		watchtower = prosperity.Watchtower(self.game, self.player1)
@@ -101,12 +106,12 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.player2.last_mode["mode"] != "wait")
 		self.assertTrue(self.player3.last_mode["mode"] != "wait")
 
-		self.player1.exec_commands({"command":"post_selection", "selection":["Reveal"]})
-		self.player1.exec_commands({"command":"post_selection", "selection":["Put on top of deck"]})
+		yield tu.send_input(self.player1, "post_selection", ["Reveal"])
+		yield tu.send_input(self.player1, "post_selection", ["Put on top of deck"])
 		self.assertTrue(len(self.player1.discard_pile) == 0)
 		self.assertTrue(self.player1.deck[-1].title == "Silver")
 
-
+	@tornado.testing.gen_test
 	def test_Watchtower_Witch(self):
 		tu.print_test_header("testing Watchtower witch")
 		self.player1.end_turn()
@@ -120,20 +125,20 @@ class TestProsperity(unittest.TestCase):
 		witch.play()
 		self.assertTrue(self.player2.last_mode["mode"] == "wait")
 		self.assertTrue(self.player3.discard_pile[-1].title == "Curse")
-		tu.send_input(self.player1, "post_selection", ["Reveal"])
+		yield tu.send_input(self.player1, "post_selection", ["Reveal"])
 		self.assertTrue(self.player2.last_mode["mode"] == "wait")
-		tu.send_input(self.player1, "post_selection", ["Trash"])
+		yield tu.send_input(self.player1, "post_selection", ["Trash"])
 		self.assertTrue(self.player2.last_mode["mode"] != "wait")
 		self.assertTrue(self.game.trash_pile[-1].title == "Curse")
 
-
+	@tornado.testing.gen_test
 	def test_Kings_Court(self):
 		tu.print_test_header("testing King's Court")
 		conspirator = intrigue.Conspirator(self.game, self.player1)
 		kings_court = prosperity.Kings_Court(self.game, self.player1)
 		tu.set_player_hand(self.player1, [conspirator, kings_court])
 		kings_court.play()
-		tu.send_input(self.player1, "post_selection", ["Conspirator"])
+		yield tu.send_input(self.player1, "post_selection", ["Conspirator"])
 		self.assertTrue(self.player1.actions == 2)
 		self.assertTrue(self.player1.balance == 6)
 		#conspirator should be triggered twice, we drew 2 cards
@@ -142,25 +147,22 @@ class TestProsperity(unittest.TestCase):
 		conspirators_in_deck = [x for x in self.player1.all_cards() if x.title == "Conspirator"]
 		self.assertTrue(len(conspirators_in_deck) == 1)
 
+	@tornado.testing.gen_test
 	def test_Mint(self):
 		tu.print_test_header("test Mint")
 		mint = prosperity.Mint(self.game, self.player1)
 		silver = crd.Silver(self.game, self.player1)
-
-		mint.play()
-
-		self.assertTrue(self.player1.discard_pile[0].title == "Copper")
-
-		self.player1.hand.add(silver)
+		self.player1.hand.add(mint)
 		self.player1.hand.add(silver)
 		mint.play()
-		tu.send_input(self.player1, "post_selection", ["Silver"])
-		self.assertTrue(self.player1.discard_pile[1].title == "Silver")
+		yield tu.send_input(self.player1, "post_selection", ["Silver"])
+		self.assertTrue(self.player1.discard_pile[0].title == "Silver")
 		num_money = len(self.player1.hand.get_cards_by_type("Treasure"))
 		self.player1.spend_all_money()
 		self.player1.buy_card('Mint')
 		self.assertTrue(len(self.game.trash_pile) >= num_money)
 
+	@tornado.testing.gen_test
 	def test_Mountebank(self):
 		tu.print_test_header("test Mountebank")
 		mountebank = prosperity.Mountebank(self.game, self.player1)
@@ -171,13 +173,14 @@ class TestProsperity(unittest.TestCase):
 		mountebank.play()
 
 		self.assertTrue(self.player1.balance == 2)
-		tu.send_input(self.player2, "post_selection", ["Yes"])
+		yield tu.send_input(self.player2, "post_selection", ["Yes"])
 
 		self.assertTrue(self.player2.discard_pile[0].title == "Curse")
 		#curse is gained first then copper
 		self.assertTrue(self.player3.discard_pile[0].title == "Curse")
 		self.assertTrue(self.player3.discard_pile[1].title == "Copper")
 
+	@tornado.testing.gen_test
 	def test_Bishop(self):
 		tu.print_test_header("test Bishop")
 		bishop = prosperity.Bishop(self.game, self.player1)
@@ -188,16 +191,17 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.player1.balance == 1)
 		self.assertTrue(self.player1.vp == 1)
 
-		tu.send_input(self.player1, "post_selection", ["Steward"])
+		yield tu.send_input(self.player1, "post_selection", ["Steward"])
 
 		self.assertTrue(self.player1.vp == 2)
-		tu.send_input(self.player2, "post_selection", ["None"])
-		tu.send_input(self.player3, "post_selection", ["Copper"])
+		yield tu.send_input(self.player2, "post_selection", ["None"])
+		yield tu.send_input(self.player3, "post_selection", ["Copper"])
 
 		self.assertTrue(self.player3.vp == 0)
 		self.assertTrue(len(self.player3.hand.card_array()) == 4)
 		self.assertTrue(len(self.player2.hand.card_array()) == 5)
 
+	@tornado.testing.gen_test
 	def test_Forge(self):
 		tu.print_test_header("test Forge")
 		forge = prosperity.Forge(self.game, self.player1)
@@ -215,14 +219,14 @@ class TestProsperity(unittest.TestCase):
 
 		forge.play()
 		# trash prices total to 8
-		tu.send_input(self.player1, "post_selection", ["Steward", "Copper", "Copper", "Minion"])
+		yield tu.send_input(self.player1, "post_selection", ["Steward", "Copper", "Copper", "Minion"])
 		self.assertTrue(len(self.game.trash_pile) == 4)
-		tu.send_input(self.player1, "selectSupply", ["Province"])
+		yield tu.send_input(self.player1, "selectSupply", ["Province"])
 		self.assertTrue(self.player1.discard_pile[0].title == "Province")
 
 		forge.play()
 		# trash prices total to 13 -- nothing to gain
-		tu.send_input(self.player1, "post_selection", ["Torturer", "Secret Chamber", "Gold"])
+		yield tu.send_input(self.player1, "post_selection", ["Torturer", "Secret Chamber", "Gold"])
 		self.assertTrue(self.player1.cb is None)
 
 	def test_City(self):
@@ -254,6 +258,7 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.player1.buys == 2)
 		self.assertTrue(self.player1.balance == 1)
 
+	@tornado.testing.gen_test
 	def test_Loan(self):
 		tu.print_test_header("test Loan")
 		loan = prosperity.Loan(self.game, self.player1)
@@ -267,7 +272,7 @@ class TestProsperity(unittest.TestCase):
 
 		self.assertTrue(self.player1.balance == 1)
 		self.assertTrue(len(self.player1.discard_pile) >= 3)
-		tu.send_input(self.player1, "post_selection", ["Trash"])
+		yield tu.send_input(self.player1, "post_selection", ["Trash"])
 		self.assertTrue(len(self.game.trash_pile) == 1)
 		self.assertTrue("Treasure" in self.game.trash_pile[-1].type)
 
@@ -291,13 +296,14 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.player1.balance == 5)
 		self.assertTrue(silver in self.player1.all_cards())
 
+	@tornado.testing.gen_test
 	def test_Vault(self):
 		tu.print_test_header("testing vault")
 		vault = prosperity.Vault(self.game, self.player1)
 		self.player1.hand.add(vault)
 
 		vault.play()
-		tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
+		yield tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
 		#add two coppers to player2's hand so he can use vault to discard
 		tu.add_many_to_hand(self.player2, crd.Copper(self.game, self.player2), 2)
 		self.assertTrue(self.player1.balance == 2)
@@ -305,12 +311,12 @@ class TestProsperity(unittest.TestCase):
 		#both players should be able to choose to discard at the same time
 		self.assertTrue(self.player2.last_mode["mode"] == "select")
 		self.assertTrue(self.player3.last_mode["mode"] == "select")
-		tu.send_input(self.player2, "post_selection", ["Yes"])		
+		yield tu.send_input(self.player2, "post_selection", ["Yes"])		
 		cards_in_hand = len(self.player2.hand.card_array())
-		tu.send_input(self.player2, "post_selection", ["Copper", "Copper"])
+		yield tu.send_input(self.player2, "post_selection", ["Copper", "Copper"])
 		self.assertTrue(len(self.player2.hand.card_array()) == cards_in_hand - 1)
 
-		self.player3.exec_commands({"command":"post_selection", "selection":["No"]})
+		yield tu.send_input(self.player3, "post_selection", ["No"])
 		self.assertTrue(self.player1.last_mode["mode"] == "buy")
 
 	def test_Bank(self):
@@ -369,6 +375,7 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(gardens == 1)
 		self.assertTrue(mining_villages == 3)
 
+	@tornado.testing.gen_test
 	def test_Goons(self):
 		tu.print_test_header("test Goons")
 		goons = prosperity.Goons(self.game, self.player1)
@@ -380,8 +387,8 @@ class TestProsperity(unittest.TestCase):
 		goons.play()
 		self.assertTrue(self.player1.balance == 2)
 		self.assertTrue(self.player1.buys == 2)
-		tu.send_input(self.player2, "post_selection", ["Copper", "Copper"])
-		tu.send_input(self.player3, "post_selection", ["Copper", "Copper"])
+		yield tu.send_input(self.player2, "post_selection", ["Copper", "Copper"])
+		yield tu.send_input(self.player3, "post_selection", ["Copper", "Copper"])
 
 		goons.play()
 
@@ -391,6 +398,7 @@ class TestProsperity(unittest.TestCase):
 		self.player1.buy_card("Copper")
 		self.assertTrue(self.player1.vp == 6)
 
+	@tornado.testing.gen_test
 	def test_Rabble(self):
 		tu.print_test_header("test Rabble")
 		rabble = prosperity.Rabble(self.game, self.player1)
@@ -414,7 +422,7 @@ class TestProsperity(unittest.TestCase):
 		topdeck2 = self.player2.topdeck()
 		self.assertTrue(topdeck1.title == "Estate")
 		self.assertTrue(topdeck2.title == "Estate")
-		tu.send_input(self.player3, "post_selection", ["Gardens", "Duchy"])
+		yield tu.send_input(self.player3, "post_selection", ["Gardens", "Duchy"])
 
 		topdeck1 = self.player3.topdeck()
 		topdeck2 = self.player3.topdeck()
@@ -422,6 +430,7 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(topdeck1.title == "Duchy")
 		self.assertTrue(topdeck2.title == "Gardens")
 
+	@tornado.testing.gen_test
 	def test_Royal_Seal(self):
 		tu.print_test_header("test Royal Seal")
 		royal_seal = prosperity.Royal_Seal(self.game, self.player1)
@@ -436,17 +445,17 @@ class TestProsperity(unittest.TestCase):
 		workers_village.play()
 
 		royal_seal.play()
-		tu.send_input(self.player1, "buyCard", "Curse")
+		yield tu.send_input(self.player1, "buyCard", "Curse")
 		self.assertTrue(self.player1.last_mode["mode"] == "select")
-		tu.send_input(self.player1, "post_selection", ["Yes"])
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.deck[-1].title == "Curse")
 		self.assertTrue(self.player1.last_mode["mode"] == "buy")
-		tu.send_input(self.player1, "buyCard", "Silver")
+		yield tu.send_input(self.player1, "buyCard", "Silver")
 		self.assertTrue(self.player1.last_mode["mode"] == "select")
-		tu.send_input(self.player1, "post_selection", ["No"])
+		yield tu.send_input(self.player1, "post_selection", ["No"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
 		self.assertTrue(self.player1.last_mode["mode"] == "buy")
-		tu.send_input(self.player1, "buyCard", "Mint")
+		yield tu.send_input(self.player1, "buyCard", "Mint")
 		self.assertTrue(self.player1.last_mode["mode"] == "buy")
 
 	def test_quarry(self):
@@ -487,6 +496,7 @@ class TestProsperity(unittest.TestCase):
 		self.assertTrue(self.game.price_modifier["Peddler"] == -10)
 		self.assertTrue(self.game.card_from_title("Peddler").get_price() == 0)
 
+	@tornado.testing.gen_test
 	def test_Forge_Peddler(self):
 		tu.print_test_header("test Forge Peddler")
 		peddler = prosperity.Peddler(self.game, self.player1)
@@ -497,16 +507,17 @@ class TestProsperity(unittest.TestCase):
 		self.player1.hand.add(prosperity.Forge(self.game, self.player1))
 
 		self.assertTrue(self.game.price_modifier["Peddler"] == 0)
-		tu.send_input(self.player1, "play", "Laboratory")
+		yield tu.send_input(self.player1, "play", "Laboratory")
 		self.assertTrue(self.game.price_modifier["Peddler"] == 0)
-		tu.send_input(self.player1, "play", "Forge")
+		yield tu.send_input(self.player1, "play", "Forge")
 		self.assertTrue(self.game.card_from_title("Peddler").get_price() == 8)
-		tu.send_input(self.player1, "post_selection", ["Peddler"])
+		yield tu.send_input(self.player1, "post_selection", ["Peddler"])
 		self.assertTrue(self.game.card_from_title("Peddler").get_price() == 8)
-		tu.send_input(self.player1, "post_selection", ["Province"])
+		yield tu.send_input(self.player1, "post_selection", ["Province"])
 		self.player1.spend_all_money()
 		self.assertTrue(self.game.card_from_title("Peddler").get_price() == 4)
 
+	@tornado.testing.gen_test
 	def test_Trade_Route(self):
 		tu.print_test_header("test Trade Route")
 		trade_route = prosperity.Trade_Route(self.game, self.player1)
@@ -519,7 +530,7 @@ class TestProsperity(unittest.TestCase):
 		trade_route.play()
 		self.assertTrue(self.player1.buys == 2)
 		self.assertTrue(self.player1.balance == 0)
-		tu.send_input(self.player1, "post_selection", ["Copper"])
+		yield tu.send_input(self.player1, "post_selection", ["Copper"])
 		self.player1.spend_all_money()
 		#buy 2 estates
 		tu.send_input(self.player1, "buyCard", "Estate")
@@ -527,7 +538,7 @@ class TestProsperity(unittest.TestCase):
 		self.player1.end_turn()
 
 		trade_route2.play()
-		tu.send_input(self.player2, "post_selection", ["Copper"])
+		yield tu.send_input(self.player2, "post_selection", ["Copper"])
 		self.assertTrue(self.player2.balance == 1)
 		self.assertTrue(self.player2.buys == 2)
 
