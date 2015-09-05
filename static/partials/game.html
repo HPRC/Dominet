@@ -4,16 +4,16 @@
 	</div>
 </div>
 <div id="client-container" class="row" ng-controller="clientController">
-	<div  class="col-xs-4" id="leftColumn" ng-controller="supplyController">
+	<div  class="col-md-4" id="leftColumn" ng-controller="supplyController">
 		<div class="row">
-			<div class="col-md-6">
+			<div class="col-xs-6">
 				<table class="table">
 					<tr ng-repeat="card in kingdomSupplyArray | orderBy:'price':true">
 						<td class="supplyCardContainer"><supply-card></supply-card></td>
 					</tr>
 				</table>
 			</div>
-			<div class="col-md-6">
+			<div class="col-xs-6">
 				<table class="table">
 					<tr ng-repeat="card in baseSupplyArray | orderBy:'price':true">
 						<td class="supplyCardContainer"><supply-card></supply-card></td>
@@ -27,7 +27,7 @@
 			</div>
 		</div>
 	</div>
-	<div id="middleColumn" class="col-xs-5">
+	<div id="middleColumn" class="col-md-5 col-sm-9">
 		<div id="game-panel">
 			<div id="msg" ng-bind-html="renderHtml(gameLogs)"></div>
 			<div class="modeContainer">
@@ -68,17 +68,17 @@
 						<span ng-show="msg.speaker !== ''"><b>{{msg.speaker}}</b>:</span><span>{{msg.msg}}</span>
 					</div>
 				</div>
-				<div class="col-md-10">
+				<div class="col-xs-10">
 	  				<label class="sr-only" for="inputChat">inputChat</label>
 					<input type="text" id="inputChat" class="form-control" ng-model="inputText" ng-keypress="enterKey($event)">
 				</div>
-				<div class="col-md-2">
+				<div class="col-xs-2">
 					<button id="sendChat" class="btn btn-default" ng-click="enterChat()">Send</button>
 				</div>
 			</div>
 		</div>
 	</div>
-		<div id="rightColumn" class="col-xs-3" ng-controller="infoController">
+		<div id="rightColumn" class="col-md-3 col-sm-3" ng-controller="infoController">
 			<ul class="list-group">
 				<li class="list-group-item">Deck
 				<span class="badge">{{deckSize}}</span>

@@ -3,3 +3,4 @@
 pyvenv.cfg
 /venv/*
 /logs/*
+.sass-cache/*

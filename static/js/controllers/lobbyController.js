@@ -3,7 +3,6 @@ clientModule.controller("lobbyController", function($rootScope, $scope, $modal, 
 	$scope.gameTables = [];
 	$scope.name = "";
 	$scope.atTable = false;
-
 	$scope.newGameTable = gameTable;
 
 	$scope.lobby = function(json){
@@ -19,13 +18,11 @@ clientModule.controller("lobbyController", function($rootScope, $scope, $modal, 
 	};
 
 	$scope.createGameTable = function(){
-		if ($scope.newGameTable.title !== ""){
-			$scope.atTable = true;
-			socket.send(JSON.stringify({
-				"command": "createTable", 
-				"table": $scope.newGameTable
-			}));
-		}
+		$scope.atTable = true;
+		socket.send(JSON.stringify({
+			"command": "createTable", 
+			"table": $scope.newGameTable
+		}));
 		$scope.newGameTable.title == "";
 	};
 
