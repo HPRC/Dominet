@@ -17,12 +17,19 @@ Browser based implementation of dominion.
 
 run all tests:
 
+in root directory:
 * `python3 -m unittest discover tests '*_tests.py'`
 
 run individual tests:
 
+in root directory:
 * `python3 -m tests.game_tests`
 * `python3 -m tests.base_tests`
 * `python3 -m tests.intrigue_tests`
 * `python3 -m tests.prosperity_tests`
+
+## Sass
+
+in `/static` directory run:
+`sass --watch --compass static/css/style.scss:static/style.css --style compressed`
 
