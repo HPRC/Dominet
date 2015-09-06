@@ -31,5 +31,5 @@ in root directory:
 ## Sass
 
 in `/static` directory run:
-`sass --watch --compass static/css/style.scss:static/style.css --style compressed`
+`sass --watch --compass css/style.scss:style.css --style compressed`
 

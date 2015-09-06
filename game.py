@@ -15,7 +15,6 @@ class Game():
 		self.turn = self.first
 		self.turn_count = 0
 		self.req_supply = req_supply
-		self.logger = logHandler.LogHandler(", ".join(map(lambda x: x.name, self.players)) + " " + time.ctime(time.time()))
 
 	def chat(self, msg, speaker):
 		for i in self.players:
@@ -48,6 +47,10 @@ class Game():
 class DmGame(Game):
 	def __init__(self, players, required_cards, excluded_cards, req_supply="default", test=False):
 		Game.__init__(self, players, req_supply)
+		if not test:
+			self.logger = logHandler.LogHandler(", ".join(map(lambda x: x.name, self.players)) + " " + time.ctime(time.time()))
+		else:
+			self.logger = logHandler.TestLogHandler()
 		# randomize turn order
 		random.shuffle(self.players)
 		self.trash_pile = []

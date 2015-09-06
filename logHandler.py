@@ -57,3 +57,29 @@ class LogHandler():
 				os.rename(self.get_log_file_path(), LogHandler.LOGS_DIR + "/finished_" + self.file_title + ".html")
 		else:
 			print("Game ended with no log found at " + self.get_log_file_path())
+
+class TestLogHandler(LogHandler):
+	def __init__(self):
+		pass
+
+	def setup_log_file(self):
+		pass
+
+	def get_log_file_path(self):
+		pass
+
+	def flag_me(self):
+		pass
+
+	def log_json_data(self, data, sent):
+		pass
+
+	def log_html_data(self, data):
+		pass
+
+	def rename_log_file(self, new_name):
+		pass
+
+	def finish_game(self):
+		pass
+
