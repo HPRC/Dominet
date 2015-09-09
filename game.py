@@ -44,6 +44,7 @@ class Game():
 	def get_turn_owner(self):
 		return self.players[self.turn]
 
+
 class DmGame(Game):
 	def __init__(self, players, required_cards, excluded_cards, req_supply="default", test=False):
 		Game.__init__(self, players, req_supply)
