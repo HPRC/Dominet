@@ -24,7 +24,7 @@ class Crossroads(crd.Card):
 		num_victory_cards = len(self.played_by.hand.get_cards_by_type("Victory"))
 		drawn = self.played_by.draw(num_victory_cards)
 		#needs to be part of crossroads log
-		self.game.announce("-- draws " + drawn)
+		self.game.announce("-- drawing " + drawn)
 		crd.Card.on_finished(self, True)
 
 	def log_string(self, plural=False):

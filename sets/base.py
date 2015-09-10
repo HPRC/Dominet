@@ -337,17 +337,17 @@ class Spy(crd.AttackCard):
 			selection = yield self.played_by.select(1, 1, ["discard", "keep"],
 				player.name + " revealed " + revealed_card.title)
 			if selection[0] == "discard":
-				card = victim.deck.pop()
-				victim.discard_pile.append(card)
-				victim.update_deck_size()
-				victim.update_discard_size()
+				card = player.deck.pop()
+				player.discard_pile.append(card)
+				player.update_deck_size()
+				player.update_discard_size()
 				self.game.announce(self.played_by.name_string() + " discards " + card.log_string() + " from " +
-					victim.name_string() + "'s deck")
+					player.name_string() + "'s deck")
 			else:
-				card = victim.deck[-1]
+				card = player.deck[-1]
 				self.game.announce(self.played_by.name_string() + " leaves " + card.log_string() + " on " +
-					victim.name_string() + "'s deck")
-			crd.AttackCard.get_next(self, victim)
+					player.name_string() + "'s deck")
+			crd.AttackCard.get_next(self, player)
 
 class Smithy(crd.Card):
 	def __init__(self, game, played_by):

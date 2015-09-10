@@ -628,17 +628,14 @@ class Torturer(crd.AttackCard):
 					player.discard(discard_selection, player.discard_pile)
 					self.game.announce(player.name_string() + " discards " + str(len(discard_selection)) + " cards")
 					player.update_hand()
-					crd.AttackCard.get_next(self, player)
-				elif len(player.hand) == 0:
-					crd.AttackCard.get_next(self, player)
-				else:
+				elif len(player.hand) > 0:
 					player.opponents_wait("to discard", locked=False)
 					discard_selection = yield player.select(2, 2, crd.card_list_to_titles(player.hand.card_array()), "Discard two cards from hand")
 					self.game.announce(player.name_string() + " discards " + str(len(discard_selection)) + " cards")
 					player.discard(discard_selection, player.discard_pile)
 					player.update_hand()
-					player.update_wait(True)
-					crd.AttackCard.get_next(self, player)
+				player.update_wait(True)
+				crd.AttackCard.get_next(self, player)
 
 
 class Tribute(crd.Card):

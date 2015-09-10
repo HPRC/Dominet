@@ -92,7 +92,7 @@ class GameHandler(websocket.WebSocketHandler):
 		except ValueError:
 			print("Error tried removing " + table.host.name + "'s table from game_tables list")
 		self.update_lobby()
-		GameHandler.announce_lobby(" and ".join(list(map(lambda x: x.name, table.players))) + " started a game.")
+		self.announce_lobby(" and ".join(list(map(lambda x: x.name, table.players))) + " started a game.")
 
 	def chat(self, msg, speaker):
 		for name, p in self.application.unattachedClients.items():
@@ -170,7 +170,7 @@ class GameHandler(websocket.WebSocketHandler):
 		table.add_player(self.client)
 		self.update_lobby()
 
-	def announce_lobby(msg):
+	def announce_lobby(self, msg):
 		for name, p in self.application.unattachedClients.items():
 			p.write_json(command="chat", msg=msg)
 
