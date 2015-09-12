@@ -94,7 +94,7 @@ class Secret_Chamber(crd.Card):
 			self.played_by.update_hand()
 	
 			put_back = yield self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), 
-				"Put two cards to the top of your deck (#1 is on top)", True, True)
+				"Put two cards to the top of your deck (#1 is on top)", True)
 			if put_back:
 				drawn_cards = self.post_react_draw_select(put_back, drawn_cards)
 				#pass in newly drawn cards to check for new reactions

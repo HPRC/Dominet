@@ -227,8 +227,9 @@ class HandPile():
 			return list(map(lambda x: x.title, self.card_array()))
 		return []
 
+	@gen.coroutine
 	def play(self, card_title):
-		self.get_card(card_title).play()
+		yield gen.maybe_future(self.get_card(card_title).play())
 
 	def __iter__(self):
 		return self.card_array().__iter__()

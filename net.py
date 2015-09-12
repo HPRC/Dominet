@@ -124,7 +124,8 @@ class GameHandler(websocket.WebSocketHandler):
 	@gen.coroutine
 	def on_message(self,data):
 		jsondata = json.loads(data)
-		self.client.exec_commands(jsondata)
+		# add future to allow exceptions to be printed out
+		ioloop.IOLoop.instance().add_future(self.client.exec_commands(jsondata), lambda x: print(x.exception()) if x.exception() else None)
 		cmd = jsondata["command"]
 		print(self.client.name + " \033[94m" + json.dumps(jsondata) + "\033[0m")
 

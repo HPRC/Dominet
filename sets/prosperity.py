@@ -524,7 +524,6 @@ class Royal_Seal(crd.Money):
 			self.game.announce(self.played_by.name_string() + " uses " + self.log_string() + " to place "
 				+ purchased_card.log_string() + " on the top of their deck")
 			self.played_by.deck.append(purchased_card)
-		self.played_by.update_resources(True)
 
 class Vault(crd.Card):
 	def __init__(self, game, played_by):

@@ -78,6 +78,7 @@ class Duchess(crd.Card):
 			if selection[0] == "Yes":
 				yield duchy.played_by.gain("Duchess")
 			yield default_function.__get__(duchy, crd.Card)()
+			duchy.played_by.update_mode()
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-default'>", self.title, "</span>"])
