@@ -87,7 +87,7 @@ class Secret_Chamber(crd.Card):
 	@gen.coroutine
 	def react(self, reacted_to_callback):
 		selection = yield self.played_by.select(1, 1, ["Reveal", "Hide"],
-		                      "Reveal " + self.title + " to draw 2 and place 2 back to deck?", selflock=True)
+		                      "Reveal " + self.title + " to draw 2 and place 2 back to deck?")
 		if selection[0] == "Reveal":
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
 			drawn_cards = self.played_by.draw(2, False)

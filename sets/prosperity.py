@@ -655,8 +655,7 @@ class Hoard(crd.Money):
 	@gen.coroutine
 	def on_buy_effect(self, purchased_card):
 		if "Victory" in purchased_card.type:
-			yield self.played_by.gain("Gold", True, True) 
-			self.game.announce("-- gaining a " + self.played_by.get_card_from_supply("Gold", False).log_string())
+			yield self.played_by.gain("Gold", True, "-- gaining a " + self.played_by.get_card_from_supply("Gold", False).log_string()) 
 
 class Grand_Market(crd.Card):
 	def __init__(self, game, played_by):

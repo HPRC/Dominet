@@ -19,10 +19,13 @@ class WaitHandler():
 		if not notifier.name in self.locked:
 			if self.is_waiting_on(notifier):
 				self.waiting_on.remove(notifier.name)
-			if not self.is_waiting():
-				self.player.update_mode()
-			elif not self.is_waiting_on(self.player):
-				self.wait(self.msg)
+				if not self.is_waiting():
+					self.player.update_mode()
+				elif not self.is_waiting_on(self.player):
+					self.wait(self.msg)
+
+	def handle_reconnect(self, reconnecting_player):
+		self.waiting_on.remove(reconnecting_player.name)
 
 	def set_lock(self, locked_person, locked):
 		if locked:

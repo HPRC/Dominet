@@ -153,16 +153,12 @@ class DmClient(Client):
 					self.game.turn_count = 1
 					self.game.start_game()
 				else:
+					# game started, we are last one to reconnect
 					self.resume()
 					self.reconnect()
+			# game started, we are reconnecting and waiting for other ppl to reconnect too
 			elif self.game.turn_count != 0:
-				#not all players are ready wait for disconnected ones
 				self.reconnect()
-				self.update_wait()
-				#update wait msgs
-				for i in self.game.players:
-					if i.ready:
-						i.waiter.wait(self.waiter.msg)
 		elif cmd == "play":
 			if data["card"] not in self.hand:
 				print("Error " + data["card"] + " not in Hand: " + ",".join(map(lambda x: x.title, self.hand.card_array())))
@@ -203,12 +199,20 @@ class DmClient(Client):
 		self.update_hand()
 		self.update_resources()
 		self.game.update_trash_pile()
+		for i in self.get_opponents():
+			i.waiter.handle_reconnect(self)
+		#not all players are ready wait for disconnected ones
+		if not self.game.players_ready():
+			#update wait msgs
+			for i in self.game.players:
+				if i.ready:
+					i.waiter.wait(self.waiter.msg)
 
-	#resumes game after all players ready
+
+	#resumes game after all players ready, only called when everyone is reconnected from d/cing
 	def resume(self):
 		for i in self.game.players:
 			i.write_json(**i.last_mode)
-		
 		turn_owner = self.game.get_turn_owner()
 		turn_owner.write_json(command="startTurn", actions=turn_owner.actions, 
 				buys=turn_owner.buys, balance=turn_owner.balance)

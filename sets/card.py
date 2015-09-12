@@ -391,10 +391,8 @@ def discard_down(player, reduced_hand_size, callback):
 		player.game.announce("-- " + player.name_string() + " discards down to " + str(reduced_hand_size))
 		player.discard(discard_selection, player.discard_pile)
 		player.update_hand()
-		if not turn_owner.is_waiting():
-			callback()
+		callback()
 	else:
 		player.game.announce("-- " + player.name_string() + " has " + str(reduced_hand_size) + " or less cards in hand")
-		if not turn_owner.is_waiting():
-			callback()
+		callback()
 
