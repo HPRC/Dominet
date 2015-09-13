@@ -9,8 +9,10 @@ clientModule.controller("chatController", function($rootScope, $scope, socket){
 	};
 
 	$scope.enterChat = function(){
-		socket.send(JSON.stringify({"command": "chat", "msg": $scope.inputText}))
-		$scope.inputText = "";
+		if ($scope.inputText.length > 0){
+			socket.send(JSON.stringify({"command": "chat", "msg": $scope.inputText}))
+			$scope.inputText = "";
+		}
 	};
 
 	$scope.$on("$destroy", function(){
