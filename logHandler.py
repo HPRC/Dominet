@@ -8,10 +8,12 @@ class LogHandler():
 		self.file_title = file_title
 		self.flagged = False
 
-	def setup_log_file(self):
+	def setup_log_file(self, supply_cards):
 		header = "<html><head>" + LogHandler.CSS_LINK + "</head>"
 		file = open(self.get_log_file_path(), 'w')
 		file.write(header + "\n<h3>" + self.file_title + "</h3><br>")
+		supply_str = ", ".join(map(lambda x: x.log_string(), supply_cards))
+		file.write("{}{}{}".format("<h4>SUPPLY</h4>", supply_str, "<br>"))
 		file.close()
 
 	def get_log_file_path(self):
@@ -62,7 +64,7 @@ class TestLogHandler(LogHandler):
 	def __init__(self):
 		pass
 
-	def setup_log_file(self):
+	def setup_log_file(self, kingdom):
 		pass
 
 	def get_log_file_path(self):

@@ -22,7 +22,6 @@ class Game():
 
 	def start_game(self):
 		self.announce("Starting game with " + " and ".join(map(lambda x: str(x.name), self.players)))
-		self.logger.setup_log_file()
 
 		for i in self.players:
 			i.setup()
@@ -32,7 +31,6 @@ class Game():
 	def announce(self, msg):
 		for i in self.players:
 			i.write_json(command="announce", msg=msg)
-		self.logger.log_html_data(msg)
 
 	def change_turn(self):
 		self.turn = (self.turn + 1) % len(self.players)
@@ -92,6 +90,7 @@ class DmGame(Game):
 	# override
 	def start_game(self):
 		self.load_supplies()
+		self.logger.setup_log_file(self.supply.unique_cards())
 		Game.start_game(self)
 
 	def load_supplies(self):
@@ -145,6 +144,10 @@ class DmGame(Game):
 			else:
 				supply.add(x, 10)
 		return supply
+
+	def announce(self, msg):
+		self.logger.log_html_data(msg)
+		Game.announce(self, msg)
 
 	def announce_to(self, listeners, msg):
 		for i in listeners:

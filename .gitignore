@@ -4,3 +4,4 @@ pyvenv.cfg
 /venv/*
 /logs/*
 static/.sass-cache/*
+env.sh
