@@ -87,11 +87,17 @@ class DmGame(Game):
 		for x in self.supply.unique_cards():
 			self.price_modifier[x.title] = 0
 
+		#record of game announcements for public viewing / archiving
+		self.game_log = []
+
 	# override
 	def start_game(self):
+		self.logger.setup_log_file()
+		self.logger.log_html_data("<br>".join(["Supply:", str(self.base_supply), "Kingdom:", str(self.kingdom)]))
+		self.game_log.extend(["Supply:", str(self.base_supply), "Kingdom:", str(self.kingdom)])
 		self.load_supplies()
-		self.logger.setup_log_file(self.supply.unique_cards())
 		Game.start_game(self)
+
 
 	def load_supplies(self):
 		for i in self.players:
@@ -147,10 +153,12 @@ class DmGame(Game):
 
 	def announce(self, msg):
 		self.logger.log_html_data(msg)
+		self.game_log.append(msg)
 		Game.announce(self, msg)
 
 	def announce_to(self, listeners, msg):
 		for i in listeners:
+			self.game_log.append("{} {}{}".format("to:", i.name_string(), msg))
 			i.write_json(command="announce", msg=msg)
 
 	def get_player_from_name(self, name):
@@ -189,7 +197,6 @@ class DmGame(Game):
 				decklists.append("<br>")
 			for i in self.players:
 				i.write_json(command="updateMode", mode="gameover", decklists="".join(decklists))
-
 			self.logger.finish_game()
 			return True
 		else:
