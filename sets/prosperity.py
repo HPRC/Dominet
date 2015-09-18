@@ -253,9 +253,7 @@ class Talisman(crd.Money):
 	@gen.coroutine
 	def on_buy_effect(self, purchased_card):
 		if purchased_card.get_price() <= 4 and "Victory" not in purchased_card.type:
-			card = self.played_by.get_card_from_supply(purchased_card.title, True)
-			if card is not None:
-				yield self.played_by.gain(purchased_card.title, custom_announce="-- gaining another " + card.log_string())
+			yield self.played_by.gain(purchased_card.title, custom_announce="-- gaining another " + purchased_card.log_string())
 
 
 class Quarry(crd.Money):

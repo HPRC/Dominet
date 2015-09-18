@@ -8,6 +8,7 @@ import game as g
 import kingdomGenerator as kg
 
 import tornado.testing
+from tornado import gen
 import tests.test_utils as tu
 
 
@@ -449,11 +450,15 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player1.last_mode["mode"] == "select")
 		yield tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.deck[-1].title == "Curse")
+		yield gen.sleep(.2)
 		self.assertTrue(self.player1.last_mode["mode"] == "buy")
+
 		yield tu.send_input(self.player1, "buyCard", "Silver")
 		self.assertTrue(self.player1.last_mode["mode"] == "select")
+
 		yield tu.send_input(self.player1, "post_selection", ["No"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
+		yield gen.sleep(.2)
 		self.assertTrue(self.player1.last_mode["mode"] == "buy")
 		yield tu.send_input(self.player1, "buyCard", "Mint")
 		self.assertTrue(self.player1.last_mode["mode"] == "buy")
@@ -541,6 +546,17 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player2, "post_selection", ["Copper"])
 		self.assertTrue(self.player2.balance == 1)
 		self.assertTrue(self.player2.buys == 2)
+
+	@tornado.testing.gen_test
+	def test_Talisman_Supply(self):
+		tu.print_test_header("test Talisman supply")
+		talisman = prosperity.Talisman(self.game, self.player1)
+		self.player1.hand.add(talisman)
+
+		talisman.play()
+		coppers = self.game.supply.get_count("Copper")
+		yield tu.send_input(self.player1, "buyCard", "Copper")
+		self.assertTrue(self.game.supply.get_count("Copper") == coppers - 2)
 
 
 if __name__ == '__main__':

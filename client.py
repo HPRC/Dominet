@@ -271,7 +271,7 @@ class DmClient(Client):
 			yield gen.maybe_future(new_card.on_gain())
 			yield gen.maybe_future(self.hand.do_reactions("Gain", new_card))
 			yield gen.maybe_future(self.resolve_on_buy_effects(new_card))
-			self.update_resources(True)
+		self.update_resources(True)
 
 	def select(self, min_cards, max_cards, select_from, msg, ordered=False):
 		if len(select_from) > 0:

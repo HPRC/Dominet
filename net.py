@@ -1,7 +1,7 @@
 import client as c
 import json
 import os
-from tornado import httpserver, ioloop, web, websocket, gen	
+from tornado import httpserver, ioloop, web, websocket, gen
 import game as g
 import gametable as gt
 
@@ -266,6 +266,7 @@ def main():
 	mainServer = httpserver.HTTPServer(app)
 	mainServer.listen(PORT_NUMBER)
 	print("server listening on " + str(PORT_NUMBER))
+	
 	ioloop.IOLoop.instance().start()
 
 if __name__ == "__main__":
