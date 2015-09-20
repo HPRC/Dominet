@@ -496,7 +496,7 @@ class DmClient(Client):
 
 		# dictionary of vp {"Province" : [<card Province>, 2]}
 		vp_dict = {}
-		vp_dict["VP tokens"] = self.vp
+		vp_dict["VP tokens"] = ["VP tokens", self.vp]
 		total += self.vp
 		for card in self.all_cards():
 			if "Victory" in card.type or "Curse" in card.type:

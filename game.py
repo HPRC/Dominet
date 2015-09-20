@@ -211,8 +211,10 @@ class DmGame(Game):
 		ls = [] 
 		for title, data in player.total_vp(True).items():
 			if title == "VP tokens":
-				if data > 0:
-					ls.append(str(data) + " <span class='label label-success'>VP tokens</span>")
+				if data[1] > 1:
+					ls.append(str(data[1]) + " <span class='label label-success'>VP tokens</span>")
+				elif data[1] == 1:
+					ls.append("1 <span class='label label-success'>VP token</span>")
 				continue
 			if data[1] == 1:
 				ls.append(str(data[1]) + " " + data[0].log_string(False))
