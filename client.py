@@ -464,7 +464,7 @@ class DmClient(Client):
 		self.game.announce_to(self.get_opponents(), msg)
 
 	def announce_self(self, msg):
-		self.game_log.append("{} {}{}".format("to:", self.name_string(), msg))
+		self.game.game_log.append("{} {}{}".format("to:", self.name_string(), msg))
 		self.write_json(command="announce",msg=msg)
 
 	def spend_all_money(self):
