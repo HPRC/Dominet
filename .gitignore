@@ -5,3 +5,4 @@ pyvenv.cfg
 /logs/*
 static/.sass-cache/*
 env.sh
+style.css.map
