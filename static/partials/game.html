@@ -7,23 +7,19 @@
 	<div  class="col-md-4" id="leftColumn" ng-controller="supplyController">
 		<div class="row">
 			<div class="col-xs-6">
-				<table class="table">
-					<tr ng-repeat="card in kingdomSupplyArray | orderBy:'price':true">
-						<td class="supplyCardContainer"><supply-card></supply-card></td>
-					</tr>
-				</table>
+				<div ng-repeat="card in kingdomSupplyArray | orderBy:'price':true">
+					<div class="supplyCardContainer"><supply-card></supply-card></div>
+				</div>
 			</div>
 			<div class="col-xs-6">
-				<table class="table">
-					<tr ng-repeat="card in baseSupplyArray | orderBy:'price':true">
-						<td class="supplyCardContainer"><supply-card></supply-card></td>
-					</tr>
-                    <tr ng-show="modeJson.optional">
-                        <td class="supplyCardContainer">
-                           <b>$-</b> <button ng-click="selectNone()" class="btn btn-default">None</button>
-                        </td>
-                    </tr>
-				</table>
+				<div ng-repeat="card in baseSupplyArray | orderBy:'price':true">
+					<div class="supplyCardContainer"><supply-card></supply-card></div>
+				</div>
+                <div ng-show="modeJson.optional">
+                    <div class="supplyCardContainer">
+                       <b>$-</b> <button ng-click="selectNone()" class="btn btn-default">None</button>
+                    </div>
+                </div>
 			</div>
 		</div>
 	</div>
