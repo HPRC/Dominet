@@ -32,7 +32,7 @@
 				</div>
 				<div id="wait" ng-show="modeJson.mode === 'wait'"><h5>{{modeJson.msg}}</h5>
 				</div>
-				<div id="select" ng-show="modeJson.mode ==='select'" ng-controller="selectController">
+				<div id="select" ng-show="modeJson.mode ==='select' || modeJson.mode === 'selectSupply'" ng-controller="selectController">
 					<h5>{{modeJson.msg}}</h5>
 					<div ng-if="modeJson.min_cards > 1 || modeJson.min_cards === null">
 						<label class="checkbox-inline" ng-repeat="option in modeJson.select_from track by $index">

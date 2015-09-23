@@ -398,9 +398,9 @@ class DmClient(Client):
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 
-	def select_from_supply(self, price_limit=None, equal_only=False, type_constraint=None, allow_empty=False, optional=False):
+	def select_from_supply(self, msg, price_limit=None, equal_only=False, type_constraint=None, allow_empty=False, optional=False):
 		if allow_empty or self.game.supply.has_selectable(price_limit, equal_only, type_constraint):
-			self.write_json(command="updateMode", mode="selectSupply", price=price_limit, equal_only=equal_only,
+			self.write_json(command="updateMode", mode="selectSupply", msg=msg, price=price_limit, equal_only=equal_only,
 				type_constraint=type_constraint, allow_empty=allow_empty, optional=optional)
 
 			future = tornado.concurrent.Future()

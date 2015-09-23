@@ -334,7 +334,7 @@ class Contraband(crd.Money):
 		self.game.announce("-- gaining a buy")
 		left_opponent = self.played_by.get_left_opponent()
 		self.played_by.wait("to choose a card for contraband", left_opponent)
-		banned = yield left_opponent.select_from_supply()
+		banned = yield left_opponent.select_from_supply("Ban a card from " + self.played_by.name)
 		self.game.announce(left_opponent.name_string() + " bans " + self.game.log_string_from_title(banned[0]))
 		self.played_by.banned.append(banned[0])
 		crd.Money.on_finished(self)
@@ -716,7 +716,7 @@ class Expand(crd.Card):
 			card_trashed = self.game.card_from_title(selection[0])
 			self.played_by.update_hand()
 			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
-			selected = yield self.played_by.select_from_supply(card_trashed.price + 3, False)
+			selected = yield self.played_by.select_from_supply("Choose the expanded card", card_trashed.price + 3, False)
 			if selected:
 				yield self.played_by.gain(selected[0])
 				crd.Card.on_finished(self, False, False)
@@ -797,7 +797,7 @@ class Forge(crd.Card):
 			self.game.update_trash_pile()
 			self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(announce_string) + " to gain a card with cost " + str(trash_sum))
 
-			gained = yield self.played_by.select_from_supply(price_limit=trash_sum, equal_only=True, optional=False)
+			gained = yield self.played_by.select_from_supply("Gain a card from the forge", price_limit=trash_sum, equal_only=True, optional=False)
 			if gained:
 				yield self.played_by.gain(gained[0])
 				crd.Card.on_finished(self)
