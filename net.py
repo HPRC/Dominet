@@ -197,9 +197,6 @@ class DmHandler(GameHandler):
 			#resuming
 			# update game players
 			self.write_json(command="resume")
-			if self.client.waiter.disconnect_timer:
-				ioloop.IOLoop.instance().remove_timeout(self.client.waiter.disconnect_timer)
-				self.client.waiter.disconnect_timer = None
 	
 	# override
 	def on_close(self):

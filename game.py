@@ -172,8 +172,18 @@ class DmGame(Game):
 
 	def detect_end(self):
 		if self.supply.get_count("Province") == 0 or self.empty_piles >= 3 or ("Colony" in self.supply and self.supply.get_count("Colony") == 0):
-			self.announce("GAME OVER")
-			player_vp_list = (list(map(lambda x: (x, x.total_vp()), self.players)))
+			self.end_game()
+			return True
+		else:
+			return False
+
+	def end_game(self, disconnected=[]):
+		self.announce("GAME OVER")
+		player_vp_list = (list(map(lambda x: (x, x.total_vp()), self.players)))
+		if disconnected:
+			for i in player_vp_list:
+				self.announce(self.construct_end_string(i[0], i[1], i not in disconnected))
+		else:
 			win_vp = max(player_vp_list, key=lambda x: x[1])[1]
 			winners = [p for p in player_vp_list if p[1] == win_vp]
 			if len(winners) == 1:
@@ -189,18 +199,15 @@ class DmGame(Game):
 				else:
 					for i in player_vp_list:
 						self.announce(self.construct_end_string(i[0], i[1], i in filtered_winners))
-			decklists = []
-			for i in self.players:
-				decklists.append(i.name_string())
-				decklists.append("'s decklist:<br>")
-				decklists.append(i.decklist_string())
-				decklists.append("<br>")
-			for i in self.players:
-				i.write_json(command="updateMode", mode="gameover", decklists="".join(decklists))
-			self.logger.finish_game()
-			return True
-		else:
-			return False
+		decklists = []
+		for i in self.players:
+			decklists.append(i.name_string())
+			decklists.append("'s decklist:<br>")
+			decklists.append(i.decklist_string())
+			decklists.append("<br>")
+		for i in self.players:
+			i.write_json(command="updateMode", mode="gameover", decklists="".join(decklists))
+		self.logger.finish_game()
 
 	def construct_end_string(self, player, final_vp, is_winner):
 		msg = "claimed victory" if is_winner else "been defeated"
