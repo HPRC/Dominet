@@ -1,3 +1,5 @@
+from tornado import ioloop
+
 class WaitHandler():
 	def __init__(self, player):
 		self.player = player
@@ -6,6 +8,7 @@ class WaitHandler():
 		self.msg = ""
 		#locked = set of player names we ignore auto updates (and keep waiting) until manually removed from locked set
 		self.locked = set()
+		self.disconnect_timer = None
 
 	def wait(self, msg):
 		self.msg = msg
@@ -41,4 +44,16 @@ class WaitHandler():
 
 	def is_waiting(self):
 		return len(self.waiting_on) > 0
+
+	def time_disconnect(self, count):
+			count += 1
+			if count < 5:
+				for i in self.player.get_opponents():
+					i.wait(": they have disconnected for {} seconds".format(count), self.player)
+				self.disconnect_timer = ioloop.IOLoop.instance().call_later(1, lambda x=count: self.time_disconnect(x))
+			else:
+				for i in self.player.get_opponents():
+					a = yield i.select(1,1, ["Yes"], "Force {} to forefeit?".format(self.player.name))
+					print(a)
+
 

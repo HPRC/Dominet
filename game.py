@@ -7,6 +7,8 @@ import cardpile as cp
 import random
 import time
 import logHandler
+from tornado import ioloop
+import datetime
 
 class Game():
 	def __init__(self, players, req_supply="default"):
@@ -41,7 +43,6 @@ class Game():
 
 	def get_turn_owner(self):
 		return self.players[self.turn]
-
 
 class DmGame(Game):
 	def __init__(self, players, required_cards, excluded_cards, req_supply="default", test=False):
@@ -97,7 +98,6 @@ class DmGame(Game):
 		self.game_log.extend(["Supply:", str(self.base_supply), "Kingdom:", str(self.kingdom)])
 		self.load_supplies()
 		Game.start_game(self)
-
 
 	def load_supplies(self):
 		for i in self.players:

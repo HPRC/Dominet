@@ -187,6 +187,9 @@ class GameHandler(websocket.WebSocketHandler):
 
 class DmHandler(GameHandler):
 
+	def initialize(self):
+		GameHandler.initialize(self)
+
 	# override
 	def open(self):
 		# resume on player reconnect
@@ -194,6 +197,9 @@ class DmHandler(GameHandler):
 			#resuming
 			# update game players
 			self.write_json(command="resume")
+			if self.client.waiter.disconnect_timer:
+				ioloop.IOLoop.instance().remove_timeout(self.client.waiter.disconnect_timer)
+				self.client.waiter.disconnect_timer = None
 	
 	# override
 	def on_close(self):
@@ -217,8 +223,9 @@ class DmHandler(GameHandler):
 				for i in self.client.game.players:
 					i.write_json(command="chat", msg = self.client.name + " has left.", speaker=None)
 			else:
-				for i in self.client.get_opponents():
-					i.wait(": they have disconnected!", self.client)
+				self.client.waiter.time_disconnect(0)
+		
+
 
 class DmApplication(web.Application):
 	def __init__(self):
