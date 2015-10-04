@@ -76,6 +76,12 @@ class CardPile():
 	def __contains__(self, title):
 		return title in self.data
 
+	def __str__(self):
+		str_list = []
+		for key, val in self.data.items():
+			str_list.append("{} {}".format(val[1], val[0].log_string()))
+		return ", ".join(str_list)
+
 	def combine(self, cardPile):
 		self.data.update(cardPile.data.copy())
 
@@ -112,6 +118,8 @@ class CardPile():
 			return True
 		else:
 			return False
+
+
 
 class HandPile():
 	def __init__(self, player):
@@ -227,8 +235,9 @@ class HandPile():
 			return list(map(lambda x: x.title, self.card_array()))
 		return []
 
+	@gen.coroutine
 	def play(self, card_title):
-		self.get_card(card_title).play()
+		yield gen.maybe_future(self.get_card(card_title).play())
 
 	def __iter__(self):
 		return self.card_array().__iter__()

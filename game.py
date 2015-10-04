@@ -7,6 +7,8 @@ import cardpile as cp
 import random
 import time
 import logHandler
+from tornado import ioloop
+import datetime
 
 class Game():
 	def __init__(self, players, req_supply="default"):
@@ -15,7 +17,6 @@ class Game():
 		self.turn = self.first
 		self.turn_count = 0
 		self.req_supply = req_supply
-		self.logger = logHandler.LogHandler(", ".join(map(lambda x: x.name, self.players)) + " " + time.ctime(time.time()))
 
 	def chat(self, msg, speaker):
 		for i in self.players:
@@ -23,7 +24,6 @@ class Game():
 
 	def start_game(self):
 		self.announce("Starting game with " + " and ".join(map(lambda x: str(x.name), self.players)))
-		self.logger.setup_log_file()
 
 		for i in self.players:
 			i.setup()
@@ -33,7 +33,6 @@ class Game():
 	def announce(self, msg):
 		for i in self.players:
 			i.write_json(command="announce", msg=msg)
-		self.logger.log_html_data(msg)
 
 	def change_turn(self):
 		self.turn = (self.turn + 1) % len(self.players)
@@ -48,6 +47,10 @@ class Game():
 class DmGame(Game):
 	def __init__(self, players, required_cards, excluded_cards, req_supply="default", test=False):
 		Game.__init__(self, players, req_supply)
+		if not test:
+			self.logger = logHandler.LogHandler(", ".join(map(lambda x: x.name, self.players)) + " " + time.ctime(time.time()))
+		else:
+			self.logger = logHandler.TestLogHandler()
 		# randomize turn order
 		random.shuffle(self.players)
 		self.trash_pile = []
@@ -85,8 +88,14 @@ class DmGame(Game):
 		for x in self.supply.unique_cards():
 			self.price_modifier[x.title] = 0
 
+		#record of game announcements for public viewing / archiving
+		self.game_log = []
+
 	# override
 	def start_game(self):
+		self.logger.setup_log_file()
+		self.logger.log_html_data("<br>".join(["Supply:", str(self.base_supply), "Kingdom:", str(self.kingdom)]))
+		self.game_log.extend(["Supply:", str(self.base_supply), "Kingdom:", str(self.kingdom)])
 		self.load_supplies()
 		Game.start_game(self)
 
@@ -142,8 +151,14 @@ class DmGame(Game):
 				supply.add(x, 10)
 		return supply
 
+	def announce(self, msg):
+		self.logger.log_html_data(msg)
+		self.game_log.append(msg)
+		Game.announce(self, msg)
+
 	def announce_to(self, listeners, msg):
 		for i in listeners:
+			self.game_log.append("{} {}{}".format("to:", i.name_string(), msg))
 			i.write_json(command="announce", msg=msg)
 
 	def get_player_from_name(self, name):
@@ -157,8 +172,18 @@ class DmGame(Game):
 
 	def detect_end(self):
 		if self.supply.get_count("Province") == 0 or self.empty_piles >= 3 or ("Colony" in self.supply and self.supply.get_count("Colony") == 0):
-			self.announce("GAME OVER")
-			player_vp_list = (list(map(lambda x: (x, x.total_vp()), self.players)))
+			self.end_game()
+			return True
+		else:
+			return False
+
+	def end_game(self, disconnected=[]):
+		self.announce("GAME OVER")
+		player_vp_list = (list(map(lambda x: (x, x.total_vp()), self.players)))
+		if disconnected:
+			for i in player_vp_list:
+				self.announce(self.construct_end_string(i[0], i[1], i not in disconnected))
+		else:
 			win_vp = max(player_vp_list, key=lambda x: x[1])[1]
 			winners = [p for p in player_vp_list if p[1] == win_vp]
 			if len(winners) == 1:
@@ -174,19 +199,15 @@ class DmGame(Game):
 				else:
 					for i in player_vp_list:
 						self.announce(self.construct_end_string(i[0], i[1], i in filtered_winners))
-			decklists = []
-			for i in self.players:
-				decklists.append(i.name_string())
-				decklists.append("'s decklist:<br>")
-				decklists.append(i.decklist_string())
-				decklists.append("<br>")
-			for i in self.players:
-				i.write_json(command="updateMode", mode="gameover", decklists="".join(decklists))
-
-			self.logger.finish_game()
-			return True
-		else:
-			return False
+		decklists = []
+		for i in self.players:
+			decklists.append(i.name_string())
+			decklists.append("'s decklist:<br>")
+			decklists.append(i.decklist_string())
+			decklists.append("<br>")
+		for i in self.players:
+			i.write_json(command="updateMode", mode="gameover", decklists="".join(decklists))
+		self.logger.finish_game()
 
 	def construct_end_string(self, player, final_vp, is_winner):
 		msg = "claimed victory" if is_winner else "been defeated"
@@ -197,8 +218,10 @@ class DmGame(Game):
 		ls = [] 
 		for title, data in player.total_vp(True).items():
 			if title == "VP tokens":
-				if data > 0:
-					ls.append(str(data) + " <span class='label label-success'>VP tokens</span>")
+				if data[1] > 1:
+					ls.append(str(data[1]) + " <span class='label label-success'>VP tokens</span>")
+				elif data[1] == 1:
+					ls.append("1 <span class='label label-success'>VP token</span>")
 				continue
 			if data[1] == 1:
 				ls.append(str(data[1]) + " " + data[0].log_string(False))

@@ -116,6 +116,7 @@ class Chancellor(crd.Card):
 		selection = yield self.played_by.select(1, 1, ["Yes", "No"],  
 			"Put your deck into your discard pile?")
 		if selection[0] == "Yes":
+			self.game.announce("-- puting their deck into their discard pile")
 			self.played_by.discard_pile += self.played_by.deck
 			self.played_by.deck = []
 			self.played_by.update_discard_size()
@@ -149,7 +150,7 @@ class Workshop(crd.Card):
 	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		gaining_list = yield self.played_by.select_from_supply(4, False)
+		gaining_list = yield self.played_by.select_from_supply("Select a card to gain costing up to $4", 4, False)
 		if gaining_list:
 			yield self.played_by.gain(gaining_list[0])
 		crd.Card.on_finished(self, False, False)
@@ -213,7 +214,7 @@ class Feast(crd.Card):
 			self.game.update_trash_pile()
 			self.game.announce("-- trashing " + self.log_string())
 		self.played_by.update_resources()
-		selection = yield self.played_by.select_from_supply(5, False)
+		selection = yield self.played_by.select_from_supply("Select a card to gain from Feast", 5, False)
 		if selection:
 			yield self.played_by.gain(selection[0])
 		crd.Card.on_finished(self, False, False)
@@ -297,7 +298,7 @@ class Remodel(crd.Card):
 			card_trashed = self.game.card_from_title(selection[0])
 			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
 			self.played_by.update_hand()
-			gain_list = yield self.played_by.select_from_supply(card_trashed.get_price() + 2, False)
+			gain_list = yield self.played_by.select_from_supply("Select a card to gain from Remodel", card_trashed.get_price() + 2, False)
 			if gain_list:
 				yield self.played_by.gain(gain_list[0])
 				crd.Card.on_finished(self, False, False)
@@ -336,17 +337,17 @@ class Spy(crd.AttackCard):
 			selection = yield self.played_by.select(1, 1, ["discard", "keep"],
 				player.name + " revealed " + revealed_card.title)
 			if selection[0] == "discard":
-				card = victim.deck.pop()
-				victim.discard_pile.append(card)
-				victim.update_deck_size()
-				victim.update_discard_size()
+				card = player.deck.pop()
+				player.discard_pile.append(card)
+				player.update_deck_size()
+				player.update_discard_size()
 				self.game.announce(self.played_by.name_string() + " discards " + card.log_string() + " from " +
-					victim.name_string() + "'s deck")
+					player.name_string() + "'s deck")
 			else:
-				card = victim.deck[-1]
+				card = player.deck[-1]
 				self.game.announce(self.played_by.name_string() + " leaves " + card.log_string() + " on " +
-					victim.name_string() + "'s deck")
-			crd.AttackCard.get_next(self, victim)
+					player.name_string() + "'s deck")
+			crd.AttackCard.get_next(self, player)
 
 class Smithy(crd.Card):
 	def __init__(self, game, played_by):
@@ -631,7 +632,7 @@ class Mine(crd.Card):
 				self.played_by.discard(selection, self.game.trash_pile)
 				card_trashed = self.game.card_from_title(selection[0])
 				self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
-				gain_treasure = yield self.played_by.select_from_supply(card_trashed.get_price() + 3, False, "Treasure")
+				gain_treasure = yield self.played_by.select_from_supply("Select a treasure to gain", card_trashed.get_price() + 3, False, "Treasure")
 				if gain_treasure:
 					yield self.played_by.gain_to_hand(gain_treasure[0])
 			crd.Card.on_finished(self, False, False)

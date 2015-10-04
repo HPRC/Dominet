@@ -381,9 +381,12 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		self.player2.hand.play("Militia")
 		yield tu.send_input(self.player1, "post_selection", ["Reveal"])
 		self.assertTrue(self.player2.last_mode["mode"] == "wait")
+		#put back on top
 		yield tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
+		#second secret chamber
 		yield tu.send_input(self.player1, "post_selection", ["Hide"])
 		yield gen.sleep(.2)
+		#discard
 		yield tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
 		self.assertTrue(len(self.player1.hand.card_array()) == 3)
 		estates = self.player1.hand.get_count("Estate")

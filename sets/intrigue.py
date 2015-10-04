@@ -87,14 +87,14 @@ class Secret_Chamber(crd.Card):
 	@gen.coroutine
 	def react(self, reacted_to_callback):
 		selection = yield self.played_by.select(1, 1, ["Reveal", "Hide"],
-		                      "Reveal " + self.title + " to draw 2 and place 2 back to deck?", selflock=True)
+		                      "Reveal " + self.title + " to draw 2 and place 2 back to deck?")
 		if selection[0] == "Reveal":
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
 			drawn_cards = self.played_by.draw(2, False)
 			self.played_by.update_hand()
 	
 			put_back = yield self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), 
-				"Put two cards to the top of your deck (#1 is on top)", True, True)
+				"Put two cards to the top of your deck (#1 is on top)", True)
 			if put_back:
 				drawn_cards = self.post_react_draw_select(put_back, drawn_cards)
 				#pass in newly drawn cards to check for new reactions
@@ -295,7 +295,8 @@ class Swindler(crd.AttackCard):
 				self.game.announce(self.played_by.name_string() + " trashes " + self.game.log_string_from_title(topdeck.title)
 				                   + " from the top of " + player.name_string() + "'s deck.")
 
-				selection = yield self.played_by.select_from_supply(topdeck.get_price(), True)
+				selection = yield self.played_by.select_from_supply( 
+					"Select a card for " + player.name + " to gain", topdeck.get_price(), True)
 				if selection:
 					yield player.gain(selection[0])
 				crd.AttackCard.get_next(self, player)
@@ -320,7 +321,7 @@ class Wishing_Well(crd.Card):
 		self.played_by.update_hand()
 		self.game.announce("-- gaining +1 action and drawing a card")
 
-		selection = yield self.played_by.select_from_supply(allow_empty=True)
+		selection = yield self.played_by.select_from_supply("Make a wish", allow_empty=True)
 		topdeck = self.played_by.topdeck()
 		self.game.announce("-- wishing for a " + self.game.log_string_from_title(selection[0]))
 		if topdeck:
@@ -438,7 +439,7 @@ class Ironworks(crd.Card):
 		crd.Card.play(self, skip)
 		self.game.announce("Gain a card costing up to $4")
 
-		selection = yield self.played_by.select_from_supply(4)
+		selection = yield self.played_by.select_from_supply("Select a card to gain for Ironworks", 4)
 		if selection:
 			self.post_select(selection)
 		else:
@@ -628,17 +629,14 @@ class Torturer(crd.AttackCard):
 					player.discard(discard_selection, player.discard_pile)
 					self.game.announce(player.name_string() + " discards " + str(len(discard_selection)) + " cards")
 					player.update_hand()
-					crd.AttackCard.get_next(self, player)
-				elif len(player.hand) == 0:
-					crd.AttackCard.get_next(self, player)
-				else:
+				elif len(player.hand) > 0:
 					player.opponents_wait("to discard", locked=False)
 					discard_selection = yield player.select(2, 2, crd.card_list_to_titles(player.hand.card_array()), "Discard two cards from hand")
 					self.game.announce(player.name_string() + " discards " + str(len(discard_selection)) + " cards")
 					player.discard(discard_selection, player.discard_pile)
 					player.update_hand()
-					player.update_wait(True)
-					crd.AttackCard.get_next(self, player)
+				player.update_wait(True)
+				crd.AttackCard.get_next(self, player)
 
 
 class Tribute(crd.Card):
@@ -719,7 +717,7 @@ class Upgrade(crd.Card):
 			self.game.announce("-- trashing " + card.log_string() + " to gain a card with cost " + str(card.get_price() + 1))
 			self.played_by.update_hand()
 
-			select_gain = yield self.played_by.select_from_supply(card.get_price() + 1, True)
+			select_gain = yield self.played_by.select_from_supply("Select an upgrade to gain", card.get_price() + 1, True)
 			if select_gain:
 				yield self.played_by.gain(select_gain[0])
 			crd.Card.on_finished(self)
@@ -770,7 +768,7 @@ class Saboteur(crd.AttackCard):
 			                   + str(card.get_price() - 2) + " or less")
 			
 			self.played_by.wait("to gain a card", victim)
-			selection = yield victim.select_from_supply(price_limit=card.get_price() - 2, optional=True)
+			selection = yield victim.select_from_supply("Choose a remnant of the sabotaged goods", price_limit=card.get_price() - 2, optional=True)
 			if selection[0] != "None":
 				victim.gain(selection[0])
 				crd.AttackCard.get_next(self, victim)

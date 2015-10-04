@@ -253,10 +253,7 @@ class Talisman(crd.Money):
 	@gen.coroutine
 	def on_buy_effect(self, purchased_card):
 		if purchased_card.get_price() <= 4 and "Victory" not in purchased_card.type:
-			card = self.played_by.get_card_from_supply(purchased_card.title, True)
-			if card is not None:
-				yield self.played_by.gain(purchased_card.title, suppress_announcement=True)
-				self.game.announce("-- gaining another " + card.log_string())
+			yield self.played_by.gain(purchased_card.title, custom_announce="-- gaining another " + purchased_card.log_string())
 
 
 class Quarry(crd.Money):
@@ -337,7 +334,7 @@ class Contraband(crd.Money):
 		self.game.announce("-- gaining a buy")
 		left_opponent = self.played_by.get_left_opponent()
 		self.played_by.wait("to choose a card for contraband", left_opponent)
-		banned = yield left_opponent.select_from_supply()
+		banned = yield left_opponent.select_from_supply("Ban a card from " + self.played_by.name)
 		self.game.announce(left_opponent.name_string() + " bans " + self.game.log_string_from_title(banned[0]))
 		self.played_by.banned.append(banned[0])
 		crd.Money.on_finished(self)
@@ -394,7 +391,9 @@ class Mint(crd.Card):
 			self.game.announce("-- but there were no treasures to reveal")
 			crd.Card.on_finished(self, False, False)
 		elif len(treasures) == 1:
-			self.reveal(treasures)
+			self.game.announce("-- revealing " + treasures[0].log_string + ", gaining a copy of it.")
+			yield self.played_by.gain(treasures[0])
+			crd.Card.on_finished(self, False, False)
 		else:
 			selection = yield self.played_by.select(1, 1, treasures, "Choose a card to reveal")
 			self.game.announce("-- revealing " + self.game.log_string_from_title(selection[0]) + ", gaining a copy of it.")
@@ -525,7 +524,6 @@ class Royal_Seal(crd.Money):
 			self.game.announce(self.played_by.name_string() + " uses " + self.log_string() + " to place "
 				+ purchased_card.log_string() + " on the top of their deck")
 			self.played_by.deck.append(purchased_card)
-		self.played_by.update_resources(True)
 
 class Vault(crd.Card):
 	def __init__(self, game, played_by):
@@ -656,8 +654,7 @@ class Hoard(crd.Money):
 	@gen.coroutine
 	def on_buy_effect(self, purchased_card):
 		if "Victory" in purchased_card.type:
-			yield self.played_by.gain("Gold", True, True) 
-			self.game.announce("-- gaining a " + self.played_by.get_card_from_supply("Gold", False).log_string())
+			yield self.played_by.gain("Gold", True, "-- gaining a " + self.played_by.get_card_from_supply("Gold", False).log_string()) 
 
 class Grand_Market(crd.Card):
 	def __init__(self, game, played_by):
@@ -721,7 +718,7 @@ class Expand(crd.Card):
 			card_trashed = self.game.card_from_title(selection[0])
 			self.played_by.update_hand()
 			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
-			selected = yield self.played_by.select_from_supply(card_trashed.price + 3, False)
+			selected = yield self.played_by.select_from_supply("Choose the expanded card", card_trashed.price + 3, False)
 			if selected:
 				yield self.played_by.gain(selected[0])
 				crd.Card.on_finished(self, False, False)
@@ -802,7 +799,7 @@ class Forge(crd.Card):
 			self.game.update_trash_pile()
 			self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(announce_string) + " to gain a card with cost " + str(trash_sum))
 
-			gained = yield self.played_by.select_from_supply(price_limit=trash_sum, equal_only=True, optional=False)
+			gained = yield self.played_by.select_from_supply("Gain a card from the forge", price_limit=trash_sum, equal_only=True, optional=False)
 			if gained:
 				yield self.played_by.gain(gained[0])
 				crd.Card.on_finished(self)

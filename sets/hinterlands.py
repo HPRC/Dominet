@@ -24,7 +24,7 @@ class Crossroads(crd.Card):
 		num_victory_cards = len(self.played_by.hand.get_cards_by_type("Victory"))
 		drawn = self.played_by.draw(num_victory_cards)
 		#needs to be part of crossroads log
-		self.game.announce("-- draws " + drawn)
+		self.game.announce("-- drawing " + drawn)
 		crd.Card.on_finished(self, True)
 
 	def log_string(self, plural=False):
@@ -78,6 +78,7 @@ class Duchess(crd.Card):
 			if selection[0] == "Yes":
 				yield duchy.played_by.gain("Duchess")
 			yield default_function.__get__(duchy, crd.Card)()
+			duchy.played_by.update_mode()
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-default'>", self.title, "</span>"])
@@ -127,7 +128,7 @@ class Trader(crd.Card):
 		self.game.update_trash_pile()
 		self.game.announce("-- trashing " + self.game.log_string_from_title(selection[0]))
 		for i in range(0, trashed.get_price()):
-			self.played_by.gain("Silver", suppress_announcement=True)
+			self.played_by.gain("Silver", custom_announce="")
 		self.game.announce("-- gaining " + str(trashed.get_price()) + " " + self.game.log_string_from_title("Silver", trashed.get_price() > 1))
 		crd.Card.on_finished(self, True)
 

@@ -153,27 +153,24 @@ class DmClient(Client):
 					self.game.turn_count = 1
 					self.game.start_game()
 				else:
+					# game started, we are last one to reconnect
 					self.resume()
 					self.reconnect()
+			# game started, we are reconnecting and waiting for other ppl to reconnect too
 			elif self.game.turn_count != 0:
-				#not all players are ready wait for disconnected ones
 				self.reconnect()
-				self.update_wait()
-				#update wait msgs
-				for i in self.game.players:
-					if i.ready:
-						i.waiter.wait(self.waiter.msg)
 		elif cmd == "play":
 			if data["card"] not in self.hand:
 				print("Error " + data["card"] + " not in Hand: " + ",".join(map(lambda x: x.title, self.hand.card_array())))
 			else:
-				self.hand.play(data["card"])
+				yield self.hand.play(data["card"])
+				# self.hand.play(data["card"])
 		elif cmd == "discard":
 			self.discard(data["cards"], self.discard_pile)
 		elif cmd == "endTurn":
 			self.end_turn()
 		elif cmd == "buyCard":
-			self.buy_card(data["card"])
+			yield self.buy_card(data["card"])
 		elif cmd == "post_selection": 
 			self.exec_selected_choice(data["selection"])
 		elif cmd == "selectSupply":
@@ -189,6 +186,10 @@ class DmClient(Client):
 
 	def exec_selected_choice(self, choice):
 		self.update_wait()
+		# if its my turn allow card that triggered selection to handle mode
+		# else default update mode
+		if self.game.get_turn_owner() != self:
+			self.update_mode()
 		# choice(the parameter) to waiting callback is 
 		# a list for post_selection
 		# a list for selectSupply
@@ -203,12 +204,19 @@ class DmClient(Client):
 		self.update_hand()
 		self.update_resources()
 		self.game.update_trash_pile()
+		for i in self.get_opponents():
+			i.waiter.handle_reconnect(self)
+		#not all players are ready wait for disconnected ones
+		if not self.game.players_ready():
+			#update wait msgs
+			for i in self.game.players:
+				if i.ready:
+					i.waiter.wait(self.waiter.msg)
 
-	#resumes game after all players ready
+	#resumes game after all players ready, only called when everyone is reconnected from d/cing
 	def resume(self):
 		for i in self.game.players:
 			i.write_json(**i.last_mode)
-		
 		turn_owner = self.game.get_turn_owner()
 		turn_owner.write_json(command="startTurn", actions=turn_owner.actions, 
 				buys=turn_owner.buys, balance=turn_owner.balance)
@@ -263,27 +271,18 @@ class DmClient(Client):
 			yield gen.maybe_future(new_card.on_gain())
 			yield gen.maybe_future(self.hand.do_reactions("Gain", new_card))
 			yield gen.maybe_future(self.resolve_on_buy_effects(new_card))
-			self.update_resources()
+		self.update_resources(True)
 
-	def select(self, min_cards, max_cards, select_from, msg, ordered=False, selflock=False):
+	def select(self, min_cards, max_cards, select_from, msg, ordered=False):
 		if len(select_from) > 0:
 			self.write_json(command="updateMode", mode="select", min_cards=min_cards, max_cards=max_cards,
 				select_from=select_from, msg=msg, ordered=ordered)
 
 			future = tornado.concurrent.Future()
 			self.cb = future
-			self.waiter.append_wait(self)
-			#only change lock if we are locking, update_wait must be called to unlock
-			if selflock:
-				self.waiter.set_lock(self, selflock)
-
 			return future
 		else:
 			return []
-
-	#deprecated
-	def set_cb(self, selflock=False):
-		pass
 
 	#doesnt update mode to wait immediately
 	def wait_modeless(self, msg, on, locked=False):
@@ -367,12 +366,14 @@ class DmClient(Client):
 		return self.gen_new_card(card)
 
 	@gen.coroutine
-	def gain(self, card, from_supply=True, suppress_announcement=False):
+	def gain(self, card, from_supply=True, custom_announce=None):
 		new_card = self.get_card_from_supply(card, from_supply)
 
 		if new_card is not None:
-			if not suppress_announcement:
+			if custom_announce is None:
 				self.game.announce(self.name_string() + " gains " + new_card.log_string())
+			elif custom_announce != "":
+				self.game.announce(custom_announce)
 			self.discard_pile.append(new_card)
 			self.update_discard_size()
 			yield gen.maybe_future(new_card.on_gain())
@@ -397,18 +398,13 @@ class DmClient(Client):
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 
-	def select_from_supply(self, price_limit=None, equal_only=False, type_constraint=None, allow_empty=False, optional=False, selflock=False):
+	def select_from_supply(self, msg, price_limit=None, equal_only=False, type_constraint=None, allow_empty=False, optional=False):
 		if allow_empty or self.game.supply.has_selectable(price_limit, equal_only, type_constraint):
-			self.write_json(command="updateMode", mode="selectSupply", price=price_limit, equal_only=equal_only,
+			self.write_json(command="updateMode", mode="selectSupply", msg=msg, price=price_limit, equal_only=equal_only,
 				type_constraint=type_constraint, allow_empty=allow_empty, optional=optional)
 
 			future = tornado.concurrent.Future()
 			self.cb = future
-			self.waiter.append_wait(self)
-			#only change lock if we are locking, update_wait must be called to unlock
-			if selflock:
-				self.waiter.set_lock(self, selflock)
-
 			return future
 		else:
 			self.game.announce("-- but there is nothing available")
@@ -468,6 +464,7 @@ class DmClient(Client):
 		self.game.announce_to(self.get_opponents(), msg)
 
 	def announce_self(self, msg):
+		self.game.game_log.append("{} {}{}".format("to:", self.name_string(), msg))
 		self.write_json(command="announce",msg=msg)
 
 	def spend_all_money(self):
@@ -499,7 +496,7 @@ class DmClient(Client):
 
 		# dictionary of vp {"Province" : [<card Province>, 2]}
 		vp_dict = {}
-		vp_dict["VP tokens"] = self.vp
+		vp_dict["VP tokens"] = ["VP tokens", self.vp]
 		total += self.vp
 		for card in self.all_cards():
 			if "Victory" in card.type or "Curse" in card.type:
@@ -542,5 +539,6 @@ class DmClient(Client):
 	def resolve_on_buy_effects(self, purchased_card):
 		for card in self.played:
 			yield card.on_buy_effect(purchased_card)
+
 
 

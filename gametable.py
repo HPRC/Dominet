@@ -1,6 +1,7 @@
+import random
 class GameTable():
 	def __init__(self, title, host, seats, required, excluded, sets, req_supply="default"):
-		self.title = title
+		self.title = title or str(random.randint(0,99999))
 		self.host = host
 		self.seats = seats
 		self.sets = sets

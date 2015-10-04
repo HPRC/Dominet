@@ -1,7 +1,7 @@
 import client as c
 import json
 import os
-from tornado import httpserver, ioloop, web, websocket, gen	
+from tornado import httpserver, ioloop, web, websocket, gen
 import game as g
 import gametable as gt
 
@@ -23,11 +23,11 @@ class mainHandler(web.RequestHandler):
 		input_name = str(self.get_argument("username"))
 		cookie_name = self.get_cookie("DMTusername")
 		#no cookie and no name conflicts
-		if not GameHandler.in_game_or_lobby(input_name) and cookie_name is None:
+		if not self.application.in_game_or_lobby(input_name) and cookie_name is None:
 			self.set_cookie("DMTusername", input_name, expires_days=None)
 			self.render("main.html")
 		#new user, name conflict
-		elif GameHandler.in_game_or_lobby(input_name) and cookie_name is None:
+		elif self.application.in_game_or_lobby(input_name) and cookie_name is None:
 			self.render(INDEX, error="That username is currently being used!")
 		#we have a cookie already 
 		elif cookie_name == input_name:
@@ -35,7 +35,7 @@ class mainHandler(web.RequestHandler):
 			self.render("main.html")
 		else:
 			#have old name in cookie but requesting new name
-			if not GameHandler.in_game_or_lobby(cookie_name):
+			if not self.application.in_game_or_lobby(cookie_name):
 				self.set_cookie("DMTusername", input_name, expires_days=None)
 				self.render("main.html")
 			#trying to play in new tab with new name while connected as another name conflict
@@ -44,12 +44,6 @@ class mainHandler(web.RequestHandler):
 
 
 class GameHandler(websocket.WebSocketHandler):
-	# name => client obj
-	unattachedClients = {}
-	games = []
-	# host => gametable obj
-	game_tables = {}
-
 	def initialize(self):
 		self.application.unassigned_id += 1
 		self.table = None
@@ -66,7 +60,7 @@ class GameHandler(websocket.WebSocketHandler):
 	def open(self):
 		name = self.get_cookie("DMTusername")
 		print("\033[96m " + name + " has opened connection \033[0m")
-		disconnected = GameHandler.disconnected_clients()
+		disconnected = self.application.disconnected_clients()
 		if name in disconnected:
 			self.client = disconnected[name]
 			self.client.handler = self
@@ -74,11 +68,11 @@ class GameHandler(websocket.WebSocketHandler):
 			return True
 		else:
 			self.client = c.DmClient(name, self.application.unassigned_id, self)
-			self.unattachedClients[self.client.name] = self.client
+			self.application.unattachedClients[self.client.name] = self.client
 			# init client
 			self.write_json(command="init", id=self.client.id, name=self.client.name)
 			self.chat(self.client.name + " has joined the lobby", None)
-			GameHandler.update_lobby()
+			self.update_lobby()
 			return False
 
 	def start_game(self, table):
@@ -86,43 +80,43 @@ class GameHandler(websocket.WebSocketHandler):
 		for i in table.players:
 			i.write_json(command="resume")
 			i.game = game
-		GameHandler.games.append(game)
+		self.application.games.append(game)
 		for x in table.players:
 			try:
-				del GameHandler.unattachedClients[x.name]
+				del self.application.unattachedClients[x.name]
 			except ValueError:
 				print("Error tried removing " + x.name + " from unattachedClients list")
 			x.handler.table = None
 		try:
-			del GameHandler.game_tables[table.host.name]
+			del self.application.game_tables[table.host.name]
 		except ValueError:
 			print("Error tried removing " + table.host.name + "'s table from game_tables list")
-		GameHandler.update_lobby()
-		GameHandler.announce_lobby(" and ".join(list(map(lambda x: x.name, table.players))) + " started a game.")
+		self.update_lobby()
+		self.announce_lobby(" and ".join(list(map(lambda x: x.name, table.players))) + " started a game.")
 
 	def chat(self, msg, speaker):
-		for name, p in GameHandler.unattachedClients.items():
+		for name, p in self.application.unattachedClients.items():
 			p.write_json(command="chat", msg=msg, speaker=speaker)
 
-	def update_lobby():
-		for name, p in GameHandler.unattachedClients.items():
-			p.write_json(command="lobby", lobby_list=GameHandler.get_lobby_names(), game_tables=GameHandler.get_game_tables())
+	def update_lobby(self):
+		for name, p in self.application.unattachedClients.items():
+			p.write_json(command="lobby", lobby_list=self.get_lobby_names(), game_tables=self.get_game_tables())
 
-	def get_lobby_names():
-		return list(GameHandler.unattachedClients.keys())
+	def get_lobby_names(self):
+		return list(self.application.unattachedClients.keys())
 
-	def get_game_tables():
+	def get_game_tables(self):
 		tablelist = []
-		for host, table in GameHandler.game_tables.items():
+		for host, table in self.application.game_tables.items():
 			tablelist.append(table)
 		return list(map(lambda x: x.to_json(), tablelist))
 
 	def return_to_lobby(self):
-		GameHandler.unattachedClients[self.client.name] = self.client
-		GameHandler.update_lobby()
+		self.application.unattachedClients[self.client.name] = self.client
+		self.update_lobby()
 		self.client.game.players.remove(self.client)
 		if len(self.client.game.players) == 0:
-			GameHandler.games.remove(self.client.game)
+			self.application.games.remove(self.client.game)
 		else:
 			for p in self.client.game.players:
 				p.write_json(command="chat", msg = self.client.name + " has returned to the lobby.", speaker=None)
@@ -130,7 +124,8 @@ class GameHandler(websocket.WebSocketHandler):
 	@gen.coroutine
 	def on_message(self,data):
 		jsondata = json.loads(data)
-		self.client.exec_commands(jsondata)
+		# add future to allow exceptions to be printed out
+		ioloop.IOLoop.instance().add_future(self.client.exec_commands(jsondata), lambda x: print(x.exception()) if x.exception() else None)
 		cmd = jsondata["command"]
 		print(self.client.name + " \033[94m" + json.dumps(jsondata) + "\033[0m")
 
@@ -141,74 +136,59 @@ class GameHandler(websocket.WebSocketHandler):
 		elif cmd == "joinTable":
 			self.join_table(jsondata)
 		elif cmd == "startGame":
-			if jsondata["host"] not in GameHandler.game_tables:
-				print(GameHandler.game_tables)
-			table = GameHandler.game_tables[jsondata["host"]]
+			if jsondata["host"] not in self.application.game_tables:
+				print(self.application.game_tables)
+			table = self.application.game_tables[jsondata["host"]]
 			self.start_game(table)
 
 	def create_table(self, json):
 		tableData = json["table"]
-		newTable = GameHandler.game_tables[self.client.name] = gt.GameTable(
+		newTable = self.application.game_tables[self.client.name] = gt.GameTable(
 			tableData["title"], self.client, tableData["seats"], tableData["required"], tableData["excluded"], "Base", tableData["req_supply"])
 		self.table = newTable
-		GameHandler.update_lobby()
+		self.update_lobby()
 
 	def leave_table(self, json):
-		table = GameHandler.game_tables[json["host"]]
+		table = self.application.game_tables[json["host"]]
 		self.table = None
 		if self.client == table.host:
 			# no one left at table
 			if len(table.players) == 1:
-				del GameHandler.game_tables[json["host"]]
+				del self.application.game_tables[json["host"]]
 			else:
 				# successor host is chosen
 				table.remove_player(self.client)
-				GameHandler.game_tables[table.host.name] = table
-				del GameHandler.game_tables[json["host"]]
+				self.application.game_tables[table.host.name] = table
+				del self.application.game_tables[json["host"]]
 		else:
 			table.remove_player(self.client)
 
-		GameHandler.update_lobby()
+		self.update_lobby()
 
 	def join_table(self, json):
-		table = GameHandler.game_tables[json["host"]]
+		table = self.application.game_tables[json["host"]]
 		self.table = table
 		table.add_player(self.client)
-		GameHandler.update_lobby()
+		self.update_lobby()
 
-	def announce_lobby(msg):
-		for name, p in GameHandler.unattachedClients.items():
+	def announce_lobby(self, msg):
+		for name, p in self.application.unattachedClients.items():
 			p.write_json(command="chat", msg=msg)
 
 	def on_close(self):
 		print("\033[96m " + self.client.name + " has closed the SOCKET! \033[0m")
 		self.disconnected = True
-		if self.client.name in GameHandler.unattachedClients:
-			del GameHandler.unattachedClients[self.client.name]
+		if self.client.name in self.application.unattachedClients:
+			del self.application.unattachedClients[self.client.name]
 		if self.table is not None:
 			self.leave_table({"host":self.table.host.name})
-		GameHandler.update_lobby()
+		self.update_lobby()
 
-	#static util
-	def in_game_or_lobby(name):
-		#check if player is in a game
-		for eg in GameHandler.games:
-			if name in list(map(lambda x: x.name, [e for e in eg.players if not e.handler.disconnected])):
-				return True
-		#check if player is in the lobby
-		if name in list(GameHandler.unattachedClients.keys()):
-			return True
-		return False
-
-	#returns dict of name to player object of d/ced players
-	def disconnected_clients():
-		dced = {}
-		for eg in GameHandler.games:
-			for i in [x for x in eg.players if x.handler.disconnected]:
-				dced[i.name] = i
-		return dced
 
 class DmHandler(GameHandler):
+
+	def initialize(self):
+		GameHandler.initialize(self)
 
 	# override
 	def open(self):
@@ -231,7 +211,7 @@ class DmHandler(GameHandler):
 				abandoned = False
 
 		if abandoned:
-			GameHandler.games.remove(self.client.game)
+			self.application.games.remove(self.client.game)
 			self.client.game = None
 		else:
 			if self.client.last_mode["mode"] == "gameover":
@@ -240,23 +220,57 @@ class DmHandler(GameHandler):
 				for i in self.client.game.players:
 					i.write_json(command="chat", msg = self.client.name + " has left.", speaker=None)
 			else:
-				for i in self.client.get_opponents():
-					i.wait(": they have disconnected!", self.client)
+				self.client.waiter.time_disconnect(0)
+		
+
+
+class DmApplication(web.Application):
+	def __init__(self):
+		handlers = [
+			(r'/', mainHandler),
+			(r'/ws', DmHandler)
+		]
+		settings = {
+			"static_path": os.path.join(os.path.dirname(__file__), "static"),
+			"debug": True
+		}
+		#super.init
+		web.Application.__init__(self, handlers, **settings)
+
+		self.unassigned_id = 1
+		# name => client obj
+		self.unattachedClients = {}
+		self.games = []
+		# host => gametable obj
+		self.game_tables = {}
+
+
+	def in_game_or_lobby(self, name):
+		#check if player is in a game
+		for eg in self.games:
+			if name in list(map(lambda x: x.name, [e for e in eg.players if not e.handler.disconnected])):
+				return True
+		#check if player is in the lobby
+		if name in list(self.unattachedClients.keys()):
+			return True
+		return False
+
+	#returns dict of name to player object of d/ced players
+	def disconnected_clients(self):
+		dced = {}
+		for eg in self.games:
+			for i in [x for x in eg.players if x.handler.disconnected]:
+				dced[i.name] = i
+		return dced
 
 
 def main():
-	app = web.Application([
-		(r'/', mainHandler),
-		(r'/ws', DmHandler)
-	    ],
-	    static_path=os.path.join(os.path.dirname(__file__), "static"),
-	    debug=True
-	    )
-	app.unassigned_id = 1
+	app = DmApplication()
 
 	mainServer = httpserver.HTTPServer(app)
 	mainServer.listen(PORT_NUMBER)
 	print("server listening on " + str(PORT_NUMBER))
+	
 	ioloop.IOLoop.instance().start()
 
 if __name__ == "__main__":
