@@ -108,6 +108,7 @@ class Develop (crd.Card):
 			self.game.announce(self.played_by.name_string() + ' trashes ' + card_trashed.log_string())
 			self.played_by.update_hand()
 			
+			self.game.announce('-- gaining a card costing one more than ' + card_trashed.log_string())
 			gain_plus_one = yield self.played_by.select_from_supply('Select a card costing exactly one more than ' + card_trashed.title, 
 				card_trashed.get_price() + 1, 
 				equal_only=True)
@@ -115,6 +116,7 @@ class Develop (crd.Card):
 				yield self.played_by.gain(gain_plus_one[0])
 			crd.Card.on_finished(self, False, False)	
 			
+			self.game.announce('-- gaining a card costing one less than ' + card_trashed.log_string())
 			gain_minus_one = yield self.played_by.select_from_supply('Select a card costing exactly one less than ' + card_trashed.title, 
 				card_trashed.get_price() - 1, 
 				equal_only=True)
