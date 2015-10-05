@@ -52,9 +52,13 @@ class WaitHandler():
 	@gen.coroutine
 	def time_disconnect(self, count):
 		count += 1
-		if count < 5:
+		if count == 1:
 			for i in self.player.get_opponents():
-				i.wait(": they have disconnected for {} seconds".format(count), self.player)
+				i.wait(": they have disconnected for {} minute".format(count), self.player)
+			self.disconnect_timer = ioloop.IOLoop.instance().call_later(60, lambda x=count: self.time_disconnect(x))
+		elif count < 5:
+			for i in self.player.get_opponents():
+				i.wait(": they have disconnected for {} minutes".format(count), self.player)
 			self.disconnect_timer = ioloop.IOLoop.instance().call_later(60, lambda x=count: self.time_disconnect(x))
 		else:
 			futures = []

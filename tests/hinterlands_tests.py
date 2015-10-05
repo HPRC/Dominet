@@ -145,7 +145,8 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		tu.send_input(self.player1, "play", "Silver")
 		tu.send_input(self.player1, "play", "Silver")
 
-		tu.send_input(self.player1, "buyCard", "Mandarin")
+		yield tu.send_input(self.player1, "buyCard", "Mandarin")
+		
 		self.assertTrue(self.player1.last_mode["mode"] == "select")
 		yield tu.send_input(self.player1, "post_selection", ["Silver", "Silver", "Gold"])
 		self.assertTrue(len(self.player1.played) == 0)

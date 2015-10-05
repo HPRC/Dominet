@@ -187,6 +187,7 @@ class Mandarin(crd.Card):
 				self.played_by.announce_self("-- You place " + card_string + " back on top of your deck")
 			crd.Card.on_finished(self, True)
 
+	@gen.coroutine
 	def on_gain(self):
 		played_treasures = [x for x in self.played_by.played if "Treasure" in x.type]
 		#remove treasures from played pile
@@ -195,7 +196,7 @@ class Mandarin(crd.Card):
 			self.game.announce("-- placing treasures back on top of their deck")
 			self.played_by.deck += played_treasures
 		else:
-			crd.reorder_top(self.played_by, played_treasures, lambda :self.done_gaining())
+			yield crd.reorder_top(self.played_by, played_treasures, lambda :self.done_gaining())
 
 	def done_gaining(self):
 		self.game.announce("-- placing treasures back on top of their deck")

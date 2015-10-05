@@ -458,6 +458,7 @@ class Throne_Room(crd.Card):
 		if not selection:
 			self.done = lambda : None
 			self.game.announce(" -- but has no action cards")
+			crd.Card.on_finished(self, False, False)
 		else:
 			selected_card = self.played_by.hand.get_card(selection[0])
 			throne_room_str = self.played_by.name_string() + " " + self.log_string(True) + " " + selected_card.log_string()
