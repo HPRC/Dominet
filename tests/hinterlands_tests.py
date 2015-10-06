@@ -87,6 +87,24 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player2.discard_pile[-1].title == "Duchess")
 
 	@tornado.testing.gen_test
+	def test_Develop(self):
+		tu.print_test_header("Test Develop")
+		develop = hl.Develop(self.game, self.player1)
+		tu.add_many_to_hand(self.player1, develop, 2)
+		self.player1.hand.add(crd.Copper(self.game, self.player1))
+		self.player1.hand.add(crd.Estate(self.game, self.player1))
+
+		develop.play()
+
+		yield tu.send_input(self.player1, "post_selection", ["Copper"])
+		develop.play()
+		yield tu.send_input(self.player1, "post_selection", ["Estate"])
+		yield tu.send_input(self.player1, "selectSupply", ["Silver"])
+		self.assertTrue("Silver" == self.player1.discard_pile[-1].title)
+
+
+
+	@tornado.testing.gen_test
 	def test_Duchess_Feast(self):
 		tu.print_test_header("Test Duchess Feast")
 		feast = base.Feast(self.game, self.player1)
@@ -213,6 +231,8 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "post_selection", ["Reveal"])
 		yield tu.send_input(self.player1, "post_selection", ["Put on top of deck"])
 		self.assertTrue(self.player1.deck[-1].title == "Silver")
+
+
 
 
 if __name__ == '__main__':
