@@ -114,7 +114,6 @@ class Develop (crd.Card):
 				equal_only=True)
 			if gain_plus_one:
 				yield self.played_by.gain(gain_plus_one[0])
-			crd.Card.on_finished(self, False, False)	
 			
 			self.game.announce('-- gaining a card costing one less than ' + card_trashed.log_string())
 			gain_minus_one = yield self.played_by.select_from_supply('Select a card costing exactly one less than ' + card_trashed.title, 
@@ -122,6 +121,7 @@ class Develop (crd.Card):
 				equal_only=True)
 			if gain_minus_one:
 				yield self.played_by.gain(gain_minus_one[0])
+			
 			crd.Card.on_finished(self, False, False)			
 		else:
 			crd.Card.on_finished(self)
