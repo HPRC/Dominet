@@ -85,9 +85,50 @@ class Duchess(crd.Card):
 
 
 # --------------------------------------------------------
-# ------------------------ 4 Cost ------------------------
+# ------------------------ 3 Cost ------------------------
 # --------------------------------------------------------
 
+class Develop (crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = 'Develop'
+		self.description = 'Trash a card from your hand and gain a card costing exactly 1 less than the trashed card and exactly 1 more than the trashed card in either order'
+		self.price = 3
+		self.type = 'Action'
+
+	@gen.coroutine
+	def play(self, skip = False):
+		crd.Card.play(self, skip) 
+		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), 
+			'select a card to develop')
+		if selection:
+			self.played_by.update_resources()
+			self.played_by.discard(selection, self.game.trash_pile)
+			card_trashed = self.game.card_from_title(selection[0])
+			self.game.announce(self.played_by.name_string() + ' trashes ' + card_trashed.log_string())
+			self.played_by.update_hand()
+			
+			self.game.announce('-- gaining a card costing one more than ' + card_trashed.log_string())
+			gain_plus_one = yield self.played_by.select_from_supply('Select a card costing exactly one more than ' + card_trashed.title, 
+				card_trashed.get_price() + 1, 
+				equal_only=True)
+			if gain_plus_one:
+				yield self.played_by.gain(gain_plus_one[0])
+			
+			self.game.announce('-- gaining a card costing one less than ' + card_trashed.log_string())
+			gain_minus_one = yield self.played_by.select_from_supply('Select a card costing exactly one less than ' + card_trashed.title, 
+				card_trashed.get_price() - 1, 
+				equal_only=True)
+			if gain_minus_one:
+				yield self.played_by.gain(gain_minus_one[0])
+			
+			crd.Card.on_finished(self, False, False)			
+		else:
+			crd.Card.on_finished(self)
+
+# --------------------------------------------------------
+# ------------------------ 4 Cost ------------------------
+# --------------------------------------------------------
 
 class Nomad_Camp(crd.Card):
 	def __init__(self, game, played_by):
@@ -201,4 +242,6 @@ class Mandarin(crd.Card):
 		self.game.announce("-- placing treasures back on top of their deck")
 		if self.game.get_turn_owner() == self.played_by:
 			self.played_by.update_mode()
+
+
 
