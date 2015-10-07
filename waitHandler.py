@@ -29,10 +29,7 @@ class WaitHandler():
 
 	def handle_reconnect(self, reconnecting_player):
 		self.waiting_on.remove(reconnecting_player.name)
-		if self.disconnect_timer:
-			ioloop.IOLoop.instance().remove_timeout(self.disconnect_timer)
-			self.disconnect_timer = None
-
+		self.remove_timer()
 
 	def set_lock(self, locked_person, locked):
 		if locked:
@@ -55,11 +52,11 @@ class WaitHandler():
 		if count == 1:
 			for i in self.player.get_opponents():
 				i.wait(": they have disconnected for {} minute".format(count), self.player)
-			self.disconnect_timer = ioloop.IOLoop.instance().call_later(60, lambda x=count: self.time_disconnect(x))
+			self.disconnect_timer = ioloop.IOLoop.instance().call_later(1, lambda x=count: self.time_disconnect(x))
 		elif count < 5:
 			for i in self.player.get_opponents():
 				i.wait(": they have disconnected for {} minutes".format(count), self.player)
-			self.disconnect_timer = ioloop.IOLoop.instance().call_later(60, lambda x=count: self.time_disconnect(x))
+			self.disconnect_timer = ioloop.IOLoop.instance().call_later(1, lambda x=count: self.time_disconnect(x))
 		else:
 			futures = []
 			for i in self.player.get_opponents():
@@ -69,3 +66,10 @@ class WaitHandler():
 				selected = yield wait_iterator.next()
 				if selected == ["Yes"]:
 					self.player.game.end_game([self.player])
+
+	def remove_timer(self):
+		if self.disconnect_timer:
+			ioloop.IOLoop.instance().remove_timeout(self.disconnect_timer)
+			self.disconnect_timer = None
+
+

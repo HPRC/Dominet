@@ -384,18 +384,18 @@ class Mint(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		treasure_cards = self.played_by.hand.get_cards_by_type("Treasure", True)
-		treasures_titles = list(set(map(lambda x: x.title, treasure_cards)))
+		treasure_titles = list(set(map(lambda x: x.title, treasure_cards)))
 
 		# perhaps write an auto_select method for lists?
-		if len(treasures_titles) == 0:
+		if len(treasure_titles) == 0:
 			self.game.announce("-- but there were no treasures to reveal")
 			crd.Card.on_finished(self, False, False)
-		elif len(treasures_titles) == 1:
-			self.game.announce("-- revealing " + treasure_cards[0].log_string + ", gaining a copy of it.")
-			yield self.played_by.gain(treasure_cards[0])
+		elif len(treasure_titles) == 1:
+			self.game.announce("-- revealing " + treasure_cards[0].log_string() + ", gaining a copy of it.")
+			yield self.played_by.gain(treasure_titles[0])
 			crd.Card.on_finished(self, False, False)
 		else:
-			selection = yield self.played_by.select(1, 1, treasures_titles, "Choose a card to reveal")
+			selection = yield self.played_by.select(1, 1, treasure_titles, "Choose a card to reveal")
 			self.game.announce("-- revealing " + self.game.log_string_from_title(selection[0]) + ", gaining a copy of it.")
 			yield self.played_by.gain(selection[0])
 			crd.Card.on_finished(self, False, False)
