@@ -54,6 +54,18 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.assertTrue(len(self.player1.hand) == expected_drawn + base_hand_size - 1) 
 
 	@tornado.testing.gen_test
+	def test_Crossroads_Throne_Room(self):
+		tu.print_test_header("test Crossroads Throne Room")
+		crossroads = hl.Crossroads(self.game, self.player1)
+		throneroom = base.Throne_Room(self.game, self.player1)
+		self.player1.hand.add(throneroom)
+		self.player1.hand.add(crossroads)
+		
+		tu.send_input(self.player1, "play", "Throne Room")
+		yield tu.send_input(self.player1, "post_selection", ["Crossroads"])
+		self.assertTrue(self.player1.actions == 3)
+
+	@tornado.testing.gen_test
 	def test_Duchess(self):
 		tu.print_test_header("Test Duchess")
 		duchess = hl.Duchess(self.game, self.player1)
@@ -167,7 +179,7 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		
 		self.assertTrue(self.player1.last_mode["mode"] == "select")
 		yield tu.send_input(self.player1, "post_selection", ["Silver", "Silver", "Gold"])
-		self.assertTrue(len(self.player1.played) == 0)
+		self.assertTrue(len(self.player1.played_cards) == 0)
 		self.assertTrue(self.player1.deck[-1].title == "Gold")
 		self.assertTrue(self.player1.deck[-2].title == "Silver")
 		self.assertTrue(self.player1.deck[-3].title == "Silver")

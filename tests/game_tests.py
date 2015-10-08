@@ -85,7 +85,7 @@ class TestGame(unittest.TestCase):
 		self.player1.spend_all_money()
 		self.assertTrue(self.player1.balance == 5)
 		self.assertTrue(len(self.player1.hand) == 0)
-		self.assertTrue(len(self.player1.played) == 5)
+		self.assertTrue(len(self.player1.played_cards) == 5)
 		self.assertTrue(len([x for x in self.player1.all_cards() if x.title == "Copper"]) == 5)
 
 	def test_discard(self):

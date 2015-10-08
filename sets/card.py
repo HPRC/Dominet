@@ -16,9 +16,9 @@ class Card():
 
 	def play(self, skip=False):
 		if "Action" in self.type:
-			self.played_by.played_actions += 1
+			self.played_by.played_inclusive.append(self)
 		if not skip:
-			self.played_by.discard([self.title], self.played_by.played)
+			self.played_by.discard([self.title], self.played_by.played_cards)
 			self.game.announce(self.played_by.name_string() + " played " + self.log_string())
 			if "Action" in self.type:
 				self.played_by.actions -= 1
@@ -74,7 +74,7 @@ class Card():
 	def on_gain_effect(self, gained_card):
 		pass
 
-	#called after card finishes resolving and is put into the played pile
+	#called after card finishes resolving and is put into the played_cards pile
 	def done(self):
 		pass
 

@@ -209,8 +209,8 @@ class Feast(crd.Card):
 	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		if self.played_by.played[-1] == self:
-			self.game.trash_pile.append(self.played_by.played.pop())
+		if self.played_by.played_cards[-1] == self:
+			self.game.trash_pile.append(self.played_by.played_cards.pop())
 			self.game.update_trash_pile()
 			self.game.announce("-- trashing " + self.log_string())
 		self.played_by.update_resources()
@@ -475,7 +475,7 @@ class Throne_Room(crd.Card):
 				card.played_by.update_resources()
 
 			selected_card.done = second_play
-			self.played_by.discard(selection, self.played_by.played)
+			self.played_by.discard(selection, self.played_by.played_cards)
 			self.game.announce(throne_room_str)
 			selected_card.play(True)
 			self.played_by.update_resources()

@@ -434,7 +434,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.actions == 3)
 		self.assertTrue(self.game.trash_pile[-1].title == "Mining Village")
-		self.assertTrue(len(self.player1.played)==1)
+		self.assertTrue(len(self.player1.played_cards)==1)
 		self.assertTrue(self.player1.balance == 2)
 
 	@tornado.testing.gen_test
@@ -494,7 +494,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		copper.play()
 		self.assertTrue(self.player1.balance == 3)
 		#we played throne room, coppersmith, copper
-		self.assertTrue(len(self.player1.played) == 3)
+		self.assertTrue(len(self.player1.played_cards) == 3)
 		self.player1.end_turn()
 		self.assertTrue(copper.value == 1)
 		#make sure we only have 1 coppersmith in our deck
@@ -682,7 +682,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		village.play()
 		mv.play()
 		yield tu.send_input(self.player1, "post_selection", ["Yes"])
-		self.assertFalse(mv in self.player1.played)
+		self.assertFalse(mv in self.player1.played_cards)
 		self.assertTrue(mv in self.game.trash_pile)
 		self.assertTrue(self.player1.actions == 3)
 		conspirator.play()
