@@ -4,6 +4,7 @@ import cardpile as cp
 import random
 import sets.base as b
 import sets.intrigue as intr
+import sets.prosperity as prosp
 import html
 import game as g
 import waitHandler as w
@@ -64,7 +65,7 @@ class DmClient(Client):
 		for i in range(0, 7):
 			deck.append(crd.Copper(game=self.game, played_by=self))
 		for i in range(0, 3):
-			deck.append(crd.Estate(game=self.game, played_by=self))
+			deck.append(prosp.Kings_Court(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
