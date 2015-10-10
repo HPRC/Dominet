@@ -14,9 +14,10 @@ class Crossroads(crd.Card):
 		self.type = "Action"
 
 	def play(self, skip=False):
-		cards_played = list(map(lambda x : x.title, self.played_by.played))
 		crd.Card.play(self, skip)
-		if "Crossroads" not in cards_played:
+		crossroads_played = [c for c in self.played_by.played_inclusive if c.title == "Crossroads"]
+		# if this was the only one played just noow
+		if len(crossroads_played) == 1:
 			self.played_by.actions += 3
 			self.game.announce("-- gaining 3 actions")
 		#Announce announces everything to all players in log, reveal_string adds css to cards in log 
@@ -228,15 +229,16 @@ class Mandarin(crd.Card):
 				self.played_by.announce_self("-- You place " + card_string + " back on top of your deck")
 			crd.Card.on_finished(self, True)
 
+	@gen.coroutine
 	def on_gain(self):
-		played_treasures = [x for x in self.played_by.played if "Treasure" in x.type]
+		played_treasures = [x for x in self.played_by.played_cards if "Treasure" in x.type]
 		#remove treasures from played pile
-		self.played_by.played = [x for x in self.played_by.played if "Treasure" not in x.type]
+		self.played_by.played_cards = [x for x in self.played_by.played_cards if "Treasure" not in x.type]
 		if len(played_treasures) == 1 or len(set(map(lambda x: x.title, played_treasures))) == 1:
 			self.game.announce("-- placing treasures back on top of their deck")
 			self.played_by.deck += played_treasures
 		else:
-			crd.reorder_top(self.played_by, played_treasures, lambda :self.done_gaining())
+			yield crd.reorder_top(self.played_by, played_treasures, lambda :self.done_gaining())
 
 	def done_gaining(self):
 		self.game.announce("-- placing treasures back on top of their deck")

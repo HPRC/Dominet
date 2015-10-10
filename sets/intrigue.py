@@ -398,7 +398,7 @@ class Conspirator(crd.Card):
 		self.played_by.balance += 2
 
 		announcement = "-- gaining $2"
-		if self.played_by.played_actions >= 3:
+		if len([x for x in self.played_by.played_inclusive if "Action" in x.type]) >= 3:
 			self.played_by.actions += 1
 			drawn = self.played_by.draw(1)
 			announcement += " and drawing " + drawn + " and gaining +1 action"
@@ -487,10 +487,10 @@ class Mining_Village(crd.Card):
 		if "Yes" in selection:
 			if len(self.game.trash_pile) > 0 and self.game.trash_pile[-1] == self:
 				self.game.announce("-- tries to trash " + self.log_string() + " but it was already trashed")
-			elif self in self.played_by.played:
+			elif self in self.played_by.played_cards:
 				self.game.announce("-- trashing " + self.log_string() + " to gain $2")
 				self.played_by.balance += 2
-				self.played_by.played.pop()
+				self.played_by.played_cards.pop()
 				self.game.trash_pile.append(self)
 				self.game.update_trash_pile()
 		crd.Card.on_finished(self)

@@ -383,28 +383,28 @@ class Mint(crd.Card):
 	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		treasures = self.played_by.hand.get_cards_by_type("Treasure", True)
-		treasures = list(set(map(lambda x: x.title, treasures)))
+		treasure_cards = self.played_by.hand.get_cards_by_type("Treasure", True)
+		treasure_titles = list(set(map(lambda x: x.title, treasure_cards)))
 
 		# perhaps write an auto_select method for lists?
-		if len(treasures) == 0:
+		if len(treasure_titles) == 0:
 			self.game.announce("-- but there were no treasures to reveal")
 			crd.Card.on_finished(self, False, False)
-		elif len(treasures) == 1:
-			self.game.announce("-- revealing " + treasures[0].log_string + ", gaining a copy of it.")
-			yield self.played_by.gain(treasures[0])
+		elif len(treasure_titles) == 1:
+			self.game.announce("-- revealing " + treasure_cards[0].log_string() + ", gaining a copy of it.")
+			yield self.played_by.gain(treasure_titles[0])
 			crd.Card.on_finished(self, False, False)
 		else:
-			selection = yield self.played_by.select(1, 1, treasures, "Choose a card to reveal")
+			selection = yield self.played_by.select(1, 1, treasure_titles, "Choose a card to reveal")
 			self.game.announce("-- revealing " + self.game.log_string_from_title(selection[0]) + ", gaining a copy of it.")
 			yield self.played_by.gain(selection[0])
 			crd.Card.on_finished(self, False, False)
 
 	def on_buy(self):
 		trashed_treasures = list()
-		for i in range(len(self.played_by.played) - 1, -1, -1):
-			if self.played_by.played[i].type == 'Treasure':
-				trashed_treasures.append(self.played_by.played.pop(i))
+		for i in range(len(self.played_by.played_cards) - 1, -1, -1):
+			if self.played_by.played_cards[i].type == 'Treasure':
+				trashed_treasures.append(self.played_by.played_cards.pop(i))
 		announce_string = ", ".join(list(map(lambda x: self.game.log_string_from_title(x.title), trashed_treasures)))
 
 		self.game.announce("-- trashing " + announce_string)
@@ -598,7 +598,7 @@ class Venture(crd.Money):
 			self.game.announce("-- revealing " + card.log_string())
 			self.game.announce("-- " + self.played_by.name_string() + " played " + card.log_string())
 			card.play(True)
-			self.played_by.played.append(card)
+			self.played_by.played_cards.append(card)
 		crd.Money.on_finished(self)
 
 # --------------------------------------------------------
@@ -692,7 +692,7 @@ class Bank(crd.Money):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		total_played_treasures = 0
-		for card in self.played_by.played:
+		for card in self.played_by.played_cards:
 			if "Treasure" in card.type:
 				total_played_treasures += 1
 		self.played_by.balance += total_played_treasures
@@ -763,7 +763,7 @@ class Kings_Court(crd.Card):
 			#after playing the card the first time, we set the done callback to play_again and override the default
 			#done callback for the 2nd time the card is played to play_again to play a 3rd time
 			selected_card.done = lambda : play_again(done_cb=play_again)
-			self.played_by.discard(selection, self.played_by.played)
+			self.played_by.discard(selection, self.played_by.played_cards)
 			self.game.announce(kings_court_str)
 			selected_card.play(True)
 			self.played_by.update_resources()
@@ -829,5 +829,5 @@ class Peddler(crd.Card):
 
 	#called when the buy phase begins
 	def on_buy_phase(self):
-		modifier = self.game.get_turn_owner().played_actions * -2
+		modifier = len([x for x in self.game.get_turn_owner().played_inclusive if "Action" in x.type]) * -2
 		self.game.price_modifier[self.title] = modifier

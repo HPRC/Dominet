@@ -112,8 +112,10 @@ class DmClient(Client):
 		self.vp = 0
 		self.deck = self.base_deck()
 		self.hand = cp.HandPile(self)
-		self.played = []
-		self.played_actions = 0
+		# actual cards played to be added back into deck, throne rooming a card does not add two cards to this
+		self.played_cards = []
+		# all cards played, if a card was throne roomed, it is added twice
+		self.played_inclusive = []
 		self.actions = 0
 		self.buys = 0
 		self.balance = 0
@@ -223,10 +225,10 @@ class DmClient(Client):
 
 	def end_turn(self):
 		# cleanup before game ends
-		for x in self.played:
+		for x in self.played_cards:
 			x.cleanup() 
-		self.discard_pile = self.discard_pile + self.played
-		self.played = []
+		self.discard_pile = self.discard_pile + self.played_cards
+		self.played_cards = []
 
 
 		if self.game.detect_end():
@@ -234,7 +236,7 @@ class DmClient(Client):
 		self.actions = 0
 		self.buys = 0
 		self.balance = 0
-		self.played_actions = 0
+		self.played_inclusive = []
 		self.bought_cards = False
 		self.banned = []
 		self.draw(self.hand_size)
@@ -336,7 +338,7 @@ class DmClient(Client):
 			self.game.update_trash_pile()
 
 	def update_mode(self):
-		played_money = [x for x in self.played if "Treasure" in x.type]
+		played_money = [x for x in self.played_cards if "Treasure" in x.type]
 		# if we have no actions or no action cards and no money cards, buy mode
 		if (len(self.hand.get_cards_by_type("Action")) == 0 or self.actions == 0) and len(self.hand.get_cards_by_type("Treasure")) == 0:
 			self.update_mode_buy_phase()
@@ -433,7 +435,7 @@ class DmClient(Client):
 			if x == card:
 				return self.hand.extract_specific(x)
 		try:
-			self.played.remove(card)
+			self.played_cards.remove(card)
 			return card
 		except ValueError:
 			pass
@@ -441,7 +443,7 @@ class DmClient(Client):
 
 
 	def total_deck_size(self):
-		return len(self.deck) + len(self.discard_pile) + len(self.played) + len(self.hand)
+		return len(self.deck) + len(self.discard_pile) + len(self.played_cards) + len(self.hand)
 
 	#by default returns list in order starting with players after you
 	def get_opponents(self):
@@ -483,7 +485,7 @@ class DmClient(Client):
 				to_discard += self.hand.get_all(card_title)
 				to_log.append(str(count))
 				to_log.append(card.log_string() if count == 1 else card.log_string(True))
-			self.discard(list(map(lambda x: x.title, to_discard)), self.played)
+			self.discard(list(map(lambda x: x.title, to_discard)), self.played_cards)
 			if len(to_log) > 0:
 				self.game.announce(self.name_string() + " played " + " ".join(to_log))
 				self.update_resources(True)
@@ -533,11 +535,11 @@ class DmClient(Client):
 		return count
 
 	def all_cards(self):
-		return self.deck + self.discard_pile + self.played + self.hand.card_array()
+		return self.deck + self.discard_pile + self.played_cards + self.hand.card_array()
 
 	@gen.coroutine
 	def resolve_on_buy_effects(self, purchased_card):
-		for card in self.played:
+		for card in self.played_cards:
 			yield card.on_buy_effect(purchased_card)
 
 
