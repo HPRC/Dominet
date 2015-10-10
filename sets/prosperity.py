@@ -111,8 +111,8 @@ class Trade_Route(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Trade Route"
-		self.description = "+$1 per token on the trade route mat. Trash a card from your hand."\
-							" Each victory card pile in supply begins with $1 token. When a card is first gained from the pile, move the token to the trade route mat."
+		self.description = "+1 Buy. Trash a card from your hand. +$1 per card on the Trade Route mat.\n"\
+							"A Victory card is added to the Trade Route Mat when it is gained for the first time from supply"
 		self.price = 3
 		self.type = "Action"
 
