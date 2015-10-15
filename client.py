@@ -54,7 +54,7 @@ class DmClient(Client):
 	def write_json(self, **kwargs):
 		if kwargs["command"] == "updateMode":
 			# ignore the last_mode if it was a wait for disconnecting
-			if not ("msg" in kwargs and "disconnected" in kwargs["msg"]):
+			if not ("msg" in kwargs and ("disconnected" in kwargs["msg"] or "afk" in kwargs["msg"])):
 				# callback used to resume mode if reconnect
 				self.last_mode = kwargs
 		Client.write_json(self, **kwargs)
@@ -183,6 +183,9 @@ class DmClient(Client):
 			self.handler.return_to_lobby()
 			self.ready = False
 			self.game = None
+			self.waiter.remove_dc_timer()
+			self.waiter.remove_afk_timer()
+			self.waiter = None
 		elif cmd == "submitBugReport":
 			self.game.logger.flag_me()
 
@@ -224,6 +227,7 @@ class DmClient(Client):
 				buys=turn_owner.buys, balance=turn_owner.balance)
 
 	def end_turn(self):
+		self.waiter.remove_afk_timer()
 		# cleanup before game ends
 		for x in self.played_cards:
 			x.cleanup() 

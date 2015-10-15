@@ -9,9 +9,11 @@ class WaitHandler():
 		#locked = set of player names we ignore auto updates (and keep waiting) until manually removed from locked set
 		self.locked = set()
 		self.disconnect_timer = None
+		self.afk_timer = None
 
 	def wait(self, msg):
 		self.msg = msg
+		self.remove_afk_timer()
 		self.player.write_json(command="updateMode", mode="wait", msg="Waiting for " + self.waiting_on_string() + " " + self.msg)
 
 	def append_wait(self, to_append):
@@ -29,7 +31,7 @@ class WaitHandler():
 
 	def handle_reconnect(self, reconnecting_player):
 		self.waiting_on.remove(reconnecting_player.name)
-		self.remove_timer()
+		self.remove_dc_timer()
 
 	def set_lock(self, locked_person, locked):
 		if locked:
@@ -52,11 +54,11 @@ class WaitHandler():
 		if count == 1:
 			for i in self.player.get_opponents():
 				i.wait(": they have disconnected for {} minute".format(count), self.player)
-			self.disconnect_timer = ioloop.IOLoop.instance().call_later(1, lambda x=count: self.time_disconnect(x))
+			self.disconnect_timer = ioloop.IOLoop.instance().call_later(60000, lambda x=count: self.time_disconnect(x))
 		elif count < 5:
 			for i in self.player.get_opponents():
 				i.wait(": they have disconnected for {} minutes".format(count), self.player)
-			self.disconnect_timer = ioloop.IOLoop.instance().call_later(1, lambda x=count: self.time_disconnect(x))
+			self.disconnect_timer = ioloop.IOLoop.instance().call_later(60000, lambda x=count: self.time_disconnect(x))
 		else:
 			futures = []
 			for i in self.player.get_opponents():
@@ -67,9 +69,25 @@ class WaitHandler():
 				if selected == ["Yes"]:
 					self.player.game.end_game([self.player])
 
-	def remove_timer(self):
+	@gen.coroutine
+	def time_afk(self):
+		def afk_cb(self):
+			for i in self.player.get_opponents():
+				futures.append(i.select(1,1, ["Yes"], "{} seems to be afk and has not responded for over 5 minutes, force forefeit?".format(self.player.name)))
+			wait_iterator = gen.WaitIterator(*futures) 
+			while not wait_iterator.done():
+				if selected == ["Yes"]:
+					self.player.game.end_game([self.player])
+		self.afk_timer = ioloop.IOLoop.instance().call_later(300000, self.afk_cb)
+
+	def remove_dc_timer(self):
 		if self.disconnect_timer:
 			ioloop.IOLoop.instance().remove_timeout(self.disconnect_timer)
+			self.disconnect_timer = None
+
+	def remove_afk_timer(self):
+		if self.afk_timer:
+			ioloop.IOLoop.instance().remove_timeout(self.afk_timer)
 			self.disconnect_timer = None
 
 

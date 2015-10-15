@@ -214,7 +214,7 @@ class DmHandler(GameHandler):
 			self.application.games.remove(self.client.game)
 			for i in self.client.game.players:
 				i.game = None
-				i.waiter.remove_timer()
+				i.waiter.remove_dc_timer()
 		else:
 			if self.client.last_mode["mode"] == "gameover":
 				#remove me from the game
