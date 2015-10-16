@@ -139,6 +139,7 @@ class DmClient(Client):
 		self.write_json(command="updateMode", mode="action")
 		self.write_json(command="startTurn", actions=self.actions, buys=self.buys, 
 			balance=self.balance)
+		self.waiter.time_afk()
 
 	# override
 	@gen.coroutine
@@ -148,6 +149,7 @@ class DmClient(Client):
 		if self.game is None:
 			return
 		cmd = data["command"]
+
 		if cmd == "ready":
 			self.ready = True
 			if self.game.players_ready():
@@ -161,24 +163,6 @@ class DmClient(Client):
 			# game started, we are reconnecting and waiting for other ppl to reconnect too
 			elif self.game.turn_count != 0:
 				self.reconnect()
-		elif cmd == "play":
-			if data["card"] not in self.hand:
-				print("Error " + data["card"] + " not in Hand: " + ",".join(map(lambda x: x.title, self.hand.card_array())))
-			else:
-				yield self.hand.play(data["card"])
-				# self.hand.play(data["card"])
-		elif cmd == "discard":
-			self.discard(data["cards"], self.discard_pile)
-		elif cmd == "endTurn":
-			self.end_turn()
-		elif cmd == "buyCard":
-			yield self.buy_card(data["card"])
-		elif cmd == "post_selection": 
-			self.exec_selected_choice(data["selection"])
-		elif cmd == "selectSupply":
-			self.exec_selected_choice(data["card"])
-		elif cmd == "spendAllMoney":
-			self.spend_all_money()
 		elif cmd == "returnToLobby":
 			self.handler.return_to_lobby()
 			self.ready = False
@@ -188,7 +172,30 @@ class DmClient(Client):
 			self.waiter = None
 		elif cmd == "submitBugReport":
 			self.game.logger.flag_me()
+		else:
+			self.waiter.reset_afk_timer()
 
+		#ingame player commands
+		if cmd == "play":
+			if data["card"] not in self.hand:
+				print("Error " + data["card"] + " not in Hand: " + ",".join(map(lambda x: x.title, self.hand.card_array())))
+			else:
+				yield self.hand.play(data["card"])
+				# self.hand.play(data["card"])
+		elif cmd == "discard":
+			self.discard(data["cards"], self.discard_pile)
+		elif cmd == "endTurn":
+			self.end_turn()
+			self.waiter.remove_afk_timer()
+		elif cmd == "buyCard":
+			yield self.buy_card(data["card"])
+		elif cmd == "post_selection": 
+			self.exec_selected_choice(data["selection"])
+		elif cmd == "selectSupply":
+			self.exec_selected_choice(data["card"])
+		elif cmd == "spendAllMoney":
+			self.spend_all_money()
+			
 	def exec_selected_choice(self, choice):
 		self.update_wait()
 		# if its my turn allow card that triggered selection to handle mode
@@ -227,7 +234,6 @@ class DmClient(Client):
 				buys=turn_owner.buys, balance=turn_owner.balance)
 
 	def end_turn(self):
-		self.waiter.remove_afk_timer()
 		# cleanup before game ends
 		for x in self.played_cards:
 			x.cleanup() 

@@ -14,6 +14,8 @@ class WaitHandler():
 	def wait(self, msg):
 		self.msg = msg
 		self.remove_afk_timer()
+		for i in self.waiting_on:
+			self.player.game.get_player_from_name(i).waiter.time_afk()
 		self.player.write_json(command="updateMode", mode="wait", msg="Waiting for " + self.waiting_on_string() + " " + self.msg)
 
 	def append_wait(self, to_append):
@@ -24,8 +26,10 @@ class WaitHandler():
 		if not notifier.name in self.locked:
 			if self.is_waiting_on(notifier):
 				self.waiting_on.remove(notifier.name)
+				notifier.waiter.remove_afk_timer()
 				if not self.is_waiting():
 					self.player.update_mode()
+					self.time_afk()
 				elif not self.is_waiting_on(self.player):
 					self.wait(self.msg)
 
@@ -54,11 +58,11 @@ class WaitHandler():
 		if count == 1:
 			for i in self.player.get_opponents():
 				i.wait(": they have disconnected for {} minute".format(count), self.player)
-			self.disconnect_timer = ioloop.IOLoop.instance().call_later(60000, lambda x=count: self.time_disconnect(x))
+			self.disconnect_timer = ioloop.IOLoop.instance().call_later(300, lambda x=count: self.time_disconnect(x))
 		elif count < 5:
 			for i in self.player.get_opponents():
 				i.wait(": they have disconnected for {} minutes".format(count), self.player)
-			self.disconnect_timer = ioloop.IOLoop.instance().call_later(60000, lambda x=count: self.time_disconnect(x))
+			self.disconnect_timer = ioloop.IOLoop.instance().call_later(300, lambda x=count: self.time_disconnect(x))
 		else:
 			futures = []
 			for i in self.player.get_opponents():
@@ -71,14 +75,22 @@ class WaitHandler():
 
 	@gen.coroutine
 	def time_afk(self):
-		def afk_cb(self):
+		@gen.coroutine
+		def afk_cb():
+			futures = []
 			for i in self.player.get_opponents():
-				futures.append(i.select(1,1, ["Yes"], "{} seems to be afk and has not responded for over 5 minutes, force forefeit?".format(self.player.name)))
+				futures.append(i.select(1,1, ["Yes"], 
+					"{} seems to be afk and has not responded for over 5 minutes, force forefeit?".format(self.player.name)))
 			wait_iterator = gen.WaitIterator(*futures) 
 			while not wait_iterator.done():
+				selected = yield wait_iterator.next()
 				if selected == ["Yes"]:
 					self.player.game.end_game([self.player])
-		self.afk_timer = ioloop.IOLoop.instance().call_later(300000, self.afk_cb)
+		self.afk_timer = ioloop.IOLoop.instance().call_later(360, afk_cb)
+
+	def reset_afk_timer(self):
+		self.remove_afk_timer()
+		self.time_afk()
 
 	def remove_dc_timer(self):
 		if self.disconnect_timer:
@@ -88,6 +100,8 @@ class WaitHandler():
 	def remove_afk_timer(self):
 		if self.afk_timer:
 			ioloop.IOLoop.instance().remove_timeout(self.afk_timer)
-			self.disconnect_timer = None
+			self.afk_timer = None
+		for i in self.player.get_opponents():
+			i.write_json(**i.last_mode)
 
 

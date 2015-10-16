@@ -182,7 +182,7 @@ class DmGame(Game):
 		player_vp_list = (list(map(lambda x: (x, x.total_vp()), self.players)))
 		if disconnected:
 			for i in player_vp_list:
-				self.announce(self.construct_end_string(i[0], i[1], i not in disconnected))
+				self.announce(self.construct_end_string(i[0], i[1], i[0] not in disconnected))
 		else:
 			win_vp = max(player_vp_list, key=lambda x: x[1])[1]
 			winners = [p for p in player_vp_list if p[1] == win_vp]
@@ -207,6 +207,8 @@ class DmGame(Game):
 			decklists.append("<br>")
 		for i in self.players:
 			i.write_json(command="updateMode", mode="gameover", decklists="".join(decklists))
+			i.waiter.remove_afk_timer()
+			i.waiter.remove_dc_timer()
 		self.logger.finish_game()
 
 	def construct_end_string(self, player, final_vp, is_winner):

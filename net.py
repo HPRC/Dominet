@@ -213,8 +213,9 @@ class DmHandler(GameHandler):
 		if abandoned:
 			self.application.games.remove(self.client.game)
 			for i in self.client.game.players:
-				i.game = None
 				i.waiter.remove_dc_timer()
+				i.waiter.remove_afk_timer()
+				i.game = None
 		else:
 			if self.client.last_mode["mode"] == "gameover":
 				#remove me from the game
