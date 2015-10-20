@@ -122,6 +122,7 @@ class DmClient(Client):
 		self.draw(self.hand_size)
 		self.update_hand()
 		self.waiter = w.WaitHandler(self)
+		self.gamelog = []
 		self.cb = None
 		self.protection = 0
 		#boolean to keep track of if we bought a card to disable spending treasure afterwards
@@ -211,6 +212,7 @@ class DmClient(Client):
 
 	def reconnect(self):
 		self.game.announce(self.name_string() + " has reconnected!")
+		self.write_json(command="setGameLog", log="<br>".join(self.gamelog))
 		self.game.load_supplies()
 		self.update_hand()
 		self.update_resources()
@@ -476,6 +478,7 @@ class DmClient(Client):
 
 	def announce_self(self, msg):
 		self.game.game_log.append("{} {}{}".format("to:", self.name_string(), msg))
+		self.gamelog.append(msg)
 		self.write_json(command="announce",msg=msg)
 
 	def spend_all_money(self):

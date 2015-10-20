@@ -23,10 +23,9 @@ class Game():
 			i.write_json(command="chat", msg=msg, speaker=speaker)
 
 	def start_game(self):
-		self.announce("Starting game with " + " and ".join(map(lambda x: str(x.name), self.players)))
-
 		for i in self.players:
 			i.setup()
+		self.announce("Starting game with " + " and ".join(map(lambda x: str(x.name), self.players)))
 		self.announce("<b>---- " + self.players[self.turn].name_string() + " 's turn " + str(self.turn_count) + " ----</b>")
 		self.players[self.turn].take_turn()
 
@@ -154,12 +153,15 @@ class DmGame(Game):
 	def announce(self, msg):
 		self.logger.log_html_data(msg)
 		self.game_log.append(msg)
+		for i in self.players:
+			i.gamelog.append(msg)
 		Game.announce(self, msg)
 
 	def announce_to(self, listeners, msg):
 		for i in listeners:
 			self.game_log.append("{} {}{}".format("to:", i.name_string(), msg))
 			i.write_json(command="announce", msg=msg)
+			i.gamelog.append(msg)
 
 	def get_player_from_name(self, name):
 		for i in self.players:
@@ -208,7 +210,6 @@ class DmGame(Game):
 		for i in self.players:
 			i.write_json(command="updateMode", mode="gameover", decklists="".join(decklists))
 			i.waiter.remove_afk_timer()
-			i.waiter.remove_dc_timer()
 		self.logger.finish_game()
 
 	def construct_end_string(self, player, final_vp, is_winner):
