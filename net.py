@@ -213,7 +213,6 @@ class DmHandler(GameHandler):
 		if abandoned:
 			self.application.games.remove(self.client.game)
 			for i in self.client.game.players:
-				i.waiter.remove_dc_timer()
 				i.waiter.remove_afk_timer()
 				i.game = None
 		else:
@@ -222,10 +221,9 @@ class DmHandler(GameHandler):
 				self.client.game.players.remove(self.client)
 				for i in self.client.game.players:
 					i.write_json(command="chat", msg = self.client.name + " has left.", speaker=None)
-			else:
-				self.client.waiter.time_disconnect(0)
-		
-
+			else: 
+				for i in self.client.get_opponents():
+					i.wait(": they have disconnected!", self.client)
 
 class DmApplication(web.Application):
 	def __init__(self):

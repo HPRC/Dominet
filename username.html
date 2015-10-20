@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script type="text/javascript" src="/static/js/index.js"></script>
+	<link rel="stylesheet" href="/static/style.css" />
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link type="image/x-icon" rel="shortcut icon" href="/static/favicon.ico" id="favicon">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dominet</title>
+</head>
+<div id="index-container" class="container-fluid">
+	<h2>Dominet</h2>
+	<div id="errorMsg">{{error if 'error' in globals() else ""}}</div>
+	<form role="form" action="" method="POST" onsubmit="return validateUsername()">
+		<h6>Welcome {{user['name']}}, choose a username: </h6>
+		<div class="form-group">
+			<label for="inputUsername">Username</label>
+			<input name="username" type="text" class="form-control input-name" id="inputUsername" placeholder="Enter Username">
+		</div>
+		<button type="submit" class="btn btn-default">Enter</button>
+	</form>
+</div>	
+</html>

@@ -166,9 +166,8 @@ class DmClient(Client):
 		elif cmd == "returnToLobby":
 			self.handler.return_to_lobby()
 			self.ready = False
-			self.game = None
-			self.waiter.remove_dc_timer()
 			self.waiter.remove_afk_timer()
+			self.game = None
 			self.waiter = None
 		elif cmd == "submitBugReport":
 			self.game.logger.flag_me()

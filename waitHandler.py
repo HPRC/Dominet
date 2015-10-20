@@ -8,7 +8,6 @@ class WaitHandler():
 		self.msg = ""
 		#locked = set of player names we ignore auto updates (and keep waiting) until manually removed from locked set
 		self.locked = set()
-		self.disconnect_timer = None
 		self.afk_timer = None
 
 	def wait(self, msg):
@@ -35,7 +34,6 @@ class WaitHandler():
 
 	def handle_reconnect(self, reconnecting_player):
 		self.waiting_on.remove(reconnecting_player.name)
-		self.remove_dc_timer()
 
 	def set_lock(self, locked_person, locked):
 		if locked:
@@ -51,27 +49,6 @@ class WaitHandler():
 
 	def is_waiting(self):
 		return len(self.waiting_on) > 0
-
-	@gen.coroutine
-	def time_disconnect(self, count):
-		count += 1
-		if count == 1:
-			for i in self.player.get_opponents():
-				i.wait(": they have disconnected for {} minute".format(count), self.player)
-			self.disconnect_timer = ioloop.IOLoop.instance().call_later(300, lambda x=count: self.time_disconnect(x))
-		elif count < 5:
-			for i in self.player.get_opponents():
-				i.wait(": they have disconnected for {} minutes".format(count), self.player)
-			self.disconnect_timer = ioloop.IOLoop.instance().call_later(300, lambda x=count: self.time_disconnect(x))
-		else:
-			futures = []
-			for i in self.player.get_opponents():
-				futures.append(i.select(1,1, ["Yes"], "{} has disconnected for over 5 minutes, force forefeit?".format(self.player.name)))
-			wait_iterator = gen.WaitIterator(*futures) 
-			while not wait_iterator.done():
-				selected = yield wait_iterator.next()
-				if selected == ["Yes"]:
-					self.player.game.end_game([self.player])
 
 	@gen.coroutine
 	def time_afk(self):
@@ -91,11 +68,6 @@ class WaitHandler():
 	def reset_afk_timer(self):
 		self.remove_afk_timer()
 		self.time_afk()
-
-	def remove_dc_timer(self):
-		if self.disconnect_timer:
-			ioloop.IOLoop.instance().remove_timeout(self.disconnect_timer)
-			self.disconnect_timer = None
 
 	def remove_afk_timer(self):
 		if self.afk_timer:
