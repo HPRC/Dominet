@@ -53,8 +53,8 @@ class DmClient(Client):
 
 	def write_json(self, **kwargs):
 		if kwargs["command"] == "updateMode":
-			# ignore the last_mode if it was a wait for disconnecting
-			if not ("msg" in kwargs and ("disconnected" in kwargs["msg"] or "afk" in kwargs["msg"])):
+			# ignore the last_mode if it was a wait for afk
+			if not ("msg" in kwargs and "afk" in kwargs["msg"]):
 				# callback used to resume mode if reconnect
 				self.last_mode = kwargs
 		Client.write_json(self, **kwargs)
@@ -157,13 +157,9 @@ class DmClient(Client):
 				if self.game.turn_count == 0:
 					self.game.turn_count = 1
 					self.game.start_game()
-				else:
-					# game started, we are last one to reconnect
-					self.resume()
-					self.reconnect()
-			# game started, we are reconnecting and waiting for other ppl to reconnect too
 			elif self.game.turn_count != 0:
 				self.reconnect()
+				yield self.resume()
 		elif cmd == "returnToLobby":
 			self.handler.return_to_lobby()
 			self.ready = False
@@ -217,19 +213,17 @@ class DmClient(Client):
 		self.update_hand()
 		self.update_resources()
 		self.game.update_trash_pile()
-		for i in self.get_opponents():
-			i.waiter.handle_reconnect(self)
-		#not all players are ready wait for disconnected ones
-		if not self.game.players_ready():
-			#update wait msgs
-			for i in self.game.players:
-				if i.ready:
-					i.waiter.wait(self.waiter.msg)
 
-	#resumes game after all players ready, only called when everyone is reconnected from d/cing
+	@gen.coroutine
 	def resume(self):
-		for i in self.game.players:
-			i.write_json(**i.last_mode)
+		afk_players = [x for x in self.game.players if x.waiter.is_afk]
+		if afk_players:
+			selected = yield self.select(1,1, ["Yes"],
+					"{} {} not responded for over 5 minutes, force forefeit?".format(", ".join([i.name for i in afk_players]), "have" if len(afk_players) > 1 else "has"))
+			if selected == ["Yes"]:
+				self.game.end_game(afk_players)
+		else:
+			self.write_json(**i.last_mode)
 		turn_owner = self.game.get_turn_owner()
 		turn_owner.write_json(command="startTurn", actions=turn_owner.actions, 
 				buys=turn_owner.buys, balance=turn_owner.balance)
@@ -240,7 +234,6 @@ class DmClient(Client):
 			x.cleanup() 
 		self.discard_pile = self.discard_pile + self.played_cards
 		self.played_cards = []
-
 
 		if self.game.detect_end():
 			return
@@ -458,7 +451,10 @@ class DmClient(Client):
 
 	#by default returns list in order starting with players after you
 	def get_opponents(self):
-		my_index = self.game.players.index(self)
+		try:
+			my_index = self.game.players.index(self)
+		except ValueError:
+			return []
 		opponents = []
 		for i in range(1, len(self.game.players)):
 			opponents.append(self.game.players[(my_index + i) % len(self.game.players)])
