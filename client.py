@@ -54,7 +54,7 @@ class DmClient(Client):
 	def write_json(self, **kwargs):
 		if kwargs["command"] == "updateMode":
 			# ignore the last_mode if it was a wait for afk
-			if not ("msg" in kwargs and "afk" in kwargs["msg"]):
+			if not ("msg" in kwargs and "not responded" in kwargs["msg"]):
 				# callback used to resume mode if reconnect
 				self.last_mode = kwargs
 		Client.write_json(self, **kwargs)
@@ -182,7 +182,6 @@ class DmClient(Client):
 			self.discard(data["cards"], self.discard_pile)
 		elif cmd == "endTurn":
 			self.end_turn()
-			self.waiter.remove_afk_timer()
 		elif cmd == "buyCard":
 			yield self.buy_card(data["card"])
 		elif cmd == "post_selection": 
@@ -234,6 +233,7 @@ class DmClient(Client):
 			x.cleanup() 
 		self.discard_pile = self.discard_pile + self.played_cards
 		self.played_cards = []
+		self.waiter.remove_afk_timer()
 
 		if self.game.detect_end():
 			return

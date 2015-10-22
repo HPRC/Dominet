@@ -1,6 +1,8 @@
 from tornado import ioloop, gen
 
 class WaitHandler():
+	afk_time = 360
+
 	def __init__(self, player):
 		self.player = player
 		# on = list of player names waiting for, callback called after select/gain gets response, 
@@ -29,7 +31,7 @@ class WaitHandler():
 				notifier.waiter.remove_afk_timer()
 				if not self.is_waiting():
 					self.player.update_mode()
-					self.time_afk()
+					self.reset_afk_timer()
 				elif not self.is_waiting_on(self.player):
 					self.wait(self.msg)
 
@@ -48,7 +50,6 @@ class WaitHandler():
 	def is_waiting(self):
 		return len(self.waiting_on) > 0
 
-	@gen.coroutine
 	def time_afk(self):
 		@gen.coroutine
 		def afk_cb():
@@ -64,7 +65,7 @@ class WaitHandler():
 				selected = yield wait_iterator.next()
 				if selected == ["Yes"]:
 					self.player.game.end_game([afk_players])
-		self.afk_timer = ioloop.IOLoop.instance().call_later(360, afk_cb)
+		self.afk_timer = ioloop.IOLoop.instance().call_later(self.afk_time, afk_cb)
 
 	def reset_afk_timer(self):
 		self.remove_afk_timer()
