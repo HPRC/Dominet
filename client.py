@@ -42,10 +42,6 @@ class Client():
 			if cmd == "chat":
 				self.handler.chat(data["msg"], self.name)
 			return
-		# else do game commands
-		if cmd == "chat":
-			self.game.chat(data["msg"], self.name)
-
 		self.game.logger.log_json_data(str(self.name + ": " + json.dumps(data)), False)
 
 
@@ -151,16 +147,8 @@ class DmClient(Client):
 			return
 		cmd = data["command"]
 
-		if cmd == "ready":
-			self.ready = True
-			if self.game.players_ready():
-				if self.game.turn_count == 0:
-					self.game.turn_count = 1
-					self.game.start_game()
-			elif self.game.turn_count != 0:
-				self.reconnect()
-				yield self.resume()
-		elif cmd == "returnToLobby":
+
+		if cmd == "returnToLobby":
 			self.handler.return_to_lobby()
 			self.ready = False
 			self.waiter.remove_afk_timer()
@@ -168,16 +156,28 @@ class DmClient(Client):
 			self.waiter = None
 		elif cmd == "submitBugReport":
 			self.game.logger.flag_me()
-		else:
+		elif cmd == "chat":
+			self.game.chat(data["msg"], self.name)
+		elif self.game.turn_count > 0:
 			self.waiter.reset_afk_timer()
 
 		#ingame player commands
-		if cmd == "play":
+		if cmd == "ready":
+			self.ready = True
+			#if game unstarted
+			if self.game.turn_count == 0:
+				if self.game.players_ready():
+					self.game.turn_count = 1
+					self.game.start_game()
+			#else game started, we are reconnecting
+			else:
+				self.reconnect()
+				yield self.resume()
+		elif cmd == "play":
 			if data["card"] not in self.hand:
 				print("Error " + data["card"] + " not in Hand: " + ",".join(map(lambda x: x.title, self.hand.card_array())))
 			else:
 				yield self.hand.play(data["card"])
-				# self.hand.play(data["card"])
 		elif cmd == "discard":
 			self.discard(data["cards"], self.discard_pile)
 		elif cmd == "endTurn":
@@ -222,10 +222,9 @@ class DmClient(Client):
 			if selected == ["Yes"]:
 				self.game.end_game(afk_players)
 		else:
-			self.write_json(**i.last_mode)
+			self.write_json(**self.last_mode)
 		turn_owner = self.game.get_turn_owner()
-		turn_owner.write_json(command="startTurn", actions=turn_owner.actions, 
-				buys=turn_owner.buys, balance=turn_owner.balance)
+		turn_owner.write_json(**turn_owner.last_mode)
 
 	def end_turn(self):
 		# cleanup before game ends

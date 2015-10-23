@@ -1,7 +1,7 @@
 from tornado import ioloop, gen
 
 class WaitHandler():
-	afk_time = 360
+	time_until_afk = 360
 
 	def __init__(self, player):
 		self.player = player
@@ -65,7 +65,7 @@ class WaitHandler():
 				selected = yield wait_iterator.next()
 				if selected == ["Yes"]:
 					self.player.game.end_game([afk_players])
-		self.afk_timer = ioloop.IOLoop.instance().call_later(self.afk_time, afk_cb)
+		self.afk_timer = ioloop.IOLoop.current().call_later(self.time_until_afk, afk_cb)
 
 	def reset_afk_timer(self):
 		self.remove_afk_timer()

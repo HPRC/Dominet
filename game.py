@@ -209,7 +209,7 @@ class DmGame(Game):
 			decklists.append("<br>")
 		for i in self.players:
 			i.waiter.remove_afk_timer()
-			i.write_json(command="updateMode", mode="gameover", decklists="".join(decklists))
+			i.write_json(command="updateMode", mode="gameover", decklists="".join(decklists))	
 		self.logger.finish_game()
 
 	def construct_end_string(self, player, final_vp, is_winner):
