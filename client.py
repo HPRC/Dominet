@@ -136,7 +136,7 @@ class DmClient(Client):
 		self.write_json(command="updateMode", mode="action")
 		self.write_json(command="startTurn", actions=self.actions, buys=self.buys, 
 			balance=self.balance)
-		self.waiter.time_afk()
+		self.waiter.reset_afk_timer()
 
 	# override
 	@gen.coroutine

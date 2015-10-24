@@ -1,7 +1,7 @@
 from tornado import ioloop, gen
 
 class WaitHandler():
-	time_until_afk = 360
+	time_until_afk = 301
 
 	def __init__(self, player):
 		self.player = player
@@ -17,7 +17,7 @@ class WaitHandler():
 		self.msg = msg
 		self.remove_afk_timer()
 		for i in self.waiting_on:
-			self.player.game.get_player_from_name(i).waiter.time_afk()
+			self.player.game.get_player_from_name(i).waiter.reset_afk_timer()
 		self.player.write_json(command="updateMode", mode="wait", msg="Waiting for " + self.waiting_on_string() + " " + self.msg)
 
 	def append_wait(self, to_append):
@@ -50,6 +50,7 @@ class WaitHandler():
 	def is_waiting(self):
 		return len(self.waiting_on) > 0
 
+	#should never really be called except for in reset_afk_timer to keep it so that only 1 timer is active per player
 	def time_afk(self):
 		@gen.coroutine
 		def afk_cb():
@@ -60,7 +61,7 @@ class WaitHandler():
 				if i not in afk_players:
 					futures.append(i.select(1,1, ["Yes"],
 						"{} {} not responded for over 5 minutes, force forefeit?".format(", ".join([i.name for i in afk_players]), "have" if len(afk_players) > 1 else "has")))	
-					wait_iterator = gen.WaitIterator(*futures)
+			wait_iterator = gen.WaitIterator(*futures)
 			while not wait_iterator.done():
 				selected = yield wait_iterator.next()
 				if selected == ["Yes"]:
@@ -76,7 +77,4 @@ class WaitHandler():
 			ioloop.IOLoop.instance().remove_timeout(self.afk_timer)
 			self.afk_timer = None
 			self.is_afk = False
-			for i in self.player.get_opponents():
-				i.write_json(**i.last_mode)
-
 

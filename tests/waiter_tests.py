@@ -1,10 +1,11 @@
 import unittest
 import client as c
 import sets.base as base
+import sets.intrigue as intr
 import sets.card as crd
 import game as g
 import tests.test_utils as tu
-import tornado.testing, tornado.ioloop
+import tornado.testing, tornado.ioloop, tornado.gen
 import waitHandler
 
 class TestWaiter(tornado.testing.AsyncTestCase):
@@ -49,9 +50,10 @@ class TestWaiter(tornado.testing.AsyncTestCase):
 	def test_reset_afk_timer(self):
 		tu.print_test_header("test reset afk timer")
 		first_timer = self.player1.waiter.afk_timer
-		def player1_spend_money():
+
+		def player1_reset_timer():
 			self.assertTrue(self.player1.waiter.afk_timer == first_timer)
-			self.player1.exec_commands({"command": "spendAllMoney"})
+			self.player1.waiter.reset_afk_timer()
 			self.assertTrue(self.player1.waiter.afk_timer != first_timer)
 			self.player1.end_turn()
 			self.assertTrue(self.player1.waiter.afk_timer == None)
@@ -63,7 +65,7 @@ class TestWaiter(tornado.testing.AsyncTestCase):
 			# wait 1 second more than afk time
 			self.io_loop.call_later(3, player1_still_timing_afk)
 
-		self.io_loop.call_later(1, player1_spend_money)
+		self.io_loop.call_later(2, player1_reset_timer)
 		self.wait(timeout=10)
 	
 	def test_afk_force_forfeit(self):
@@ -77,10 +79,23 @@ class TestWaiter(tornado.testing.AsyncTestCase):
 		self.io_loop.call_later(4, player1_afk)
 		self.wait()
 
-	def test_new_timer(self):
-		tu.print_test_header("test new timer")
-		self.player1.end_turn()
-
+	@tornado.testing.gen_test
+	def test_double_wait_timer(self):
+		tu.print_test_header("test double wait")
+		torturer = intr.Torturer(self.game, self.player1)
+		self.player1.hand.add(torturer)
+		torturer.play()
+		self.assertTrue(self.player2.waiter.afk_timer != None)
+		#timer for choosing which torturer method
+		initial_timer = self.player2.waiter.afk_timer
+		yield tu.send_input(self.player2, "post_selection", ["Discard 2 cards"])
+		#timer for choosing which cards to discard
+		second_timer = self.player2.waiter.afk_timer
+		self.assertTrue(initial_timer != second_timer)
+		yield tu.send_input(self.player2, "post_selection", ["Copper", "Copper"])
+		self.assertTrue(self.player2.waiter.afk_timer == None)
+		yield tornado.gen.sleep(3)
+		self.assertTrue(self.player2.waiter.is_afk == False)
 
 if __name__ == '__main__':
 	unittest.main()
