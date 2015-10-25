@@ -466,6 +466,7 @@ class Ironworks(crd.Card):
 
 		yield self.played_by.gain(selection[0], True)
 		post_gain()
+		
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-default'>", self.title, "</span>"])
 
