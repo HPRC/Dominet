@@ -315,14 +315,14 @@ class DmClient(Client):
 	def is_waiting(self):
 		return self.waiter.is_waiting()
 
+	#have all opponents wait on me
 	def opponents_wait(self, msg, locked=False):
-		for i in self.game.players:
-			if i.name != self.name:
-				#only change lock if we are locking, update_wait must be called to unlock
-				if locked:
-					i.waiter.set_lock(self, locked)
-				i.waiter.append_wait(self)
-				i.waiter.wait(msg)
+		for i in self.get_opponents(self):
+			#only change lock if we are locking, update_wait must be called to unlock
+			if locked:
+				i.waiter.set_lock(self, locked)
+			i.waiter.append_wait(self)
+			i.waiter.wait(msg)
 
 	def update_wait(self, manually_called=False):
 		for i in self.game.players:

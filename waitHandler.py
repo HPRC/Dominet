@@ -60,7 +60,7 @@ class WaitHandler():
 			for i in self.player.get_opponents():
 				if i not in afk_players:
 					futures.append(i.select(1,1, ["Yes"],
-						"{} {} not responded for over 5 minutes, force forefeit?".format(", ".join([i.name for i in afk_players]), "have" if len(afk_players) > 1 else "has")))	
+						"{} {} not responded for awhile, force forefeit?".format(", ".join([i.name for i in afk_players]), "have" if len(afk_players) > 1 else "has")))	
 			wait_iterator = gen.WaitIterator(*futures)
 			while not wait_iterator.done():
 				selected = yield wait_iterator.next()
