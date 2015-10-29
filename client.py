@@ -270,14 +270,11 @@ class DmClient(Client):
 			self.buys -= 1
 			self.balance -= new_card.get_price()
 			self.bought_cards = True
-			yield gen.maybe_future(new_card.on_buy())
 			self.game.remove_from_supply(card_title)
-			self.discard_pile.append(new_card)
+			
+			yield gen.maybe_future(new_card.on_buy())
 			yield gen.maybe_future(self.resolve_on_buy_effects(new_card))
-			yield gen.maybe_future(new_card.on_gain())
-			yield gen.maybe_future(self.hand.do_reactions("Gain", new_card))
-			if self.discard_pile[-1] == new_card:
-				yield gen.maybe_future(self.resolve_on_gain_effects(new_card))
+			yield self.gain_helper(new_card, False, None)
 		self.update_resources(True)
 
 	def select(self, min_cards, max_cards, select_from, msg, ordered=False):
@@ -373,24 +370,27 @@ class DmClient(Client):
 		return self.gen_new_card(card)
 
 	@gen.coroutine
+	def gain_helper(self, card_obj, from_supply=True, announcement=None):
+		if announcement is not None:
+			self.game.announce(announcement)
+		self.discard_pile.append(card_obj)
+		self.update_discard_size()
+		yield gen.maybe_future(card_obj.on_gain())
+		yield gen.maybe_future(self.hand.do_reactions("Gain", card_obj))
+		if card_obj in self.all_cards():
+			yield gen.maybe_future(self.resolve_on_gain_effects(card_obj))
+		for p in self.game.players:
+			if not p.is_waiting():
+				p.update_mode()
+
+	@gen.coroutine
 	def gain(self, card, from_supply=True, custom_announce=None):
 		new_card = self.get_card_from_supply(card, from_supply)
-
 		if new_card is not None:
 			if custom_announce is None:
-				self.game.announce(self.name_string() + " gains " + new_card.log_string())
+				yield self.gain_helper(new_card, from_supply, self.name_string() + " gains " + new_card.log_string())
 			elif custom_announce != "":
-				self.game.announce(custom_announce)
-			self.discard_pile.append(new_card)
-			self.update_discard_size()
-			yield gen.maybe_future(new_card.on_gain())
-			yield gen.maybe_future(self.hand.do_reactions("Gain", new_card))
-			yield gen.maybe_future(self.resolve_on_gain_effects(new_card))
-			if self.discard_pile[-1] == new_card:
-				yield gen.maybe_future(self.resolve_on_gain_effects(new_card))
-			for p in self.game.players:
-				if not p.is_waiting():
-					p.update_mode()
+				yield self.gain_helper(new_card, from_supply, custom_announce)
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 
@@ -398,18 +398,7 @@ class DmClient(Client):
 	def gain_to_hand(self, card, from_supply=True):
 		new_card = self.get_card_from_supply(card, from_supply)
 		if new_card is not None:
-			self.game.announce(self.name_string() + " gains " + new_card.log_string() + " to their hand.")
-            #add to discard first for reactions so that they can access and manipulate the new card from discard
-			self.discard_pile.append(new_card)
-
-			yield gen.maybe_future(new_card.on_gain())
-			yield gen.maybe_future(self.hand.do_reactions("Gain", new_card))
-			yield gen.maybe_future(self.resolve_on_gain_effects(new_card))
-			if self.discard_pile[-1] == new_card:
-				yield gen.maybe_future(self.resolve_on_gain_effects(new_card))
-			for p in self.game.players:
-				if not p.is_waiting():
-					p.update_mode()
+			yield self.gain_helper(new_card, from_supply, self.name_string() + " gains " + new_card.log_string() + " to their hand.")
 			#if the gained card is still in discard pile, then we can remove and add to hand
 			if self.discard_pile and new_card == self.discard_pile[-1]:
 				self.hand.add(self.discard_pile.pop())
