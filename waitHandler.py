@@ -23,16 +23,22 @@ class WaitHandler():
 	def append_wait(self, to_append):
 		self.waiting_on.add(to_append.name)
 
-	def notify(self, notifier):
-		if not notifier.name in self.locked:
-			if self.is_waiting_on(notifier):
+	def notify(self, notifier, unlock=False):
+		if self.is_waiting_on(notifier):
+			if unlock or not notifier.name in self.locked:
+				self.set_lock(notifier, False)
 				self.waiting_on.remove(notifier.name)
 				notifier.waiter.remove_afk_timer()
+
 				if not self.is_waiting():
-					self.player.update_mode()
+					# i'm not waiting, restart timer
 					self.reset_afk_timer()
+					# if i was not unlocked, called automatically, update mode
+					if not unlock:
+						self.player.update_mode()
 				elif not self.is_waiting_on(self.player):
 					self.wait(self.msg)
+
 
 	def set_lock(self, locked_person, locked):
 		if locked:

@@ -135,7 +135,7 @@ class AttackCard(Card):
 		else:
 			self.played_by.wait_many("to react", reacting_players, True)
 			#fire all the reactions in parallel
-			yield reaction_futures
+			yield parallel_selects(reaction_futures, reacting_players, lambda x,y: y.update_mode())
 			self.attack()
 
 	def is_blocked(self, target):

@@ -550,7 +550,6 @@ class Vault(crd.Card):
 		                   ", gaining +$" + str(len(selection)))
 
 		self.played_by.wait_many("to discard", self.played_by.get_opponents(), True)
-		
 		#ask opponents to discard 2 to draw 1
 		opponents = self.played_by.get_opponents()
 		crd.parallel_selects(map(lambda x: x.select(1, 1, ["Yes", "No"], "Discard 2 cards to draw 1?"), 
@@ -566,10 +565,9 @@ class Vault(crd.Card):
 				drawn = player.draw(1)
 				player.update_hand()
 			self.game.announce(player.name_string() + " discards " + str(len(discard_selection)) + " cards and draws " + drawn)
-			player.update_wait(True)
-		else:
-			player.update_wait(True)
+		player.update_wait(True)
 		if not self.played_by.is_waiting():
+			self.played_by.update_mode()
 			crd.Card.on_finished(self, False, True)
 
 
@@ -804,6 +802,7 @@ class Forge(crd.Card):
 				yield self.played_by.gain(gained[0])
 				crd.Card.on_finished(self)
 			self.played_by.update_wait(True)
+			self.played_by.update_mode()
 		crd.Card.on_finished(self)
 
 # --------------------------------------------------------

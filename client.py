@@ -324,11 +324,11 @@ class DmClient(Client):
 			i.waiter.append_wait(self)
 			i.waiter.wait(msg)
 
+	#notify others that they should be done waiting on me
+	#if unlocking need to update mode manually
 	def update_wait(self, manually_called=False):
 		for i in self.game.players:
-			if manually_called:
-				i.waiter.set_lock(self, False)
-			i.waiter.notify(self)
+			i.waiter.notify(self, manually_called)
 
 	def discard(self, cards, pile):
 		for x in cards:
@@ -383,6 +383,7 @@ class DmClient(Client):
 			self.update_discard_size()
 			yield gen.maybe_future(new_card.on_gain())
 			yield gen.maybe_future(self.hand.do_reactions("Gain", new_card))
+			self.update_mode()
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 
@@ -396,6 +397,7 @@ class DmClient(Client):
 
 			yield gen.maybe_future(new_card.on_gain())
 			yield gen.maybe_future(self.hand.do_reactions("Gain", new_card))
+			self.update_mode()
 			#if the gained card is still in discard pile, then we can remove and add to hand
 			if self.discard_pile and new_card == self.discard_pile[-1]:
 				self.hand.add(self.discard_pile.pop())
