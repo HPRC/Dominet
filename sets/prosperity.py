@@ -517,13 +517,13 @@ class Royal_Seal(crd.Money):
 		self.spend_all = False
 
 	@gen.coroutine
-	def on_buy_effect(self, purchased_card):
-		selection = yield self.played_by.select(1, 1, ["Yes", "No"], "Place " + purchased_card.title + " on top of deck?")
+	def on_gain_effect(self, gained_card):
+		selection = yield self.played_by.select(1, 1, ["Yes", "No"], "Place " + gained_card.title + " on top of deck?")
 		if selection[0] == "Yes":
-			purchased_card = self.played_by.search_and_extract_card(purchased_card)
+			gained_card = self.played_by.search_and_extract_card(gained_card)
 			self.game.announce(self.played_by.name_string() + " uses " + self.log_string() + " to place "
-				+ purchased_card.log_string() + " on the top of their deck")
-			self.played_by.deck.append(purchased_card)
+				+ gained_card.log_string() + " on the top of their deck")
+			self.played_by.deck.append(gained_card)
 
 class Vault(crd.Card):
 	def __init__(self, game, played_by):

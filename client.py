@@ -273,9 +273,11 @@ class DmClient(Client):
 			yield gen.maybe_future(new_card.on_buy())
 			self.game.remove_from_supply(card_title)
 			self.discard_pile.append(new_card)
+			yield gen.maybe_future(self.resolve_on_buy_effects(new_card))
 			yield gen.maybe_future(new_card.on_gain())
 			yield gen.maybe_future(self.hand.do_reactions("Gain", new_card))
-			yield gen.maybe_future(self.resolve_on_buy_effects(new_card))
+			if self.discard_pile[-1] == new_card:
+				yield gen.maybe_future(self.resolve_on_gain_effects(new_card))
 		self.update_resources(True)
 
 	def select(self, min_cards, max_cards, select_from, msg, ordered=False):
@@ -383,6 +385,9 @@ class DmClient(Client):
 			self.update_discard_size()
 			yield gen.maybe_future(new_card.on_gain())
 			yield gen.maybe_future(self.hand.do_reactions("Gain", new_card))
+			yield gen.maybe_future(self.resolve_on_gain_effects(new_card))
+			if self.discard_pile[-1] == new_card:
+				yield gen.maybe_future(self.resolve_on_gain_effects(new_card))
 			for p in self.game.players:
 				if not p.is_waiting():
 					p.update_mode()
@@ -399,6 +404,9 @@ class DmClient(Client):
 
 			yield gen.maybe_future(new_card.on_gain())
 			yield gen.maybe_future(self.hand.do_reactions("Gain", new_card))
+			yield gen.maybe_future(self.resolve_on_gain_effects(new_card))
+			if self.discard_pile[-1] == new_card:
+				yield gen.maybe_future(self.resolve_on_gain_effects(new_card))
 			for p in self.game.players:
 				if not p.is_waiting():
 					p.update_mode()
@@ -555,5 +563,9 @@ class DmClient(Client):
 		for card in self.played_cards:
 			yield card.on_buy_effect(purchased_card)
 
+	@gen.coroutine
+	def resolve_on_gain_effects(self, gained_card):
+		for card in self.played_cards:
+			yield card.on_gain_effect(gained_card)
 
 

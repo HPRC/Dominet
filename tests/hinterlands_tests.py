@@ -244,7 +244,29 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "post_selection", ["Put on top of deck"])
 		self.assertTrue(self.player1.deck[-1].title == "Silver")
 
+	@tornado.testing.gen_test
+	def test_trader_royal_seal(self):
+		tu.print_test_header("test Royal Seal Trader")
+		royal_seal = prosperity.Royal_Seal(self.game, self.player1)
+		trader = hl.Trader(self.game, self.player1)
+		self.player1.hand.add(royal_seal)
+		self.player1.hand.add(trader)
 
+		royal_seal.play()
+		yield tu.send_input(self.player1, "buyCard", "Copper")
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
+		yield tu.send_input(self.player1, "post_selection", ["Reveal"])
+		self.assertTrue(self.game.get_turn_owner() == self.player1)
+
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
+		# trader triggers again for the new silver
+		yield tu.send_input(self.player1, "post_selection", ["Reveal"])
+		yield gen.sleep(.1)
+		# royal seal triggers
+		self.assertTrue(self.game.get_turn_owner() == self.player1)
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
+		self.assertTrue(self.player1.deck[-1].title == "Silver")
 
 
 if __name__ == '__main__':
