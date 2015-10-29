@@ -372,6 +372,7 @@ class TestCard(tornado.testing.AsyncTestCase):
 
 		#player 2 hides secret chamber
 		yield tu.send_input(self.player2, "post_selection", ["Hide"])
+		yield gen.sleep(.1)
 		self.assertTrue(self.player1.last_mode["mode"] != "wait")
 
 	@tornado.testing.gen_test
