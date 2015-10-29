@@ -349,6 +349,9 @@ class Spy(crd.AttackCard):
 					player.name_string() + "'s deck")
 			crd.AttackCard.get_next(self, player)
 
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-danger'>", "Spies" if plural else self.title, "</span>"])
+
 class Smithy(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
