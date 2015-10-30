@@ -386,8 +386,9 @@ def discard_down(player, reduced_hand_size, callback):
 	turn_owner = player.game.get_turn_owner()
 	if len(player.hand) > reduced_hand_size:
 		turn_owner.wait("to discard", player)
-		discard_selection = yield player.select(len(player.hand) - reduced_hand_size, len(player.hand) - reduced_hand_size, 
-			card_list_to_titles(player.hand.card_array()), "discard down to " + str(reduced_hand_size) + " cards")
+		num_discarding = len(player.hand) - reduced_hand_size
+		discard_selection = yield player.select(num_discarding, num_discarding,
+			card_list_to_titles(player.hand.card_array()), "choose " + str(num_discarding) + " cards to discard")
 		player.game.announce("-- " + player.name_string() + " discards down to " + str(reduced_hand_size))
 		player.discard(discard_selection, player.discard_pile)
 		player.update_hand()
