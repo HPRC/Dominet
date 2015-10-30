@@ -223,8 +223,11 @@ class DmClient(Client):
 				self.game.end_game(afk_players)
 		else:
 			self.write_json(**self.last_mode)
+		
 		turn_owner = self.game.get_turn_owner()
 		turn_owner.write_json(**turn_owner.last_mode)
+		turn_owner.write_json(command="startTurn", actions=self.actions, buys=self.buys, 
+			balance=self.balance)
 
 	def end_turn(self):
 		# cleanup before game ends
