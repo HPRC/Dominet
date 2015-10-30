@@ -111,8 +111,8 @@ class Trade_Route(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Trade Route"
-		self.description = "+$1 per token on the trade route mat. Trash a card from your hand."\
-							" Each victory card pile in supply begins with $1 token. When a card is first gained from the pile, move the token to the trade route mat."
+		self.description = "+1 Buy. Trash a card from your hand. +$1 per card on the Trade Route mat.\n"\
+							"A Victory card is added to the Trade Route Mat when it is gained for the first time from supply"
 		self.price = 3
 		self.type = "Action"
 
@@ -741,8 +741,8 @@ class Kings_Court(crd.Card):
 		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(action_cards),
 		 "select card for King's Court")
 		if not selection:
-			self.done = lambda : None
 			self.game.announce(" -- but has no action cards")
+			crd.Card.on_finished(self, False, False)
 		else:
 			selected_card = self.played_by.hand.get_card(selection[0])
 			kings_court_str = self.played_by.name_string() + " " + self.log_string(True) + " " + selected_card.log_string()

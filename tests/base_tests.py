@@ -373,6 +373,34 @@ class TestCard(tornado.testing.AsyncTestCase):
 		#player 2 hides secret chamber
 		yield tu.send_input(self.player2, "post_selection", ["Hide"])
 		self.assertTrue(self.player1.last_mode["mode"] != "wait")
+
+	@tornado.testing.gen_test
+	def test_throne_room_throne_room(self):
+		tu.print_test_header("Test throne room throne room")
+		throneroom = base.Throne_Room(self.game, self.player1)
+		throneroom2 = base.Throne_Room(self.game, self.player1)
+		self.player1.hand.add(throneroom)
+		self.player1.hand.add(throneroom2)
+		throneroom.play()
+		yield tu.send_input(self.player1, "post_selection", ["Throne Room"])
+
+		self.player1.end_turn()
+		self.player2.end_turn()
+		self.player3.end_turn()
+
+		self.player1.hand.add(throneroom)
+		self.player1.hand.add(throneroom2)
+		self.player1.hand.add(base.Village(self.game, self.player1))
+		self.player1.hand.add(base.Woodcutter(self.game, self.player1))
+		throneroom.play()
+		yield tu.send_input(self.player1, "post_selection", ["Village"])
+		self.assertTrue(self.player1.actions == 4)
+		self.assertTrue(self.player1.last_mode["mode"] == "action")
+
+		throneroom2.play()
+		yield tu.send_input(self.player1, "post_selection", ["Woodcutter"])
+		self.assertTrue(self.player1.balance == 4)
+		self.assertTrue(self.player1.last_mode["mode"] == "action")
 		
 
 if __name__ == '__main__':

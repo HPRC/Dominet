@@ -459,7 +459,6 @@ class Throne_Room(crd.Card):
 		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(action_cards),
 		 "select card for Throne Room")
 		if not selection:
-			self.done = lambda : None
 			self.game.announce(" -- but has no action cards")
 			crd.Card.on_finished(self, False, False)
 		else:

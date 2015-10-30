@@ -42,10 +42,6 @@ class Client():
 			if cmd == "chat":
 				self.handler.chat(data["msg"], self.name)
 			return
-		# else do game commands
-		if cmd == "chat":
-			self.game.chat(data["msg"], self.name)
-
 		self.game.logger.log_json_data(str(self.name + ": " + json.dumps(data)), False)
 
 
@@ -53,8 +49,8 @@ class DmClient(Client):
 
 	def write_json(self, **kwargs):
 		if kwargs["command"] == "updateMode":
-			# ignore the last_mode if it was a wait for disconnecting
-			if not ("msg" in kwargs and "disconnected" in kwargs["msg"]):
+			# ignore the last_mode if it was a wait for afk
+			if not ("msg" in kwargs and "not responded" in kwargs["msg"]):
 				# callback used to resume mode if reconnect
 				self.last_mode = kwargs
 		Client.write_json(self, **kwargs)
@@ -122,6 +118,7 @@ class DmClient(Client):
 		self.draw(self.hand_size)
 		self.update_hand()
 		self.waiter = w.WaitHandler(self)
+		self.gamelog = []
 		self.cb = None
 		self.protection = 0
 		#boolean to keep track of if we bought a card to disable spending treasure afterwards
@@ -139,6 +136,7 @@ class DmClient(Client):
 		self.write_json(command="updateMode", mode="action")
 		self.write_json(command="startTurn", actions=self.actions, buys=self.buys, 
 			balance=self.balance)
+		self.waiter.reset_afk_timer()
 
 	# override
 	@gen.coroutine
@@ -148,25 +146,38 @@ class DmClient(Client):
 		if self.game is None:
 			return
 		cmd = data["command"]
+
+
+		if cmd == "returnToLobby":
+			self.handler.return_to_lobby()
+			self.ready = False
+			self.waiter.remove_afk_timer()
+			self.game = None
+			self.waiter = None
+		elif cmd == "submitBugReport":
+			self.game.logger.flag_me()
+		elif cmd == "chat":
+			self.game.chat(data["msg"], self.name)
+		elif self.game.turn_count > 0:
+			self.waiter.reset_afk_timer()
+
+		#ingame player commands
 		if cmd == "ready":
 			self.ready = True
-			if self.game.players_ready():
-				if self.game.turn_count == 0:
+			#if game unstarted
+			if self.game.turn_count == 0:
+				if self.game.players_ready():
 					self.game.turn_count = 1
 					self.game.start_game()
-				else:
-					# game started, we are last one to reconnect
-					self.resume()
-					self.reconnect()
-			# game started, we are reconnecting and waiting for other ppl to reconnect too
-			elif self.game.turn_count != 0:
+			#else game started, we are reconnecting
+			else:
 				self.reconnect()
+				yield self.resume()
 		elif cmd == "play":
 			if data["card"] not in self.hand:
 				print("Error " + data["card"] + " not in Hand: " + ",".join(map(lambda x: x.title, self.hand.card_array())))
 			else:
 				yield self.hand.play(data["card"])
-				# self.hand.play(data["card"])
 		elif cmd == "discard":
 			self.discard(data["cards"], self.discard_pile)
 		elif cmd == "endTurn":
@@ -179,13 +190,7 @@ class DmClient(Client):
 			self.exec_selected_choice(data["card"])
 		elif cmd == "spendAllMoney":
 			self.spend_all_money()
-		elif cmd == "returnToLobby":
-			self.handler.return_to_lobby()
-			self.ready = False
-			self.game = None
-		elif cmd == "submitBugReport":
-			self.game.logger.flag_me()
-
+			
 	def exec_selected_choice(self, choice):
 		self.update_wait()
 		# if its my turn allow card that triggered selection to handle mode
@@ -202,26 +207,24 @@ class DmClient(Client):
 
 	def reconnect(self):
 		self.game.announce(self.name_string() + " has reconnected!")
+		self.write_json(command="setGameLog", log="<br>".join(self.gamelog))
 		self.game.load_supplies()
 		self.update_hand()
 		self.update_resources()
 		self.game.update_trash_pile()
-		for i in self.get_opponents():
-			i.waiter.handle_reconnect(self)
-		#not all players are ready wait for disconnected ones
-		if not self.game.players_ready():
-			#update wait msgs
-			for i in self.game.players:
-				if i.ready:
-					i.waiter.wait(self.waiter.msg)
 
-	#resumes game after all players ready, only called when everyone is reconnected from d/cing
+	@gen.coroutine
 	def resume(self):
-		for i in self.game.players:
-			i.write_json(**i.last_mode)
+		afk_players = [x for x in self.game.players if x.waiter.is_afk]
+		if afk_players:
+			selected = yield self.select(1,1, ["Yes"],
+					"{} {} not responded for over 5 minutes, force forefeit?".format(", ".join([i.name for i in afk_players]), "have" if len(afk_players) > 1 else "has"))
+			if selected == ["Yes"]:
+				self.game.end_game(afk_players)
+		else:
+			self.write_json(**self.last_mode)
 		turn_owner = self.game.get_turn_owner()
-		turn_owner.write_json(command="startTurn", actions=turn_owner.actions, 
-				buys=turn_owner.buys, balance=turn_owner.balance)
+		turn_owner.write_json(**turn_owner.last_mode)
 
 	def end_turn(self):
 		# cleanup before game ends
@@ -229,7 +232,7 @@ class DmClient(Client):
 			x.cleanup() 
 		self.discard_pile = self.discard_pile + self.played_cards
 		self.played_cards = []
-
+		self.waiter.remove_afk_timer()
 
 		if self.game.detect_end():
 			return
@@ -447,7 +450,10 @@ class DmClient(Client):
 
 	#by default returns list in order starting with players after you
 	def get_opponents(self):
-		my_index = self.game.players.index(self)
+		try:
+			my_index = self.game.players.index(self)
+		except ValueError:
+			return []
 		opponents = []
 		for i in range(1, len(self.game.players)):
 			opponents.append(self.game.players[(my_index + i) % len(self.game.players)])
@@ -467,6 +473,7 @@ class DmClient(Client):
 
 	def announce_self(self, msg):
 		self.game.game_log.append("{} {}{}".format("to:", self.name_string(), msg))
+		self.gamelog.append(msg)
 		self.write_json(command="announce",msg=msg)
 
 	def spend_all_money(self):
