@@ -623,9 +623,7 @@ class Torturer(crd.AttackCard):
 			player.opponents_wait("to choose", True)
 			selection = yield player.select(1, 1, ["Discard 2 cards", "Gain a Curse"], "Choose one:")
 			if selection[0] == 'Gain a Curse':
-				player.update_wait(True)
 				yield player.gain_to_hand('Curse')
-				crd.AttackCard.get_next(self, player)
 			else:
 				discard_selection = player.hand.auto_select(2, True)
 				if discard_selection:
@@ -638,8 +636,9 @@ class Torturer(crd.AttackCard):
 					self.game.announce(player.name_string() + " discards " + str(len(discard_selection)) + " cards")
 					player.discard(discard_selection, player.discard_pile)
 					player.update_hand()
-				player.update_wait(True)
-				crd.AttackCard.get_next(self, player)
+			player.update_wait(True)
+			player.update_mode()
+			crd.AttackCard.get_next(self, player)
 
 
 class Tribute(crd.Card):

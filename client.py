@@ -223,8 +223,11 @@ class DmClient(Client):
 				self.game.end_game(afk_players)
 		else:
 			self.write_json(**self.last_mode)
+		
 		turn_owner = self.game.get_turn_owner()
 		turn_owner.write_json(**turn_owner.last_mode)
+		turn_owner.write_json(command="startTurn", actions=self.actions, buys=self.buys, 
+			balance=self.balance)
 
 	def end_turn(self):
 		# cleanup before game ends
@@ -270,12 +273,11 @@ class DmClient(Client):
 			self.buys -= 1
 			self.balance -= new_card.get_price()
 			self.bought_cards = True
-			yield gen.maybe_future(new_card.on_buy())
 			self.game.remove_from_supply(card_title)
-			self.discard_pile.append(new_card)
-			yield gen.maybe_future(new_card.on_gain())
-			yield gen.maybe_future(self.hand.do_reactions("Gain", new_card))
+			
+			yield gen.maybe_future(new_card.on_buy())
 			yield gen.maybe_future(self.resolve_on_buy_effects(new_card))
+			yield self.gain_helper(new_card, False, None)
 		self.update_resources(True)
 
 	def select(self, min_cards, max_cards, select_from, msg, ordered=False):
@@ -315,20 +317,20 @@ class DmClient(Client):
 	def is_waiting(self):
 		return self.waiter.is_waiting()
 
+	#have all opponents wait on me
 	def opponents_wait(self, msg, locked=False):
-		for i in self.game.players:
-			if i.name != self.name:
-				#only change lock if we are locking, update_wait must be called to unlock
-				if locked:
-					i.waiter.set_lock(self, locked)
-				i.waiter.append_wait(self)
-				i.waiter.wait(msg)
+		for i in self.get_opponents():
+			#only change lock if we are locking, update_wait must be called to unlock
+			if locked:
+				i.waiter.set_lock(self, locked)
+			i.waiter.append_wait(self)
+			i.waiter.wait(msg)
 
+	#notify others that they should be done waiting on me
+	#if unlocking need to update mode manually
 	def update_wait(self, manually_called=False):
 		for i in self.game.players:
-			if manually_called:
-				i.waiter.set_lock(self, False)
-			i.waiter.notify(self)
+			i.waiter.notify(self, manually_called)
 
 	def discard(self, cards, pile):
 		for x in cards:
@@ -371,18 +373,27 @@ class DmClient(Client):
 		return self.gen_new_card(card)
 
 	@gen.coroutine
+	def gain_helper(self, card_obj, from_supply=True, announcement=None):
+		if announcement is not None:
+			self.game.announce(announcement)
+		self.discard_pile.append(card_obj)
+		self.update_discard_size()
+		yield gen.maybe_future(card_obj.on_gain())
+		yield gen.maybe_future(self.hand.do_reactions("Gain", card_obj))
+		if card_obj in self.all_cards():
+			yield gen.maybe_future(self.resolve_on_gain_effects(card_obj))
+		for p in self.game.players:
+			if not p.is_waiting():
+				p.update_mode()
+
+	@gen.coroutine
 	def gain(self, card, from_supply=True, custom_announce=None):
 		new_card = self.get_card_from_supply(card, from_supply)
-
 		if new_card is not None:
 			if custom_announce is None:
-				self.game.announce(self.name_string() + " gains " + new_card.log_string())
+				yield self.gain_helper(new_card, from_supply, self.name_string() + " gains " + new_card.log_string())
 			elif custom_announce != "":
-				self.game.announce(custom_announce)
-			self.discard_pile.append(new_card)
-			self.update_discard_size()
-			yield gen.maybe_future(new_card.on_gain())
-			yield gen.maybe_future(self.hand.do_reactions("Gain", new_card))
+				yield self.gain_helper(new_card, from_supply, custom_announce)
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 
@@ -390,12 +401,7 @@ class DmClient(Client):
 	def gain_to_hand(self, card, from_supply=True):
 		new_card = self.get_card_from_supply(card, from_supply)
 		if new_card is not None:
-			self.game.announce(self.name_string() + " gains " + new_card.log_string() + " to their hand.")
-            #add to discard first for reactions so that they can access and manipulate the new card from discard
-			self.discard_pile.append(new_card)
-
-			yield gen.maybe_future(new_card.on_gain())
-			yield gen.maybe_future(self.hand.do_reactions("Gain", new_card))
+			yield self.gain_helper(new_card, from_supply, self.name_string() + " gains " + new_card.log_string() + " to their hand.")
 			#if the gained card is still in discard pile, then we can remove and add to hand
 			if self.discard_pile and new_card == self.discard_pile[-1]:
 				self.hand.add(self.discard_pile.pop())
@@ -549,5 +555,9 @@ class DmClient(Client):
 		for card in self.played_cards:
 			yield card.on_buy_effect(purchased_card)
 
+	@gen.coroutine
+	def resolve_on_gain_effects(self, gained_card):
+		for card in self.played_cards:
+			yield card.on_gain_effect(gained_card)
 
 

@@ -129,6 +129,8 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "post_selection", ["Reveal"])
 		self.assertTrue(self.player2.last_mode["mode"] == "wait")
 		yield tu.send_input(self.player1, "post_selection", ["Trash"])
+		yield gen.sleep(.1)
+
 		self.assertTrue(self.player2.last_mode["mode"] != "wait")
 		self.assertTrue(self.game.trash_pile[-1].title == "Curse")
 

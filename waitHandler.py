@@ -5,8 +5,8 @@ class WaitHandler():
 
 	def __init__(self, player):
 		self.player = player
-		# on = list of player names waiting for, callback called after select/gain gets response, 
-		self.waiting_on = []
+		# on = set of player names waiting for, callback called after select/gain gets response, 
+		self.waiting_on = set()
 		self.msg = ""
 		#locked = set of player names we ignore auto updates (and keep waiting) until manually removed from locked set
 		self.locked = set()
@@ -21,19 +21,24 @@ class WaitHandler():
 		self.player.write_json(command="updateMode", mode="wait", msg="Waiting for " + self.waiting_on_string() + " " + self.msg)
 
 	def append_wait(self, to_append):
-		if not self.is_waiting_on(to_append):
-			self.waiting_on.append(to_append.name)
+		self.waiting_on.add(to_append.name)
 
-	def notify(self, notifier):
-		if not notifier.name in self.locked:
-			if self.is_waiting_on(notifier):
+	def notify(self, notifier, unlock=False):
+		if self.is_waiting_on(notifier):
+			if unlock or not notifier.name in self.locked:
+				self.set_lock(notifier, False)
 				self.waiting_on.remove(notifier.name)
 				notifier.waiter.remove_afk_timer()
+
 				if not self.is_waiting():
-					self.player.update_mode()
+					# i'm not waiting, restart timer
 					self.reset_afk_timer()
+					# if i was not unlocked, called automatically, update mode
+					if not unlock:
+						self.player.update_mode()
 				elif not self.is_waiting_on(self.player):
 					self.wait(self.msg)
+
 
 	def set_lock(self, locked_person, locked):
 		if locked:
@@ -60,7 +65,7 @@ class WaitHandler():
 			for i in self.player.get_opponents():
 				if i not in afk_players:
 					futures.append(i.select(1,1, ["Yes"],
-						"{} {} not responded for over 5 minutes, force forefeit?".format(", ".join([i.name for i in afk_players]), "have" if len(afk_players) > 1 else "has")))	
+						"{} {} not responded for awhile, force forefeit?".format(", ".join([i.name for i in afk_players]), "have" if len(afk_players) > 1 else "has")))	
 			wait_iterator = gen.WaitIterator(*futures)
 			while not wait_iterator.done():
 				selected = yield wait_iterator.next()
