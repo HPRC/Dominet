@@ -37,7 +37,6 @@ class Client():
 	@gen.coroutine
 	def exec_commands(self, data):
 		cmd = data["command"]
-
 		if self.game is None:
 			if cmd == "chat":
 				self.handler.chat(data["msg"], self.name)
@@ -141,7 +140,7 @@ class DmClient(Client):
 	# override
 	@gen.coroutine
 	def exec_commands(self, data):
-		Client.exec_commands(self, data)
+		yield Client.exec_commands(self, data)
 		#if we reconnected and an old connection is sending input, ignore
 		if self.game is None:
 			return

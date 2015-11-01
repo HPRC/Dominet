@@ -4,6 +4,7 @@ import os
 from tornado import httpserver, ioloop, web, websocket, gen
 import game as g
 import gametable as gt
+import traceback
 
 HOST = ''
 PORT_NUMBER = 9999
@@ -121,11 +122,12 @@ class GameHandler(websocket.WebSocketHandler):
 			for p in self.client.game.players:
 				p.write_json(command="chat", msg = self.client.name + " has returned to the lobby.", speaker=None)
 				
-	@gen.coroutine
 	def on_message(self,data):
 		jsondata = json.loads(data)
 		# add future to allow exceptions to be printed out
-		ioloop.IOLoop.instance().add_future(self.client.exec_commands(jsondata), lambda x: print(x.exception()) if x.exception() else None)
+		ioloop.IOLoop.instance().add_future(self.client.exec_commands(jsondata), 
+			lambda x: traceback.print_tb(x.exc_info()[2]) if x.exception() else None)
+
 		cmd = jsondata["command"]
 		print(self.client.name + " \033[94m" + json.dumps(jsondata) + "\033[0m")
 
