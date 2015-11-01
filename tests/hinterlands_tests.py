@@ -4,7 +4,7 @@ import sets.base as base
 import sets.intrigue as intrigue
 import sets.hinterlands as hl
 import sets.prosperity as prosperity
-import sets.card as crd
+import sets.supply as supply_cards
 import game as g
 import kingdomGenerator as kg
 
@@ -103,8 +103,8 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		tu.print_test_header("Test Develop")
 		develop = hl.Develop(self.game, self.player1)
 		tu.add_many_to_hand(self.player1, develop, 2)
-		self.player1.hand.add(crd.Copper(self.game, self.player1))
-		self.player1.hand.add(crd.Estate(self.game, self.player1))
+		self.player1.hand.add(supply_cards.Copper(self.game, self.player1))
+		self.player1.hand.add(supply_cards.Estate(self.game, self.player1))
 
 		develop.play()
 
@@ -152,9 +152,10 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 
 		self.player1.end_turn()
 
-		self.player2.hand.add(crd.Estate(self.game, self.player2))
+		self.player2.hand.add(supply_cards.Estate(self.game, self.player2))
 		tu.send_input(self.player2, "play", "Trader")
 		yield tu.send_input(self.player2, "post_selection", ["Estate"])
+		print(self.player2.discard_pile)
 		self.assertTrue(len(self.player2.discard_pile) == 3)
 
 	@tornado.testing.gen_test
@@ -168,8 +169,8 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 	@tornado.testing.gen_test
 	def test_Mandarin(self):
 		tu.print_test_header("test Mandarin")
-		tu.add_many_to_hand(self.player1, crd.Silver(self.game, self.player1), 3)
-		tu.add_many_to_hand(self.player1, crd.Gold(self.game, self.player1), 2)
+		tu.add_many_to_hand(self.player1, supply_cards.Silver(self.game, self.player1), 3)
+		tu.add_many_to_hand(self.player1, supply_cards.Gold(self.game, self.player1), 2)
 
 		tu.send_input(self.player1, "play", "Gold")
 		tu.send_input(self.player1, "play", "Silver")
@@ -186,7 +187,7 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 
 		self.player1.end_turn()
 		self.player2.hand.add(hl.Mandarin(self.game, self.player2))
-		self.player2.hand.add(crd.Silver(self.game, self.player2))
+		self.player2.hand.add(supply_cards.Silver(self.game, self.player2))
 		tu.send_input(self.player2, "play", "Mandarin")
 		self.assertTrue(self.player2.balance == 3)
 		self.assertTrue(self.player2.last_mode["mode"] == "select")

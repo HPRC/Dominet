@@ -2,7 +2,7 @@ import unittest
 import client as c
 import sets.base as base
 import sets.intrigue as intrigue
-import sets.card as crd
+import sets.supply as supply_cards
 import game as g
 import kingdomGenerator as kg
 
@@ -54,8 +54,8 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		steward2 = intrigue.Steward(self.game, self.player1)
 		steward3 = intrigue.Steward(self.game, self.player1)
 
-		copper = crd.Copper(self.game, self.player1)
-		estate = crd.Estate(self.game, self.player1)
+		copper = supply_cards.Copper(self.game, self.player1)
+		estate = supply_cards.Estate(self.game, self.player1)
 		tu.clear_player_hand(self.player1)
 		tu.add_many_to_hand(self.player1, steward, 3)
 		tu.add_many_to_hand(self.player1, copper, 3)
@@ -93,7 +93,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		baron = intrigue.Baron(self.game, self.player1)
 		tu.clear_player_hand(self.player1)
 		tu.add_many_to_hand(self.player1, baron,3)
-		estate = crd.Estate(self.game, self.player1)
+		estate = supply_cards.Estate(self.game, self.player1)
 		# sadly add an estate to hand since no guarantees -- actually overwrites hand
 		self.player1.hand.add(estate)
 		self.player1.actions = 3
@@ -198,7 +198,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 	def test_Swindler(self):
 		tu.print_test_header("test Swindler")
 		swindler = intrigue.Swindler(self.game, self.player1)
-		self.player2.deck.append(crd.Copper(self.game, self.player2))
+		self.player2.deck.append(supply_cards.Copper(self.game, self.player2))
 		self.player1.hand.add(swindler)
 
 		swindler.play()
@@ -211,7 +211,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		duke = intrigue.Duke(self.game, self.player1)
 		self.player1.hand.add(duke)
 
-		duchy = crd.Duchy(self.game, self.player1)
+		duchy = supply_cards.Duchy(self.game, self.player1)
 		self.player1.hand.add(duchy)
 		self.player1.deck.append(duchy)
 		self.player1.discard_pile.append(duchy)
@@ -223,9 +223,9 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		tu.print_test_header("test Wishing Well")
 		wishing_well = intrigue.Wishing_Well(self.game, self.player1)
 		tu.add_many_to_hand(self.player1, wishing_well, 2)
-		province = crd.Province(self.game, self.player1)
+		province = supply_cards.Province(self.game, self.player1)
 		self.player1.deck.append(province)
-		self.player1.deck.append(crd.Silver(self.game, self.player1))
+		self.player1.deck.append(supply_cards.Silver(self.game, self.player1))
 		self.player1.deck.append(province)
 
 		wishing_well.play()
@@ -242,8 +242,8 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		tu.print_test_header("test Upgrade")
 		upgrade = intrigue.Upgrade(self.game, self.player1)
 		tu.add_many_to_hand(self.player1, upgrade, 2)
-		self.player1.hand.add(crd.Copper(self.game, self.player1))
-		self.player1.hand.add(crd.Estate(self.game, self.player1))
+		self.player1.hand.add(supply_cards.Copper(self.game, self.player1))
+		self.player1.hand.add(supply_cards.Estate(self.game, self.player1))
 
 		upgrade.play()
 
@@ -307,7 +307,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 	def test_Trading_Post(self):
 		tu.print_test_header("test Trading Post")
 		trading_post = intrigue.Trading_Post(self.game, self.player1)
-		copper = crd.Copper(self.game, self.player1)
+		copper = supply_cards.Copper(self.game, self.player1)
 		tu.clear_player_hand(self.player1)
 		self.player1.hand.add(copper)
 		self.player1.hand.add(trading_post)
@@ -357,7 +357,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 	def test_Secret_Chamber(self):
 		tu.print_test_header("test Secret Chamber")
 		secret_chamber = intrigue.Secret_Chamber(self.game, self.player1)
-		estate = crd.Estate(self.game, self.player1)
+		estate = supply_cards.Estate(self.game, self.player1)
 		tu.clear_player_hand(self.player1)
 
 		tu.add_many_to_hand(self.player1, estate, 4)
@@ -374,8 +374,8 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		#clear player3's hand no reaction
 		tu.clear_player_hand(self.player3)
 
-		self.player1.deck.append(crd.Copper(self.game, self.player1))
-		self.player1.deck.append(crd.Copper(self.game, self.player1))
+		self.player1.deck.append(supply_cards.Copper(self.game, self.player1))
+		self.player1.deck.append(supply_cards.Copper(self.game, self.player1))
 		self.player2.hand.add(base.Militia(self.game, self.player2))
 
 		self.player2.hand.play("Militia")
@@ -398,7 +398,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		tu.print_test_header("test Tribute")
 		tribute = intrigue.Tribute(self.game, self.player1)
 		tu.add_many_to_hand(self.player1, tribute, 2)
-		copper = crd.Copper(self.game, self.player2)
+		copper = supply_cards.Copper(self.game, self.player2)
 		great_hall = intrigue.Great_Hall(self.game, self.player2)
 		swindler = intrigue.Swindler(self.game, self.player2)
 
@@ -468,7 +468,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 	def test_Coppersmith(self):
 		tu.print_test_header("test Coppersmith")
 		coppersmith = intrigue.Coppersmith(self.game, self.player1)
-		copper = crd.Copper(self.game, self.player1)
+		copper = supply_cards.Copper(self.game, self.player1)
 		self.player1.hand.add(coppersmith)
 		self.player1.hand.add(copper)
 
@@ -484,7 +484,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		tu.print_test_header("test Coppersmith Throne Room")
 		coppersmith = intrigue.Coppersmith(self.game, self.player1)
 		throneroom = base.Throne_Room(self.game, self.player1)
-		copper = crd.Copper(self.game, self.player1)
+		copper = supply_cards.Copper(self.game, self.player1)
 		self.player1.hand.add(coppersmith)
 		self.player1.hand.add(throneroom)
 		self.player1.hand.add(copper)
@@ -506,9 +506,9 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		tu.print_test_header("test Scout")
 		scout = intrigue.Scout(self.game, self.player1)
 		scout2 = intrigue.Scout(self.game, self.player1)
-		province = crd.Province(self.game, self.player1)
+		province = supply_cards.Province(self.game, self.player1)
 		greathall = intrigue.Great_Hall(self.game, self.player1)
-		silver = crd.Silver(self.game, self.player1)
+		silver = supply_cards.Silver(self.game, self.player1)
 		self.player1.hand.add(scout)
 		self.player1.deck.append(province)
 		self.player1.deck.append(greathall)
@@ -530,10 +530,10 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 	def test_Scout_autoselect(self):
 		tu.print_test_header("test Scout autoselect")
 		scout = intrigue.Scout(self.game, self.player1)
-		self.player1.deck.append(crd.Copper(self.game, self.player1))
-		self.player1.deck.append(crd.Copper(self.game, self.player1))
-		self.player1.deck.append(crd.Estate(self.game, self.player1))
-		self.player1.deck.append(crd.Estate(self.game, self.player1))
+		self.player1.deck.append(supply_cards.Copper(self.game, self.player1))
+		self.player1.deck.append(supply_cards.Copper(self.game, self.player1))
+		self.player1.deck.append(supply_cards.Estate(self.game, self.player1))
+		self.player1.deck.append(supply_cards.Estate(self.game, self.player1))
 		self.player1.hand.add(scout)
 
 		scout.play()
@@ -579,7 +579,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 	def test_Masquerade(self):
 		tu.print_test_header("test Masquerade")
 		masquerade = intrigue.Masquerade(self.game, self.player1)
-		curse = crd.Curse(self.game, self.player1)
+		curse = supply_cards.Curse(self.game, self.player1)
 		baron = intrigue.Baron(self.game, self.player2)
 		tribute = intrigue.Tribute(self.game, self.player3)
 
@@ -610,9 +610,9 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 	def test_Masquerade_waits(self):
 		tu.print_test_header("test Masquerade waits")
 		masquerade = intrigue.Masquerade(self.game, self.player1)
-		curse = crd.Curse(self.game, self.player1)
-		estate = crd.Estate(self.game, self.player2)
-		estate3 = crd.Estate(self.game, self.player3)
+		curse = supply_cards.Curse(self.game, self.player1)
+		estate = supply_cards.Estate(self.game, self.player2)
+		estate3 = supply_cards.Estate(self.game, self.player3)
 		self.player1.hand.add(masquerade)
 		self.player1.hand.add(curse)
 		self.player2.hand.add(estate)
@@ -631,7 +631,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		tu.print_test_header("test Saboteur")
 		saboteur = intrigue.Saboteur(self.game, self.player1)
 		steward = intrigue.Steward(self.game, self.player2)
-		copper = crd.Copper(self.game, self.player2)
+		copper = supply_cards.Copper(self.game, self.player2)
 
 		self.player2.deck.append(steward)
 		self.player2.deck.append(copper)
@@ -655,8 +655,8 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		tu.print_test_header("test Upgrade selection issue 21")
 		upgrade = intrigue.Upgrade(self.game, self.player1)
 		throne_room = base.Throne_Room(self.game, self.player1)
-		self.player1.deck.append(crd.Estate(self.game, self.player1))
-		self.player1.deck.append(crd.Silver(self.game, self.player1))
+		self.player1.deck.append(supply_cards.Estate(self.game, self.player1))
+		self.player1.deck.append(supply_cards.Silver(self.game, self.player1))
 
 		self.player1.hand.add(upgrade)
 		self.player1.hand.add(throne_room)

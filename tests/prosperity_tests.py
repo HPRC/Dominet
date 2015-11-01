@@ -3,7 +3,7 @@ import client as c
 import sets.base as base
 import sets.intrigue as intrigue
 import sets.prosperity as prosperity
-import sets.card as crd
+import sets.supply as supply_cards
 import game as g
 import kingdomGenerator as kg
 
@@ -42,9 +42,9 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 	def test_Counting_House(self):
 		tu.print_test_header("test Counting House")
 		counting_house = prosperity.Counting_House(self.game, self.player1)
-		copper1 = crd.Copper(self.game, self.player1)
-		copper2 = crd.Copper(self.game, self.player1)
-		copper3 = crd.Copper(self.game, self.player1)
+		copper1 = supply_cards.Copper(self.game, self.player1)
+		copper2 = supply_cards.Copper(self.game, self.player1)
+		copper3 = supply_cards.Copper(self.game, self.player1)
 
 		num_coppers = self.player1.hand.get_count('Copper')
 		self.player1.discard_pile = []
@@ -84,7 +84,7 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		tu.print_test_header("testing Watchtower play action")
 		watchtower = prosperity.Watchtower(self.game, self.player1)
 		watchtower2 = prosperity.Watchtower(self.game, self.player1)
-		estate = crd.Estate(self.game, self.player1)
+		estate = supply_cards.Estate(self.game, self.player1)
 		tu.set_player_hand(self.player1, [watchtower, estate, watchtower2])
 		self.player1.actions = 2
 		watchtower.play()
@@ -154,7 +154,7 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 	def test_Mint(self):
 		tu.print_test_header("test Mint")
 		mint = prosperity.Mint(self.game, self.player1)
-		silver = crd.Silver(self.game, self.player1)
+		silver = supply_cards.Silver(self.game, self.player1)
 		self.player1.hand.add(mint)
 		self.player1.hand.add(silver)
 		mint.play()
@@ -169,7 +169,7 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 	def test_Mountebank(self):
 		tu.print_test_header("test Mountebank")
 		mountebank = prosperity.Mountebank(self.game, self.player1)
-		curse = crd.Curse(self.game, self.player2)
+		curse = supply_cards.Curse(self.game, self.player2)
 
 		self.player2.hand.add(curse)
 
@@ -212,7 +212,7 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		minion = intrigue.Minion(self.game, self.player1)
 		torturer = intrigue.Torturer(self.game, self.player1)
 		secret_chamber = intrigue.Secret_Chamber(self.game, self.player1)
-		gold = crd.Gold(self.game, self.player1)
+		gold = supply_cards.Gold(self.game, self.player1)
 
 		self.player1.hand.add(steward)
 		self.player1.hand.add(minion)
@@ -265,7 +265,7 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 	def test_Loan(self):
 		tu.print_test_header("test Loan")
 		loan = prosperity.Loan(self.game, self.player1)
-		estate = crd.Estate(self.game, self.player1)
+		estate = supply_cards.Estate(self.game, self.player1)
 
 		self.player1.deck.append(estate)
 		self.player1.deck.append(estate)
@@ -283,9 +283,9 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 	def test_Venture(self):
 		tu.print_test_header("test Venture")
 		venture = prosperity.Venture(self.game, self.player1)
-		estate = crd.Estate(self.game, self.player1)
+		estate = supply_cards.Estate(self.game, self.player1)
 		loan = prosperity.Loan(self.game, self.player1)
-		silver = crd.Silver(self.game, self.player1)
+		silver = supply_cards.Silver(self.game, self.player1)
 		self.player1.deck += [loan, estate, estate, silver, estate]
 
 		venture.play()
@@ -308,7 +308,7 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		vault.play()
 		yield tu.send_input(self.player1, "post_selection", ["Estate", "Estate"])
 		#add two coppers to player2's hand so he can use vault to discard
-		tu.add_many_to_hand(self.player2, crd.Copper(self.game, self.player2), 2)
+		tu.add_many_to_hand(self.player2, supply_cards.Copper(self.game, self.player2), 2)
 		self.assertTrue(self.player1.balance == 2)
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		#both players should be able to choose to discard at the same time
@@ -405,14 +405,14 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 	def test_Rabble(self):
 		tu.print_test_header("test Rabble")
 		rabble = prosperity.Rabble(self.game, self.player1)
-		copper = crd.Copper(self.game, self.player2)
-		estate = crd.Estate(self.game, self.player2)
+		copper = supply_cards.Copper(self.game, self.player2)
+		estate = supply_cards.Estate(self.game, self.player2)
 
 		self.player2.deck.append(estate)
 		self.player2.deck.append(copper)
 		self.player2.deck.append(estate)
 
-		duchy = crd.Duchy(self.game, self.player3)
+		duchy = supply_cards.Duchy(self.game, self.player3)
 		gardens = base.Gardens(self.game, self.player3)
 		great_hall = intrigue.Great_Hall(self.game, self.player3)
 
@@ -438,7 +438,7 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		tu.print_test_header("test Royal Seal")
 		royal_seal = prosperity.Royal_Seal(self.game, self.player1)
 		workers_village = prosperity.Workers_Village(self.game, self.player1)
-		copper = crd.Copper(self.game, self.player1)
+		copper = supply_cards.Copper(self.game, self.player1)
 		self.player1.hand.add(royal_seal)
 		self.player1.hand.add(copper)
 		tu.add_many_to_hand(self.player1, workers_village, 3)
@@ -489,7 +489,7 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 	def test_Peddler(self):
 		tu.print_test_header("test Peddler")
 		village = base.Village(self.game, self.player1)
-		copper = crd.Copper(self.game, self.player1)
+		copper = supply_cards.Copper(self.game, self.player1)
 		self.player1.hand.add(copper)
 		tu.add_many_to_hand(self.player1, village, 5)
 
@@ -528,7 +528,7 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 	def test_Trade_Route(self):
 		tu.print_test_header("test Trade Route")
 		trade_route = prosperity.Trade_Route(self.game, self.player1)
-		copper = crd.Copper(self.game, self.player1)
+		copper = supply_cards.Copper(self.game, self.player1)
 		tu.set_player_hand(self.player1, [trade_route, copper, copper, copper, copper])
 		trade_route2 = prosperity.Trade_Route(self.game, self.player2)
 		self.player2.hand.add(trade_route2)
@@ -563,7 +563,7 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 	def test_Mint_auto_select(self):
 		tu.print_test_header("test Mint auto select")
 		mint = prosperity.Mint(self.game, self.player1)
-		tu.set_player_hand(self.player1, [mint, crd.Silver(self.game, self.player1)])
+		tu.set_player_hand(self.player1, [mint, supply_cards.Silver(self.game, self.player1)])
 
 		mint.play()
 		self.assertTrue(self.player1.last_mode["mode"] == "buy")

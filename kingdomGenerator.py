@@ -1,5 +1,6 @@
 import sets.card as crd
 import sets.base as base
+import sets.supply as supply_cards
 import sets.intrigue as intrigue
 import sets.prosperity as prosperity
 import sets.hinterlands as hl
@@ -62,13 +63,9 @@ def card_title_to_class_name(lst):
 
 def all_card_titles():
 	titles = []
-	for each_set in kingdomGenerator.avail_sets:
+	for each_set in kingdomGenerator.avail_sets + [supply_cards]:
 		for name, obj in inspect.getmembers(each_set):
 			if inspect.isclass(obj):
-				titles.append(obj(None, None).title)
-	for name,obj in inspect.getmembers(crd):
-		if inspect.isclass(obj):
-			if name != "Card" and name != "Money" and name != "AttackCard" and name != "VictoryCard":
 				titles.append(obj(None, None).title)
 	return titles	
 

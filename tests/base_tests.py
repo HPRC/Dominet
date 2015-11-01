@@ -3,6 +3,7 @@ import client as c
 import sets.base as base
 import sets.intrigue as intrigue
 import sets.prosperity as prosperity
+import sets.supply as supply_cards
 import sets.card as crd
 import game as g
 import kingdomGenerator as kg
@@ -116,8 +117,8 @@ class TestCard(tornado.testing.AsyncTestCase):
 		tu.print_test_header("test Thief on 2 treasures")
 		thief_card = base.Thief(self.game, self.player1)
 		self.player1.hand.add(thief_card)
-		self.player2.deck.append(crd.Copper(self.game, self.player2))
-		self.player2.deck.append(crd.Silver(self.game, self.player2))
+		self.player2.deck.append(supply_cards.Copper(self.game, self.player2))
+		self.player2.deck.append(supply_cards.Silver(self.game, self.player2))
 		thief_card.play()
 		self.assertTrue("Copper" in self.player1.handler.log[-1]['select_from'])
 		self.assertTrue("Silver" in self.player1.handler.log[-1]['select_from'])
@@ -131,8 +132,8 @@ class TestCard(tornado.testing.AsyncTestCase):
 		tu.print_test_header("test Thief on 1 treasure")
 		thief_card = base.Thief(self.game, self.player1)
 		self.player1.hand.add(thief_card)
-		self.player2.deck.append(crd.Estate(self.game, self.player2))
-		self.player2.deck.append(crd.Gold(self.game, self.player2))
+		self.player2.deck.append(supply_cards.Estate(self.game, self.player2))
+		self.player2.deck.append(supply_cards.Gold(self.game, self.player2))
 		thief_card.play()
 		self.assertTrue(self.game.trash_pile[-1].title == "Gold")
 		yield tu.send_input(self.player1, "post_selection", ["Yes"])
@@ -143,10 +144,10 @@ class TestCard(tornado.testing.AsyncTestCase):
 		tu.print_test_header("test Thief 3 players")
 		thief_card = base.Thief(self.game, self.player1)
 		self.player1.hand.add(thief_card)
-		self.player2.deck.append(crd.Estate(self.game, self.player2))
-		self.player2.deck.append(crd.Gold(self.game, self.player2))
-		self.player3.deck.append(crd.Copper(self.game, self.player2))
-		self.player3.deck.append(crd.Estate(self.game, self.player2))
+		self.player2.deck.append(supply_cards.Estate(self.game, self.player2))
+		self.player2.deck.append(supply_cards.Gold(self.game, self.player2))
+		self.player3.deck.append(supply_cards.Copper(self.game, self.player2))
+		self.player3.deck.append(supply_cards.Estate(self.game, self.player2))
 		thief_card.play()
 		yield tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Gold")
@@ -162,13 +163,13 @@ class TestCard(tornado.testing.AsyncTestCase):
 			self.player1.deck.append(base.Gardens(self.game, self.player1))
 		# decksize = 20
 		self.assertTrue(self.player1.total_vp() == 23)
-		self.player1.deck.append(crd.Copper(self.game, self.player1))
+		self.player1.deck.append(supply_cards.Copper(self.game, self.player1))
 		self.assertTrue(self.player1.total_vp() == 23)
 
 	@tornado.testing.gen_test
 	def test_Chancellor(self):
 		tu.print_test_header("test Chancellor")
-		self.player1.discard_pile.append(crd.Copper(self.game, self.player1))
+		self.player1.discard_pile.append(supply_cards.Copper(self.game, self.player1))
 		chancellor = base.Chancellor(self.game, self.player1)
 		self.player1.hand.add(chancellor)
 		chancellor.play()
@@ -182,8 +183,8 @@ class TestCard(tornado.testing.AsyncTestCase):
 
 	def test_Adventurer(self):
 		tu.print_test_header("test Adventurer")
-		estate = crd.Estate(self.game, self.player1)
-		gold = crd.Gold(self.game, self.player1)
+		estate = supply_cards.Estate(self.game, self.player1)
+		gold = supply_cards.Gold(self.game, self.player1)
 		adventurer = base.Adventurer(self.game, self.player1)
 		self.player1.deck = [estate, estate, estate]
 		self.player1.discard_pile = [gold, gold]
@@ -196,8 +197,8 @@ class TestCard(tornado.testing.AsyncTestCase):
 
 	def test_Adventurer_empty_deck(self):
 		tu.print_test_header("test Adventurer")
-		estate = crd.Estate(self.game, self.player1)
-		gold = crd.Gold(self.game, self.player1)
+		estate = supply_cards.Estate(self.game, self.player1)
+		gold = supply_cards.Gold(self.game, self.player1)
 		adventurer = base.Adventurer(self.game, self.player1)
 		self.player1.deck = []
 		self.player1.discard_pile = [gold]
@@ -213,7 +214,7 @@ class TestCard(tornado.testing.AsyncTestCase):
 		tu.print_test_header("test Library")
 		library = base.Library(self.game, self.player1)
 		village = base.Village(self.game, self.player1)
-		copper = crd.Copper(self.game, self.player1)
+		copper = supply_cards.Copper(self.game, self.player1)
 		self.player1.deck = [copper, village, copper]
 		self.player1.hand.add(library)
 		library.play()
@@ -238,14 +239,14 @@ class TestCard(tornado.testing.AsyncTestCase):
 		militia = base.Militia(self.game, self.player1)
 		moat = base.Moat(self.game, self.player2)
 		secret_chamber = intrigue.Secret_Chamber(self.game, self.player2)
-		estate = crd.Estate(self.game, self.player2)
+		estate = supply_cards.Estate(self.game, self.player2)
 		self.player2.hand.add(moat)
 		self.player2.hand.add(secret_chamber)
 		self.player2.deck.append(estate)
 		self.player2.deck.append(estate)
 		moat3 = base.Moat(self.game, self.player3)
 		secret_chamber3 = intrigue.Secret_Chamber(self.game, self.player3)
-		silver = crd.Silver(self.game, self.player3)
+		silver = supply_cards.Silver(self.game, self.player3)
 		tu.set_player_hand(self.player3, [silver, silver, silver, moat3, secret_chamber3])
 
 		militia.play()
@@ -303,12 +304,12 @@ class TestCard(tornado.testing.AsyncTestCase):
 		secret_chamber = intrigue.Secret_Chamber(self.game, self.player2)
 		self.player2.hand.add(moat)
 		self.player2.hand.add(secret_chamber)
-		self.player2.deck.append(crd.Estate(self.game, self.player2))
-		self.player2.deck.append(crd.Estate(self.game, self.player2))
+		self.player2.deck.append(supply_cards.Estate(self.game, self.player2))
+		self.player2.deck.append(supply_cards.Estate(self.game, self.player2))
 
 		moat3 = base.Moat(self.game, self.player3)
 		secret_chamber3 = intrigue.Secret_Chamber(self.game, self.player3)
-		silver = crd.Silver(self.game, self.player3)
+		silver = supply_cards.Silver(self.game, self.player3)
 		tu.set_player_hand(self.player3, [silver, silver, silver, moat3, secret_chamber3])
 
 		militia.play()

@@ -3,7 +3,7 @@ import sets.card as crd
 import cardpile as cp
 import random
 import sets.base as b
-import sets.intrigue as intr
+import sets.supply as supply_cards
 import html
 import game as g
 import waitHandler as w
@@ -57,9 +57,9 @@ class DmClient(Client):
 	def base_deck(self):
 		deck = []
 		for i in range(0, 7):
-			deck.append(crd.Copper(game=self.game, played_by=self))
+			deck.append(supply_cards.Copper(game=self.game, played_by=self))
 		for i in range(0, 3):
-			deck.append(crd.Estate(game=self.game, played_by=self))
+			deck.append(supply_cards.Estate(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
