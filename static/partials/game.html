@@ -3,15 +3,15 @@
 		<h4>Dominet</h4>
 	</div>
 </div>
-<div id="client-container" class="row" ng-controller="clientController">
-	<div  class="col-md-4" id="leftColumn" ng-controller="supplyController">
+<div id="client-container" class="row row-eq-height" ng-controller="clientController">
+	<div  class="col-xs-4" id="leftColumn" ng-controller="supplyController">
 		<div class="row">
-			<div class="col-xs-6">
+			<div class="col-sm-6">
 				<div ng-repeat="card in kingdomSupplyArray | orderBy:'price':true">
 					<div class="supplyCardContainer"><supply-card></supply-card></div>
 				</div>
 			</div>
-			<div class="col-xs-6">
+			<div class="col-sm-6">
 				<div ng-repeat="card in baseSupplyArray | orderBy:'price':true">
 					<div class="supplyCardContainer"><supply-card></supply-card></div>
 				</div>
@@ -23,7 +23,7 @@
 			</div>
 		</div>
 	</div>
-	<div id="middleColumn" class="col-md-5 col-sm-8">
+	<div id="middleColumn" class="col-xs-5">
 		<div id="game-panel">
 			<div id="msg" ng-bind-html="renderHtml(gameLog)"></div>
 			<div class="modeContainer">
@@ -74,21 +74,21 @@
 			</div>
 		</div>
 	</div>
-		<div id="rightColumn" class="col-md-3 col-sm-4" ng-controller="infoController">
-			<ul class="list-group">
-				<li class="list-group-item">Deck
-				<span class="badge">{{deckSize}}</span>
-				</li>
-				<li class="list-group-item">Discard
-					<span class="badge">{{discardSize}}</span>
-				</li>
-				<li class="list-group-item" ng-bind-html="matDisplay('Trash',gameTrash)">
-				</li>
-				<li class="list-group-item" ng-repeat="(name, data) in gameMat" ng-bind-html="matDisplay(name, data)">
-				</li>
-				<li class="list-group-item" ng-bind-html="renderHtml(modeJson.decklists)" ng-show="modeJson.mode === 'gameover'">
-				</li>
-			</ul>
-            <button id="reportBug" class="btn btn-default" ng-click="openReportBugModal()">Report Bug</button>
-		</div>
+	<div id="rightColumn" class="col-xs-3" ng-controller="infoController">
+		<ul class="list-group">
+			<li class="list-group-item">Deck
+			<span class="badge">{{deckSize}}</span>
+			</li>
+			<li class="list-group-item">Discard
+				<span class="badge">{{discardSize}}</span>
+			</li>
+			<li class="list-group-item" ng-bind-html="matDisplay('Trash',gameTrash)">
+			</li>
+			<li class="list-group-item" ng-repeat="(name, data) in gameMat" ng-bind-html="matDisplay(name, data)">
+			</li>
+			<li class="list-group-item" ng-bind-html="renderHtml(modeJson.decklists)" ng-show="modeJson.mode === 'gameover'">
+			</li>
+		</ul>
+        <button id="reportBug" class="btn btn-default" ng-click="openReportBugModal()">Report Bug</button>
+	</div>
 </div>
