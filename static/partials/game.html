@@ -25,7 +25,7 @@
 	</div>
 	<div id="middleColumn" class="col-xs-5">
 		<div id="game-panel">
-			<div id="msg" ng-bind-html="renderHtml(gameLog)"></div>
+			<div id="msg" ng-bind-html="gameLog"></div>
 			<div class="modeContainer">
 				<div id="gameover" ng-show="modeJson.mode === 'gameover'">
 					<a href="#" ng-click="returnLobby()">Return to Lobby</a>

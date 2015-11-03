@@ -184,6 +184,19 @@ class VictoryCard(Card):
 		return "".join(["<span class='label label-success'>", self.title, "s</span>" if plural else "</span>"])
 
 # Utility
+#format game resources used for card descriptions
+def format_actions(num_actions):
+	return "<b>+{} actions</b>\n".format(num_actions)
+
+def format_buys(num_buys):
+	return "<b>+{} buys</b>\n".format(num_buys)
+
+def format_money(num_money):
+	return "<b>+${}</b>\n".format(num_money)
+
+def format_draw(num_cards):
+	return "<b>+{} cards</b>\n".format(num_cards)
+
 # returns list of card titles from list of card jsons or card objects
 def card_list_to_titles(lst):
 	if len(lst) == 0:
