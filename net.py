@@ -25,7 +25,7 @@ class mainHandler(web.RequestHandler):
 		cookie_name = self.get_cookie("DMTusername")
 		#no cookie and no name conflicts
 		if not self.application.in_game_or_lobby(input_name) and cookie_name is None:
-			self.set_cookie("DMTusername", input_name, expires_days=None)
+			self.set_cookie("DMTusername", input_name, expires_days=1)
 			self.render("main.html")
 		#new user, name conflict
 		elif self.application.in_game_or_lobby(input_name) and cookie_name is None:
@@ -37,7 +37,7 @@ class mainHandler(web.RequestHandler):
 		else:
 			#have old name in cookie but requesting new name
 			if not self.application.in_game_or_lobby(cookie_name):
-				self.set_cookie("DMTusername", input_name, expires_days=None)
+				self.set_cookie("DMTusername", input_name, expires_days=1)
 				self.render("main.html")
 			#trying to play in new tab with new name while connected as another name conflict
 			else:

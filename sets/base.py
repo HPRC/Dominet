@@ -10,7 +10,7 @@ class Cellar(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Cellar"
-		self.description = "+1 action\n Discard any number of cards, +1 Card per card discarded."
+		self.description = "{}Discard any number of cards, +1 Card per card discarded.".format(crd.format_actions(1))
 		self.price = 2
 		self.type = "Action"
 

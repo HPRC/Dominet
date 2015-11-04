@@ -186,16 +186,16 @@ class VictoryCard(Card):
 # Utility
 #format game resources used for card descriptions
 def format_actions(num_actions):
-	return "<b>+{} actions</b>\n".format(num_actions)
+	return "<b>+{} action{}</b>\n".format(num_actions, "s" if num_actions > 1 else "")
 
 def format_buys(num_buys):
-	return "<b>+{} buys</b>\n".format(num_buys)
+	return "<b>+{} buy{}</b>\n".format(num_buys, "s" if num_buys > 1 else "")
 
 def format_money(num_money):
 	return "<b>+${}</b>\n".format(num_money)
 
 def format_draw(num_cards):
-	return "<b>+{} cards</b>\n".format(num_cards)
+	return "<b>+{} card{}</b>\n".format(num_cards, "s" if num_cards > 1 else "")
 
 # returns list of card titles from list of card jsons or card objects
 def card_list_to_titles(lst):
