@@ -56,8 +56,9 @@ class Moat(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Moat"
-		self.description = "+2 cards\n Reaction: Whenever another player plays an Attack card, " \
-		                   "you may reveal this card from your hand, if you do, you are unaffected by the Attack."
+		self.description = "{} Reaction: Whenever another player plays an Attack card,\
+		                   you may reveal this card from your hand,\
+		                   if you do, you are unaffected by the Attack.".format(crd.format_draw(2))
 		self.price = 2
 		self.type = "Action|Reaction"
 		self.trigger = "Attack"

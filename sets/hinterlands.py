@@ -222,12 +222,15 @@ class Mandarin(crd.Card):
 		else:
 			selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),  
 				"Select card to put back on top of your deck")
-			if selection:
-				self.played_by.discard(selection, self.played_by.deck)
-				self.played_by.announce_opponents("-- placing a card back on top of their deck")
-				card_string = self.game.log_string_from_title(selection[0])
-				self.played_by.announce_self("-- You place " + card_string + " back on top of your deck")
-			crd.Card.on_finished(self, True)
+			self.post_select(selection)
+			
+	def post_select(self, selection):
+		if selection:
+			self.played_by.discard(selection, self.played_by.deck)
+			self.played_by.announce_opponents("-- placing a card back on top of their deck")
+			card_string = self.game.log_string_from_title(selection[0])
+			self.played_by.announce_self("-- You place " + card_string + " back on top of your deck")
+		crd.Card.on_finished(self, True)
 
 	@gen.coroutine
 	def on_gain(self):
