@@ -6,7 +6,7 @@ class Copper(crd.Money):
 		self.title = "Copper"
 		self.value = 1
 		self.price = 0
-		self.description = "+$1"
+		self.description = "{}".format(crd.format_money(1))
 
 	def play(self, skip=False):
 		crd.Money.play(self, skip)
@@ -33,7 +33,7 @@ class Silver(crd.Money):
 		self.title = "Silver"
 		self.value = 2
 		self.price = 3
-		self.description = "+$2"
+		self.description = "{}".format(crd.format_money(2))
 
 
 class Gold(crd.Money):
@@ -42,7 +42,7 @@ class Gold(crd.Money):
 		self.title = "Gold"
 		self.value = 3
 		self.price = 6
-		self.description = "+$3"
+		self.description = "{}".format(crd.format_money(3))
 
 
 class Platinum(crd.Money):
@@ -51,7 +51,7 @@ class Platinum(crd.Money):
 		self.title = "Platinum"
 		self.value = 5
 		self.price = 9
-		self.description = "+$5"
+		self.description = "{}".format(crd.format_money(5))
 
 
 class Curse(crd.Card):
@@ -76,7 +76,7 @@ class Estate(crd.VictoryCard):
 	def __init__(self, game, played_by):
 		crd.VictoryCard.__init__(self, game, played_by)
 		self.title = "Estate"
-		self.description = "1 VP"
+		self.description = "{}".format(crd.format_vp(1))
 		self.price = 2
 		self.vp = 1
 
@@ -85,7 +85,7 @@ class Duchy(crd.VictoryCard):
 	def __init__(self, game, played_by):
 		crd.VictoryCard.__init__(self, game, played_by)
 		self.title = "Duchy"
-		self.description = "3 VP"
+		self.description = "{}".format(crd.format_vp(3))
 		self.price = 5
 		self.vp = 3
 
@@ -97,7 +97,7 @@ class Province(crd.VictoryCard):
 	def __init__(self, game, played_by):
 		crd.VictoryCard.__init__(self, game, played_by)
 		self.title = "Province"
-		self.description = "6 VP"
+		self.description = "{}".format(crd.format_vp(6))
 		self.price = 8
 		self.vp = 6
 
@@ -106,7 +106,7 @@ class Colony(crd.VictoryCard):
 	def __init__(self, game, played_by):
 		crd.VictoryCard.__init__(self, game, played_by)
 		self.title = "Colony"
-		self.description = "10 VP"
+		self.description = "{}".format(crd.format_vp(10))
 		self.price = 11
 		self.vp = 10
 

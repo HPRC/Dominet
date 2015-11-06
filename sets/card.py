@@ -185,17 +185,20 @@ class VictoryCard(Card):
 
 # Utility
 #format game resources used for card descriptions
-def format_actions(num_actions):
-	return "<b>+{} action{}</b>\n".format(num_actions, "s" if num_actions > 1 else "")
+def format_actions(num_actions, inline=False):
+	return "<b>+{} action{}</b>{}".format(num_actions, "s" if num_actions > 1 else "", "" if inline else "\n")
 
-def format_buys(num_buys):
-	return "<b>+{} buy{}</b>\n".format(num_buys, "s" if num_buys > 1 else "")
+def format_buys(num_buys, inline=False):
+	return "<b>+{} buy{}</b>{}".format(num_buys, "s" if num_buys > 1 else "", "" if inline else "\n")
 
-def format_money(num_money):
-	return "<b>+${}</b>\n".format(num_money)
+def format_money(num_money, inline=False):
+	return "<b>+${}</b>{}".format(num_money, "" if inline else "\n")
 
-def format_draw(num_cards):
-	return "<b>+{} card{}</b>\n".format(num_cards, "s" if num_cards > 1 else "")
+def format_draw(num_cards, inline=False):
+	return "<b>+{} card{}</b>{}".format(num_cards, "s" if num_cards > 1 else "", "" if inline else "\n")
+
+def format_vp(num_vp, inline=False):
+	return "<b>{} VP</b>{}".format(num_vp, "" if inline else "\n")
 
 # returns list of card titles from list of card jsons or card objects
 def card_list_to_titles(lst):
