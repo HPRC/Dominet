@@ -70,7 +70,7 @@ class WaitHandler():
 			while not wait_iterator.done():
 				selected = yield wait_iterator.next()
 				if selected == ["Yes"]:
-					self.player.game.end_game([afk_players])
+					self.player.game.end_game(afk_players)
 		self.afk_timer = ioloop.IOLoop.current().call_later(self.time_until_afk, afk_cb)
 
 	def reset_afk_timer(self):
