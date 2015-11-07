@@ -9,7 +9,7 @@ class Courtyard(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Courtyard"
-		self.description = "+3 Cards\n Put a card from your hand on top of your deck."
+		self.description = "{}Put a card from your hand on top of your deck.".format(crd.format_draw(3, True))
 		self.price = 2
 		self.type = "Action"
 
@@ -34,7 +34,7 @@ class Pawn(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Pawn"
-		self.description = "Choose two:\n +$1, +1 Buy, +1 Action, +1 Card"
+		self.description = "Choose two:\n {}, {}, {}, {}".format(crd.format_draw(1, True), crd.format_actions(1, True), crd.format_buys(1, True), crd.format_money(1, True))
 		self.price = 2
 		self.type = "Action"
 
@@ -122,7 +122,7 @@ class Great_Hall(crd.VictoryCard):
 	def __init__(self, game, played_by):
 		crd.VictoryCard.__init__(self, game, played_by)
 		self.title = "Great Hall"
-		self.description = "+1 Card\n +1 Action\n 1 VP\n"
+		self.description = "{}{}{}".format(crd.format_draw(1), crd.format_actions(1), crd.format_vp(1))
 		self.price = 3
 		self.vp = 1
 		self.type = "Action|Victory"
@@ -142,7 +142,8 @@ class Masquerade(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Masquerade"
-		self.description = "+2 Cards\n Each player passes a card in their hand to the player on their left. You may trash a card from your hand."
+		self.description = "{}Each player passes a card in their hand to the player on their left. \
+			You may trash a card from your hand.".format(crd.format_draw(2))
 		self.price = 3
 		self.type = "Action"
 		self.passed_card = ""
@@ -200,7 +201,7 @@ class Shanty_Town(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Shanty Town"
-		self.description = "+2 Actions\n Reveal your hand.  If you have no Action cards in hand, +2 Cards."
+		self.description = "{}Reveal your hand.  If you have no Action cards in hand, {}".format(crd.format_actions(2), crd.format_draw(2, True))
 		self.price = 3
 		self.type = "Action"
 
@@ -229,7 +230,7 @@ class Steward(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Steward"
-		self.description = "Choose one:\n +2 Cards, or +$2, or trash exactly 2 cards from your hand."
+		self.description = "Choose one:\n{}, or {}, or trash exactly 2 cards from your hand.".format(crd.format_draw(2, True), crd.format_money(2, True))
 		self.price = 3
 		self.type = "Action"
 
@@ -270,7 +271,8 @@ class Swindler(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Swindler"
-		self.description = "+$2\n Each other player trashes the top card of their deck and gains a card with the same cost that you choose."
+		self.description = "{}Each other player trashes the top card of their deck \
+			and gains a card with the same cost that you choose.".format(crd.format_money(2))
 		self.price = 3
 		self.type = "Action|Attack"
 
@@ -308,7 +310,8 @@ class Wishing_Well(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Wishing Well"
-		self.description = "+1 Card; +1 Action\n Name a card, then reveal the top card of your deck. If it is the named card, put it in your hand."
+		self.description = "Name a card, then reveal the top card of your deck. \
+			If it is the named card, put it in your hand.".format(crd.format_draw(1), crd.format_actions(1))
 		self.price = 3
 		self.type = "Action"
 
@@ -343,7 +346,7 @@ class Baron(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Baron"
-		self.description = "+1 Buy\n You may discard an Estate card, if you do +$4\n Otherwise, gain an Estate card."
+		self.description = "{}You may discard an Estate card, if you do {} Otherwise, gain an Estate card.".format(crd.format_buys(1), crd.format_money(4))
 		self.price = 4
 		self.type = "Action"
 
@@ -370,7 +373,8 @@ class Bridge(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Bridge"
-		self.description = "+1 Buy, +$1,\n All cards (including ones in player's hands) cost $1 less this turn, but not less than $0."
+		self.description = "{}{}All cards (including ones in player's hands) cost $1 less this turn, \
+			but not less than $0.".format(crd.format_buys(1), crd.format_money(1))
 		self.price = 4
 		self.type = "Action"
 
@@ -389,7 +393,8 @@ class Conspirator(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Conspirator"
-		self.description = "+$2\n If you’ve played 3 or more Actions this turn (counting this): +1 Card; +1 Action."
+		self.description = "{}If you’ve played 3 or more Actions this turn (counting this):\
+			{}{}".format(crd.format_money(2), crd.format_draw(1, True), crd.format_actions(1, True))
 		self.price = 4
 		self.type = "Action"
 
@@ -475,7 +480,8 @@ class Mining_Village(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Mining Village"
-		self.description = "+1 Card, +2 Actions\n You may trash this card immediately to gain $2."
+		self.description = "{}{} \
+			You may trash this card immediately to gain {}".format(crd.format_draw(1), crd.format_actions(2), crd.format_money(2, True))
 		self.price = 4
 		self.type = "Action"
 
@@ -502,7 +508,8 @@ class Scout(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Scout"
-		self.description = "+1 Action \n Reveal the top 4 cards of your deck and draw any Victory cards, put the other cards on top of your deck in any order."
+		self.description = "{} Reveal the top 4 cards of your deck and draw any Victory cards, \
+			put the other cards on top of your deck in any order.".format(crd.format_actions(1))
 		self.price = 4
 		self.type = "Action"
 
@@ -546,7 +553,7 @@ class Duke(crd.VictoryCard):
 	def __init__(self, game, played_by):
 		crd.VictoryCard.__init__(self, game, played_by)
 		self.title = "Duke"
-		self.description = "Worth 1 VP for each Duchy you have."
+		self.description = "{} for each Duchy you have.".format(crd.format_vp(1, True))
 		self.price = 5
 		self.vp = 0
 		self.type = "Victory"
@@ -562,8 +569,8 @@ class Minion(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Minion"
-		self.description = "+1 Action\n Choose one: +$2 or discard your hand, draw 4 cards and each other player\
-		with at least 5 cards in hand discards their hand and draws 4 cards."
+		self.description = "{}Choose one: {} or discard your hand, draw 4 cards and each other player\
+		with at least 5 cards in hand discards their hand and draws 4 cards.".format(crd.format_actions(1), crd.format_money(2, True))
 		self.price = 5
 		self.type = "Action|Attack"
 
@@ -602,7 +609,8 @@ class Torturer(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Torturer"
-		self.description = "+3 Cards\n Each other player chooses one: he discards 2 cards; or he gains a Curse card, putting it in their hand."
+		self.description = "{}Each other player chooses one: he discards 2 cards; \
+			or he gains a Curse card, putting it in their hand.".format(crd.format_draw(3))
 		self.price = 5
 		self.type = "Action|Attack"
 
@@ -646,8 +654,8 @@ class Tribute(crd.Card):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Tribute"
 		self.description = "The player to your left reveals then discards the top 2 cards of their deck.\n" \
-		                   " For each differently named card revealed, if it is an… Action Card; +2 Actions;" \
-		                   " Treasure Card; +$2; Victory Card; +2 Cards."
+		                   " For each differently named card revealed, if it is an… Action Card: {}" \
+		                   " Treasure Card: {}; Victory Card: {}".format(crd.format_actions(2), crd.format_money(2), crd.format_draw(2))
 		self.price = 5
 		self.type = "Action"
 
@@ -691,7 +699,7 @@ class Upgrade(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Upgrade"
-		self.description = "+1 Card; +1 Action\n Trash a card from your hand. Gain a card costing exactly $1 more than it."
+		self.description = "{}{} Trash a card from your hand. Gain a card costing exactly $1 more than it.".format(crd.format_draw(1), crd.format_actions(1))
 		self.price = 5
 		self.type = "Action"
 
@@ -816,7 +824,7 @@ class Harem(crd.Money):
 	def __init__(self, game, played_by):
 		crd.Money.__init__(self, game, played_by)
 		self.title = "Harem"
-		self.description = "$2\n 2 VP"
+		self.description = "{}{}".format(crd.format_money(2), crd.format_vp(2))
 		self.price = 6
 		self.value = 2
 		self.vp = 2
@@ -833,7 +841,7 @@ class Nobles(crd.VictoryCard):
 	def __init__(self, game, played_by):
 		crd.VictoryCard.__init__(self, game, played_by)
 		self.title = "Nobles"
-		self.description = "2 VP\n Choose one: +3 Cards, or +2 Actions."
+		self.description = "{}Choose one: {}, or {}".format(crd.format_vp(2), crd.format_draw(3, True), crd.format_actions(2, True))
 		self.price = 6
 		self.vp = 2
 		self.type = "Action|Victory"
