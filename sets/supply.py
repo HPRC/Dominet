@@ -58,7 +58,7 @@ class Curse(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Curse"
-		self.description = "-1 VP"
+		self.description = "{}".format(crd.format_vp(-1))
 		self.price = 0
 		self.vp = -1
 		self.type = "Curse"

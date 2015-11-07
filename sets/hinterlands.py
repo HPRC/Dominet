@@ -9,7 +9,7 @@ class Crossroads(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Crossroads"
-		self.description = "Reveal hand.\n +1 Card per Victory card.\n The first time you play this per turn, +3 Actions."
+		self.description = "Reveal hand.\n{} per Victory card revealed.\n The first time you play this per turn:{}".format(crd.format_draw(1, True), crd.format_actions(3))
 		self.price = 2
 		self.type = "Action"
 
@@ -35,7 +35,8 @@ class Duchess(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Duchess"
-		self.description = "+$2, every player looks at the top card of their deck and can choose to discard it.\nWhen you gain a Duchy, you may gain a Duchess."
+		self.description = "{}Every player looks at the top card of their deck and can choose to discard it."\
+			"\nStatic: When you gain a Duchy, you may gain a Duchess.".format(crd.format_money(2))
 		self.price = 2
 		self.type = "Action"
 
@@ -135,7 +136,7 @@ class Nomad_Camp(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Nomad Camp"
-		self.description = "+1 Buy, +$2\n When you gain this, put it on top of your deck"
+		self.description = "{}{} When you gain this, put it on top of your deck".format(crd.format_buys(1), crd.format_money(2))
 		self.price = 4
 		self.type = "Action"
 
@@ -206,8 +207,8 @@ class Mandarin(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Mandarin"
-		self.description = "+$3, Put a card from your hand on top of your deck. \
-		When you gain this, put all treasures in play on top of your deck in any order."
+		self.description = "{} Put a card from your hand on top of your deck. \
+		When you gain this, put all treasures in play on top of your deck in any order.".format(crd.format_money(3))
 		self.price = 5
 		self.type = "Action"
 

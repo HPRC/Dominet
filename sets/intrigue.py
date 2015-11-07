@@ -142,8 +142,8 @@ class Masquerade(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Masquerade"
-		self.description = "{}Each player passes a card in their hand to the player on their left. \
-			You may trash a card from your hand.".format(crd.format_draw(2))
+		self.description = "{}Each player passes a card in their hand to the player on their left."\
+			"You may trash a card from your hand.".format(crd.format_draw(2))
 		self.price = 3
 		self.type = "Action"
 		self.passed_card = ""
@@ -271,8 +271,8 @@ class Swindler(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Swindler"
-		self.description = "{}Each other player trashes the top card of their deck \
-			and gains a card with the same cost that you choose.".format(crd.format_money(2))
+		self.description = "{}Each other player trashes the top card of their deck"\
+			"and gains a card with the same cost that you choose.".format(crd.format_money(2))
 		self.price = 3
 		self.type = "Action|Attack"
 
@@ -310,8 +310,8 @@ class Wishing_Well(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Wishing Well"
-		self.description = "Name a card, then reveal the top card of your deck. \
-			If it is the named card, put it in your hand.".format(crd.format_draw(1), crd.format_actions(1))
+		self.description = "{}{}Name a card, then reveal the top card of your deck." \
+			"If it is the named card, put it in your hand.".format(crd.format_draw(1), crd.format_actions(1))
 		self.price = 3
 		self.type = "Action"
 
@@ -373,8 +373,8 @@ class Bridge(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Bridge"
-		self.description = "{}{}All cards (including ones in player's hands) cost $1 less this turn, \
-			but not less than $0.".format(crd.format_buys(1), crd.format_money(1))
+		self.description = "{}{}All cards (including ones in player's hands) cost $1 less this turn,"\
+			"but not less than $0.".format(crd.format_buys(1), crd.format_money(1))
 		self.price = 4
 		self.type = "Action"
 
@@ -393,8 +393,8 @@ class Conspirator(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Conspirator"
-		self.description = "{}If you’ve played 3 or more Actions this turn (counting this):\
-			{}{}".format(crd.format_money(2), crd.format_draw(1, True), crd.format_actions(1, True))
+		self.description = "{}If you’ve played 3 or more Actions this turn (counting this):"\
+			" {} {}".format(crd.format_money(2), crd.format_draw(1, True), crd.format_actions(1, True))
 		self.price = 4
 		self.type = "Action"
 
@@ -508,8 +508,8 @@ class Scout(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Scout"
-		self.description = "{} Reveal the top 4 cards of your deck and draw any Victory cards, \
-			put the other cards on top of your deck in any order.".format(crd.format_actions(1))
+		self.description = "{} Reveal the top 4 cards of your deck and draw any Victory cards," \
+			"put the other cards on top of your deck in any order.".format(crd.format_actions(1))
 		self.price = 4
 		self.type = "Action"
 

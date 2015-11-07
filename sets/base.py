@@ -224,7 +224,7 @@ class Gardens(crd.VictoryCard):
 	def __init__(self, game, played_by):
 		crd.VictoryCard.__init__(self, game, played_by)
 		self.title = "Gardens"
-		self.description = "{}for every 10 cards in your deck (rounded down)".format(crd.format_vp(1, True))
+		self.description = "{} for every 10 cards in your deck (rounded down)".format(crd.format_vp(1, True))
 		self.price = 4
 		self.vp = 0
 
@@ -373,8 +373,8 @@ class Thief(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Thief"
-		self.description = "Each other player reveals and discards the top 2 cards of their deck. If they revealed any Treasure cards, \
-			they trash one that you choose and you may gain the trashed card."
+		self.description = "Each other player reveals and discards the top 2 cards of their deck. If they revealed any Treasure cards,"\
+			"they trash one that you choose and you may gain the trashed card."
 		self.price = 4
 
 	def play(self, skip=False):

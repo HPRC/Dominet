@@ -58,9 +58,9 @@ class Loan(crd.Money):
 	def __init__(self, game, played_by):
 		crd.Money.__init__(self, game, played_by)
 		self.title = "Loan"
-		self.description = "Worth $1\n" \
+		self.description = "{}" \
 		                   "When you play this, reveal cards from your deck until you reveal a Treasure." \
-		                   "Discard it or trash it. Discard the other cards."
+		                   " Discard it or trash it. Discard the other cards.".format(crd.format_money(1))
 		self.price = 3
 		self.value = 1
 		self.type = "Treasure"
@@ -111,8 +111,9 @@ class Trade_Route(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Trade Route"
-		self.description = "+1 Buy. Trash a card from your hand. +$1 per card on the Trade Route mat.\n"\
-							"A Victory card is added to the Trade Route Mat when it is gained for the first time from supply"
+		self.description = "{}{}Trash a card from your hand. \nX is the number of cards on the Trade Route Mat\n"\
+							"static: a Victory card is added to the Trade Route Mat "\
+							"when it is gained for the first time from supply".format(crd.format_buys(1), crd.format_money("X"))
 		self.price = 3
 		self.type = "Action"
 
@@ -160,8 +161,8 @@ class Bishop(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Bishop"
-		self.description = "+$1; +1 VP token Trash a card from your hand.  +VP tokens equal to half its cost in coins" \
-		                   ", rounded down. Each other player may trash a card from his hand."
+		self.description = "{} +1 VP token\n Trash a card from your hand. +VP tokens equal to half its cost in coins" \
+		                   ", rounded down. Each other player may trash a card from his hand.".format(crd.format_money(1))
 		self.price = 4
 		self.type = "Action"
 
@@ -207,7 +208,7 @@ class Monument(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Monument"
-		self.description = "+$2\n +1 VP"
+		self.description = "{}+1 VP token".format(crd.format_money(2))
 		self.price = 4
 		self.type = "Action"
 
@@ -223,7 +224,7 @@ class Workers_Village(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Worker's Village"
-		self.description = "+1 Card; +2 Actions, +1 Buy"
+		self.description = "{}{}{}".format(crd.format_draw(1), crd.format_actions(2), crd.format_buys(1))
 		self.price = 4
 		self.type = "Action"
 
@@ -243,8 +244,8 @@ class Talisman(crd.Money):
 	def __init__(self, game, played_by):
 		crd.Money.__init__(self, game, played_by)
 		self.title = "Talisman"
-		self.description = "Worth $1.\nWhile this is in play, when you buy a card costing $4 or less" \
-		                   " that is not a Victory card, gain a copy of it."
+		self.description = "{}While this is in play, when you buy a card costing $4 or less" \
+		                   " that is not a Victory card, gain a copy of it.".format(crd.format_money(1))
 		self.price = 4
 		self.value = 1
 		self.type = "Treasure"
@@ -260,8 +261,8 @@ class Quarry(crd.Money):
 	def __init__(self, game, played_by):
 		crd.Money.__init__(self, game, played_by)
 		self.title = "Quarry"
-		self.description = "$1.\nWhile this is in play, Action cards cost $2 less" \
-		                   " but not less than 0"
+		self.description = "{}While this is in play, Action cards cost $2 less" \
+		                   " but not less than 0".format(crd.format_money(1))
 		self.price = 4
 		self.value = 1
 		self.type = "Treasure"
@@ -287,8 +288,10 @@ class City(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "City"
-		self.description = "+1 Card; +2 Actions " \
-		                   "If there are one or more empty Supply piles, +1 Card. If there are two or more, +$1 and +1 Buy."
+		self.description = "{}{} " \
+		                   "If there are one or more empty Supply piles: {}\n\
+		                    If there are two or more: {}{}".format(crd.format_draw(1), 
+		                    	crd.format_actions(2), crd.format_draw(1), crd.format_money(1, True), crd.format_buys(1, True))
 		self.price = 5
 		self.type = "Action"
 
@@ -321,7 +324,7 @@ class Contraband(crd.Money):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Contraband"
-		self.description = "+$3, +1 Buy \n The player to your left names a card, you cannot buy that card this turn."
+		self.description = "{}{}\n The player to your left names a card, you cannot buy that card this turn.".format(crd.format_money(3), crd.format_buys(1))
 		self.price = 5
 		self.value = 3
 		self.type = "Treasure"
@@ -419,7 +422,7 @@ class Mountebank(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Mountebank"
-		self.description = "+$2\nEach other player may discard a Curse. If he doesn't, he gains a Curse and a Copper."
+		self.description = "{}nEach other player may discard a Curse. If they don't, they gains a Curse and a Copper.".format(crd.format_money(2))
 		self.price = 5
 		self.type = "Action|Attack"
 
@@ -455,9 +458,9 @@ class Rabble(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Rabble"
-		self.description = "+3 Cards\nEach other player reveals the top 3 cards of his deck, " \
+		self.description = "{}Each other player reveals the top 3 cards of his deck, " \
 		                   "discards the revealed Actions and Treasures, and puts the rest back " \
-		                   "on top in any order he chooses."
+		                   "on top in any order he chooses.".format(crd.format_draw(3))
 		self.price = 5
 		self.type = "Action|Attack"
 
@@ -510,8 +513,8 @@ class Royal_Seal(crd.Money):
 	def __init__(self, game, played_by):
 		crd.Money.__init__(self, game, played_by)
 		self.title = "Royal Seal"
-		self.description = "Worth $2\nWhile this is in play, when you gain a card," \
-		                   " you may put that card on top of your deck."
+		self.description = "{}While this is in play, when you gain a card," \
+		                   " you may put that card on top of your deck.".format(crd.format_money(2))
 		self.price = 5
 		self.value = 2
 		self.spend_all = False
@@ -529,8 +532,8 @@ class Vault(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Vault"
-		self.description = "+2 Cards\nDiscard any number of cards. +$1 per card discarded. " \
-		                   "Each other player may discard 2 cards. If he does, he draws a card."
+		self.description = "{}Discard any number of cards. +$1 per card discarded. " \
+		                   "Each other player may discard 2 cards. If he does, he draws a card.".format(crd.format_draw(2))
 		self.price = 5
 		self.type = "Action"
 
@@ -575,8 +578,8 @@ class Venture(crd.Money):
 	def __init__(self, game, played_by):
 		crd.Money.__init__(self, game, played_by)
 		self.title = "Venture"
-		self.description = "Worth $1\nWhen you play this, reveal cards from your deck until you reveal a Treasure. " \
-		                   "Discard the other cards. Play that Treasure."
+		self.description = "{}When you play this, reveal cards from your deck until you reveal a Treasure. " \
+		                   "Discard the other cards. Play that Treasure.".format(crd.format_money(1))
 		self.price = 5
 		self.value = 1
 		self.type = "Treasure"
@@ -608,8 +611,8 @@ class Goons(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Goons"
-		self.description = "+1 Buy; +$2\nEach other player discards down to 3 cards in hand." \
-		                   "\nWhile this is in play, when you buy a card, +1 VP token."
+		self.description = "{}{}Each other player discards down to 3 cards in hand." \
+		                   "\nWhile this is in play, when you buy a card, +1 VP token.".format(crd.format_buys(1), crd.format_money(2))
 		self.price = 6
 		self.type = "Action|Attack"
 
@@ -643,7 +646,7 @@ class Hoard(crd.Money):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Hoard"
-		self.description = "Worth $2.\n While this is in play, when you buy a Victory card, gain a Gold."
+		self.description = "{}While this is in play, when you buy a Victory card, gain a Gold.".format(crd.format_money(2))
 		self.price = 6
 		self.value = 2
 		self.type = "Treasure"
@@ -658,8 +661,8 @@ class Grand_Market(crd.Card):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Grand Market"
-		self.description = "+1 Card, +1 Action, +1 Buy, +$2\n" \
-							"You can't buy this card if you have copper in play"
+		self.description = "{}{}{}{}You can't buy this card if you have copper in play".format(crd.format_draw(1), 
+			crd.format_actions(1), crd.format_buys(1), crd.format_money(2))
 		self.price = 6
 		self.type = "Action"
 
@@ -681,7 +684,7 @@ class Bank(crd.Money):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Bank"
-		self.description = "Worth $?\nWhen you play this, it’s worth $1 per Treasure card you have in play (counting this)."
+		self.description = "{}When you play this, it’s worth $1 per Treasure card you have in play (counting this).".format(crd.format_money("X"))
 		self.price = 7
 		self.value = 0
 		self.type = "Treasure"
@@ -813,8 +816,8 @@ class Peddler(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Peddler"
-		self.description = "+1 Card, +1 Action, +$1\n" \
-		                   "During your Buy phase, this costs $2 less for each action card in play (not less than $0)"
+		self.description = "{}{}{}During your Buy phase, \
+			this costs $2 less for each action card in play (not less than $0)".format(crd.format_draw(1), crd.format_actions(1), crd.format_money(1))
 		self.price = 8
 		self.type = "Action"
 
