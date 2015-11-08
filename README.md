@@ -30,7 +30,6 @@ in root directory:
 
 ## Sass
 
-in `/static` directory run:
-
-`sass --watch --compass css/style.scss:style.css --style compressed`
+in `/static/css` directory run:
+`sass --watch style.scss:style.min.css --style compressed`
 

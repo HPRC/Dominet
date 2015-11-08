@@ -655,7 +655,7 @@ class Tribute(crd.Card):
 		self.title = "Tribute"
 		self.description = "The player to your left reveals then discards the top 2 cards of their deck.\n" \
 		                   " For each differently named card revealed, if it is an… Action Card: {}" \
-		                   " Treasure Card: {}; Victory Card: {}".format(crd.format_actions(2), crd.format_money(2), crd.format_draw(2))
+		                   " Treasure Card: {} Victory Card: {}".format(crd.format_actions(2), crd.format_money(2), crd.format_draw(2))
 		self.price = 5
 		self.type = "Action"
 

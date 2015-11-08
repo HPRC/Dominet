@@ -1,3 +1,4 @@
+*.scssc
 **/*.pyc
 *.idea
 pyvenv.cfg
