@@ -373,7 +373,7 @@ class DmClient(Client):
 
 	@gen.coroutine
 	def gain_helper(self, card_obj, from_supply=True, announcement=None):
-		if announcement is not None:
+		if announcement is not None and announcement is not "":
 			self.game.announce(announcement)
 		self.discard_pile.append(card_obj)
 		self.update_discard_size()
