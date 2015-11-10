@@ -155,7 +155,6 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.player2.hand.add(supply_cards.Estate(self.game, self.player2))
 		tu.send_input(self.player2, "play", "Trader")
 		yield tu.send_input(self.player2, "post_selection", ["Estate"])
-		print(self.player2.discard_pile)
 		self.assertTrue(len(self.player2.discard_pile) == 3)
 
 	@tornado.testing.gen_test

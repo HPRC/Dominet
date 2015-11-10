@@ -391,7 +391,7 @@ class DmClient(Client):
 		if new_card is not None:
 			if custom_announce is None:
 				yield self.gain_helper(new_card, from_supply, self.name_string() + " gains " + new_card.log_string())
-			elif custom_announce != "":
+			else:
 				yield self.gain_helper(new_card, from_supply, custom_announce)
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
