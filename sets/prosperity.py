@@ -289,8 +289,8 @@ class City(crd.Card):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "City"
 		self.description = "{}{} " \
-		                   "If there are one or more empty Supply piles: {}\n"\
-		                    "If there are two or more: {} {}".format(crd.format_draw(1, True), 
+		                   "If there are one or more empty Supply piles: {}"\
+		                    "If there are two or more: {} {}".format(crd.format_draw(1), 
 		                    	crd.format_actions(2), crd.format_draw(1), crd.format_money(1, True), crd.format_buys(1, True))
 		self.price = 5
 		self.type = "Action"

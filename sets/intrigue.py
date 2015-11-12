@@ -435,7 +435,8 @@ class Ironworks(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Ironworks"
-		self.description = "Gain a card costing up to $4.\n If it is an… Action card, +1 Action. Treasure card, +$1. Victory card, +1 Card."
+		self.description = "Gain a card costing up to $4. If it is an… \n"\
+			"Action card: {} Treasure card: {} Victory card: {}".format(crd.format_actions(1), crd.format_money(1), crd.format_draw(1))
 		self.price = 4
 		self.type = "Action"
 
