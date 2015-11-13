@@ -146,7 +146,6 @@ class DmClient(Client):
 			return
 		cmd = data["command"]
 
-
 		if cmd == "returnToLobby":
 			self.handler.return_to_lobby()
 			self.ready = False
@@ -225,8 +224,8 @@ class DmClient(Client):
 		
 		turn_owner = self.game.get_turn_owner()
 		turn_owner.write_json(**turn_owner.last_mode)
-		turn_owner.write_json(command="startTurn", actions=self.actions, buys=self.buys, 
-			balance=self.balance)
+		turn_owner.write_json(command="startTurn", actions=turn_owner.actions, buys=turn_owner.buys, 
+			balance=turn_owner.balance)
 
 	def end_turn(self):
 		# cleanup before game ends
