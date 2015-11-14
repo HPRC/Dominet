@@ -534,11 +534,20 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		self.player1.deck.append(supply_cards.Copper(self.game, self.player1))
 		self.player1.deck.append(supply_cards.Estate(self.game, self.player1))
 		self.player1.deck.append(supply_cards.Estate(self.game, self.player1))
+		initial_decksize = len(self.player1.deck)
 		self.player1.hand.add(scout)
 
 		scout.play()
 		self.assertTrue(self.player1.deck[-1].title == "Copper")
 		self.assertTrue(self.player1.deck[-2].title == "Copper")
+		self.assertTrue(len(self.player1.deck) == initial_decksize - 2)
+
+	def test_Scout_entire_deck(self):
+		tu.print_test_header("test Scout entire deck")
+		scout = intrigue.Scout(self.game, self.player1)
+		self.player1.deck = [supply_cards.Copper(self.game, self.player1) for x in range(0,3)] 
+		scout.play()
+		self.assertTrue(len(self.player1.deck) == 3)
 
 	@tornado.testing.gen_test
 	def test_Minion(self):

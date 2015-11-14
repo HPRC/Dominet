@@ -514,6 +514,7 @@ class Scout(crd.Card):
 		self.price = 4
 		self.type = "Action"
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		self.played_by.actions += 1
@@ -523,7 +524,7 @@ class Scout(crd.Card):
 
 		revealed = []
 		if len(self.played_by.deck) < 4:
-			revealed = self.played_by.deck
+			revealed = list(self.played_by.deck)
 		else:
 			revealed = self.played_by.deck[-4:]
 		# removed the revealed cards from deck
@@ -543,7 +544,7 @@ class Scout(crd.Card):
 		self.played_by.update_deck_size()
 
 		cards_left = [x for x in revealed if "Victory" not in x.type]
-		crd.reorder_top(self.played_by, cards_left, lambda : crd.Card.on_finished(self, False, False))
+		yield crd.reorder_top(self.played_by, cards_left, lambda : crd.Card.on_finished(self, False, False))
 
 # --------------------------------------------------------
 # ------------------------ 5 Cost ------------------------
