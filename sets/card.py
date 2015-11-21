@@ -129,12 +129,12 @@ class AttackCard(Card):
 				reacting_players.append(i)
 				reaction_futures.append(i.hand.do_reactions("Attack"))
 		if not reacting_players:
-			self.attack()
+			yield gen.maybe_future(self.attack())
 		else:
 			self.played_by.wait_many("to react", reacting_players, True)
 			#fire all the reactions in parallel
 			yield parallel_selects(reaction_futures, reacting_players, lambda x,y: y.update_mode())
-			self.attack()
+			yield gen.maybe_future(self.attack())
 
 	def is_blocked(self, target):
 		# shouldnt need to block against own attacks (i.e. spy)
@@ -275,23 +275,36 @@ def search_deck_for(player, search_criteria, callback):
 	else:
 		callback(None)
 
-#makes the given player discard their hand down to the reduced hand size
-# player = player who needs to discard
+# prompts input players to discard down to input hand size
+# players = list of players who needs to discard
 # reduced_hand_size = number of cards to discard down to
 # callback = callback function called after player discarded, default is card on_finished
 @gen.coroutine
-def discard_down(player, reduced_hand_size, callback):
-	turn_owner = player.game.get_turn_owner()
-	if len(player.hand) > reduced_hand_size:
-		turn_owner.wait("to discard", player)
-		num_discarding = len(player.hand) - reduced_hand_size
-		discard_selection = yield player.select(num_discarding, num_discarding,
-			card_list_to_titles(player.hand.card_array()), "choose " + str(num_discarding) + " cards to discard")
+def discard_down(players, reduced_hand_size, callback):
+	if not players:
+		callback()
+		return
+		
+	def discard_down_cb(selection, player):
 		player.game.announce("-- " + player.name_string() + " discards down to " + str(reduced_hand_size))
-		player.discard(discard_selection, player.discard_pile)
+		player.discard(selection, player.discard_pile)
 		player.update_hand()
 		callback()
+
+	turn_owner = players[0].game.get_turn_owner()
+	discarding_players = [x for x in players if len(x.hand) > reduced_hand_size]
+	for i in [x for x in players if x not in discarding_players]:
+		i.game.announce("-- " + i.name_string() + " has " + str(reduced_hand_size) + " or less cards in hand")
+
+	if discarding_players:
+		turn_owner.wait_many("to discard", discarding_players)
+		futures = []
+		for x in discarding_players:
+			num_discarding = len(x.hand) - reduced_hand_size
+			futures.append(x.select(num_discarding, num_discarding,
+				card_list_to_titles(x.hand.card_array()), "choose " + str(num_discarding) + " cards to discard"))
+		yield parallel_selects(futures , discarding_players, discard_down_cb)
 	else:
-		player.game.announce("-- " + player.name_string() + " has " + str(reduced_hand_size) + " or less cards in hand")
 		callback()
+
 

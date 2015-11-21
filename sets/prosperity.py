@@ -555,7 +555,7 @@ class Vault(crd.Card):
 		self.played_by.wait_many("to discard", self.played_by.get_opponents(), True)
 		#ask opponents to discard 2 to draw 1
 		opponents = self.played_by.get_opponents()
-		crd.parallel_selects(map(lambda x: x.select(1, 1, ["Yes", "No"], "Discard 2 cards to draw 1?"), 
+		yield crd.parallel_selects(map(lambda x: x.select(1, 1, ["Yes", "No"], "Discard 2 cards to draw 1?"), 
 			opponents), opponents, self.discard_2_for_1)
 
 	@gen.coroutine
@@ -625,12 +625,13 @@ class Goons(crd.AttackCard):
 		self.played_by.update_resources()
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
+	@gen.coroutine
 	def attack(self):
 		attacking = False
-		for i in self.played_by.get_opponents():
-			if not crd.AttackCard.is_blocked(self, i):
-				attacking = True
-				crd.discard_down(i, 3, lambda : crd.Card.on_finished(self, False, False))
+		affected = [x for x in self.played_by.get_opponents() if not crd.AttackCard.is_blocked(self, x)]
+		if affected:
+			attacking = True
+			yield crd.discard_down(affected, 3, lambda : crd.Card.on_finished(self, False, False))
 		if not attacking:
 			crd.Card.on_finished(self, False, False)
 

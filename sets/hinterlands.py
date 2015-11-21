@@ -53,7 +53,7 @@ class Duchess(crd.Card):
 				#put the top card back on top of the player's deck
 				i.deck.append(top_card)
 
-		crd.parallel_selects(
+		yield crd.parallel_selects(
 			map(lambda x: x.select(1, 1, ["Discard", "Put Back"], "Discard " + x.deck[-1].title + " from the top of your deck?"), acting_on),
 			acting_on, self.post_select)
 

@@ -248,13 +248,14 @@ class Militia(crd.AttackCard):
 		self.played_by.balance += 2
 		self.played_by.update_resources()
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
-
+		
+	@gen.coroutine
 	def attack(self):
 		attacking = False
-		for i in self.played_by.get_opponents():
-			if not crd.AttackCard.is_blocked(self, i):
-				attacking = True
-				crd.discard_down(i, 3, self.finished_discarding)
+		affected = [x for x in self.played_by.get_opponents() if not crd.AttackCard.is_blocked(self, x)]
+		if affected:
+			attacking = True
+			yield crd.discard_down(affected, 3, self.finished_discarding)
 		if not attacking:
 			crd.Card.on_finished(self, False, False)
 
