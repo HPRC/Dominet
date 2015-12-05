@@ -1,5 +1,6 @@
 import sets.card as crd
 import tornado.gen as gen
+import sets.supply as supply
 
 
 # --------------------------------------------------------
@@ -170,7 +171,7 @@ class Bureaucrat(crd.AttackCard):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		# create silver and add to top of deck
-		silver = crd.Silver(self.game, self.played_by)
+		silver = supply.Silver(self.game, self.played_by)
 		self.game.announce(" -- gaining a " + silver.log_string())
 		self.played_by.deck.append(silver)		
 		self.played_by.update_resources()
