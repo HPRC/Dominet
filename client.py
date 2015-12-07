@@ -3,7 +3,7 @@ import sets.card as crd
 import cardpile as cp
 import random
 import sets.base as b
-import sets.intrigue as intr
+import sets.supply as supply_cards
 import html
 import game as g
 import waitHandler as w
@@ -57,9 +57,9 @@ class DmClient(Client):
 	def base_deck(self):
 		deck = []
 		for i in range(0, 7):
-			deck.append(crd.Copper(game=self.game, played_by=self))
+			deck.append(supply_cards.Copper(game=self.game, played_by=self))
 		for i in range(0, 3):
-			deck.append(crd.Estate(game=self.game, played_by=self))
+			deck.append(supply_cards.Estate(game=self.game, played_by=self))
 		random.shuffle(deck)
 		return deck
 
@@ -146,7 +146,6 @@ class DmClient(Client):
 			return
 		cmd = data["command"]
 
-
 		if cmd == "returnToLobby":
 			self.handler.return_to_lobby()
 			self.ready = False
@@ -225,8 +224,8 @@ class DmClient(Client):
 		
 		turn_owner = self.game.get_turn_owner()
 		turn_owner.write_json(**turn_owner.last_mode)
-		turn_owner.write_json(command="startTurn", actions=self.actions, buys=self.buys, 
-			balance=self.balance)
+		turn_owner.write_json(command="startTurn", actions=turn_owner.actions, buys=turn_owner.buys, 
+			balance=turn_owner.balance)
 
 	def end_turn(self):
 		# cleanup before game ends
@@ -373,7 +372,7 @@ class DmClient(Client):
 
 	@gen.coroutine
 	def gain_helper(self, card_obj, from_supply=True, announcement=None):
-		if announcement is not None:
+		if announcement is not None and announcement is not "":
 			self.game.announce(announcement)
 		self.discard_pile.append(card_obj)
 		self.update_discard_size()
@@ -391,7 +390,7 @@ class DmClient(Client):
 		if new_card is not None:
 			if custom_announce is None:
 				yield self.gain_helper(new_card, from_supply, self.name_string() + " gains " + new_card.log_string())
-			elif custom_announce != "":
+			else:
 				yield self.gain_helper(new_card, from_supply, custom_announce)
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")

@@ -1,6 +1,7 @@
-@import "compass";
-@import "bootstrap-sass-3.3.2/assets/stylesheets/bootstrap";
+@import "bootstrap_mixins";
 @import "index";
 @import "main";
 @import "lobby";
 @import "game";
+@import "custom_buttons";
+@import "custom_labels";

@@ -2,7 +2,7 @@ import unittest
 import net
 import client as c
 import game as g
-import sets.card as crd
+import sets.supply as supply_cards
 import sets.base as base
 import cardpile as cp
 import kingdomGenerator as kg
@@ -79,7 +79,7 @@ class TestGame(unittest.TestCase):
 		self.player1.balance = 0
 		self.player1.deck = []
 		self.player1.hand = cp.HandPile(self.player1)
-		copper = crd.Copper(self.game, self.player1)
+		copper = supply_cards.Copper(self.game, self.player1)
 		for i in range(0, 5):
 			self.player1.hand.add(copper)
 		self.player1.spend_all_money()
@@ -91,7 +91,7 @@ class TestGame(unittest.TestCase):
 	def test_discard(self):
 		tu.print_test_header("test discard")
 		self.player1.hand = cp.HandPile(self.player1)
-		self.player1.hand.add(crd.Copper(self.game, self.player1))
+		self.player1.hand.add(supply_cards.Copper(self.game, self.player1))
 		self.player1.discard(["Copper"], self.player1.discard_pile)
 		self.assertTrue(len(self.player1.hand) == 0)
 
@@ -99,8 +99,8 @@ class TestGame(unittest.TestCase):
 	def test_spam_cb(self):
 		tu.print_test_header("test spam cb")
 		self.player1.hand.add(base.Remodel(self.game, self.player1))
-		self.player1.hand.add(crd.Silver(self.game, self.player1))
-		self.player1.hand.add(crd.Silver(self.game, self.player1))
+		self.player1.hand.add(supply_cards.Silver(self.game, self.player1))
+		self.player1.hand.add(supply_cards.Silver(self.game, self.player1))
 
 		tu.send_input(self.player1, "play", "Remodel")
 		yield tu.send_input(self.player1, "post_selection", ["Silver"])
@@ -116,7 +116,7 @@ class TestGame(unittest.TestCase):
 		#2 Remodels in hand
 		tu.add_many_to_hand(self.player1, base.Remodel(self.game, self.player1), 2)
 		#nothing in supply except remodel and gold both at 0 left
-		self.game.supply.data = {"Remodel": [base.Remodel(self.game, None), 0], "Gold": [crd.Gold(self.game, None), 0]}
+		self.game.supply.data = {"Remodel": [base.Remodel(self.game, None), 0], "Gold": [supply_cards.Gold(self.game, None), 0]}
 		#try to remodel another remodel
 		tu.send_input(self.player1, "play", "Remodel")
 		self.assertTrue(self.player1.last_mode["mode"] == "select")

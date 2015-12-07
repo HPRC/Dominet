@@ -1,6 +1,6 @@
 import client as c
 import kingdomGenerator as kg
-import sets.card as card
+import sets.supply as supply_cards
 import json
 import net
 import cardpile as cp
@@ -61,13 +61,13 @@ class DmGame(Game):
 				req_supply = "prosperity"
 
 		# kingdom = dictionary {card.title => [card, count]} i.e {"Copper": [card.Copper(self,None),10]}
-		base_supply = [card.Curse(self, None), card.Estate(self, None),
-		               card.Duchy(self, None), card.Province(self, None), card.Copper(self, None),
-		               card.Silver(self, None), card.Gold(self, None)]
+		base_supply = [supply_cards.Curse(self, None), supply_cards.Estate(self, None),
+		               supply_cards.Duchy(self, None), supply_cards.Province(self, None), supply_cards.Copper(self, None),
+		               supply_cards.Silver(self, None), supply_cards.Gold(self, None)]
 
 		if req_supply == "prosperity":
-			base_supply.append(card.Colony(self, None))
-			base_supply.append(card.Platinum(self, None))
+			base_supply.append(supply_cards.Colony(self, None))
+			base_supply.append(supply_cards.Platinum(self, None))
 
 		self.base_supply = self.init_supply(base_supply)
 		generator = kg.kingdomGenerator(self, required_cards, excluded_cards)

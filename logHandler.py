@@ -2,7 +2,8 @@ import os
 
 class LogHandler():
 	LOGS_DIR = "logs"
-	CSS_LINK = "<link rel=\"stylesheet\" href=\"../static/style.css\"/>"
+	CSS_LINK = """<link rel=\"stylesheet\" href=\"../static/css/style.min.css\"/>
+				<link rel=\"stylesheet\" href=\"../static/css/bootstrap.min.css\"/>"""
 
 	def __init__(self, file_title):
 		self.file_title = file_title
