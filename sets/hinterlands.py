@@ -144,8 +144,7 @@ class Nomad_Camp(crd.Card):
 		crd.Card.play(self, skip)
 		self.played_by.balance += 2
 		self.played_by.buys += 1
-		self.game.announce("-- gaining +1 buy")
-		self.game.announce("-- gaining +$2")
+		self.game.announce("-- gaining +$2 and a buy")
 		crd.Card.on_finished(self, False)
 
 	def on_gain(self):
