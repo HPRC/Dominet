@@ -250,5 +250,15 @@ class Mandarin(crd.Card):
 		if self.game.get_turn_owner() == self.played_by:
 			self.played_by.update_mode()
 
+class Cache(crd.Money):
+	def __init__(self, game, played_by):
+		crd.Money.__init__(self, game, played_by)
+		self.title = "Cache"
+		self.value = 3
+		self.price = 5
+		self.description = "{}When you gain this, gain two Coppers".format(crd.format_money(3))
 
-
+	@gen.coroutine
+	def on_gain(self):
+		yield self.played_by.gain("Copper")
+		yield self.played_by.gain("Copper")
