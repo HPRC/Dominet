@@ -185,7 +185,7 @@ class Trader(crd.Card):
 		if selection[0] == "Reveal":
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
 			if to_gain.title == "Silver":
-				self.game.announce("-- trying to trade Silver for Silver")
+				self.game.announce("-- trying to trade {} for {}".format(to_gain.log_string(), to_gain.log_string()))
 			else:
 				to_gain = self.played_by.search_and_extract_card(to_gain)
 				if to_gain:

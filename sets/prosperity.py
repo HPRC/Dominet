@@ -422,7 +422,7 @@ class Mountebank(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Mountebank"
-		self.description = "{}\nEach other player may discard a Curse. If they don't, they gains a Curse and a Copper.".format(crd.format_money(2))
+		self.description = "{}Each other player may discard a Curse. If they don't, they gains a Curse and a Copper.".format(crd.format_money(2))
 		self.price = 5
 		self.type = "Action|Attack"
 
