@@ -252,12 +252,10 @@ class Militia(crd.AttackCard):
 		
 	@gen.coroutine
 	def attack(self):
-		attacking = False
 		affected = [x for x in self.played_by.get_opponents() if not crd.AttackCard.is_blocked(self, x)]
 		if affected:
-			attacking = True
 			yield crd.discard_down(affected, 3, self.finished_discarding)
-		if not attacking:
+		else:
 			crd.Card.on_finished(self, False, False)
 
 	def finished_discarding(self):

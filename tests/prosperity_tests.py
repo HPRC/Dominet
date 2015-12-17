@@ -434,6 +434,29 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		self.assertTrue(topdeck2.title == "Gardens")
 
 	@tornado.testing.gen_test
+	def test_Rabble_Moat(self):
+		tu.print_test_header("test Rabble moat")
+		rabble = prosperity.Rabble(self.game, self.player1)
+		moat2 = base.Moat(self.game, self.player2)
+		moat3 = base.Moat(self.game, self.player3)
+
+		self.player1.hand.add(rabble)
+		self.player2.hand.add(moat2)
+		self.player3.hand.add(moat3)
+
+		player2decksize = len(self.player2.deck)
+		player3decksize = len(self.player3.deck)
+
+		yield tu.send_input(self.player1, "play", "Rabble")
+		yield tu.send_input(self.player2, "post_selection", ["Reveal"])
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		yield tu.send_input(self.player3, "post_selection", ["Reveal"])
+		yield gen.sleep(.2)
+		self.assertTrue(self.player1.last_mode["mode"] != "wait")
+		self.assertTrue(player2decksize == len(self.player2.deck))
+		self.assertTrue(player3decksize == len(self.player3.deck))
+
+	@tornado.testing.gen_test
 	def test_Royal_Seal(self):
 		tu.print_test_header("test Royal Seal")
 		royal_seal = prosperity.Royal_Seal(self.game, self.player1)

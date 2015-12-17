@@ -464,24 +464,25 @@ class Rabble(crd.AttackCard):
 		self.price = 5
 		self.type = "Action|Attack"
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.AttackCard.play(self, skip)
 		drawn = self.played_by.draw(3)
 		self.played_by.update_hand()
 		self.game.announce("-- drawing " + drawn)
-		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
+	@gen.coroutine
 	def attack(self):
-		attacking = False
-		for player in self.played_by.get_opponents():
-			if crd.AttackCard.fire(self, player):
-				attacking = True
+		affected = [x for x in self.played_by.get_opponents() if not crd.AttackCard.is_blocked(self, x)]
+		if affected:
+			for player in affected:
 				if len(player.deck) < 3:
 					player.shuffle_discard_to_deck()
 
 				revealed = []
 				if len(player.deck) < 3:
-					revealed = player.deck
+					revealed = list(player.deck)
 				else:
 					revealed = player.deck[-3:]
 				# removed the revealed cards from deck
@@ -501,8 +502,8 @@ class Rabble(crd.AttackCard):
 					player.update_discard_size()
 
 				cards_left = [x for x in revealed if "Action" not in x.type and "Treasure" not in x.type]
-				crd.reorder_top(player, cards_left, self.finish)
-		if not attacking:
+				yield crd.reorder_top(player, cards_left, self.finish)
+		else:
 			crd.Card.on_finished(self, False, False)
 
 	def finish(self):
