@@ -26,6 +26,7 @@ class Crossroads(crd.Card):
 			self.played_by.actions += 3
 		crd.Card.on_finished(self, True)
 
+
 class Duchess(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -67,9 +68,34 @@ class Duchess(crd.Card):
 		duchy.played_by.set_cb(lambda x: duchy.played_by.gain("Duchess") if x[0] == "Yes" else None)
 		default_function.__get__(duchy, crd.Card)()
 
+
 # --------------------------------------------------------
 # ------------------------ 3 Cost ------------------------
 # --------------------------------------------------------
+
+class Oasis(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Oasis"
+		self.description = "+1 Card; +1 Action; +$1 Discard a card."
+		self.price = 3
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.balance += 1
+		self.played_by.actions += 1
+		drawn = self.played_by.draw()
+		self.game.announce("-- Gaining +$1, +1 action, and draws " + drawn)
+
+		self.played_by.select(None, 1, 1, "Discard a card")
+		self.played_by.set_cb(self.post_discard)
+
+	def post_discard(self, selection):
+		self.played_by.discard(selection, self.played_by.discard_pile)
+		self.played_by.update_hand()
+		self.game.announce("-- discarding " + str(len(selection)))
+		crd.Card.on_finished(self, False, False)
 
 
 # --------------------------------------------------------
@@ -158,6 +184,7 @@ class Trader(crd.Card):
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------
 # --------------------------------------------------------
+
 class Mandarin(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -188,7 +215,7 @@ class Mandarin(crd.Card):
 
 	def on_gain(self):
 		played_treasures = [x for x in self.played_by.played if "Treasure" in x.type]
-		#remove treasures from played pile
+		# remove treasures from played pile
 		self.played_by.played = [x for x in self.played_by.played if "Treasure" not in x.type]
 		if len(played_treasures) == 1 or len(set(map(lambda x: x.title, played_treasures))) == 1:
 			self.game.announce("-- placing treasures back on top of their deck")

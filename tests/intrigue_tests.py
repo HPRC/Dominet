@@ -15,13 +15,12 @@ class TestIntrigue(unittest.TestCase):
 		self.player2 = c.DmClient("player2", 1, tu.PlayerHandler())
 		self.player3 = c.DmClient("player3", 2, tu.PlayerHandler())
 		self.game = g.DmGame([self.player1, self.player2, self.player3], [], [], test=True)
-		#hard code order of players so that random turn order doesn't interfere with tests
+		# hard code order of players so that random turn order doesn't interfere with tests
 		self.game.players = [self.player1, self.player2, self.player3]
 		for i in self.game.players:
 			i.game = self.game
 		self.game.start_game()
 		self.player1.take_turn()
-
 
 	# --------------------------------------------------------
 	# ----------------------- Intrigue -----------------------
@@ -155,7 +154,7 @@ class TestIntrigue(unittest.TestCase):
 		tu.send_input(self.player1, "post_selection", ["Conspirator"])
 		self.assertTrue(self.player1.actions == 1)
 		self.assertTrue(self.player1.balance == 4)
-		#discard conspirator, draw 1 card should have same handsize
+		# discard conspirator, draw 1 card should have same handsize
 		self.assertTrue(handsize == len(self.player1.hand))
 
 	def test_Courtyard(self):
@@ -195,7 +194,6 @@ class TestIntrigue(unittest.TestCase):
 
 		swindler.play()
 		tu.send_input(self.player1, "selectSupply", ["Curse"])
-
 
 	def test_Duke(self):
 		tu.print_test_header("test Duke")
@@ -267,15 +265,15 @@ class TestIntrigue(unittest.TestCase):
 		self.player1.hand.add(torturer)
 
 		throne_room.play()
-		#Throne room a torturer
+		# Throne room a torturer
 		tu.send_input(self.player1, "post_selection", ["Torturer"])
-		#Player 2 is choosing, everyone else waits
+		# Player 2 is choosing, everyone else waits
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		self.assertTrue("player2" in self.player1.last_mode["msg"])
 		self.assertTrue(self.player3.last_mode["mode"] == "wait")
 
 		tu.send_input(self.player2, "post_selection", ["Gain a Curse"])
-		#player3's turn to get torturered
+		# player3's turn to get torturered
 		self.assertTrue("player3" in self.player1.last_mode["msg"])
 		self.assertTrue(self.player3.last_mode["mode"] != "wait")
 		self.assertTrue(self.player2.last_mode["mode"] == "wait")
@@ -283,7 +281,7 @@ class TestIntrigue(unittest.TestCase):
 
 		tu.send_input(self.player3, "post_selection", ["Gain a Curse"])
 		self.assertTrue("Curse" in self.player3.hand)
-		#Second torturer
+		# Second torturer
 		tu.send_input(self.player2, "post_selection", ["Discard two cards"])
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		self.assertTrue(self.player3.last_mode["mode"] == "wait")
@@ -356,7 +354,7 @@ class TestIntrigue(unittest.TestCase):
 		tu.clear_player_hand(self.player1)
 		tu.add_many_to_hand(self.player1, estate, 4)
 		self.player1.hand.add(secret_chamber)
-		#clear player3's hand no reaction
+		# clear player3's hand no reaction
 		tu.clear_player_hand(self.player3)
 
 		self.player1.deck.append(crd.Copper(self.game, self.player1))
@@ -454,7 +452,7 @@ class TestIntrigue(unittest.TestCase):
 		coppersmith.play()
 		copper.play()
 		self.assertTrue(self.player1.balance == 2)
-		#copper should be back to $1 after turn
+		# copper should be back to $1 after turn
 		self.player1.end_turn()
 		self.assertTrue(copper.value == 1)
 
@@ -471,11 +469,11 @@ class TestIntrigue(unittest.TestCase):
 		tu.send_input(self.player1, "post_selection", ["Coppersmith"])
 		copper.play()
 		self.assertTrue(self.player1.balance == 3)
-		#we played throne room, coppersmith, copper
+		# we played throne room, coppersmith, copper
 		self.assertTrue(len(self.player1.played) == 3)
 		self.player1.end_turn()
 		self.assertTrue(copper.value == 1)
-		#make sure we only have 1 coppersmith in our deck
+		# make sure we only have 1 coppersmith in our deck
 		coppersmiths = [x for x in self.player1.all_cards() if x.title == "Coppersmith"]
 		self.assertTrue(len(coppersmiths) == 1)
 
@@ -501,7 +499,7 @@ class TestIntrigue(unittest.TestCase):
 		tu.send_input(self.player1, "post_selection", ["Scout", "Silver"])
 		self.assertTrue(self.player1.deck[-1].title == "Silver")
 		self.assertTrue(self.player1.deck[-2].title == "Scout")
-		#decksize should be 2 less since we took province and great hall out
+		# decksize should be 2 less since we took province and great hall out
 		self.assertTrue(len(self.player1.deck) == decklength - 2)
 
 	def test_Scout_autoselect(self):
@@ -517,14 +515,13 @@ class TestIntrigue(unittest.TestCase):
 		self.assertTrue(self.player1.deck[-1].title == "Copper")
 		self.assertTrue(self.player1.deck[-2].title == "Copper")
 
-
 	def test_Minion(self):
 		tu.print_test_header("test Minion")
 		minion = intrigue.Minion(self.game, self.player1)
 		self.player1.hand.add(minion)
 		moat = base.Moat(self.game, self.player3)
 		self.player3.hand.add(moat)
-		#top 4 cards of player2's deck will be drawn
+		# top 4 cards of player2's deck will be drawn
 		top4 = self.player2.deck[-4:]
 		discard_size = len(self.player2.discard_pile)
 		minion.play()
@@ -624,7 +621,6 @@ class TestIntrigue(unittest.TestCase):
 		saboteur.play()
 		tu.send_input(self.player2, "selectSupply", ["None"])
 		self.assertTrue(len(self.player2.discard_pile) == 0)
-
 
 	def test_Upgrade_Selection_issue_21(self):
 		tu.print_test_header("test Upgrade selection issue 21")

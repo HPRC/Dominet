@@ -16,7 +16,7 @@ class TestHinterland(unittest.TestCase):
 		self.player2 = c.DmClient("player2", 1, tu.PlayerHandler())
 		self.player3 = c.DmClient("player3", 2, tu.PlayerHandler())
 		self.game = g.DmGame([self.player1, self.player2, self.player3], kg.all_card_titles(), [], test=True)
-		#hard code order of players so that random turn order doesn't interfere with tests
+		# hard code order of players so that random turn order doesn't interfere with tests
 		self.game.players = [self.player1, self.player2, self.player3]
 		for i in self.game.players:
 			i.game = self.game
@@ -86,14 +86,14 @@ class TestHinterland(unittest.TestCase):
 
 		self.player1.hand.add(witch)
 		self.player2.hand.add(trader)
-		#reaction
+		# reaction
 		tu.send_input(self.player1, "play", "Witch")
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		tu.send_input(self.player2, "post_selection", ["Reveal"])
-		#no curse from witch
+		# no curse from witch
 		self.assertTrue(len(self.game.trash_pile) == 0)
 		self.assertTrue(self.game.supply.get_count("Curse") == 20)
-		#and gained a silver
+		# and gained a silver
 		self.assertTrue(self.player2.discard_pile[-1].title == "Silver")
 		self.assertTrue(self.player1.last_mode["mode"] != "wait")
 		self.player1.end_turn()
@@ -137,6 +137,12 @@ class TestHinterland(unittest.TestCase):
 		tu.send_input(self.player2, "post_selection", ["Copper"])
 		self.assertTrue(self.player2.deck[-1].title == "Copper")
 		self.assertTrue(len(self.player2.hand) == 5)
+
+	def test_Oasis(self):
+		tu.print_test_header("test Oasis")
+		tu.add_many_to_hand(self.player1,)
+
+		tu.send_input(self.player1, "play", "Oasis")
 
 if __name__ == '__main__':
 	unittest.main()

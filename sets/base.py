@@ -292,6 +292,7 @@ class Militia(crd.AttackCard):
 		if not self.played_by.is_waiting():
 			crd.Card.on_finished(self, False, False)
 
+
 class Moneylender(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -340,7 +341,6 @@ class Remodel(crd.Card):
 
 	def post_gain(self, selected):
 		self.played_by.gain(selected[0], done_gaining=lambda : crd.Card.on_finished(self, False, False))
-
 
 
 class Spy(crd.AttackCard):
@@ -392,6 +392,7 @@ class Spy(crd.AttackCard):
 			self.game.announce(self.played_by.name_string() + " leaves " + card.log_string() + " on " +
 				victim.name_string() + "'s deck")
 		crd.AttackCard.get_next(self, victim)
+
 
 class Smithy(crd.Card):
 	def __init__(self, game, played_by):

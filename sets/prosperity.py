@@ -571,6 +571,7 @@ class Royal_Seal(crd.Money):
 			self.played_by.deck.append(purchased_card)
 		self.played_by.update_resources(True)
 
+
 class Vault(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -601,7 +602,7 @@ class Vault(crd.Card):
 		self.played_by.wait_many("to discard", self.played_by.get_opponents(), True)
 		
 		for i in self.played_by.get_opponents():
-			#callback for each opponent
+			# callback for each opponent
 			def discard_choice_cb(selection, player=i):
 				self.discard_choice(selection, player)
 
@@ -630,6 +631,7 @@ class Vault(crd.Card):
 		player.update_wait(True)
 		if not self.played_by.is_waiting():
 			crd.Card.on_finished(self)
+
 
 class Venture(crd.Money):
 	def __init__(self, game, played_by):

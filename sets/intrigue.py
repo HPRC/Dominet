@@ -111,12 +111,12 @@ class Secret_Chamber(crd.Card):
 				"Put two cards to the top of your deck (#1 is on top)", True):
 				self.played_by.set_cb(post_react_draw_select_cb, True)
 			else:
-				#temp to clear our reacted callback before calling it
+				# temp to clear our reacted callback before calling it
 				temp = self.reacted_to_callback
 				self.reacted_to_callback = None
 				temp()
 		else:
-			#temp to clear our reacted callback before calling it
+			# temp to clear our reacted callback before calling it
 			temp = self.reacted_to_callback
 			self.reacted_to_callback = None
 			temp()
@@ -125,10 +125,10 @@ class Secret_Chamber(crd.Card):
 		self.played_by.discard(selection, self.played_by.deck)
 		self.game.announce("-- drawing two cards, putting two of them on the top of their deck.")
 		self.played_by.update_hand()
-		#if we put back the drawn card then remove from drawn list
+		# if we put back the drawn card then remove from drawn list
 		final_drawn = [x for x in drawn_cards if x != self.played_by.deck[-1] and x!= self.played_by.deck[-2]]
-		#temp to clear our reacted callback before calling it
-		#pass in newly drawn cards to check for new reactions
+		# temp to clear our reacted callback before calling it
+		# pass in newly drawn cards to check for new reactions
 		temp = self.reacted_to_callback
 		self.reacted_to_callback = None
 		temp(final_drawn)
@@ -340,6 +340,7 @@ class Swindler(crd.AttackCard):
 
 	def post_select(self, selection, victim):
 		victim.gain(selection[0], done_gaining= lambda : crd.AttackCard.get_next(self, victim))
+
 
 class Wishing_Well(crd.Card):
 	def __init__(self, game, played_by):
@@ -779,6 +780,7 @@ class Upgrade(crd.Card):
 	def post_select(self, selection):
 		self.played_by.gain(selection[0], done_gaining=lambda : crd.Card.on_finished(self))
 
+
 class Saboteur(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
@@ -830,7 +832,6 @@ class Saboteur(crd.AttackCard):
 		else:
 			self.game.announce("-- " + victim.name_string() + " gains nothing")
 			crd.AttackCard.get_next(self, victim)
-		
 
 
 class Trading_Post(crd.Card):
@@ -863,6 +864,7 @@ class Trading_Post(crd.Card):
 			self.played_by.gain_to_hand("Silver", done_gaining=lambda : crd.Card.on_finished(self))
 		else:
 			crd.Card.on_finished(self)
+
 
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------
