@@ -85,17 +85,17 @@ class Oasis(crd.Card):
 		crd.Card.play(self, skip)
 		self.played_by.balance += 1
 		self.played_by.actions += 1
-		drawn = self.played_by.draw()
+		drawn = self.played_by.draw(1)
 		self.game.announce("-- Gaining +$1, +1 action, and draws " + drawn)
 
-		self.played_by.select(None, 1, 1, "Discard a card")
+		self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Discard a card")
 		self.played_by.set_cb(self.post_discard)
 
 	def post_discard(self, selection):
 		self.played_by.discard(selection, self.played_by.discard_pile)
 		self.played_by.update_hand()
-		self.game.announce("-- discarding " + str(len(selection)))
-		crd.Card.on_finished(self, False, False)
+		self.game.announce("-- discarding " + self.game.log_string_from_title(selection[0]))
+		crd.Card.on_finished(self)
 
 
 # --------------------------------------------------------

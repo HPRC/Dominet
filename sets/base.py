@@ -249,7 +249,6 @@ class Feast(crd.Card):
 		self.played_by.gain(selected[0], done_gaining=lambda : crd.Card.on_finished(self, False, False))
 		
 
-
 class Gardens(crd.VictoryCard):
 	def __init__(self, game, played_by):
 		crd.VictoryCard.__init__(self, game, played_by)

@@ -536,6 +536,7 @@ class Mining_Village(crd.Card):
 				self.game.update_trash_pile()
 		crd.Card.on_finished(self)
 
+
 class Scout(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -668,7 +669,7 @@ class Torturer(crd.AttackCard):
 	def post_select(self, selection, victim):
 		if selection[0] == 'Gain a Curse':
 			victim.update_wait(True)
-			victim.gain_to_hand('Curse', done_gaining= lambda : crd.AttackCard.get_next(self, victim))
+			victim.gain_to_hand('Curse', done_gaining=lambda: crd.AttackCard.get_next(self, victim))
 		else:
 			discard_selection = victim.hand.auto_select(2, True)
 			if discard_selection:

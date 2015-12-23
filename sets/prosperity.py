@@ -374,6 +374,7 @@ class Contraband(crd.Money):
 		self.played_by.banned.append(selection[0])
 		crd.Money.on_finished(self)
 
+
 class Counting_House(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -407,6 +408,7 @@ class Counting_House(crd.Card):
 		self.played_by.update_discard_size()
 		self.played_by.update_deck_size()
 		crd.Card.on_finished(self)
+
 
 class Mint(crd.Card):
 	def __init__(self, game, played_by):

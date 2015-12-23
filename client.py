@@ -8,6 +8,7 @@ import html
 import game as g
 import waitHandler as w
 
+
 class Client():
 	hand_size = 5
 
@@ -118,9 +119,9 @@ class DmClient(Client):
 		self.waiter = w.WaitHandler(self)
 		self.cb = None
 		self.protection = 0
-		#boolean to keep track of if we bought a card to disable spending treasure afterwards
+		# boolean to keep track of if we bought a card to disable spending treasure afterwards
 		self.bought_cards = False
-		#cards banned from buying
+		# cards banned from buying
 		self.banned = []
 
 	def update_hand(self):
@@ -184,7 +185,6 @@ class DmClient(Client):
 			self.game.logger.rename_log_file(g.LOGS_DIR + "/flagged_" + str(self.game.file_title) + ".html")
 			self.game.logger.flagged = True
 
-
 	def exec_selected_choice(self, choice):
 		self.update_wait()
 		# choice(the parameter) to waiting callback is always a list
@@ -200,7 +200,7 @@ class DmClient(Client):
 		self.update_resources()
 		self.game.update_trash_pile()
 
-	#resumes game after all players ready
+	# resumes game after all players ready
 	def resume(self):
 		for i in self.game.players:
 			i.write_json(**i.last_mode)
@@ -245,7 +245,6 @@ class DmClient(Client):
 		new_card.on_buy = supply_card.on_buy.__get__(new_card, crd.Card)
 		return new_card
 
-
 	def buy_card(self, card_title):
 		if self.buys > 0 and self.game.supply.get_count(card_title) > 0 and card_title not in self.banned:
 			new_card = self.gen_new_card(card_title)
@@ -269,14 +268,14 @@ class DmClient(Client):
 			return False
 
 	def set_cb(self, cb, selflock=False):
-		if cb != None:
+		if cb is not None:
 			self.waiter.append_wait(self)
-			#only change lock if we are locking, update_wait must be called to unlock
+			# only change lock if we are locking, update_wait must be called to unlock
 			if selflock:
 				self.waiter.set_lock(self, selflock)
 		self.cb = cb
 
-	#doesnt update mode to wait immediately
+	# doesnt update mode to wait immediately
 	def wait_modeless(self, msg, on, locked=False):
 		self.waiter.append_wait(on)
 		if locked:
@@ -286,16 +285,15 @@ class DmClient(Client):
 	def wait_many(self, msg, on, locked=False):
 		for i in on:
 			self.waiter.append_wait(i)
-			#only change lock if we are locking, update_wait must be called to unlock
+			# only change lock if we are locking, update_wait must be called to unlock
 			if locked:
 				self.waiter.set_lock(i ,True)
 		self.waiter.wait(msg)
 
-
 	def wait(self, msg, on, locked=False):
 		self.waiter.append_wait(on)
 		self.waiter.wait(msg)
-		#only change lock if we are locking, update_wait must be called to unlock
+		# only change lock if we are locking, update_wait must be called to unlock
 		if locked:
 			self.waiter.set_lock(on, True)
 
@@ -305,7 +303,7 @@ class DmClient(Client):
 	def opponents_wait(self, msg, locked=False):
 		for i in self.game.players:
 			if i.name != self.name:
-				#only change lock if we are locking, update_wait must be called to unlock
+				# only change lock if we are locking, update_wait must be called to unlock
 				if locked:
 					i.waiter.set_lock(self, locked)
 				i.waiter.append_wait(self)

@@ -140,9 +140,20 @@ class TestHinterland(unittest.TestCase):
 
 	def test_Oasis(self):
 		tu.print_test_header("test Oasis")
-		tu.add_many_to_hand(self.player1,)
+		oasis = hl.Oasis(self.game, self.player2)
+		self.player1.hand.add(oasis)
 
 		tu.send_input(self.player1, "play", "Oasis")
+		tu.send_input(self.player2, "post_selection", ["Copper"])
+		self.assertTrue(len(self.player1.discard_pile) == 1)
+		self.assertTrue(self.player1.balance == 1)
+		self.assertTrue(self.player1.balance == 1)
+
+
+
+
+
+
 
 if __name__ == '__main__':
 	unittest.main()
