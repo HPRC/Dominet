@@ -24,7 +24,7 @@ class Game():
 
 	def start_game(self):
 		self.announce("Starting game with " + " and ".join(map(lambda x: str(x.name), self.players)))
-		# self.logger.setup_log_file()
+		self.logger.setup_log_file()
 
 		for i in self.players:
 			i.setup()
