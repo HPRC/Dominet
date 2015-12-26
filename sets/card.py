@@ -263,11 +263,12 @@ def search_deck_for(player, search_criteria, callback):
 		if search_criteria(topdeck):
 			match_found = True
 		else:
-			player.discard_pile.append(topdeck)
-			discarded.append(topdeck.log_string())
+			discarded.append(topdeck)
+
+	player.discard_pile += discarded
 
 	if len(discarded) > 0:
-		player.game.announce("-- discarding " + ", ".join(discarded))
+		player.game.announce("-- discarding " + ", ".join(map(lambda card : card.log_string(), discarded)))
 		player.update_discard_size()
 		player.update_deck_size()
 	if match_found:

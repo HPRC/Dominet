@@ -4,6 +4,8 @@ import cardpile as cp
 import random
 import sets.base as b
 import sets.supply as supply_cards
+import sets.prosperity as prosperity
+import sets.intrigue as intrigue
 import html
 import game as g
 import waitHandler as w

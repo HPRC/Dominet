@@ -72,39 +72,25 @@ class Loan(crd.Money):
 		self.played_by.balance += self.value
 		self.played_by.update_resources(True)
 
-		revealed_treasure = False
-		total_deck_count = len(self.played_by.discard_pile) + len(self.played_by.deck)
-		discarded = list()
-		while revealed_treasure is not True and len(discarded) < total_deck_count:
-			topdeck = self.played_by.topdeck()
-			if "Treasure" in topdeck.type:
-				revealed_treasure = True
-				self.played_by.deck.append(topdeck)
+		@gen.coroutine
+		def found_treasure(treasure):
+			if treasure is None:
+				self.game.announce("-- but could not find any treasures in his or her deck.")
 			else:
-				self.played_by.discard_pile.append(topdeck)
-				discarded.append(topdeck.title)
+				self.game.announce("-- revealing " + treasure.log_string())
 
-		if len(discarded) > 0:
-			self.game.announce("-- discarding " + ", ".join(
-				list(map(lambda x: self.game.log_string_from_title(x), discarded))))
+				selection = yield self.played_by.select(1, 1, ["Discard", "Trash"], "Discard or Trash " + treasure.title)
+				if selection[0] == "Discard":
+					self.played_by.discard_pile.append(treasure)
+					self.played_by.update_hand()
+					self.game.announce("-- discarding " + treasure.log_string())
+				else:
+					self.game.trash_pile.append(treasure)
+					self.game.update_trash_pile()
+					self.game.announce("-- trashing " + treasure.log_string())
+			crd.Money.on_finished(self)
 
-		if revealed_treasure is True:
-			self.game.announce("-- revealing " + topdeck.log_string())
-
-			selection = yield self.played_by.select(1, 1, ["Discard", "Trash"], "Discard or Trash " + topdeck.title)
-			topdeck = self.played_by.topdeck()
-			if selection[0] == "Discard":
-				self.played_by.discard_pile.append(topdeck)
-				self.played_by.update_hand()
-				self.game.announce("-- discarding " + topdeck.log_string())
-			else:
-				self.game.trash_pile.append(topdeck)
-				self.game.update_trash_pile()
-				self.game.announce("-- trashing " + topdeck.log_string())
-		else:
-			self.game.announce("-- but could not find any treasures in his or her deck.")
-		crd.Money.on_finished(self)
-
+		crd.search_deck_for(self.played_by, lambda x : "Treasure" in x.type, found_treasure)
 
 class Trade_Route(crd.Card):
 
@@ -324,7 +310,7 @@ class Contraband(crd.Money):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Contraband"
-		self.description = "{}{}\n The player to your left names a card, you cannot buy that card this turn.".format(crd.format_money(3), crd.format_buys(1))
+		self.description = "{}{}The player to your left names a card, you cannot buy that card this turn.".format(crd.format_money(3), crd.format_buys(1))
 		self.price = 5
 		self.value = 3
 		self.type = "Treasure"
