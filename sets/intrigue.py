@@ -9,7 +9,7 @@ class Courtyard(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Courtyard"
-		self.description = "{}Put a card from your hand on top of your deck.".format(crd.format_draw(3, True))
+		self.description = "{}\nPut a card from your hand on top of your deck.".format(crd.format_draw(3, True))
 		self.price = 2
 		self.type = "Action"
 
@@ -481,8 +481,7 @@ class Mining_Village(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Mining Village"
-		self.description = "{}{} \
-			You may trash this card immediately to gain {}".format(crd.format_draw(1), crd.format_actions(2), crd.format_money(2, True))
+		self.description = "{}{}You may trash this card immediately to gain {}".format(crd.format_draw(1), crd.format_actions(2), crd.format_money(2, True))
 		self.price = 4
 		self.type = "Action"
 

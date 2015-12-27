@@ -268,6 +268,14 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.deck[-1].title == "Silver")
 
+	@tornado.testing.gen_test
+	def test_Cache(self):
+		tu.print_test_header("test Cache")
+		yield tu.send_input(self.player1, "buyCard", "Cache")
+		self.assertTrue(len(self.player1.discard_pile) == 3)
+		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Cache"]) == 1)
+		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Copper"]) == 2)
+
 
 if __name__ == '__main__':
 	unittest.main()

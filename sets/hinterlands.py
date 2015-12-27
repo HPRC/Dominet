@@ -144,6 +144,7 @@ class Nomad_Camp(crd.Card):
 		crd.Card.play(self, skip)
 		self.played_by.balance += 2
 		self.played_by.buys += 1
+		self.game.announce("-- gaining +$2 and a buy")
 		crd.Card.on_finished(self, False)
 
 	def on_gain(self):
@@ -184,7 +185,7 @@ class Trader(crd.Card):
 		if selection[0] == "Reveal":
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
 			if to_gain.title == "Silver":
-				self.game.announce("-- trying to trade Silver for Silver")
+				self.game.announce("-- trying to trade {} for {}".format(to_gain.log_string(), to_gain.log_string()))
 			else:
 				to_gain = self.played_by.search_and_extract_card(to_gain)
 				if to_gain:
@@ -249,5 +250,15 @@ class Mandarin(crd.Card):
 		if self.game.get_turn_owner() == self.played_by:
 			self.played_by.update_mode()
 
+class Cache(crd.Money):
+	def __init__(self, game, played_by):
+		crd.Money.__init__(self, game, played_by)
+		self.title = "Cache"
+		self.value = 3
+		self.price = 5
+		self.description = "{}When you gain this, gain two Coppers".format(crd.format_money(3))
 
-
+	@gen.coroutine
+	def on_gain(self):
+		yield self.played_by.gain("Copper")
+		yield self.played_by.gain("Copper")

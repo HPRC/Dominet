@@ -4,6 +4,7 @@ import client as c
 import game as g
 import sets.supply as supply_cards
 import sets.base as base
+import sets.card as crd
 import cardpile as cp
 import kingdomGenerator as kg
 
@@ -124,6 +125,7 @@ class TestGame(unittest.TestCase):
 		self.assertTrue(self.player1.last_mode["mode"] != "selectSupply")
 
 	def test_get_opponent_order(self):
+		tu.print_test_header("test get opponent order")
 		player1opponents = self.player1.get_opponents()
 		self.assertTrue(player1opponents[0] == self.player2)
 		self.assertTrue(player1opponents[1] == self.player3)
