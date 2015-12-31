@@ -168,12 +168,19 @@ class Bureaucrat(crd.AttackCard):
 		self.description = "Gain a Silver, put it on top of your deck. Each other player reveals a Victory card and puts it on their deck or reveals a hand with no Victory cards."
 		self.price = 4
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		# create silver and add to top of deck
-		silver = supply.Silver(self.game, self.played_by)
-		self.game.announce(" -- gaining a " + silver.log_string())
-		self.played_by.deck.append(silver)		
+		silver = self.played_by.get_card_from_supply("Silver", True)
+		if silver is not None:
+			yield self.played_by.gain_helper(silver, True, self.played_by.name_string() + " gains " + silver.log_string() + " and puts it on the top of their deck.")
+			#if the gained card is still in discard pile, then we can remove and add to deck
+			if self.played_by.discard_pile and silver == self.played_by.discard_pile[-1]:
+				self.played_by.deck.append(self.played_by.discard_pile.pop())
+				self.played_by.update_deck_size()
+		else:
+			self.game.announce(self.played_by.name_string() + " tries to gain " + self.game.card_from_title("Silver").log_string() + " but it is out of supply.")
+
 		self.played_by.update_resources()
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
