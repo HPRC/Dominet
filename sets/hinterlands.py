@@ -123,6 +123,20 @@ class Nomad_Camp(crd.Card):
 		self.game.announce("-- adding " + self.log_string() + " to the top of their deck")
 
 
+class Silk_Road(crd.VictoryCard):
+	def __init__(self, game, played_by):
+		crd.VictoryCard.__init__(self, game, played_by)
+		self.title = "Silk Road"
+		self.description = "Worth 1 Victory Point for every 4 Victory cards in your deck (rounded down)."
+		self.price = 4
+		self.type = "Victory"
+
+	def get_vp(self):
+		cards = self.played_by.all_cards()
+		victory_cards = [x for x in cards if "Victory" in x.type]
+		return int(len(victory_cards) / 4)
+
+
 class Trader(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)

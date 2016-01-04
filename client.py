@@ -138,7 +138,7 @@ class DmClient(Client):
 	# override
 	def exec_commands(self, data):
 		Client.exec_commands(self, data)
-		#if we reconnected and an old connection is sending input, ignore
+		# if we reconnected and an old connection is sending input, ignore
 		if self.game is None:
 			return
 		cmd = data["command"]
@@ -153,10 +153,10 @@ class DmClient(Client):
 					self.resume()
 					self.reconnect()
 			elif self.game.turn_count != 0:
-				#not all players are ready wait for disconnected ones
+				# not all players are ready wait for disconnected ones
 				self.reconnect()
 				self.update_wait()
-				#update wait msgs
+				# update wait msgs
 				for i in self.game.players:
 					if i.ready:
 						i.waiter.wait(self.waiter.msg)
@@ -232,7 +232,7 @@ class DmClient(Client):
 		self.update_deck_size()
 		self.game.change_turn()
 
-	#used to properly generate a copy of a card from supply to add to my deck
+	# used to properly generate a copy of a card from supply to add to my deck
 	def gen_new_card(self, card_title):
 		supply_card = self.game.card_from_title(card_title)
 		# we instantiate a new card by getting the class from the kingdom instance 

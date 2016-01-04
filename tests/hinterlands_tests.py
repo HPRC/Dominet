@@ -140,7 +140,7 @@ class TestHinterland(unittest.TestCase):
 
 	def test_Oasis(self):
 		tu.print_test_header("test Oasis")
-		oasis = hl.Oasis(self.game, self.player2)
+		oasis = hl.Oasis(self.game, self.player1)
 		self.player1.hand.add(oasis)
 
 		tu.send_input(self.player1, "play", "Oasis")
@@ -149,7 +149,17 @@ class TestHinterland(unittest.TestCase):
 		self.assertTrue(self.player1.balance == 1)
 		self.assertTrue(self.player1.balance == 1)
 
+	def test_Silk_Road(self):
+		tu.print_test_header("test Silk_Road")
+		silk_road = hl.Silk_Road(self.game, self.player1)
+		self.player1.hand.add(silk_road)
+		great_hall = intrigue.Great_Hall(self.game, self.player1)
+		harem = intrigue.Harem(self.game, self.player1)
 
+		self.player1.discard_pile.append(great_hall)
+		self.player1.deck.append(harem)
+
+		self.assertTrue(silk_road.get_vp() == 1)
 
 
 
