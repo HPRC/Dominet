@@ -1,0 +1,33 @@
+<div class="modal-header">
+    <h3>Advanced Options</h3>
+</div>
+
+<div class="modal-body">
+	<form>
+		<div class="form-group">
+			<label for="newGameTitle">Game Title</label>
+			<input type="text" class="form-control" id="newGameTitle" placeholder="Title" maxlength="40" ng-model="newGameTable.title" autofocus>
+		    <label for="newSeats">Num Players</label>
+			<select class="form-control" id="newSeats" ng-model="newGameTable.seats">
+				<option>2</option>
+				<option>3</option>
+				<option>4</option>
+			</select>
+			<label for="requiredCards">Required Cards</label>
+			<input type="text" class="form-control" id="requiredCards" placeholder="List comma separated cards to include in supply" ng-model="inputRequired">
+            <label for="excludedCards">Excluded Cards</label>
+            <input type="text" class="form-control" id="excludedCards" placeholder="List comma separated cards to exclude in supply" ng-model="inputExcluded">
+            <br>
+            <label for="default">Default:</label>
+            <input type="radio" name="supply_set" id="default" value="default" ng-model="supplyRadio.value" checked="checked">
+            <label for="base">Base:</label>
+            <input type="radio" name="supply_set" id="base" value="base" ng-model="supplyRadio.value">
+            <label for="prosperity">Prosperity:</label>
+            <input type="radio" name="supply_set" id="prosperity" value="prosperity" ng-model="supplyRadio.value">
+		</div>
+	</form>
+</div>
+<div class="modal-footer">
+	<button class="btn btn-default" ng-click="cancel()">Cancel</button>
+	<button class="btn btn-default" ng-click="createGame()">Create Game</button>
+</div>

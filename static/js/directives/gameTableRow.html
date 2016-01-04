@@ -1,0 +1,12 @@
+<td class="vert-mid"><b>{{g.title}}</b></td>
+<td class="vert-mid"><b>Host:</b> {{g.host}}</td>
+<td class="vert-mid"><b>{{g.seats}} Players:</b> {{playersToString(g)}}</td>
+<td class="vert-mid"><a popover-title="Includes" popover-trigger="mouseenter" popover="{{usingIncludes(g)}}"><b>Includes</b></a></td>
+<td class="vert-mid"><a popover-title="Excludes" popover-trigger="mouseenter" popover="{{usingExcludes(g)}}"><b>Excludes</b></a></td>
+<td class="vert-mid"><b>Supply:</b> {{supplyInfo(g)}}</td>
+<!--<td class="vert-mid">{{g.sets}}</td>-->
+<td class="vert-mid" ng-if="!isAtTable(g)"><button class="btn btn-default" ng-click="joinTable(g)" ng-disabled="atTable && !isAtTable(g) || g.players.length === g.seats">Join</button></td>
+<td class="vert-mid" ng-if="isAtTable(g)"><button class="btn btn-default" ng-click="leaveTable(g)" ng-disabled="atTable && !isAtTable(g)">Leave</button></td>
+<td class="vert-mid" ng-if="name === g.host"><button class="btn btn-default" ng-disabled="g.players.length < g.seats" ng-click="startGame(g)">Start Game</button></td>
+<!-- empty table cell so it aligns with other table rows with same number of 7 cells even if not host-->
+<td class="vert-mid" ng-if="name !== g.host"><button</td>

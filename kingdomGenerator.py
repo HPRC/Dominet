@@ -1,30 +1,75 @@
-import card as crd
-import base_set as base
+import sets.card as crd
+import sets.base as base
+import sets.intrigue as intrigue
+import sets.prosperity as prosperity
+import sets.hinterlands as hl
 import inspect
 import random
+import string
+
 
 class kingdomGenerator():
-	def __init__(self, game):
-		self.game = game
-		self.avail_cards = []
-		for name, obj in inspect.getmembers(base):
-			if inspect.isclass(obj):
-				self.avail_cards.append(obj(game, None))
+	avail_sets = [base, intrigue, prosperity, hl]
+	kingdom_size = 10
 
-	def random_kingdom(self):
+	def __init__(self, game, required_cards=[], excluded_cards=[]):
+
+		self.game = game
+		self.avail_cards = {}
+		self.required_cards = card_title_to_class_name(required_cards)
+		self.excluded_cards = card_title_to_class_name(excluded_cards)
+		for each_set in kingdomGenerator.avail_sets:
+			self.load_set(each_set)
+
+	def gen_kingdom(self):
 		kingdom = []
-		for i in range(0, 10):
-			selected_index = random.randint(0,len(self.avail_cards)-1)
-			kingdom.append(self.avail_cards.pop(selected_index))
+		# add required cards first
+		for x in self.excluded_cards:
+			if x in self.avail_cards:
+				del self.avail_cards[x]
+
+		for x in self.required_cards:
+			if x in self.avail_cards and len(kingdom) < kingdomGenerator.kingdom_size:
+				kingdom.append(self.avail_cards[x])
+				del self.avail_cards[x]
+		# choose random cards to fill out the rest
+		if kingdomGenerator.kingdom_size - len(kingdom) > 0:
+			kingdom += [self.avail_cards[i] for i in random.sample(list(self.avail_cards), 10 - len(kingdom))]
+
 		return kingdom
 
+	def every_card_kingdom(self):
+		kingdom = []
+		for x in all_card_titles():
+			if x in self.avail_cards:
+				kingdom.append(self.avail_cards[x])
+		return kingdom
 
-def all_cards(game):
-	all_cards = []
-	for name, obj in inspect.getmembers(base):
+	def load_set(self, card_set):
+		for name, obj in inspect.getmembers(card_set):
+			if inspect.isclass(obj):
+				card = obj(self.game, None)
+				self.avail_cards[card.title] = card
+
+
+# replaces strips spaces to single space and changes to camelcase
+def card_title_to_class_name(lst):
+	result = []
+	for x in lst:
+		x = " ".join("".join([w[0].upper(), w[1:].lower()]) for w in x.split())
+		result.append(x)
+	return result 
+
+
+def all_card_titles():
+	titles = []
+	for each_set in kingdomGenerator.avail_sets:
+		for name, obj in inspect.getmembers(each_set):
+			if inspect.isclass(obj):
+				titles.append(obj(None, None).title)
+	for name,obj in inspect.getmembers(crd):
 		if inspect.isclass(obj):
-			all_cards.append(obj(game, None))
-	for name, obj in inspect.getmembers(crd):
-		if inspect.isclass(obj):
-			all_cards.append(obj(game, None))
-	return all_cards
+			if name != "Card" and name != "Money" and name != "AttackCard" and name != "VictoryCard":
+				titles.append(obj(None, None).title)
+	return titles	
+

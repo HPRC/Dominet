@@ -1,10 +1,28 @@
 Dominet
+=============
+Browser based implementation of dominion.
+![Dominion Game](https://dl.dropboxusercontent.com/s/stnb7x8l3c34j73/dominetscreen.png)
 
-Python Server
-* requires: python 3, tornado
-* to run: python3 net.py
+## Dependencies
+
+* requires: python 3.4
+* [Tornado 4.0.2](http://www.tornadoweb.org/en/stable/) asynchronous library
+
+## Start Server
+
+* `python3 net.py`
 * open browser to localhost:9999
 
-Tests
-* python3 -m tests.game_tests
-* python3 -m tests.card_tests
+## Tests
+
+run all tests:
+
+* `python3 -m unittest discover tests '*_tests.py'`
+
+run individual tests:
+
+* `python3 -m tests.game_tests`
+* `python3 -m tests.base_tests`
+* `python3 -m tests.intrigue_tests`
+* `python3 -m tests.prosperity_tests`
+

@@ -2,6 +2,11 @@ html, body {
 	height: 100%;
 }
 
+/* selector to select bootstrap td */
+.table tbody>tr>td.vert-mid{
+    vertical-align: middle;
+}
+
 .full-height {
 	height: 100%;
 }
@@ -39,6 +44,7 @@ html, body {
 }
 
 .scrollChat {
+	height:100px;
 	overflow: auto;
 	word-wrap:break-word;
 }
@@ -68,8 +74,12 @@ html, body {
 	font-size:1.6em;
 }
 
+.supplyCardContainer {
+	white-space: nowrap;
+}
+
 #userBar {
-	height:10%;
+	height:5%;
 }
 
 #lobbyPanel {
@@ -78,4 +88,22 @@ html, body {
 
 #lobby-container {
 	height:90%;
+}
+
+#games-list {
+	overflow:auto;
+	height:60%;
+}
+
+#modeContainer {
+	min-height:3em;
+}
+
+/* custom disabled style that mimics being disabled but allows us to receive events (issue #42) */
+.btn.disabled-card {
+	opacity:.4;
+}
+.btn.disabled-card:hover, .btn.disabled-card:focus, .btn.disabled-card.focus, .btn.disabled-card:active, .btn.disabled-card.active, .open > .btn.disabled-card.dropdown-toggle {
+	outline:0;
+	outline-offset:0;
 }

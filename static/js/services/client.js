@@ -1,4 +1,4 @@
-clientModule.factory('client', function(socket) {
+clientModule.factory('client', function(socket, favicon) {
 	var constructor = function() {
 		this.id = null;
 		this.name = null;
@@ -25,6 +25,7 @@ clientModule.factory('client', function(socket) {
 		this.kingdom = {};
 		this.baseSupply = {};
 		this.gameTrash = "";
+		this.gameMat = {};
 		this.actions = 0;
 		this.buys = 0;
 		this.balance = 0;
@@ -34,6 +35,9 @@ clientModule.factory('client', function(socket) {
 		this.discardSize = 0;
 		//mode overidden by turn
 		this.modeJson = {"mode":"action"}; //.mode = action, buy, select, gain, wait, gameover
+		this.priceModifier = {};
+		this.gameLogs = "";
+
 	};
 
 	constructor.prototype.updateHand = function(json){
@@ -42,22 +46,21 @@ clientModule.factory('client', function(socket) {
 	};
 
 	constructor.prototype.announce = function(json){
-			$('#msg').append("<br>" + json.msg);
-			$("#container").scrollTop($(document).height());
-			$("#msg").scrollTop($("#msg")[0].scrollHeight);
+		var msg = document.getElementById("msg");
+		this.gameLogs += "<br>" + json.msg;
 	};
 
 	constructor.prototype.kingdomCards = function(json){
 		var kingdomArray = JSON.parse(json.data);
 		for (var i=0; i< kingdomArray.length; i++) {
-			this.kingdom[kingdomArray[i].title] = kingdomArray[i];			
+			this.kingdom[kingdomArray[i].title] = kingdomArray[i];		
 		}
 	};
 
 	constructor.prototype.baseCards = function(json){
 		var baseArray = JSON.parse(json.data);
 		for (var i=0; i< baseArray.length; i++) {
-			this.baseSupply[baseArray[i].title] = baseArray[i];			
+			this.baseSupply[baseArray[i].title] = baseArray[i];
 		}
 	};
 
@@ -66,16 +69,37 @@ clientModule.factory('client', function(socket) {
 		this.updateResources(json);
 		this.spendableMoney = 0;
 		this.updateSpendable();
+		favicon.alertFavicon();
 	};
 
 	constructor.prototype.updateMode = function(json){
 		this.modeJson = json;
+		if (this.modeJson.mode === "buy" && this.buys === 0){
+			this.endTurn();
+		}
+		if (!this.turn){
+			if (this.modeJson.mode === "selectSupply" || this.modeJson.mode === "select"){
+				favicon.alertFavicon();
+			} else {
+				favicon.stopAlert();
+			}
+		} else {
+			if (this.modeJson.mode === "wait"){
+				favicon.stopAlert();
+			} else {
+				favicon.alertFavicon();
+			}
+		}
 	};
 
 	constructor.prototype.endTurn = function(){
+		if (!this.turn){
+			return;
+		}
 		this.turn = false;
 		this.discard(this.hand);
 		this.played = []; //discarded on backend
+		favicon.stopAlert();
 		socket.send(JSON.stringify({"command": "endTurn"}));
 	};
 
@@ -83,7 +107,7 @@ clientModule.factory('client', function(socket) {
 		if (cards.length == 0){
 			return;
 		}
-		var cardsByTitle = $.map(cards, function(val, index){
+		var cardsByTitle = cards.map(function(val){
 			return val.title;
 		});
 		socket.send(JSON.stringify({"command": "discard", "cards": cardsByTitle}));
@@ -101,21 +125,24 @@ clientModule.factory('client', function(socket) {
 	constructor.prototype.updateSpendable = function (){
 		this.spendableMoney = 0;
 		for (var i=0; i<this.hand.length; i++){
-			if (this.hand[i].type === "Treasure"){
+			if (this.hand[i].type.indexOf("Treasure") > -1 && this.hand[i].spend_all === true){
 				this.spendableMoney += this.hand[i].value;
 			}
 		}
 	};
 
 	constructor.prototype.spendAllMoney = function(){
+		if (this.modeJson.mode === "buy" && this.modeJson.bought_cards === true){
+			return;
+		}
 		this.spendableMoney = 0;
-		this.modeJson = {"mode":"buy"};
 		socket.send(JSON.stringify({"command": "spendAllMoney"}));
 	};
 
 	constructor.prototype.playCard = function(card){
 
 		if (this.actions > 0 || card.type.indexOf("Action") === -1){
+			this.actions -=1;
 			socket.send(JSON.stringify({"command":"play", "card": card.title}));
 			this.played.push(card);
 			//remove from hand
@@ -128,18 +155,23 @@ clientModule.factory('client', function(socket) {
 		}
 
 		if (card.type === "Treasure"){
-			this.modeJson = {"mode":"buy"};
 			this.updateSpendable();
 		}
 
 	};
 
 	constructor.prototype.buyCard = function(card){
-		if (this.balance >= card.price){
+		if (this.balance >= card.price + this.priceModifier[card.title]){
 			this.buys -= 1;
-			this.balance -= card.price;
+			if (card.price + this.priceModifier[card.title] > 0){
+				this.balance -= card.price + this.priceModifier[card.title];
+			}
 			socket.send(JSON.stringify({"command":"buyCard", "card": card.title}));
 		}
+	};
+
+	constructor.prototype.updateAllPrices = function(json){
+		this.priceModifier = json.modifier;
 	};
 
 	constructor.prototype.updatePiles = function(json){
@@ -169,6 +201,10 @@ clientModule.factory('client', function(socket) {
 
 	constructor.prototype.updateTrash = function(json){
 		this.gameTrash = json.trash;
+	};
+
+	constructor.prototype.updateMat = function(json){
+		this.gameMat = json.mat;
 	};
 
 	constructor.prototype.getHand = function(){
@@ -223,9 +259,22 @@ clientModule.factory('client', function(socket) {
 		return this.discardSize;
 	};
 
+	constructor.prototype.getGameMat = function(){
+		return this.gameMat;
+	};
+
 	constructor.prototype.getGameTrash = function(){
 		return this.gameTrash;
 	};
+
+	constructor.prototype.getPriceModifier = function(){
+		return this.priceModifier;
+	};
+
+	constructor.prototype.getGameLogs = function(){
+		return this.gameLogs;
+	};
+
 
 	return new constructor();
 });

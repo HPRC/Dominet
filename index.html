@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 	<script type="text/javascript" src="/static/js/index.js"></script>
 	<link rel="stylesheet" href="/static/style.css" />
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link type="image/x-icon" rel="shortcut icon" href="/static/favicon.ico" id="favicon">
+    <title>Dominet</title>
 </head>
 <div id="container">
 	<h2>Dominet</h2>
-<div id="errorMsg"></div>
+<div id="errorMsg">{{error if 'error' in globals() else ""}}</div>
 <form role="form" action="/" method="POST" onsubmit="return validateUsername()">
 	<div class="form-group">
 		<label for="inputUsername">Username</label>

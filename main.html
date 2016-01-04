@@ -1,27 +1,32 @@
-<!DOCTYPE html>
+	<!DOCTYPE html>
 <html ng-app="clientApp">
 <head>
-	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 	<script type="text/javascript" src="/static/angular.min.js"></script>
-	<script type="text/javascript" src="/static/js/ui-bootstrap-custom-tpls-0.12.0.min.js"></script>
+	<script type="text/javascript" src="/static/js/ui-bootstrap-custom-tpls-0.12.1.min.js"></script>
 
 	<script type="text/javascript" src="/static/js/clientModule.js"></script>
 	<script type="text/javascript" src="/static/js/services/clientSocket.js"></script>
 	<script type="text/javascript" src="/static/js/services/cardStyle.js"></script>
+	<script type="text/javascript" src="/static/js/services/gameTable.js"></script>
+	<script type="text/javascript" src="/static/js/services/favicon.js"></script>
 	<script type="text/javascript" src="/static/js/services/client.js"></script>
 	<script type="text/javascript" src="/static/js/controllers/clientController.js"></script>
 	<script type="text/javascript" src="/static/js/controllers/handController.js"></script>
 	<script type="text/javascript" src="/static/js/controllers/supplyController.js"></script>
 	<script type="text/javascript" src="/static/js/controllers/selectController.js"></script>
+	<script type="text/javascript" src="/static/js/controllers/reportBugModalController.js"></script>
 	<script type="text/javascript" src="/static/js/controllers/infoController.js"></script>
 	<script type="text/javascript" src="/static/js/controllers/chatController.js"></script>
+	<script type="text/javascript" src="/static/js/controllers/advGameModalController.js"></script>
 	<script type="text/javascript" src="/static/js/controllers/lobbyController.js"></script>
+	<script type="text/javascript" src="/static/js/directives/gameTableRow.js"></script>
 	<script type="text/javascript" src="/static/js/directives/supplyCard.js"></script>
 	<script type="text/javascript" src="/static/js/directives/handCard.js"></script>
 
-	<link rel="stylesheet" href="/static/style.css" />	
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
-
+	<link rel="stylesheet" href="/static/style.css" />
+    <link type="image/x-icon" rel="shortcut icon" href="/static/favicon.ico" id="favicon">
+    <title>Dominet</title>
 </head>
 <div id="container" class="full-height" ng-init="main.game = false">
 		<div class="full-height" ng-if="!main.game">

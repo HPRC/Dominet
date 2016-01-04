@@ -9,38 +9,45 @@
 			<div class="col-md-6">
 				<table class="table">
 					<tr ng-repeat="card in kingdomSupplyArray | orderBy:'price':true">
-						<td><supply-card></supply-card></td>
+						<td class="supplyCardContainer"><supply-card></supply-card></td>
 					</tr>
 				</table>
 			</div>
 			<div class="col-md-6">
 				<table class="table">
 					<tr ng-repeat="card in baseSupplyArray | orderBy:'price':true">
-						<td><supply-card></supply-card></td>
+						<td class="supplyCardContainer"><supply-card></supply-card></td>
 					</tr>
+                    <tr ng-show="modeJson.optional">
+                        <td class="supplyCardContainer">
+                           <b>$-</b> <button ng-click="selectNone()" class="btn btn-default">None</button>
+                        </td>
+                    </tr>
 				</table>
 			</div>
 		</div>
 	</div>
-	<div id="middleColumn" class="col-xs-6">
+	<div id="middleColumn" class="col-xs-5">
 		<div id="game-panel">
-			<div id="msg"></div>
-			<div id="gameover" ng-show="modeJson.mode === 'gameover'">
-				<a href="#" ng-click="returnLobby()">Return to Lobby</a>
-			</div>
-			<div id="wait" ng-show="modeJson.mode === 'wait'"><h4>{{modeJson.msg}}</h4>
-			</div>
-			<div id="select" ng-show="modeJson.mode ==='select'" ng-controller="selectController">
-				<div ng-if="modeJson.min_cards > 1 || modeJson.min_cards === null">
-					<h4>{{modeJson.msg}}</h4>
-					<label class="checkbox-inline" ng-repeat="option in modeJson.select_from track by $index">
-						<input type="checkbox" ng-init="checked=false" ng-click="checked=!checked; check(option,checked)">{{option}}
-					</label>
-					<button ng-disabled="!canBeDone" ng-click="doneSelection()" class="btn btn-default">Done</button>
+			<div id="msg" ng-bind-html="renderHtml(gameLogs)"></div>
+			<div class="modeContainer">
+				<div id="gameover" ng-show="modeJson.mode === 'gameover'">
+					<a href="#" ng-click="returnLobby()">Return to Lobby</a>
 				</div>
-				<div ng-if="modeJson.min_cards === 1">
-					<h4>{{modeJson.msg}}</h4>
-					<a href ng-click="selectOne(option)" ng-repeat="option in modeJson.select_from track by $index">  {{option}}  </a>
+				<div id="wait" ng-show="modeJson.mode === 'wait'"><h5>{{modeJson.msg}}</h5>
+				</div>
+				<div id="select" ng-show="modeJson.mode ==='select'" ng-controller="selectController">
+					<h5>{{modeJson.msg}}</h5>
+					<div ng-if="modeJson.min_cards > 1 || modeJson.min_cards === null">
+						<label class="checkbox-inline" ng-repeat="option in modeJson.select_from track by $index">
+							<input type="checkbox" ng-init="checked=false" ng-click="checked=!checked; check(option,checked, $index)">{{option}}
+							<span ng-show="modeJson.ordered" ng-if="checked === true"><b>{{checkboxOrder(option, $index);}}</b></span>
+						</label>
+						<button ng-disabled="!canBeDone" ng-click="doneSelection()" class="btn btn-default">Done</button>
+					</div>
+					<div ng-if="modeJson.min_cards === 1">
+						<a href ng-click="selectOne(option)" ng-repeat="option in modeJson.select_from track by $index">  {{option}}  </a>
+					</div>
 				</div>
 			</div>
 			<div id="playerOptions" ng-show="turn">
@@ -55,23 +62,23 @@
 					<hand-card></hand-card>
 				</span>
 			</div>
-		</div>
-		<div class="chat-container" ng-controller="chatController">
-			<div class="scrollChat" style="height:100px;">
-				<div id="gameChat">
+			<div class="chat-container" ng-controller="chatController">
+				<div class="scrollChat">
+					<div ng-repeat="msg in messages">
+						<span ng-show="msg.speaker !== ''"><b>{{msg.speaker}}</b>:</span><span>{{msg.msg}}</span>
+					</div>
 				</div>
-			</div>
-			<hr>
-			<div class="col-md-10">
-  				<label class="sr-only" for="inputChat">inputChat</label>
-				<input type="text" id="inputChat" class="form-control" ng-model="inputText">
-			</div>
-			<div class="col-md-2">
-				<button id="sendChat" class="btn btn-default" ng-click="enterChat()">Send</button>
+				<div class="col-md-10">
+	  				<label class="sr-only" for="inputChat">inputChat</label>
+					<input type="text" id="inputChat" class="form-control" ng-model="inputText" ng-keypress="enterKey($event)">
+				</div>
+				<div class="col-md-2">
+					<button id="sendChat" class="btn btn-default" ng-click="enterChat()">Send</button>
+				</div>
 			</div>
 		</div>
 	</div>
-		<div id="rightColumn" class="col-xs-2" ng-controller="infoController">
+		<div id="rightColumn" class="col-xs-3" ng-controller="infoController">
 			<ul class="list-group">
 				<li class="list-group-item">Deck
 				<span class="badge">{{deckSize}}</span>
@@ -79,10 +86,13 @@
 				<li class="list-group-item">Discard
 					<span class="badge">{{discardSize}}</span>
 				</li>
-				<li class="list-group-item" ng-bind-html="renderHtml(trashDisplay(gameTrash))">
+				<li class="list-group-item" ng-bind-html="matDisplay('Trash',gameTrash)">
+				</li>
+				<li class="list-group-item" ng-repeat="(name, data) in gameMat" ng-bind-html="matDisplay(name, data)">
 				</li>
 				<li class="list-group-item" ng-bind-html="renderHtml(modeJson.decklists)" ng-show="modeJson.mode === 'gameover'">
 				</li>
 			</ul>
+            <button id="reportBug" class="btn btn-default" ng-click="openReportBugModal()">Report Bug</button>
 		</div>
 </div>
