@@ -174,7 +174,6 @@ class Workshop(crd.Card):
 		self.played_by.gain(selected[0], done_gaining=lambda : crd.Card.on_finished(self, False, False))
 		
 
-
 # --------------------------------------------------------
 # ------------------------ 4 Cost ------------------------
 # --------------------------------------------------------
@@ -461,7 +460,7 @@ class Thief(crd.AttackCard):
 
 					self.played_by.set_cb(post_select_trash)
 			else:
-				#if no treasure, add the revealed cards to the discard
+				# if no treasure, add the revealed cards to the discard
 				player.discard_pile += revealed_cards
 				player.update_discard_size()
 				crd.AttackCard.get_next(self, player)
@@ -534,6 +533,7 @@ class Throne_Room(crd.Card):
 		selected_card.play(True)
 		self.played_by.update_resources()
 		self.played_by.update_hand()
+
 
 # --------------------------------------------------------
 # ------------------------ 5 Cost ------------------------
@@ -609,7 +609,7 @@ class Library(crd.Card):
 		crd.Card.play(self, skip)
 		while len(self.played_by.hand) < 7:
 			top_card = self.played_by.topdeck()
-			if top_card != None:
+			if top_card is not None:
 				if "Action" in top_card.type:
 					self.played_by.select(1, 1, ["Yes", "No"], "set aside " + top_card.title + "?")
 

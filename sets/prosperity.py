@@ -5,6 +5,7 @@ import math
 # ------------------------ 3 Cost ------------------------
 # --------------------------------------------------------
 
+
 class Watchtower(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -65,6 +66,7 @@ class Watchtower(crd.Card):
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
 
+
 class Loan(crd.Money):
 	def __init__(self, game, played_by):
 		crd.Money.__init__(self, game, played_by)
@@ -120,6 +122,7 @@ class Loan(crd.Money):
 
 		crd.Money.on_finished(self)
 
+
 class Trade_Route(crd.Card):
 
 	def __init__(self, game, played_by):
@@ -133,14 +136,14 @@ class Trade_Route(crd.Card):
 	def on_supply_init(self):
 		for supply_card in self.game.supply.unique_cards():
 			if "Victory" in supply_card.type:
-				#Here we store the on_gain function of this card and override it with our own gained_to_mat function
+				# Here we store the on_gain function of this card and override it with our own gained_to_mat function
 				default_on_gain_function = supply_card.on_gain
 				supply_card.on_gain = staticmethod(lambda x=supply_card : self.gained_to_mat(x, default_on_gain_function))
 		self.game.mat["Trade Route Mat"] = []
 
-	#this is set to be the on_gain function for all cards with trade route tokens on it. It increases the mat value
-	#when the card is gained the first time and then removes this function as the on_gain and resets it to the previous
-	#function.
+	# this is set to be the on_gain function for all cards with trade route tokens on it. It increases the mat value
+	# when the card is gained the first time and then removes this function as the on_gain and resets it to the previous
+	# function.
 	def gained_to_mat(self, supply_card, previous_gain_func):
 		self.game.mat["Trade Route Mat"].append(supply_card.log_string())
 		self.game.update_mat()
@@ -551,6 +554,7 @@ class Rabble(crd.AttackCard):
 		if not self.played_by.is_waiting():
 			crd.Card.on_finished(self, False, False)
 
+
 class Royal_Seal(crd.Money):
 	def __init__(self, game, played_by):
 		crd.Money.__init__(self, game, played_by)
@@ -702,6 +706,7 @@ class Goons(crd.AttackCard):
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-danger'>", self.title, "</span>"])
 
+
 class Hoard(crd.Money):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -717,6 +722,7 @@ class Hoard(crd.Money):
 			self.played_by.gain("Gold", True, True, done_gaining= lambda : 
 				self.game.announce("-- gaining a " + self.played_by.get_card_from_supply("Gold", False).log_string()))
 		crd.Money.on_finished(self)
+
 
 class Grand_Market(crd.Card):
 	def __init__(self, game, played_by):
@@ -791,6 +797,7 @@ class Expand(crd.Card):
 	def post_gain(self, selected):
 		self.played_by.gain(selected[0], done_gaining=lambda : crd.Card.on_finished(self, False, False))
 
+
 class Kings_Court(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -804,7 +811,7 @@ class Kings_Court(crd.Card):
 		action_cards = self.played_by.hand.get_cards_by_type("Action")
 		if not self.played_by.select(1, 1, crd.card_list_to_titles(action_cards),
 		 "select card for King's Court"):
-			self.done = lambda : None
+			self.done = lambda: None
 			self.game.announce(" -- but has no action cards")
 		else:
 			self.played_by.set_cb(self.post_select)
@@ -819,16 +826,16 @@ class Kings_Court(crd.Card):
 			card.done = lambda: None
 			crd.Card.on_finished(self, False, False)
 
-		#plays the selected card 2nd and 3rd time, done_cb is the callback called after a card finishes playing
-		#the default done cb is final_done to be called after the 3rd card is played.
+		# plays the selected card 2nd and 3rd time, done_cb is the callback called after a card finishes playing
+		# the default done cb is final_done to be called after the 3rd card is played.
 		def play_again(card=selected_card, done_cb=final_done):
 			card.game.announce(kings_court_str)
 			card.done = done_cb
 			card.play(True)
 			card.played_by.update_resources()
 
-		#after playing the card the first time, we set the done callback to play_again and override the default
-		#done callback for the 2nd time the card is played to play_again to play a 3rd time
+		# after playing the card the first time, we set the done callback to play_again and override the default
+		# done callback for the 2nd time the card is played to play_again to play a 3rd time
 		selected_card.done = lambda : play_again(done_cb=play_again)
 		self.played_by.discard(selection, self.played_by.played)
 		self.game.announce(kings_court_str)
@@ -855,7 +862,6 @@ class Forge(crd.Card):
 			self.played_by.set_cb(self.gain_select)
 		else:
 			crd.Card.on_finished(self)
-
 
 	def trash_select(self, selection):
 		trash_sum = 0
@@ -901,7 +907,7 @@ class Peddler(crd.Card):
 		self.played_by.actions += 1
 		crd.Card.on_finished(self)
 
-	#called when the buy phase begins
+	# called when the buy phase begins
 	def on_buy_phase(self):
 		modifier = self.game.get_turn_owner().played_actions * -2
 		self.game.price_modifier[self.title] = modifier
