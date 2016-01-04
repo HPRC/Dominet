@@ -1,3 +1,9 @@
-*.pyc
+*.scssc
+**/*.pyc
 *.idea
+pyvenv.cfg
+/venv/*
 /logs/*
+static/.sass-cache/*
+env.sh
+static/style.css.map

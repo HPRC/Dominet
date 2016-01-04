@@ -6,7 +6,7 @@ Browser based implementation of dominion.
 ## Dependencies
 
 * requires: python 3.4
-* [Tornado 4.0.2](http://www.tornadoweb.org/en/stable/) asynchronous library
+* [Tornado 4.2.1](http://www.tornadoweb.org/en/stable/) asynchronous library
 
 ## Start Server
 
@@ -17,12 +17,19 @@ Browser based implementation of dominion.
 
 run all tests:
 
+in root directory:
 * `python3 -m unittest discover tests '*_tests.py'`
 
 run individual tests:
 
+in root directory:
 * `python3 -m tests.game_tests`
 * `python3 -m tests.base_tests`
 * `python3 -m tests.intrigue_tests`
 * `python3 -m tests.prosperity_tests`
+
+## Sass
+
+in `/static/css` directory run:
+`sass --watch style.scss:style.min.css --style compressed`
 

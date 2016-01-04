@@ -36,7 +36,7 @@ clientModule.factory('client', function(socket, favicon) {
 		//mode overidden by turn
 		this.modeJson = {"mode":"action"}; //.mode = action, buy, select, gain, wait, gameover
 		this.priceModifier = {};
-		this.gameLogs = "";
+		this.gameLog = "";
 
 	};
 
@@ -46,8 +46,11 @@ clientModule.factory('client', function(socket, favicon) {
 	};
 
 	constructor.prototype.announce = function(json){
-		var msg = document.getElementById("msg");
-		this.gameLogs += "<br>" + json.msg;
+		this.gameLog += "<br>" + json.msg;
+	};
+
+	constructor.prototype.setGameLog = function(json){
+		this.gameLog = json.log;
 	};
 
 	constructor.prototype.kingdomCards = function(json){
@@ -74,9 +77,6 @@ clientModule.factory('client', function(socket, favicon) {
 
 	constructor.prototype.updateMode = function(json){
 		this.modeJson = json;
-		if (this.modeJson.mode === "buy" && this.buys === 0){
-			this.endTurn();
-		}
 		if (!this.turn){
 			if (this.modeJson.mode === "selectSupply" || this.modeJson.mode === "select"){
 				favicon.alertFavicon();
@@ -84,7 +84,9 @@ clientModule.factory('client', function(socket, favicon) {
 				favicon.stopAlert();
 			}
 		} else {
-			if (this.modeJson.mode === "wait"){
+			if (this.modeJson.mode === "buy" && this.buys === 0){
+				this.endTurn();
+			} else if (this.modeJson.mode === "wait"){
 				favicon.stopAlert();
 			} else {
 				favicon.alertFavicon();
@@ -271,10 +273,9 @@ clientModule.factory('client', function(socket, favicon) {
 		return this.priceModifier;
 	};
 
-	constructor.prototype.getGameLogs = function(){
-		return this.gameLogs;
+	constructor.prototype.getGameLog = function(){
+		return this.gameLog;
 	};
-
 
 	return new constructor();
 });

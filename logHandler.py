@@ -3,7 +3,8 @@ import os
 
 class LogHandler():
 	LOGS_DIR = "logs"
-	CSS_LINK = "<link rel=\"stylesheet\" href=\"../static/css/bootstrap.min.css\"/>"
+	CSS_LINK = """<link rel=\"stylesheet\" href=\"../static/css/style.min.css\"/>
+				<link rel=\"stylesheet\" href=\"../static/css/bootstrap.min.css\"/>"""
 
 	def __init__(self, file_title):
 		self.file_title = file_title
@@ -16,8 +17,12 @@ class LogHandler():
 		file.close()
 
 	def get_log_file_path(self):
-		flagged = "flagged_" if self.flagged else ""
-		return LogHandler.LOGS_DIR + '/' + flagged + self.file_title + '.html'
+		flagged = "/flagged_" if self.flagged else "/"
+		return '{}{}{}.html'.format(LogHandler.LOGS_DIR, flagged, self.file_title)
+
+	def flag_me(self):
+		self.rename_log_file(LogHandler.LOGS_DIR + "/flagged_" + self.file_title + ".html")
+		self.flagged = True
 
 	def log_json_data(self, data, sent):
 		path = self.get_log_file_path()
@@ -54,3 +59,29 @@ class LogHandler():
 				os.rename(self.get_log_file_path(), LogHandler.LOGS_DIR + "/finished_" + self.file_title + ".html")
 		else:
 			print("Game ended with no log found at " + self.get_log_file_path())
+
+class TestLogHandler(LogHandler):
+	def __init__(self):
+		pass
+
+	def setup_log_file(self):
+		pass
+
+	def get_log_file_path(self):
+		pass
+
+	def flag_me(self):
+		pass
+
+	def log_json_data(self, data, sent):
+		pass
+
+	def log_html_data(self, data):
+		pass
+
+	def rename_log_file(self, new_name):
+		pass
+
+	def finish_game(self):
+		pass
+

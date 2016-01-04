@@ -1,0 +1,25 @@
+html, body {
+	height: 100%;
+}
+
+/* selector to select bootstrap td */
+.table tbody>tr>td.vert-mid{
+    vertical-align: middle;
+}
+
+.full-height {
+	height: 100%;
+}
+
+#container {
+	padding-left:2%;
+	padding-right:2%;
+	height:100%;
+}
+
+.scrollChat {
+	height:100px;
+	overflow: auto;
+	word-wrap:break-word;
+}
+

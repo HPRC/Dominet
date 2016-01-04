@@ -1,12 +1,13 @@
+import random
 class GameTable():
-	def __init__(self, title, host, seats, required, excluded, sets, supply_set="default"):
-		self.title = title
+	def __init__(self, title, host, seats, required, excluded, sets, req_supply="default"):
+		self.title = title or str(random.randint(0,99999))
 		self.host = host
 		self.seats = seats
 		self.sets = sets
 		self.required = required
 		self.excluded = excluded
-		self.supply_set = supply_set
+		self.req_supply = req_supply
 		self.players = [host]
 
 	def to_json(self):
@@ -17,7 +18,7 @@ class GameTable():
 			"players": self.players_string(),
 			"required": self.required,
 			"excluded": self.excluded,
-		    "supply_set": self.supply_set,
+		    "req_supply": self.req_supply,
 			"sets": self.sets
 		}
 

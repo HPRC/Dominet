@@ -1,28 +1,9 @@
-html, body {
-	height: 100%;
-}
-
-/* selector to select bootstrap td */
-.table tbody>tr>td.vert-mid{
-    vertical-align: middle;
-}
-
-.full-height {
-	height: 100%;
-}
-
-#container {
-	padding-left:2%;
-	padding-right:2%;
-	height:100%;
-}
-
 .title-bar {
-	height:5%;
+	height:8%;
 }
 
 #client-container {
-	height:95%;
+	height:92%;
 }
 
 .popover {
@@ -35,18 +16,8 @@ html, body {
 }
 
 
-#leftColumn {
-	/*position:fixed;*/
-}
-
 #middleColumn {
 	height:100%;
-}
-
-.scrollChat {
-	height:100px;
-	overflow: auto;
-	word-wrap:break-word;
 }
 
 #game-panel {
@@ -75,24 +46,8 @@ html, body {
 }
 
 .supplyCardContainer {
+	padding:5px 0;
 	white-space: nowrap;
-}
-
-#userBar {
-	height:5%;
-}
-
-#lobbyPanel {
-	overflow:auto;
-}
-
-#lobby-container {
-	height:90%;
-}
-
-#games-list {
-	overflow:auto;
-	height:60%;
 }
 
 #modeContainer {

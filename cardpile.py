@@ -4,7 +4,7 @@ This is a wrapper structure to abstract the data structure for hand and supply p
 
 import random
 import reactionHandler
-
+from tornado import gen
 
 class CardPile():
 	def __init__(self):
@@ -76,6 +76,12 @@ class CardPile():
 	def __contains__(self, title):
 		return title in self.data
 
+	def __str__(self):
+		str_list = []
+		for key, val in self.data.items():
+			str_list.append("{} {}".format(val[1], val[0].log_string()))
+		return ", ".join(str_list)
+
 	def combine(self, cardPile):
 		self.data.update(cardPile.data.copy())
 
@@ -96,14 +102,14 @@ class CardPile():
 
 		return (not price or price_exists) and (not cardtype or cardtype_exists)
 
-	# returns true if there are available cards left in supply to gain from with the given parameters
-	# equal_only = True if price must be equal to input otherwise it is equal to or less than
+	#returns true if there are available cards left in supply to gain from with the given parameters
+	#equal_only = True if price must be equal to input otherwise it is equal to or less than
 	def has_selectable(self, price, equal_only, type_constraint):
 		cards_with_price = []
 		for title in self.data:
 			card = self.get_card(title)
 			card_price = card.get_price()
-			if price is None or card_price == price or (card_price < price and not equal_only):
+			if price == None or card_price == price or (card_price < price and not equal_only):
 				cards_with_price.append(card)
 		cards_avail = [x for x in cards_with_price if self.get_count(x.title) > 0]
 		if type_constraint:
@@ -112,6 +118,7 @@ class CardPile():
 			return True
 		else:
 			return False
+
 
 
 class HandPile():
@@ -134,6 +141,15 @@ class HandPile():
 			if self.get_count(card.title) == 0:
 				del self.data[card.title]
 			return card
+		else:
+			return None
+
+	def extract_specific(self, card):
+		if card.title in self.data:
+			extracted_card = self.data[card.title].pop(card)
+			if self.get_count(card.title) == 0:
+				del self.data[card.title]
+			return extracted_card
 		else:
 			return None
 
@@ -185,7 +201,7 @@ class HandPile():
 					results.append(card)
 		return results
 
-	# returns a list reaction cards in hand with the input trigger
+	#returns a list reaction cards in hand with the input trigger
 	def get_reactions_for(self, trigger):
 		reactions = []
 		for card in self:
@@ -193,14 +209,15 @@ class HandPile():
 				reactions.append(card)
 		return reactions
 		
-	# triggers reactions in hand
-	def do_reactions(self, trigger, final_cb, react_data=None):
+	#triggers reactions in hand
+	@gen.coroutine
+	def do_reactions(self, trigger, react_data=None):
 		reactions = self.get_reactions_for(trigger)
 		if len(reactions) == 0:
-			final_cb()
+			return
 		else:
-			rh = reactionHandler.ReactionHandler(self.player, trigger, final_cb, react_data)
-			rh.initiate_reactions()
+			rh = reactionHandler.ReactionHandler(self.player, trigger, react_data)
+			yield rh.initiate_reactions()
 
 	def is_homogeneous(self):
 		return len(self.data) == 1
@@ -218,8 +235,9 @@ class HandPile():
 			return list(map(lambda x: x.title, self.card_array()))
 		return []
 
+	@gen.coroutine
 	def play(self, card_title):
-		self.get_card(card_title).play()
+		yield gen.maybe_future(self.get_card(card_title).play())
 
 	def __iter__(self):
 		return self.card_array().__iter__()
@@ -230,5 +248,3 @@ class HandPile():
 	def __contains__(self, title):
 		return title in self.data
 
-
-# deck & discard utility functions

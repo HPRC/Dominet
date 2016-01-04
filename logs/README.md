@@ -1,0 +1,1 @@
+Logs directory is used to store game log files

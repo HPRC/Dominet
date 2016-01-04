@@ -1,1 +1,1 @@
-<button popover="{{card.description}}" popover-trigger="mouseenter" popover-title="{{card.title}} - {{card.type}}" popover-placement="top" ng-class="getButtonStyle(card)" ng-click="clickCard(card)">{{card.title}}</button>
+<button uib-popover-html="card.description | trustHtml" popover-trigger="mouseenter" popover-title="{{card.title}} - {{card.type}}" popover-placement="top" ng-class="getButtonStyle(card)" ng-click="clickCard(card)">{{card.title}}</button>
