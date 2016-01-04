@@ -469,6 +469,7 @@ class Coppersmith(crd.Card):
 			if card.title == "Copper":
 				card.value = 1
 
+
 class Ironworks(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)

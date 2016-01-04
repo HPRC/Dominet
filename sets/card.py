@@ -21,7 +21,6 @@ class Card():
 			if "Action" in self.type:
 				self.played_by.actions -= 1
 
-
 	def get_price(self):
 		return 0 if self.price + self.game.price_modifier[self.title] < 0 else self.price + self.game.price_modifier[self.title]
 
@@ -44,37 +43,36 @@ class Card():
 			"price": self.price
 		}
 
-	#called when chosen for kingdom
+	# called when chosen for kingdom
 	def on_supply_init(self):
 		pass
 
-	#called at the end of turn if this card was played
+	# called at the end of turn if this card was played
 	def cleanup(self):
 		pass
 
-	#called when you buy this card 
+	# called when you buy this card
 	def on_buy(self):
 		pass
 
-	#called when you buy a card with this card in play
+	# called when you buy a card with this card in play
 	def on_buy_effect(self, purchased_card):
 		pass
 
-	#called when you gain this card
+	# called when you gain this card
 	def on_gain(self):
 		pass
 
-	#called when you gain a card with this card in play
+	# called when you gain a card with this card in play
 	def on_gain_effect(self, gained_card):
 		pass
 
-	#called after card finishes resolving and is put into the played pile
+	# called after card finishes resolving and is put into the played pile
 	def done(self):
 		pass
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-default'>", self.title, "s</span>" if plural else "</span>"])
-
 
 
 class Money(Card):
@@ -115,7 +113,7 @@ class AttackCard(Card):
 	def __init__(self, game, played_by):
 		Card.__init__(self, game, played_by)
 		self.type = "Action|Attack"
-		#list of players with reactions to attacks
+		# list of players with reactions to attacks
 		self.reacting_players = []
 
 	def player_finished_reacting(self, player):
@@ -192,6 +190,7 @@ class Copper(Money):
 				return True
 		else:
 			return True
+
 
 class Silver(Money):
 	def __init__(self, game, played_by):
@@ -295,6 +294,7 @@ class Colony(VictoryCard):
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-success'>", "Colonies</span>" if plural else self.title, "</span>"])
 
+
 # Utility
 # returns list of card titles from list of card jsons or card objects
 def card_list_to_titles(lst):
@@ -302,7 +302,8 @@ def card_list_to_titles(lst):
 		return []
 	return list(map(lambda x: x['title'], lst)) if isinstance(lst[0], dict) else list(map(lambda x: x.title, lst))
 
-#returns list of html log_strings from a list of cards
+
+# returns list of html log_strings from a list of cards
 def card_list_log_strings(lst):
 	return list(map(lambda x: x.log_string(), lst))
 
@@ -330,7 +331,8 @@ def reorder_top(player, cards_to_reorder, callback):
 		player.select(len(cards_to_reorder), len(cards_to_reorder), card_list_to_titles(cards_to_reorder), 
 			"Rearrange the cards to put back on top of deck (#1 is on top)", True)
 
-#this is used by reorder top to place ordered selections back on top of deck
+
+# this is used by reorder top to place ordered selections back on top of deck
 def post_reorder(player, selection, cards, callback, game):
 	for x in selection:
 		for y in cards:
@@ -340,7 +342,8 @@ def post_reorder(player, selection, cards, callback, game):
 	player.update_deck_size()
 	callback()
 
-#search through a players deck and discard until findng a specific card
+
+# search through a players deck and discard until findng a specific card
 # player = player who owns deck to search through
 # search_criteria = function that needs to accept a card object as a parameter and return True if the card object matches
 #     what we are looking for False otherwise
@@ -366,7 +369,8 @@ def search_deck_for(player, search_criteria, callback):
 	else:
 		callback(None)
 
-#makes the given player discard their hand down to the reduced hand size
+
+# makes the given player discard their hand down to the reduced hand size
 # player = player who needs to discard
 # reduced_hand_size = number of cards to discard down to
 # callback = callback function called after player discarded, default is card on_finished
@@ -385,6 +389,7 @@ def discard_down(player, reduced_hand_size, callback):
 		player.game.announce("-- " + player.name_string() + " has " + str(reduced_hand_size) + " or less cards in hand")
 		if not turn_owner.is_waiting():
 			callback()
+
 
 def post_discard_down(player, selection, reduced_hand_size, callback, game):
 	turn_owner = player.game.get_turn_owner()
