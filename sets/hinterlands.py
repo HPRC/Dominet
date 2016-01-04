@@ -129,6 +129,7 @@ class Silk_Road(crd.VictoryCard):
 		self.title = "Silk Road"
 		self.description = "Worth 1 Victory Point for every 4 Victory cards in your deck (rounded down)."
 		self.price = 4
+		self.fun = 0
 		self.type = "Victory"
 
 	def get_vp(self):
