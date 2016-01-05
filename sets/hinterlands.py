@@ -1,6 +1,7 @@
 import sets.card as crd
 import tornado.gen as gen
 
+
 # --------------------------------------------------------
 # ------------------------ 2 Cost ------------------------
 # --------------------------------------------------------
@@ -20,16 +21,17 @@ class Crossroads(crd.Card):
 		if len(crossroads_played) == 1:
 			self.played_by.actions += 3
 			self.game.announce("-- gaining 3 actions")
-		#Announce announces everything to all players in log, reveal_string adds css to cards in log 
+		# Announce announces everything to all players in log, reveal_string adds css to cards in log
 		self.game.announce("-- reveals " + self.played_by.hand.reveal_string())
 		num_victory_cards = len(self.played_by.hand.get_cards_by_type("Victory"))
 		drawn = self.played_by.draw(num_victory_cards)
-		#needs to be part of crossroads log
+		# needs to be part of crossroads log
 		self.game.announce("-- drawing " + drawn)
 		crd.Card.on_finished(self, True)
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-default'>", self.title, "</span>"])
+
 
 class Duchess(crd.Card):
 	def __init__(self, game, played_by):
@@ -50,14 +52,13 @@ class Duchess(crd.Card):
 			if top_card:
 				self.played_by.wait_modeless("to choose", i)
 				acting_on.append(i)
-				#put the top card back on top of the player's deck
+				# put the top card back on top of the player's deck
 				i.deck.append(top_card)
 
 		yield crd.parallel_selects(
 			map(lambda x: x.select(1, 1, ["Discard", "Put Back"], "Discard " + x.deck[-1].title + " from the top of your deck?"), acting_on),
 			acting_on, self.post_select)
 
-	
 	def post_select(self, selection, caller):
 		card = caller.topdeck()
 		if selection[0] == "Discard":
@@ -128,6 +129,7 @@ class Develop (crd.Card):
 		else:
 			crd.Card.on_finished(self)
 
+
 # --------------------------------------------------------
 # ------------------------ 4 Cost ------------------------
 # --------------------------------------------------------
@@ -151,6 +153,21 @@ class Nomad_Camp(crd.Card):
 		self.played_by.discard_pile.remove(self)
 		self.played_by.deck.append(self)
 		self.game.announce("-- adding " + self.log_string() + " to the top of their deck")
+
+
+class Silk_Road(crd.VictoryCard):
+	def __init__(self, game, played_by):
+		crd.VictoryCard.__init__(self, game, played_by)
+		self.title = "Silk Road"
+		self.description = "Worth 1 Victory Point for every 4 Victory cards in your deck (rounded down)."
+		self.price = 4
+		self.type = "Victory"
+
+	def get_vp(self):
+		cards = self.played_by.all_cards()
+		victory_cards = [x for x in cards if "Victory" in x.type]
+		return int(len(victory_cards) / 4)
+
 
 class Trader(crd.Card):
 	def __init__(self, game, played_by):
@@ -200,6 +217,7 @@ class Trader(crd.Card):
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
 
+
 # --------------------------------------------------------
 # ------------------------ 5 Cost ------------------------
 # --------------------------------------------------------
@@ -237,7 +255,7 @@ class Mandarin(crd.Card):
 	@gen.coroutine
 	def on_gain(self):
 		played_treasures = [x for x in self.played_by.played_cards if "Treasure" in x.type]
-		#remove treasures from played pile
+		# remove treasures from played pile
 		self.played_by.played_cards = [x for x in self.played_by.played_cards if "Treasure" not in x.type]
 		if len(played_treasures) == 1 or len(set(map(lambda x: x.title, played_treasures))) == 1:
 			self.game.announce("-- placing treasures back on top of their deck")
@@ -249,6 +267,7 @@ class Mandarin(crd.Card):
 		self.game.announce("-- placing treasures back on top of their deck")
 		if self.game.get_turn_owner() == self.played_by:
 			self.played_by.update_mode()
+
 
 class Cache(crd.Money):
 	def __init__(self, game, played_by):
