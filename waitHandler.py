@@ -8,7 +8,7 @@ class WaitHandler():
 		# on = set of player names waiting for, callback called after select/gain gets response, 
 		self.waiting_on = set()
 		self.msg = ""
-		# locked = set of player names we ignore auto updates (and keep waiting) until manually removed from locked set
+		#locked = set of player names we ignore auto updates (and keep waiting) until manually removed from locked set
 		self.locked = set()
 		self.afk_timer = None
 		self.is_afk = False
