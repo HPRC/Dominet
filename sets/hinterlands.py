@@ -159,7 +159,7 @@ class Silk_Road(crd.VictoryCard):
 	def __init__(self, game, played_by):
 		crd.VictoryCard.__init__(self, game, played_by)
 		self.title = "Silk Road"
-		self.description = "Worth 1 Victory Point for every 4 Victory cards in your deck (rounded down)."
+		self.description = "Worth {} for every 4 Victory cards in your deck (rounded down)".format(crd.format_vp(1, True))
 		self.price = 4
 		self.type = "Victory"
 

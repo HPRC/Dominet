@@ -276,6 +276,26 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Cache"]) == 1)
 		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Copper"]) == 2)
 
+	@tornado.testing.gen_test
+	def test_Silk_Road(self):
+		tu.print_test_header("test Silk Road")
+		silk_road = hl.Silk_Road(self.game, self.player1)
+		harem = intrigue.Harem(self.game, self.player1)
+		great_hall = intrigue.Great_Hall(self.game, self.player1)
+		nobles = intrigue.Nobles(self.game, self.player1)
+		gardens = base.Gardens(self.game, self.player1)
+
+		self.player1.hand.add(silk_road)
+		self.player1.discard_pile.append(harem)
+		self.player1.deck.append(great_hall)
+
+		self.assertTrue(silk_road.get_vp() == 1)
+
+		self.player1.hand.add(gardens)
+		self.player1.hand.add(nobles)
+
+		self.assertTrue(silk_road.get_vp() == 2)
+
 
 if __name__ == '__main__':
 	unittest.main()
