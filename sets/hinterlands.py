@@ -222,6 +222,27 @@ class Trader(crd.Card):
 # ------------------------ 5 Cost ------------------------
 # --------------------------------------------------------
 
+class Highway(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Highway"
+		self.description = "{}, {}\n While this is in play, cards cost {} less, but not less than {}" \
+		                   "".format(crd.format_draw(1, True), crd.format_actions(1, True), crd.format_money(1, True), crd.format_money(0, True))
+		self.price = 3
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.actions += 1
+		drawn = self.played_by.draw(1)
+		self.game.announce("-- gaining an action, drawing " + drawn + " and reducing the cost of cards by $1")
+
+		for i in self.game.supply.unique_cards():
+			self.game.price_modifier[i.title] -= 1
+		self.game.update_all_prices()
+		crd.Card.on_finished(self, True)
+
+
 class Mandarin(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)

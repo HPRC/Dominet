@@ -296,6 +296,25 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 
 		self.assertTrue(silk_road.get_vp() == 2)
 
+	@tornado.testing.gen_test
+	def test_Highway(self):
+		tu.print_test_header("test Highway")
+		highway = hl.Highway(self.game, self.player1)
+		workshop = base.Workshop(self.game, self.player1)
+		tu.add_many_to_hand(self.player1, highway, 4)
+		self.player1.hand.add(workshop)
+
+		tu.send_input(self.player1, "play", "Highway")
+		tu.send_input(self.player1, "play", "Highway")
+		tu.send_input(self.player1, "play", "Workshop")
+
+		# Gold should cost 4 and should be workshoppable
+		yield tu.send_input(self.player1, "selectSupply", ["Gold"])
+
+		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Gold"]) == 1)
+
+
+
 
 if __name__ == '__main__':
 	unittest.main()
