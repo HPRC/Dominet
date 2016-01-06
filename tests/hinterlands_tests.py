@@ -276,6 +276,26 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Cache"]) == 1)
 		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Copper"]) == 2)
 
+	@tornado.testing.gen_test
+	def test_Ill_Gotten_Gains(self):
+		tu.print_test_header("test Ill-Gotten Gains")
+		ill_gotten_gains = hl.Ill_Gotten_Gains(self.game, self.player1)
+		self.player1.hand.add(ill_gotten_gains)
+
+		yield tu.send_input(self.player1, "buyCard", "Ill Gotten Gains")
+		self.assertTrue(len([x for x in self.player2.discard_pile if x.title == "Curse"]) == 1)
+		self.assertTrue(len([x for x in self.player3.discard_pile if x.title == "Curse"]) == 1)
+
+		ill_gotten_gains.play()
+
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
+
+		self.assertTrue(len(self.player1.hand) == 6)
+
+
+
+
+
 
 if __name__ == '__main__':
 	unittest.main()

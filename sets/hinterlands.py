@@ -222,6 +222,37 @@ class Trader(crd.Card):
 # ------------------------ 5 Cost ------------------------
 # --------------------------------------------------------
 
+class Ill_Gotten_Gains(crd.Money):
+	def __init__(self, game, played_by):
+		crd.Money.__init__(self, game, played_by)
+		self.title = "Ill Gotten Gains"
+		self.description = "Worth {}\nWhen you play this, you may gain a copper, putting it in your hand.\n" \
+		                   "When you gain this, each other player gains a Curse".format(crd.format_money(1))
+		self.value = 1
+		self.price = 1
+		self.type = "Treasure"
+
+	@gen.coroutine
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.balance += self.value
+		self.played_by.update_resources(True)
+
+		choice = yield self.played_by.select(1, 1, ["Yes", "No"], "Gain a Copper to hand?")
+		self.post_selection(choice)
+
+	def post_selection(self, choice):
+		if choice[0] is "Yes":
+			self.played_by.gain_to_hand("Copper")
+
+		crd.Card.on_finished(self, True)
+
+	@gen.coroutine
+	def on_gain(self):
+		for i in self.game.players:
+			yield i.gain("Curse")
+
+
 class Mandarin(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -276,6 +307,8 @@ class Cache(crd.Money):
 		self.value = 3
 		self.price = 5
 		self.description = "{}When you gain this, gain two Coppers".format(crd.format_money(3))
+		self.type = "Treasure"
+
 
 	@gen.coroutine
 	def on_gain(self):
