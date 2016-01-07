@@ -277,6 +277,45 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Copper"]) == 2)
 
 	@tornado.testing.gen_test
+	def test_Silk_Road(self):
+		tu.print_test_header("test Silk Road")
+		silk_road = hl.Silk_Road(self.game, self.player1)
+		harem = intrigue.Harem(self.game, self.player1)
+		great_hall = intrigue.Great_Hall(self.game, self.player1)
+		nobles = intrigue.Nobles(self.game, self.player1)
+		gardens = base.Gardens(self.game, self.player1)
+
+		self.player1.hand.add(silk_road)
+		self.player1.discard_pile.append(harem)
+		self.player1.deck.append(great_hall)
+
+		self.assertTrue(silk_road.get_vp() == 1)
+
+		self.player1.hand.add(gardens)
+		self.player1.hand.add(nobles)
+
+		self.assertTrue(silk_road.get_vp() == 2)
+
+	@tornado.testing.gen_test
+	def test_Highway(self):
+		tu.print_test_header("test Highway")
+		highway = hl.Highway(self.game, self.player1)
+		workshop = base.Workshop(self.game, self.player1)
+		tu.add_many_to_hand(self.player1, highway, 4)
+		self.player1.hand.add(workshop)
+
+		tu.send_input(self.player1, "play", "Highway")
+		tu.send_input(self.player1, "play", "Highway")
+		tu.send_input(self.player1, "play", "Workshop")
+
+		# Gold should cost 4 and should be workshoppable
+		yield tu.send_input(self.player1, "selectSupply", ["Gold"])
+
+		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Gold"]) == 1)
+
+
+
+	@tornado.testing.gen_test
 	def test_Ill_Gotten_Gains(self):
 		tu.print_test_header("test Ill-Gotten Gains")
 		ill_gotten_gains = hl.Ill_Gotten_Gains(self.game, self.player1)

@@ -159,7 +159,7 @@ class Silk_Road(crd.VictoryCard):
 	def __init__(self, game, played_by):
 		crd.VictoryCard.__init__(self, game, played_by)
 		self.title = "Silk Road"
-		self.description = "Worth 1 Victory Point for every 4 Victory cards in your deck (rounded down)."
+		self.description = "Worth {} for every 4 Victory cards in your deck (rounded down)".format(crd.format_vp(1, True))
 		self.price = 4
 		self.type = "Victory"
 
@@ -220,7 +220,40 @@ class Trader(crd.Card):
 
 # --------------------------------------------------------
 # ------------------------ 5 Cost ------------------------
-# --------------------------------------------------------
+
+class Cache(crd.Money):
+	def __init__(self, game, played_by):
+		crd.Money.__init__(self, game, played_by)
+		self.title = "Cache"
+		self.value = 3
+		self.price = 5
+		self.description = "{}When you gain this, gain two Coppers".format(crd.format_money(3))
+
+	@gen.coroutine
+	def on_gain(self):
+		yield self.played_by.gain("Copper")
+		yield self.played_by.gain("Copper")
+
+class Highway(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Highway"
+		self.description = "{}, {}\n While this is in play, cards cost {} less, but not less than {}" \
+		                   "".format(crd.format_draw(1, True), crd.format_actions(1, True), crd.format_money(1, True), crd.format_money(0, True))
+		self.price = 5
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.actions += 1
+		drawn = self.played_by.draw(1)
+		self.game.announce("-- gaining an action, drawing " + drawn + " and reducing the cost of cards by $1")
+
+		for i in self.game.supply.unique_cards():
+			self.game.price_modifier[i.title] -= 1
+		self.game.update_all_prices()
+		crd.Card.on_finished(self, True)
+
 
 class Ill_Gotten_Gains(crd.Money):
 	def __init__(self, game, played_by):
