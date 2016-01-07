@@ -329,6 +329,17 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 
 		self.assertTrue(len(self.player1.hand) == 6)
 
+	@tornado.testing.gen_test
+	def test_Border_Village(self):
+		tu.print_test_header("test Border Village")
+		yield tu.send_input(self.player1, "buyCard", "Border Village")
+
+		yield tu.send_input(self.player1, "selectSupply", ["Duchy"])
+
+		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Border Village"]) == 1)
+		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Duchy"]) == 1)
+
+
 
 if __name__ == '__main__':
 	unittest.main()

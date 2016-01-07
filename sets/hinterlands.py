@@ -329,3 +329,36 @@ class Mandarin(crd.Card):
 		self.game.announce("-- placing treasures back on top of their deck")
 		if self.game.get_turn_owner() == self.played_by:
 			self.played_by.update_mode()
+
+# --------------------------------------------------------
+# ------------------------ 6 Cost ------------------------
+# --------------------------------------------------------
+
+
+class Border_Village(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Border Village"
+		self.description = ""
+		self.price = 4
+		self.type = "Action"
+
+	@gen.coroutine
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+
+		self.played_by.actions += 2
+		drawn = self.played_by.draw(1)
+		self.game.announce("-- gaining two actions and drawing " + drawn)
+		crd.Card.on_finished(self, False)
+
+	@gen.coroutine
+	def on_gain(self):
+		border_village_cost = crd.Card.get_price(self)
+		reduced_cost = border_village_cost - 1
+		if reduced_cost < 0:
+			self.game.announce("-- but there are no cards costing less than 0")
+		else:
+
+			selection = yield self.played_by.select_from_supply("Gain a card costing up to {}".format(reduced_cost), reduced_cost)
+			yield self.played_by.gain(selection[0], True)
