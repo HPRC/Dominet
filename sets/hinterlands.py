@@ -263,7 +263,7 @@ class Ill_Gotten_Gains(crd.Money):
 		self.description = "Worth {}\nWhen you play this, you may gain a copper, putting it in your hand.\n" \
 		                   "When you gain this, each other player gains a Curse".format(crd.format_money(1))
 		self.value = 1
-		self.price = 1
+		self.price = 5
 		self.type = "Treasure"
 
 	@gen.coroutine
