@@ -273,13 +273,8 @@ class Ill_Gotten_Gains(crd.Money):
 		self.played_by.update_resources(True)
 
 		choice = yield self.played_by.select(1, 1, ["Yes", "No"], "Gain a Copper to hand?")
-		self.post_selection(choice)
-
-	@gen.coroutine
-	def post_selection(self, choice):
-		if choice[0] is "Yes":
+		if choice[0] == "Yes":
 			yield self.played_by.gain_to_hand("Copper")
-
 		crd.Card.on_finished(self, True)
 
 	@gen.coroutine
