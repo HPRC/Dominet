@@ -240,7 +240,7 @@ class Highway(crd.Card):
 		self.title = "Highway"
 		self.description = "{}, {}\n While this is in play, cards cost {} less, but not less than {}" \
 		                   "".format(crd.format_draw(1, True), crd.format_actions(1, True), crd.format_money(1, True), crd.format_money(0, True))
-		self.price = 3
+		self.price = 5
 		self.type = "Action"
 
 	def play(self, skip=False):
