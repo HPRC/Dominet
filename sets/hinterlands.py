@@ -339,7 +339,8 @@ class Border_Village(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Border Village"
-		self.description = ""
+		self.description = "{} Card {} Actions\n" \
+		                   "When you gain this, gain a card costing less than this.".format(crd.format_draw(1), crd.format_actions(2))
 		self.price = 4
 		self.type = "Action"
 
