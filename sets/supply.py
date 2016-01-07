@@ -1,5 +1,6 @@
 import sets.card as crd
 
+
 class Copper(crd.Money):
 	def __init__(self, game, played_by):
 		crd.Money.__init__(self, game, played_by)
@@ -26,6 +27,7 @@ class Copper(crd.Money):
 				return True
 		else:
 			return True
+
 
 class Silver(crd.Money):
 	def __init__(self, game, played_by):
@@ -71,6 +73,7 @@ class Curse(crd.Card):
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-curse'>", self.title, "s</span>" if plural else "</span>"])
+
 
 class Estate(crd.VictoryCard):
 	def __init__(self, game, played_by):
