@@ -379,14 +379,12 @@ class Mint(crd.Card):
 		if len(treasure_titles) == 0:
 			self.game.announce("-- but there were no treasures to reveal")
 			crd.Card.on_finished(self, False, False)
-		elif len(treasure_titles) == 1:
-			self.game.announce("-- revealing " + treasure_cards[0].log_string() + ", gaining a copy of it.")
-			yield self.played_by.gain(treasure_titles[0])
-			crd.Card.on_finished(self, False, False)
-		else:
+		else:	
+			treasure_titles.append("None")
 			selection = yield self.played_by.select(1, 1, treasure_titles, "Choose a card to reveal")
-			self.game.announce("-- revealing " + self.game.log_string_from_title(selection[0]) + ", gaining a copy of it.")
-			yield self.played_by.gain(selection[0])
+			if selection[0] != 'None':
+				self.game.announce("-- revealing " + self.game.log_string_from_title(selection[0]) + ", gaining a copy of it.")
+				yield self.played_by.gain(selection[0])
 			crd.Card.on_finished(self, False, False)
 
 	def on_buy(self):

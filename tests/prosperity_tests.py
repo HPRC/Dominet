@@ -583,15 +583,6 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "buyCard", "Copper")
 		self.assertTrue(self.game.supply.get_count("Copper") == coppers - 2)
 
-	def test_Mint_auto_select(self):
-		tu.print_test_header("test Mint auto select")
-		mint = prosperity.Mint(self.game, self.player1)
-		tu.set_player_hand(self.player1, [mint, supply_cards.Silver(self.game, self.player1)])
-
-		mint.play()
-		self.assertTrue(self.player1.last_mode["mode"] == "buy")
-		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
-
 
 if __name__ == '__main__':
 	unittest.main()
