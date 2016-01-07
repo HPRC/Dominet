@@ -313,8 +313,6 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 
 		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Gold"]) == 1)
 
-
-
 	@tornado.testing.gen_test
 	def test_Ill_Gotten_Gains(self):
 		tu.print_test_header("test Ill-Gotten Gains")
@@ -330,10 +328,6 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "post_selection", ["Yes"])
 
 		self.assertTrue(len(self.player1.hand) == 6)
-
-
-
-
 
 
 if __name__ == '__main__':

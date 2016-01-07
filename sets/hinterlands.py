@@ -234,6 +234,7 @@ class Cache(crd.Money):
 		yield self.played_by.gain("Copper")
 		yield self.played_by.gain("Copper")
 
+
 class Highway(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -274,15 +275,16 @@ class Ill_Gotten_Gains(crd.Money):
 		choice = yield self.played_by.select(1, 1, ["Yes", "No"], "Gain a Copper to hand?")
 		self.post_selection(choice)
 
+	@gen.coroutine
 	def post_selection(self, choice):
 		if choice[0] is "Yes":
-			self.played_by.gain_to_hand("Copper")
+			yield self.played_by.gain_to_hand("Copper")
 
 		crd.Card.on_finished(self, True)
 
 	@gen.coroutine
 	def on_gain(self):
-		for i in self.game.players:
+		for i in self.played_by.get_opponents():
 			yield i.gain("Curse")
 
 
@@ -331,19 +333,3 @@ class Mandarin(crd.Card):
 		self.game.announce("-- placing treasures back on top of their deck")
 		if self.game.get_turn_owner() == self.played_by:
 			self.played_by.update_mode()
-
-
-class Cache(crd.Money):
-	def __init__(self, game, played_by):
-		crd.Money.__init__(self, game, played_by)
-		self.title = "Cache"
-		self.value = 3
-		self.price = 5
-		self.description = "{}When you gain this, gain two Coppers".format(crd.format_money(3))
-		self.type = "Treasure"
-
-
-	@gen.coroutine
-	def on_gain(self):
-		yield self.played_by.gain("Copper")
-		yield self.played_by.gain("Copper")
