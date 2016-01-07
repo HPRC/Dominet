@@ -362,3 +362,10 @@ class Border_Village(crd.Card):
 
 			selection = yield self.played_by.select_from_supply("Gain a card costing up to {}".format(reduced_cost), reduced_cost)
 			yield self.played_by.gain(selection[0], True)
+
+
+class Farmland(crd.VictoryCard):
+	def __init__(self, game, played_by):
+		crd.VictoryCard.__init__(self, game, played_by)
+		self.title = "Farmland"
+		self.description = ""
