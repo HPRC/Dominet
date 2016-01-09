@@ -1,6 +1,6 @@
 Dominet 
 =============
-![Build Status](https://travis-ci.org/HPRC/Dominet.svg?branch=master)](https://travis-ci.org/HPRC/Dominet)
+![Build Status](https://travis-ci.org/HPRC/Dominet.svg?branch=master)
 
 Browser based implementation of dominion.
 ![Dominion Game](https://dl.dropboxusercontent.com/s/stnb7x8l3c34j73/dominetscreen.png)
