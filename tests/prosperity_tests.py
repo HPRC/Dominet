@@ -232,6 +232,16 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "post_selection", ["Torturer", "Secret Chamber", "Gold"])
 		self.assertTrue(self.player1.cb is None)
 
+	@tornado.testing.gen_test
+	def test_Forge_nothing(self):
+		tu.print_test_header("test Forge nothing")
+		forge = prosperity.Forge(self.game, self.player1)
+		forge.play()
+		yield tu.send_input(self.player1, "post_selection", [])
+		self.assertTrue(self.player1.last_mode["mode"] == "selectSupply")
+		yield tu.send_input(self.player1, "selectSupply", ["Copper"])
+		self.assertTrue(len(self.player1.waiter.waiting_on) == 0)
+
 	def test_City(self):
 		tu.print_test_header("test City")
 		city = prosperity.City(self.game, self.player1)

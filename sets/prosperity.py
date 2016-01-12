@@ -776,28 +776,27 @@ class Forge(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		self.played_by.wait_modeless("", self.played_by, True)
-		forging = yield self.played_by.select(None, len(self.played_by.hand.card_array()), 
+		forge_selection = yield self.played_by.select(None, len(self.played_by.hand.card_array()), 
 			crd.card_list_to_titles(self.played_by.hand.card_array()), "Trash any number of cards")
 		trash_sum = 0
-		if forging:
-			trashed = list()
-			for card in forging:
+		trashed = list()
+		if forge_selection:
+			for card in forge_selection:
 				trash_card = self.played_by.hand.extract(card)
 				trashed.append(trash_card.title)
 				trash_sum += trash_card.get_price()
 				self.game.trash_pile.append(trash_card)
+			announce_string = list(map(lambda x: self.game.card_from_title(x).log_string(), forge_selection))
+		else:
+			announce_string = "nothing"
 
-			announce_string = list(map(lambda x: self.game.card_from_title(x).log_string(), forging))
+		self.game.update_trash_pile()
+		self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(announce_string) + " to gain a card with cost " + str(trash_sum))
 
-			self.game.update_trash_pile()
-			self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(announce_string) + " to gain a card with cost " + str(trash_sum))
-
-			gained = yield self.played_by.select_from_supply("Gain a card from the forge", price_limit=trash_sum, equal_only=True, optional=False)
-			if gained:
-				yield self.played_by.gain(gained[0])
-				crd.Card.on_finished(self)
-			self.played_by.update_wait(True)
-			self.played_by.update_mode()
+		gained = yield self.played_by.select_from_supply("Gain a card from the forge", price_limit=trash_sum, equal_only=True, optional=False)
+		if gained:
+			yield self.played_by.gain(gained[0])
+		self.played_by.update_wait(True)
 		crd.Card.on_finished(self)
 
 # --------------------------------------------------------
