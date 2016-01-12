@@ -166,6 +166,21 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		self.assertTrue(len(self.game.trash_pile) >= num_money)
 
 	@tornado.testing.gen_test
+	def test_Mint_Select_None(self):
+		tu.print_test_header("test Mint with select none")
+		mint = prosperity.Mint(self.game, self.player1)
+		silver = supply_cards.Silver(self.game, self.player1)
+		self.player1.hand.add(mint)
+		self.player1.hand.add(silver)
+		starting_hand = self.player1.hand.card_array()
+		mint.play()
+		yield tu.send_input(self.player1, "post_selection", ["None"])
+		new_hand = self.player1.hand.card_array()
+		self.assertTrue(not self.player1.discard_pile)
+		self.assertTrue(((set(starting_hand) - set(new_hand)).pop().title == "Mint"))
+
+
+	@tornado.testing.gen_test
 	def test_Mountebank(self):
 		tu.print_test_header("test Mountebank")
 		mountebank = prosperity.Mountebank(self.game, self.player1)
