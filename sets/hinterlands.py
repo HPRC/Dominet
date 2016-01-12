@@ -368,4 +368,25 @@ class Farmland(crd.VictoryCard):
 	def __init__(self, game, played_by):
 		crd.VictoryCard.__init__(self, game, played_by)
 		self.title = "Farmland"
-		self.description = ""
+		self.description = "{}\n" \
+		                   "When you buy this, trash a card from your hand. Gain a card costing exactly" \
+		                   "{} more than the trashed card.".format(crd.format_vp(2), crd.format_money(2))
+		self.price = 6
+		self.vp = 2
+
+	@gen.coroutine
+	def on_gain(self):
+		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),
+		                                        "select card to trash")
+		if selection:
+			self.played_by.discard(selection, self.game.trash_pile)
+			card_trashed = self.game.card_from_title(selection[0])
+			self.played_by.update_hand()
+			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
+			selected = yield self.played_by.select_from_supply("Choose the a card to gain", card_trashed.price + 2, True)
+			if selected:
+				yield self.played_by.gain(selected[0])
+				crd.Card.on_finished(self, False, False)
+		else:
+			self.game.announce("-- but has nothing to expand.")
+			self.played_by.update_resources()
