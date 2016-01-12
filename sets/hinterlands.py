@@ -261,7 +261,7 @@ class Ill_Gotten_Gains(crd.Money):
 	def __init__(self, game, played_by):
 		crd.Money.__init__(self, game, played_by)
 		self.title = "Ill Gotten Gains"
-		self.description = "Worth {}\nWhen you play this, you may gain a copper, putting it in your hand.\n" \
+		self.description = "Worth {}\nWhen you play this, you may gain a copper, putting it in your hand." \
 		                   "When you gain this, each other player gains a Curse".format(crd.format_money(1))
 		self.value = 1
 		self.price = 5
@@ -341,7 +341,7 @@ class Border_Village(crd.Card):
 		self.title = "Border Village"
 		self.description = "{} Card {} Actions\n" \
 		                   "When you gain this, gain a card costing less than this.".format(crd.format_draw(1), crd.format_actions(2))
-		self.price = 4
+		self.price = 6
 		self.type = "Action"
 
 	@gen.coroutine
@@ -357,9 +357,5 @@ class Border_Village(crd.Card):
 	def on_gain(self):
 		border_village_cost = crd.Card.get_price(self)
 		reduced_cost = border_village_cost - 1
-		if reduced_cost < 0:
-			self.game.announce("-- but there are no cards costing less than 0")
-		else:
-
-			selection = yield self.played_by.select_from_supply("Gain a card costing up to {}".format(reduced_cost), reduced_cost)
-			yield self.played_by.gain(selection[0], True)
+		selection = yield self.played_by.select_from_supply("Gain a card costing up to {}".format(reduced_cost), reduced_cost)
+		yield self.played_by.gain(selection[0], True)
