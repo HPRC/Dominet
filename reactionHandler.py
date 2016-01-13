@@ -60,7 +60,7 @@ class ReactionHandler():
 		if drew_cards and self.trigger == "Attack":
 			new_reactions = self.player.hand.get_reactions_for(self.trigger)
 			if len(new_reactions) > 0:
-				self.initiate_reactions()
+				self.initiate_reactions(self.trigger, self.react_data)
 				self.turn_owner.wait("to react", self.player)
 			else:
 				if self.done_reacting_future.running():
