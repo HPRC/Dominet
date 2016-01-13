@@ -1,19 +1,19 @@
 from tornado import gen, concurrent
 
 class ReactionHandler():
-	def __init__(self, player, trigger, react_data=None):
+	def __init__(self, player):
 		self.player = player
 		self.game = self.player.game
-		self.trigger = trigger
 		self.turn_owner = self.game.get_turn_owner()
 		#we are using a list as a queue here since largest hand in dominion is <10 (most reactions < 10) hence performance not important
 		self.reactions_queue = []
-		#extra parameter to pass into react function of card
-		self.react_data = react_data
 		self.done_reacting_future = concurrent.Future()
 
 	@gen.coroutine
-	def initiate_reactions(self):
+	def initiate_reactions(self, trigger, react_data=None):
+		self.trigger = trigger
+		#extra parameter to pass into react function of card
+		self.react_data = react_data
 		if len(self.player.hand.get_reactions_for(self.trigger)) > 1:
 			#more than 1 reaction: lock player as he/she chooses order
 			self.player.wait_modeless("", self.player, True)
@@ -22,13 +22,15 @@ class ReactionHandler():
 		yield self.need_order_reactions()
 		yield self.trigger_reactions()
 		yield self.done_reacting_future
+		#finished all our reactions, unlock reaction wait on me
+		self.player.update_wait(True)
 
 	@gen.coroutine
 	def need_order_reactions(self):
 		reactions = self.player.hand.get_reactions_for(self.trigger)
 		reaction_titles = list(map(lambda x: x.title, reactions))
 		if len(set(reaction_titles)) == 1:
-			self.reactions_queue = list(map(lambda x: x.react, reactions))
+			self.reactions_queue += list(map(lambda x: x.react, reactions))
 		else:
 			num_reactions = len(reaction_titles)
 
@@ -59,13 +61,11 @@ class ReactionHandler():
 				self.initiate_reactions()
 				self.turn_owner.wait("to react", self.player)
 			else:
-				#finished all our reactions, unlock reaction wait on me
-				self.player.update_wait(True)
-				self.done_reacting_future.set_result("finished reactions")
+				if self.done_reacting_future.running():
+					self.done_reacting_future.set_result("finished reactions")
 		elif len(self.reactions_queue) == 0:
-			#finished all our reactions, unlock reaction wait on me
-			self.player.update_wait(True)
-			self.done_reacting_future.set_result("finished reactions")
+			if self.done_reacting_future.running():
+				self.done_reacting_future.set_result("finished reactions")
 		else:
 			#cannot get here without having had a reaction first so the reactions are ordered
 			yield self.trigger_reactions()
