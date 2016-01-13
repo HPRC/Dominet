@@ -7,13 +7,15 @@ class ReactionHandler():
 		self.turn_owner = self.game.get_turn_owner()
 		#we are using a list as a queue here since largest hand in dominion is <10 (most reactions < 10) hence performance not important
 		self.reactions_queue = []
-		self.done_reacting_future = concurrent.Future()
+		
 
 	@gen.coroutine
 	def initiate_reactions(self, trigger, react_data=None):
 		self.trigger = trigger
 		#extra parameter to pass into react function of card
 		self.react_data = react_data
+		self.done_reacting_future = concurrent.Future()
+
 		if len(self.player.hand.get_reactions_for(self.trigger)) > 1:
 			#more than 1 reaction: lock player as he/she chooses order
 			self.player.wait_modeless("", self.player, True)
