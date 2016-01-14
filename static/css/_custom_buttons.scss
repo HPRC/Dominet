@@ -52,3 +52,13 @@
 .btn-danger-success {
     @include button-variant-split(#fff, $btn-warning-bg, $btn-success-bg);
 }
+
+// treasure - reaction hybrid
+.btn-warning-info {
+    @include button-variant-split(#fff, $btn-warning-bg, $btn-info-bg)
+}
+
+// victory - reaction hybrid
+.btn-success-info {
+    @include button-variant-split(#fff, $btn-success-bg, $btn-info-bg)
+}
