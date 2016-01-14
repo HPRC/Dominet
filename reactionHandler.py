@@ -4,7 +4,6 @@ class ReactionHandler():
 	def __init__(self, player):
 		self.player = player
 		self.game = self.player.game
-		self.turn_owner = self.game.get_turn_owner()
 		#we are using a list as a queue here since largest hand in dominion is <10 (most reactions < 10) hence performance not important
 		self.reactions_queue = []
 		
@@ -15,6 +14,7 @@ class ReactionHandler():
 		#extra parameter to pass into react function of card
 		self.react_data = react_data
 		self.done_reacting_future = concurrent.Future()
+		self.turn_owner = self.game.get_turn_owner()
 
 		if len(self.player.hand.get_reactions_for(self.trigger)) > 1:
 			#more than 1 reaction: lock player as he/she chooses order
@@ -48,9 +48,11 @@ class ReactionHandler():
 		if self.reactions_queue:
 			cb = self.reactions_queue.pop()
 			if self.react_data is None:
-				yield gen.maybe_future(cb(self.reacted))
+				drew_cards = yield gen.maybe_future(cb())
+				yield self.reacted(drew_cards)
 			else:
-				yield gen.maybe_future(cb(self.reacted, self.react_data))
+				drew_cards = yield gen.maybe_future(cb(self.react_data))
+				yield self.reacted(drew_cards)
 
 	#called after a reaction resolves
 	@gen.coroutine
@@ -60,8 +62,7 @@ class ReactionHandler():
 		if drew_cards and self.trigger == "Attack":
 			new_reactions = self.player.hand.get_reactions_for(self.trigger)
 			if len(new_reactions) > 0:
-				self.initiate_reactions(self.trigger, self.react_data)
-				self.turn_owner.wait("to react", self.player)
+				yield self.initiate_reactions(self.trigger, self.react_data)
 			else:
 				if self.done_reacting_future.running():
 					self.done_reacting_future.set_result("finished reactions")

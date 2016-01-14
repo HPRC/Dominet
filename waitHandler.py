@@ -23,6 +23,7 @@ class WaitHandler():
 	def append_wait(self, to_append):
 		self.waiting_on.add(to_append.name)
 
+	# need to update mode manually if unlocking
 	def notify(self, notifier, unlock=False):
 		if self.is_waiting_on(notifier):
 			if unlock or not notifier.name in self.locked:

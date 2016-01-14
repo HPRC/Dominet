@@ -71,13 +71,12 @@ class Moat(crd.Card):
 		crd.Card.on_finished(self)
 
 	@gen.coroutine
-	def react(self, reacted_to_callback):
+	def react(self):
 		selection = yield self.played_by.select(1, 1, ["Reveal", "Hide"],  
 			"Reveal " + self.title + " to prevent attack?")
 		if selection[0] == "Reveal":
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
 			self.played_by.protection = 1
-		reacted_to_callback()
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
@@ -662,8 +661,9 @@ class Witch(crd.AttackCard):
 		self.played_by.update_resources()
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
+	@gen.coroutine
 	def attack(self):
-		crd.AttackCard.get_next(self, self.played_by)
+		yield crd.AttackCard.get_next(self, self.played_by)
 
 	@gen.coroutine
 	def fire(self, victim):

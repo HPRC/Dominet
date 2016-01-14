@@ -376,6 +376,7 @@ class TestCard(tornado.testing.AsyncTestCase):
 		yield gen.sleep(.1)
 		self.assertTrue(self.player1.last_mode["mode"] != "wait")
 
+
 	@tornado.testing.gen_test
 	def test_throne_room_throne_room(self):
 		tu.print_test_header("Test throne room throne room")
