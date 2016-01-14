@@ -344,7 +344,6 @@ class Border_Village(crd.Card):
 		self.price = 6
 		self.type = "Action"
 
-	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 
@@ -355,7 +354,7 @@ class Border_Village(crd.Card):
 
 	@gen.coroutine
 	def on_gain(self):
-		border_village_cost = crd.Card.get_price(self)
+		border_village_cost = self.get_price()
 		reduced_cost = border_village_cost - 1
-		selection = yield self.played_by.select_from_supply("Gain a card costing up to {}".format(reduced_cost), reduced_cost)
+		selection = yield self.played_by.select_from_supply("Gain a card costing up to ${}".format(reduced_cost), reduced_cost)
 		yield self.played_by.gain(selection[0], True)
