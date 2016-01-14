@@ -174,7 +174,7 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		self.player1.hand.add(silver)
 		starting_hand = self.player1.hand.card_array()
 		mint.play()
-		yield tu.send_input(self.player1, "post_selection", ["None"])
+		yield tu.send_input(self.player1, "post_selection", None)
 		new_hand = self.player1.hand.card_array()
 		self.assertTrue(not self.player1.discard_pile)
 		self.assertTrue(((set(starting_hand) - set(new_hand)).pop().title == "Mint"))
