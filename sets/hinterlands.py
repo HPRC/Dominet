@@ -357,12 +357,7 @@ class Border_Village(crd.Card):
 		border_village_cost = self.get_price()
 		reduced_cost = border_village_cost - 1
 		selection = yield self.played_by.select_from_supply("Gain a card costing up to ${}".format(reduced_cost), reduced_cost)
-		yield self.played_by.gain(selection[0], True)		if reduced_cost < 0:
-			self.game.announce("-- but there are no cards costing less than 0")
-		else:
-
-			selection = yield self.played_by.select_from_supply("Gain a card costing up to {}".format(reduced_cost), reduced_cost)
-			yield self.played_by.gain(selection[0], True)
+		yield self.played_by.gain(selection[0], True)
 
 
 class Farmland(crd.VictoryCard):
@@ -388,6 +383,3 @@ class Farmland(crd.VictoryCard):
 			if selected:
 				yield self.played_by.gain(selected[0])
 				crd.Card.on_finished(self, False, False)
-		else:
-			self.game.announce("-- but has nothing to expand.")
-			self.played_by.update_resources()
