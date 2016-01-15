@@ -165,12 +165,12 @@ class Silk_Road(crd.VictoryCard):
 		victory_cards = [x for x in cards if "Victory" in x.type]
 		return int(len(victory_cards) / 4)
 
-class Spice Merchant Spice_Merchant(crd.Card)
+class Spice_Merchant(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = 'Spice Merchant'
 		self.description = 'You may trash a treasure from your hand.'\
-		 'If you do {} cards, {} action or {}, {} buy'.format(crd.format_draw(2, True), crd.format_actions(1, True), crd.format_actions(2, True))
+		 "If you do {}, {} or {}, {}".format(crd.format_draw(2), crd.format_actions(1), crd.format_money(2), crd.format_buys(1))
 		self.price = 4
 		self.type = "Action"
 
@@ -185,12 +185,19 @@ class Spice Merchant Spice_Merchant(crd.Card)
 		else:	
 			card_selection = yield self.played_by.select(None, 1, treasure_titles, "Choose a treasure card to trash")
 			if card_selection:
-				self.trash_select(card_selection)
-				self.payed_by.hand.discard[card_selection.title]
+				self.played_by.discard(card_selection, self.game.trash_pile)
 				perk_selection = yield self.played_by.select(1, 1, ["+2 cards, +1 action", "+2$, +1 buy"], 
-					"Choose one: +2 Cards, +1 Action; or +2$, +1 Buy") 
-
-			crd.Card.on_finished(self, False, False)	
+					"Choose one: +2 Cards, +1 Action; or +2$, +1 Buy")
+				if perk_selection[0] == "+2 cards, +1 action":
+					drawn = self.played_by.draw(2)
+					self.played_by.actions += 1
+					self.game.announce("-- drawing " + drawn + " and gaining +1 action")
+					crd.Card.on_finished(self, True, True)
+				elif perk_selection[0] == "+2$, +1 buy":	
+					self.played_by.balance += 2
+					self.played_by.buys += 1
+					self.game.announce("-- gaining $2 and 1 buy")
+					crd.Card.on_finished(self, True, True)
 
 
 class Trader(crd.Card):
