@@ -376,7 +376,7 @@ class Mint(crd.Card):
 
 		# perhaps write an auto_select method for lists?
 		if len(treasure_titles) == 0:
-			self.game.announce("-- but there were no treasures")
+			self.game.announce("-- but there were no treasures to reveal")
 			crd.Card.on_finished(self, False, False)
 		else:	
 			selection = yield self.played_by.select(None, 1, treasure_titles, "Choose a card to reveal")

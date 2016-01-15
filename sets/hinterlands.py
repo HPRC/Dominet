@@ -201,6 +201,8 @@ class Spice_Merchant(crd.Card):
 					self.played_by.buys += 1
 					self.game.announce("-- gaining $2 and 1 buy")
 					crd.Card.on_finished(self, True, True)
+			else:
+				crd.Card.on_finished(self, False, False)		
 
 class Trader(crd.Card):
 	def __init__(self, game, played_by):
