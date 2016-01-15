@@ -128,6 +128,7 @@ class HandPile():
 		self.player = player
 		self.data = {}
 		self.index = -1
+		self.reacthelper = reactionHandler.ReactionHandler(self.player)
 
 	def add(self, card):
 		if card.title in self.data:
@@ -216,8 +217,7 @@ class HandPile():
 		if len(reactions) == 0:
 			return
 		else:
-			rh = reactionHandler.ReactionHandler(self.player, trigger, react_data)
-			yield rh.initiate_reactions()
+			yield self.reacthelper.initiate_reactions(trigger, react_data)
 
 	def is_homogeneous(self):
 		return len(self.data) == 1

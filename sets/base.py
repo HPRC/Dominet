@@ -1,5 +1,6 @@
 import sets.card as crd
 import tornado.gen as gen
+import sets.supply as supply
 
 
 # --------------------------------------------------------
@@ -70,13 +71,12 @@ class Moat(crd.Card):
 		crd.Card.on_finished(self)
 
 	@gen.coroutine
-	def react(self, reacted_to_callback):
+	def react(self):
 		selection = yield self.played_by.select(1, 1, ["Reveal", "Hide"],  
 			"Reveal " + self.title + " to prevent attack?")
 		if selection[0] == "Reveal":
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
 			self.played_by.protection = 1
-		reacted_to_callback()
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
@@ -167,12 +167,19 @@ class Bureaucrat(crd.AttackCard):
 		self.description = "Gain a Silver, put it on top of your deck. Each other player reveals a Victory card and puts it on their deck or reveals a hand with no Victory cards."
 		self.price = 4
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		# create silver and add to top of deck
-		silver = crd.Silver(self.game, self.played_by)
-		self.game.announce(" -- gaining a " + silver.log_string())
-		self.played_by.deck.append(silver)		
+		silver = self.played_by.get_card_from_supply("Silver", True)
+		if silver is not None:
+			yield self.played_by.gain_helper(silver, True, self.played_by.name_string() + " gains " + silver.log_string() + " and puts it on the top of their deck.")
+			#if the gained card is still in discard pile, then we can remove and add to deck
+			if self.played_by.discard_pile and silver == self.played_by.discard_pile[-1]:
+				self.played_by.deck.append(self.played_by.discard_pile.pop())
+				self.played_by.update_deck_size()
+		else:
+			self.game.announce(self.played_by.name_string() + " tries to gain " + self.game.card_from_title("Silver").log_string() + " but it is out of supply.")
+
 		self.played_by.update_resources()
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
@@ -251,12 +258,10 @@ class Militia(crd.AttackCard):
 		
 	@gen.coroutine
 	def attack(self):
-		attacking = False
 		affected = [x for x in self.played_by.get_opponents() if not crd.AttackCard.is_blocked(self, x)]
 		if affected:
-			attacking = True
 			yield crd.discard_down(affected, 3, self.finished_discarding)
-		if not attacking:
+		else:
 			crd.Card.on_finished(self, False, False)
 
 	def finished_discarding(self):
@@ -663,8 +668,9 @@ class Witch(crd.AttackCard):
 		self.played_by.update_resources()
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
+	@gen.coroutine
 	def attack(self):
-		crd.AttackCard.get_next(self, self.played_by)
+		yield crd.AttackCard.get_next(self, self.played_by)
 
 	@gen.coroutine
 	def fire(self, victim):

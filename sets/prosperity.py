@@ -27,7 +27,7 @@ class Watchtower(crd.Card):
 		crd.Card.on_finished(self)
 
 	@gen.coroutine
-	def react(self, reacted_to_callback, to_gain):
+	def react(self, to_gain):
 		self.played_by.wait_modeless("", self.played_by, True)
 		reveal_choice = yield self.played_by.select(1, 1, ["Reveal", "Hide"],  
 			"Reveal " + self.title + " to trash " + to_gain.title + " or put it on top of deck?")
@@ -49,7 +49,6 @@ class Watchtower(crd.Card):
 					self.played_by.update_deck_size()
 			else:
 				self.game.announce("-- but has nothing to watchtower")
-		reacted_to_callback()
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
@@ -72,39 +71,25 @@ class Loan(crd.Money):
 		self.played_by.balance += self.value
 		self.played_by.update_resources(True)
 
-		revealed_treasure = False
-		total_deck_count = len(self.played_by.discard_pile) + len(self.played_by.deck)
-		discarded = list()
-		while revealed_treasure is not True and len(discarded) < total_deck_count:
-			topdeck = self.played_by.topdeck()
-			if "Treasure" in topdeck.type:
-				revealed_treasure = True
-				self.played_by.deck.append(topdeck)
+		@gen.coroutine
+		def found_treasure(treasure):
+			if treasure is None:
+				self.game.announce("-- but could not find any treasures in his or her deck.")
 			else:
-				self.played_by.discard_pile.append(topdeck)
-				discarded.append(topdeck.title)
+				self.game.announce("-- revealing " + treasure.log_string())
 
-		if len(discarded) > 0:
-			self.game.announce("-- discarding " + ", ".join(
-				list(map(lambda x: self.game.log_string_from_title(x), discarded))))
+				selection = yield self.played_by.select(1, 1, ["Discard", "Trash"], "Discard or Trash " + treasure.title)
+				if selection[0] == "Discard":
+					self.played_by.discard_pile.append(treasure)
+					self.played_by.update_hand()
+					self.game.announce("-- discarding " + treasure.log_string())
+				else:
+					self.game.trash_pile.append(treasure)
+					self.game.update_trash_pile()
+					self.game.announce("-- trashing " + treasure.log_string())
+			crd.Money.on_finished(self)
 
-		if revealed_treasure is True:
-			self.game.announce("-- revealing " + topdeck.log_string())
-
-			selection = yield self.played_by.select(1, 1, ["Discard", "Trash"], "Discard or Trash " + topdeck.title)
-			topdeck = self.played_by.topdeck()
-			if selection[0] == "Discard":
-				self.played_by.discard_pile.append(topdeck)
-				self.played_by.update_hand()
-				self.game.announce("-- discarding " + topdeck.log_string())
-			else:
-				self.game.trash_pile.append(topdeck)
-				self.game.update_trash_pile()
-				self.game.announce("-- trashing " + topdeck.log_string())
-		else:
-			self.game.announce("-- but could not find any treasures in his or her deck.")
-		crd.Money.on_finished(self)
-
+		crd.search_deck_for(self.played_by, lambda x : "Treasure" in x.type, found_treasure)
 
 class Trade_Route(crd.Card):
 
@@ -324,7 +309,7 @@ class Contraband(crd.Money):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Contraband"
-		self.description = "{}{}\n The player to your left names a card, you cannot buy that card this turn.".format(crd.format_money(3), crd.format_buys(1))
+		self.description = "{}{}The player to your left names a card, you cannot buy that card this turn.".format(crd.format_money(3), crd.format_buys(1))
 		self.price = 5
 		self.value = 3
 		self.type = "Treasure"
@@ -393,14 +378,13 @@ class Mint(crd.Card):
 		if len(treasure_titles) == 0:
 			self.game.announce("-- but there were no treasures")
 			crd.Card.on_finished(self, False, False)
-		elif len(treasure_titles) == 1:
-			self.game.announce("-- revealing " + treasure_cards[0].log_string() + ", gaining a copy of it.")
-			yield self.played_by.gain(treasure_titles[0])
-			crd.Card.on_finished(self, False, False)
-		else:
-			selection = yield self.played_by.select(1, 1, treasure_titles, "Choose a card to reveal")
-			self.game.announce("-- revealing " + self.game.log_string_from_title(selection[0]) + ", gaining a copy of it.")
-			yield self.played_by.gain(selection[0])
+		else:	
+			selection = yield self.played_by.select(None, 1, treasure_titles, "Choose a card to reveal")
+			if selection:
+				self.game.announce("-- revealing " + self.game.log_string_from_title(selection[0]) + ", gaining a copy of it.")
+				yield self.played_by.gain(selection[0])
+			else:
+				self.game.announce("-- revealing nothing")
 			crd.Card.on_finished(self, False, False)
 
 	def on_buy(self):
@@ -422,7 +406,7 @@ class Mountebank(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Mountebank"
-		self.description = "{}nEach other player may discard a Curse. If they don't, they gains a Curse and a Copper.".format(crd.format_money(2))
+		self.description = "{}Each other player may discard a Curse. If they don't, they gain a Curse and a Copper.".format(crd.format_money(2))
 		self.price = 5
 		self.type = "Action|Attack"
 
@@ -464,24 +448,25 @@ class Rabble(crd.AttackCard):
 		self.price = 5
 		self.type = "Action|Attack"
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.AttackCard.play(self, skip)
 		drawn = self.played_by.draw(3)
 		self.played_by.update_hand()
 		self.game.announce("-- drawing " + drawn)
-		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
+	@gen.coroutine
 	def attack(self):
-		attacking = False
-		for player in self.played_by.get_opponents():
-			if crd.AttackCard.fire(self, player):
-				attacking = True
+		affected = [x for x in self.played_by.get_opponents() if not crd.AttackCard.is_blocked(self, x)]
+		if affected:
+			for player in affected:
 				if len(player.deck) < 3:
 					player.shuffle_discard_to_deck()
 
 				revealed = []
 				if len(player.deck) < 3:
-					revealed = player.deck
+					revealed = list(player.deck)
 				else:
 					revealed = player.deck[-3:]
 				# removed the revealed cards from deck
@@ -501,8 +486,8 @@ class Rabble(crd.AttackCard):
 					player.update_discard_size()
 
 				cards_left = [x for x in revealed if "Action" not in x.type and "Treasure" not in x.type]
-				crd.reorder_top(player, cards_left, self.finish)
-		if not attacking:
+				yield crd.reorder_top(player, cards_left, self.finish)
+		else:
 			crd.Card.on_finished(self, False, False)
 
 	def finish(self):
@@ -631,8 +616,12 @@ class Goons(crd.AttackCard):
 		affected = [x for x in self.played_by.get_opponents() if not crd.AttackCard.is_blocked(self, x)]
 		if affected:
 			attacking = True
-			yield crd.discard_down(affected, 3, lambda : crd.Card.on_finished(self, False, False))
+			yield crd.discard_down(affected, 3, self.finished_discarding)
 		if not attacking:
+			crd.Card.on_finished(self, False, False)
+
+	def finished_discarding(self):
+		if not self.played_by.is_waiting():
 			crd.Card.on_finished(self, False, False)
 
 	@gen.coroutine
@@ -720,7 +709,7 @@ class Expand(crd.Card):
 			card_trashed = self.game.card_from_title(selection[0])
 			self.played_by.update_hand()
 			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
-			selected = yield self.played_by.select_from_supply("Choose the expanded card", card_trashed.price + 3, False)
+			selected = yield self.played_by.select_from_supply("Choose the expanded card", card_trashed.get_price() + 3, False)
 			if selected:
 				yield self.played_by.gain(selected[0])
 				crd.Card.on_finished(self, False, False)
@@ -785,28 +774,27 @@ class Forge(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		self.played_by.wait_modeless("", self.played_by, True)
-		forging = yield self.played_by.select(None, len(self.played_by.hand.card_array()), 
+		forge_selection = yield self.played_by.select(None, len(self.played_by.hand.card_array()), 
 			crd.card_list_to_titles(self.played_by.hand.card_array()), "Trash any number of cards")
 		trash_sum = 0
-		if forging:
-			trashed = list()
-			for card in forging:
+		trashed = list()
+		if forge_selection:
+			for card in forge_selection:
 				trash_card = self.played_by.hand.extract(card)
 				trashed.append(trash_card.title)
 				trash_sum += trash_card.get_price()
 				self.game.trash_pile.append(trash_card)
+			announce_string = list(map(lambda x: self.game.card_from_title(x).log_string(), forge_selection))
+		else:
+			announce_string = "nothing"
 
-			announce_string = list(map(lambda x: self.game.card_from_title(x).log_string(), forging))
+		self.game.update_trash_pile()
+		self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(announce_string) + " to gain a card with cost " + str(trash_sum))
 
-			self.game.update_trash_pile()
-			self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(announce_string) + " to gain a card with cost " + str(trash_sum))
-
-			gained = yield self.played_by.select_from_supply("Gain a card from the forge", price_limit=trash_sum, equal_only=True, optional=False)
-			if gained:
-				yield self.played_by.gain(gained[0])
-				crd.Card.on_finished(self)
-			self.played_by.update_wait(True)
-			self.played_by.update_mode()
+		gained = yield self.played_by.select_from_supply("Gain a card from the forge", price_limit=trash_sum, equal_only=True, optional=False)
+		if gained:
+			yield self.played_by.gain(gained[0])
+		self.played_by.update_wait(True)
 		crd.Card.on_finished(self)
 
 # --------------------------------------------------------

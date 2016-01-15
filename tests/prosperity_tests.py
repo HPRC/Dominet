@@ -166,6 +166,21 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		self.assertTrue(len(self.game.trash_pile) >= num_money)
 
 	@tornado.testing.gen_test
+	def test_Mint_Select_None(self):
+		tu.print_test_header("test Mint with select none")
+		mint = prosperity.Mint(self.game, self.player1)
+		silver = supply_cards.Silver(self.game, self.player1)
+		self.player1.hand.add(mint)
+		self.player1.hand.add(silver)
+		starting_hand = self.player1.hand.card_array()
+		mint.play()
+		yield tu.send_input(self.player1, "post_selection", [])
+		new_hand = self.player1.hand.card_array()
+		self.assertTrue(not self.player1.discard_pile)
+		self.assertTrue(((set(starting_hand) - set(new_hand)).pop().title == "Mint"))
+
+
+	@tornado.testing.gen_test
 	def test_Mountebank(self):
 		tu.print_test_header("test Mountebank")
 		mountebank = prosperity.Mountebank(self.game, self.player1)
@@ -231,6 +246,16 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		# trash prices total to 13 -- nothing to gain
 		yield tu.send_input(self.player1, "post_selection", ["Torturer", "Secret Chamber", "Gold"])
 		self.assertTrue(self.player1.cb is None)
+
+	@tornado.testing.gen_test
+	def test_Forge_nothing(self):
+		tu.print_test_header("test Forge nothing")
+		forge = prosperity.Forge(self.game, self.player1)
+		forge.play()
+		yield tu.send_input(self.player1, "post_selection", [])
+		self.assertTrue(self.player1.last_mode["mode"] == "selectSupply")
+		yield tu.send_input(self.player1, "selectSupply", ["Copper"])
+		self.assertTrue(len(self.player1.waiter.waiting_on) == 0)
 
 	def test_City(self):
 		tu.print_test_header("test City")
@@ -434,6 +459,29 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		self.assertTrue(topdeck2.title == "Gardens")
 
 	@tornado.testing.gen_test
+	def test_Rabble_Moat(self):
+		tu.print_test_header("test Rabble moat")
+		rabble = prosperity.Rabble(self.game, self.player1)
+		moat2 = base.Moat(self.game, self.player2)
+		moat3 = base.Moat(self.game, self.player3)
+
+		self.player1.hand.add(rabble)
+		self.player2.hand.add(moat2)
+		self.player3.hand.add(moat3)
+
+		player2decksize = len(self.player2.deck)
+		player3decksize = len(self.player3.deck)
+
+		yield tu.send_input(self.player1, "play", "Rabble")
+		yield tu.send_input(self.player2, "post_selection", ["Reveal"])
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		yield tu.send_input(self.player3, "post_selection", ["Reveal"])
+		yield gen.sleep(.2)
+		self.assertTrue(self.player1.last_mode["mode"] != "wait")
+		self.assertTrue(player2decksize == len(self.player2.deck))
+		self.assertTrue(player3decksize == len(self.player3.deck))
+
+	@tornado.testing.gen_test
 	def test_Royal_Seal(self):
 		tu.print_test_header("test Royal Seal")
 		royal_seal = prosperity.Royal_Seal(self.game, self.player1)
@@ -559,15 +607,6 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		coppers = self.game.supply.get_count("Copper")
 		yield tu.send_input(self.player1, "buyCard", "Copper")
 		self.assertTrue(self.game.supply.get_count("Copper") == coppers - 2)
-
-	def test_Mint_auto_select(self):
-		tu.print_test_header("test Mint auto select")
-		mint = prosperity.Mint(self.game, self.player1)
-		tu.set_player_hand(self.player1, [mint, supply_cards.Silver(self.game, self.player1)])
-
-		mint.play()
-		self.assertTrue(self.player1.last_mode["mode"] == "buy")
-		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
 
 
 if __name__ == '__main__':

@@ -292,6 +292,88 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "post_selection", ["Yes"])
 		self.assertTrue(self.player1.deck[-1].title == "Silver")
 
+	@tornado.testing.gen_test
+	def test_Cache(self):
+		tu.print_test_header("test Cache")
+		yield tu.send_input(self.player1, "buyCard", "Cache")
+		self.assertTrue(len(self.player1.discard_pile) == 3)
+		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Cache"]) == 1)
+		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Copper"]) == 2)
+
+	@tornado.testing.gen_test
+	def test_Silk_Road(self):
+		tu.print_test_header("test Silk Road")
+		silk_road = hl.Silk_Road(self.game, self.player1)
+		harem = intrigue.Harem(self.game, self.player1)
+		great_hall = intrigue.Great_Hall(self.game, self.player1)
+		nobles = intrigue.Nobles(self.game, self.player1)
+		gardens = base.Gardens(self.game, self.player1)
+
+		self.player1.hand.add(silk_road)
+		self.player1.discard_pile.append(harem)
+		self.player1.deck.append(great_hall)
+
+		self.assertTrue(silk_road.get_vp() == 1)
+
+		self.player1.hand.add(gardens)
+		self.player1.hand.add(nobles)
+
+		self.assertTrue(silk_road.get_vp() == 2)
+
+	@tornado.testing.gen_test
+	def test_Highway(self):
+		tu.print_test_header("test Highway")
+		highway = hl.Highway(self.game, self.player1)
+		workshop = base.Workshop(self.game, self.player1)
+		tu.add_many_to_hand(self.player1, highway, 4)
+		self.player1.hand.add(workshop)
+
+		tu.send_input(self.player1, "play", "Highway")
+		tu.send_input(self.player1, "play", "Highway")
+		tu.send_input(self.player1, "play", "Workshop")
+
+		# Gold should cost 4 and should be workshoppable
+		yield tu.send_input(self.player1, "selectSupply", ["Gold"])
+
+		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Gold"]) == 1)
+
+	@tornado.testing.gen_test
+	def test_Ill_Gotten_Gains(self):
+		tu.print_test_header("test Ill-Gotten Gains")
+		ill_gotten_gains = hl.Ill_Gotten_Gains(self.game, self.player1)
+		self.player1.hand.add(ill_gotten_gains)
+
+		yield tu.send_input(self.player1, "buyCard", "Ill Gotten Gains")
+		self.assertTrue(len([x for x in self.player2.discard_pile if x.title == "Curse"]) == 1)
+		self.assertTrue(len([x for x in self.player3.discard_pile if x.title == "Curse"]) == 1)
+
+		ill_gotten_gains.play()
+
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
+
+		self.assertTrue(len(self.player1.hand) == 6)
+
+	@tornado.testing.gen_test
+	def test_Border_Village(self):
+		tu.print_test_header("test Border Village")
+		yield tu.send_input(self.player1, "buyCard", "Border Village")
+
+		yield tu.send_input(self.player1, "selectSupply", ["Duchy"])
+
+		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Border Village"]) == 1)
+		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Duchy"]) == 1)
+
+	@tornado.testing.gen_test
+	def Farmland(self):
+		tu.print_test_header("test Farmland")
+
+		yield tu.send_input(self.player1, "buyCard", "Farmland")
+
+		yield tu.send_input(self.player1, "post_selection", ["Copper"])
+		yield tu.send_input(self.player1, "selectSupply", ["Estate"])
+
+		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Estate"]) == 1)
+
 
 if __name__ == '__main__':
 	unittest.main()

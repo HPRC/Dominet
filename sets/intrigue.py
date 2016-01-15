@@ -9,7 +9,7 @@ class Courtyard(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Courtyard"
-		self.description = "{}Put a card from your hand on top of your deck.".format(crd.format_draw(3, True))
+		self.description = "{}\nPut a card from your hand on top of your deck.".format(crd.format_draw(3, True))
 		self.price = 2
 		self.type = "Action"
 
@@ -85,7 +85,7 @@ class Secret_Chamber(crd.Card):
 
 	# below is reaction code
 	@gen.coroutine
-	def react(self, reacted_to_callback):
+	def react(self):
 		selection = yield self.played_by.select(1, 1, ["Reveal", "Hide"],
 		                      "Reveal " + self.title + " to draw 2 and place 2 back to deck?")
 		if selection[0] == "Reveal":
@@ -97,10 +97,7 @@ class Secret_Chamber(crd.Card):
 				"Put two cards to the top of your deck (#1 is on top)", True)
 			if put_back:
 				drawn_cards = self.post_react_draw_select(put_back, drawn_cards)
-				#pass in newly drawn cards to check for new reactions
-				reacted_to_callback(drawn_cards)
-		else:
-			reacted_to_callback()
+				return drawn_cards
 
 	def post_react_draw_select(self, selection, drawn_cards):
 		self.played_by.discard(selection, self.played_by.deck)
@@ -481,8 +478,7 @@ class Mining_Village(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Mining Village"
-		self.description = "{}{} \
-			You may trash this card immediately to gain {}".format(crd.format_draw(1), crd.format_actions(2), crd.format_money(2, True))
+		self.description = "{}{}You may trash this card immediately to gain {}".format(crd.format_draw(1), crd.format_actions(2), crd.format_money(2, True))
 		self.price = 4
 		self.type = "Action"
 
