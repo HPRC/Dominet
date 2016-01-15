@@ -194,7 +194,7 @@ class Trader(crd.Card):
 		crd.Card.on_finished(self, True)
 
 	@gen.coroutine
-	def react(self, reacted_to_callback, to_gain):
+	def react(self, to_gain):
 		self.played_by.wait_modeless("", self.played_by, True)
 		
 		selection = yield self.played_by.select(1, 1, ["Reveal", "Hide"],  
@@ -212,7 +212,6 @@ class Trader(crd.Card):
 					yield self.played_by.gain("Silver")
 				else:
 					self.game.announce("-- but doesnt have anything to trade")
-		reacted_to_callback()
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])

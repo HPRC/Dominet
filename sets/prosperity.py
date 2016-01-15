@@ -27,7 +27,7 @@ class Watchtower(crd.Card):
 		crd.Card.on_finished(self)
 
 	@gen.coroutine
-	def react(self, reacted_to_callback, to_gain):
+	def react(self, to_gain):
 		self.played_by.wait_modeless("", self.played_by, True)
 		reveal_choice = yield self.played_by.select(1, 1, ["Reveal", "Hide"],  
 			"Reveal " + self.title + " to trash " + to_gain.title + " or put it on top of deck?")
@@ -49,7 +49,6 @@ class Watchtower(crd.Card):
 					self.played_by.update_deck_size()
 			else:
 				self.game.announce("-- but has nothing to watchtower")
-		reacted_to_callback()
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
