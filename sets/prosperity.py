@@ -391,7 +391,7 @@ class Mint(crd.Card):
 
 		# perhaps write an auto_select method for lists?
 		if len(treasure_titles) == 0:
-			self.game.announce("-- but there were no treasures to reveal")
+			self.game.announce("-- but there were no treasures")
 			crd.Card.on_finished(self, False, False)
 		elif len(treasure_titles) == 1:
 			self.game.announce("-- revealing " + treasure_cards[0].log_string() + ", gaining a copy of it.")

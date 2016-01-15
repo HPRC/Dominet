@@ -151,6 +151,48 @@ class Nomad_Camp(crd.Card):
 		self.played_by.deck.append(self)
 		self.game.announce("-- adding " + self.log_string() + " to the top of their deck")
 
+
+class Silk_Road(crd.VictoryCard):
+	def __init__(self, game, played_by):
+		crd.VictoryCard.__init__(self, game, played_by)
+		self.title = "Silk Road"
+		self.description = "Worth {} for every 4 Victory cards in your deck (rounded down)".format(crd.format_vp(1, True))
+		self.price = 4
+		self.type = "Victory"
+
+	def get_vp(self):
+		cards = self.played_by.all_cards()
+		victory_cards = [x for x in cards if "Victory" in x.type]
+		return int(len(victory_cards) / 4)
+
+class Spice Merchant Spice_Merchant(crd.Card)
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = 'Spice Merchant'
+		self.description = 'You may trash a treasure from your hand.'\
+		 'If you do {} cards, {} action or {}, {} buy'.format(crd.format_draw(2, True), crd.format_actions(1, True), crd.format_actions(2, True))
+		self.price = 4
+		self.type = "Action"
+
+	@gen.coroutine
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		treasure_cards = self.played_by.hand.get_cards_by_type("Treasure", True)
+		treasure_titles = list(set(map(lambda x: x.title, treasure_cards)))
+		if len(treasure_titles) == 0:
+			self.game.announce("-- but there were no treasures in hand")
+			crd.Card.on_finished(self, False, False)
+		else:	
+			card_selection = yield self.played_by.select(None, 1, treasure_titles, "Choose a treasure card to trash")
+			if card_selection:
+				self.trash_select(card_selection)
+				self.payed_by.hand.discard[card_selection.title]
+				perk_selection = yield self.played_by.select(1, 1, ["+2 cards, +1 action", "+2$, +1 buy"], 
+					"Choose one: +2 Cards, +1 Action; or +2$, +1 Buy") 
+
+			crd.Card.on_finished(self, False, False)	
+
+
 class Trader(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
