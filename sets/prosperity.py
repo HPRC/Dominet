@@ -384,6 +384,8 @@ class Mint(crd.Card):
 			if selection:
 				self.game.announce("-- revealing " + self.game.log_string_from_title(selection[0]) + ", gaining a copy of it.")
 				yield self.played_by.gain(selection[0])
+			else:
+				self.game.announce("-- revealing nothing")
 			crd.Card.on_finished(self, False, False)
 
 	def on_buy(self):
