@@ -407,7 +407,7 @@ class Mountebank(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Mountebank"
-		self.description = "{}Each other player may discard a Curse. If they don't, they gains a Curse and a Copper.".format(crd.format_money(2))
+		self.description = "{}Each other player may discard a Curse. If they don't, they gain a Curse and a Copper.".format(crd.format_money(2))
 		self.price = 5
 		self.type = "Action|Attack"
 
@@ -710,7 +710,7 @@ class Expand(crd.Card):
 			card_trashed = self.game.card_from_title(selection[0])
 			self.played_by.update_hand()
 			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
-			selected = yield self.played_by.select_from_supply("Choose the expanded card", card_trashed.price + 3, False)
+			selected = yield self.played_by.select_from_supply("Choose the expanded card", card_trashed.get_price() + 3, False)
 			if selected:
 				yield self.played_by.gain(selected[0])
 				crd.Card.on_finished(self, False, False)

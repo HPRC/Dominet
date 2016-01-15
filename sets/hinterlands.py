@@ -363,7 +363,7 @@ class Farmland(crd.VictoryCard):
 	def __init__(self, game, played_by):
 		crd.VictoryCard.__init__(self, game, played_by)
 		self.title = "Farmland"
-		self.description = "{}\n" \
+		self.description = "{}" \
 		                   "When you buy this, trash a card from your hand. Gain a card costing exactly" \
 		                   "{} more than the trashed card.".format(crd.format_vp(2), crd.format_money(2))
 		self.price = 6
