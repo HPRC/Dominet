@@ -260,8 +260,8 @@ class Ill_Gotten_Gains(crd.Money):
 	def __init__(self, game, played_by):
 		crd.Money.__init__(self, game, played_by)
 		self.title = "Ill Gotten Gains"
-		self.description = "Worth {}\nWhen you play this, you may gain a copper, putting it in your hand." \
-		                   "When you gain this, each other player gains a Curse".format(crd.format_money(1))
+		self.description = "Worth {}When you play this, you may gain a copper, putting it in your hand." \
+		                   " When you gain this, each other player gains a Curse".format(crd.format_money(1))
 		self.value = 1
 		self.price = 5
 		self.type = "Treasure"
@@ -281,6 +281,9 @@ class Ill_Gotten_Gains(crd.Money):
 	def on_gain(self):
 		for i in self.played_by.get_opponents():
 			yield i.gain("Curse")
+
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-warning'>", self.title, "</span>"])
 
 
 class Mandarin(crd.Card):
@@ -338,7 +341,7 @@ class Border_Village(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Border Village"
-		self.description = "{} Card {} Actions\n" \
+		self.description = "{}{}" \
 		                   "When you gain this, gain a card costing less than this.".format(crd.format_draw(1), crd.format_actions(2))
 		self.price = 6
 		self.type = "Action"
@@ -363,7 +366,7 @@ class Farmland(crd.VictoryCard):
 		crd.VictoryCard.__init__(self, game, played_by)
 		self.title = "Farmland"
 		self.description = "{}" \
-		                   "When you buy this, trash a card from your hand. Gain a card costing exactly" \
+		                   "When you buy this, trash a card from your hand. Gain a card costing exactly " \
 		                   "{} more than the trashed card.".format(crd.format_vp(2), crd.format_money(2))
 		self.price = 6
 		self.vp = 2
