@@ -345,11 +345,10 @@ class Border_Village(crd.Card):
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-
 		self.played_by.actions += 2
 		drawn = self.played_by.draw(1)
 		self.game.announce("-- gaining two actions and drawing " + drawn)
-		crd.Card.on_finished(self, False)
+		crd.Card.on_finished(self)
 
 	@gen.coroutine
 	def on_gain(self):
