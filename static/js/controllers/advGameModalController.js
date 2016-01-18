@@ -1,4 +1,4 @@
-clientModule.controller("advGameModalController", function(gameTable, $scope, $modalInstance) {
+clientModule.controller("advGameModalController", function(gameTable, $scope, $uibModalInstance) {
 	$scope.newGameTable = gameTable;
 	$scope.inputRequired = "";
     $scope.inputExcluded = "";
@@ -10,10 +10,10 @@ clientModule.controller("advGameModalController", function(gameTable, $scope, $m
 		$scope.newGameTable.required = $scope.inputRequired.split(',');
         $scope.newGameTable.excluded = $scope.inputExcluded.split(',');
         $scope.newGameTable.req_supply = $scope.supplyRadio.value;
-		$modalInstance.close($scope.newGameTable);
+		$uibModalInstance.close($scope.newGameTable);
 	};
 
 	$scope.cancel = function(){
-		$modalInstance.dismiss("cancel");
+		$uibModalInstance.dismiss("cancel");
 	};
 });

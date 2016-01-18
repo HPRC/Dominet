@@ -24,10 +24,9 @@
 					<label for="newGameTitle">Game Title</label>
 					<input type="text" class="form-control" id="newGameTitle" placeholder="Title" maxlength="40" ng-model="newGameTable.title">
 				    <label for="newSeats">Num Players</label>
-					<select class="form-control" id="newSeats" ng-model="newGameTable.seats">
-						<option>2</option>
-						<option>3</option>
-						<option>4</option>
+					<select class="form-control" id="newSeats" 
+						ng-model="newGameTable.seats"
+						ng-options="x for x in [2,3,4]">
 					</select>
 				</div>
 				<button class="btn btn-default" ng-click="createGameTable()">Create Game</button>
