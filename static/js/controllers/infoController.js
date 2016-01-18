@@ -1,4 +1,4 @@
-clientModule.controller("infoController", function($scope, client, $sce, $modal){
+clientModule.controller("infoController", function($scope, client, $sce, $uibModal){
 	$scope.renderHtml = function(html)
 	{
     	return $sce.trustAsHtml(html);
@@ -12,7 +12,7 @@ clientModule.controller("infoController", function($scope, client, $sce, $modal)
 	};
 
     $scope.openReportBugModal = function () {
-		var modal = $modal.open({
+		var modal = $uibModal.open({
 			templateUrl: '/static/js/directives/reportBugModal.html',
 			controller: 'reportBugModalController'
 		});

@@ -1,4 +1,4 @@
-clientModule.controller("lobbyController", function($rootScope, $scope, $modal, gameTable, socket, client){
+clientModule.controller("lobbyController", function($rootScope, $scope, $uibModal, gameTable, socket, client){
 	$scope.lobbyList = [];
 	$scope.gameTables = [];
 	$scope.name = "";
@@ -80,7 +80,7 @@ clientModule.controller("lobbyController", function($rootScope, $scope, $modal, 
     };
 
 	$scope.openAdvGameModal = function () {
-		var modal = $modal.open({
+		var modal = $uibModal.open({
 			templateUrl: '/static/js/directives/advGameModal.html',
 			controller: 'advGameModalController',
 			resolve: {
