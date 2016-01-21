@@ -372,7 +372,7 @@ class Farmland(crd.VictoryCard):
 		self.vp = 2
 
 	@gen.coroutine
-	def on_gain(self):
+	def on_buy(self):
 		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),
 		                                        "select card to trash")
 		if selection:
