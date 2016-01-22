@@ -1,1 +1,1 @@
-var clientModule = angular.module("clientApp", ['ui.bootstrap']);
+var clientModule = angular.module("clientApp", ['ui.bootstrap', 'angular-intro']);

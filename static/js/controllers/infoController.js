@@ -21,7 +21,8 @@ clientModule.controller("infoController", function($scope, client, $sce, $uibMod
 	$scope.openHelpModal = function () {
 		var modal = $uibModal.open({
 			templateUrl: '/static/js/directives/helpModal.html',
-			controller: 'helpModalController'
+			controller: 'helpModalController',
+			size: "lg"
 		});
 	};
 

@@ -2,8 +2,14 @@
     <h3>How to play</h3>
 </div>
 
-<div class="modal-body">
+<div class="modal-body"
+	ng-intro-options="tourOptions"
+	ng-intro-method="beginTour">
+	First time on Dominet? 
+	<button class="btn btn-default" ng-click="close(); beginTour()">Help with Dominet</button>
+	<br>
 	Dominion is a deckbuilding game where you build your deck as you play.
+	
 	<h5>Turn:</h5>
 	Players start each turn with 1 action (to play action cards) and 1 buy (to buy new cards)</li>
 	<ol>
@@ -12,15 +18,24 @@
 		<li>Buy Phase - buy cards from the supply to add to your deck</li>
 		<li>Cleanup Phase - discard all cards played and in hand, draw 5 new cards</li>
 	</ol>
+	<h5>Terminology:</h5>
+	<ul>
+		<li>Trash - to remove from player's deck/discard completely (and placed into trash pile)</li>
+		<li>Balance - current $ in play</li>
+		<li>VP - Victory Points (Note: cards with VP are worth that VP just by being in the deck)</li>
+		<li>VP Token - Victory Point Token that is permanently added to your score area</li>
+		<li>Reshuffle - A player reshuffles when they run out of cards to draw, placing cards from their discard pile into their deck and shuffling</li>
+	</ul>
 
 	<h5>End Conditions:</h5>
 	The game ends when either
-	<ol>
+	<ul>
 		<li>All <span class="label label-success">Provinces</span> or <span class="label label-success">Colonies</span> run out of supply</li>
 		<li>Any 3 cards run out of supply</li>
-	</ol>
+	</ul>
 
-	The player with the most <b>VP</b> (Victory Points) at the end of the game is victorious!
+	The player with the most <b>VP</b> at the end of the game is victorious!
+
 </div>
 <div class="modal-footer">
 	<button class="btn btn-default" ng-click="close()">Close</button>
