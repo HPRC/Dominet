@@ -11,10 +11,19 @@ clientModule.controller("infoController", function($scope, client, $sce, $uibMod
 		return $scope.renderHtml(mat_name + ":<br>" + data);
 	};
 
-    $scope.openReportBugModal = function () {
+	$scope.openReportBugModal = function () {
 		var modal = $uibModal.open({
 			templateUrl: '/static/js/directives/reportBugModal.html',
 			controller: 'reportBugModalController'
 		});
 	};
+
+	$scope.openHelpModal = function () {
+		var modal = $uibModal.open({
+			templateUrl: '/static/js/directives/helpModal.html',
+			controller: 'helpModalController',
+			size: "lg"
+		});
+	};
+
 });
