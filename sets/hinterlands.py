@@ -265,6 +265,7 @@ class Ill_Gotten_Gains(crd.Money):
 		self.value = 1
 		self.price = 5
 		self.type = "Treasure"
+		self.spend_all = False
 
 	@gen.coroutine
 	def play(self, skip=False):
