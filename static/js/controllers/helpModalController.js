@@ -56,7 +56,6 @@ clientModule.controller("helpModalController", function($scope, $uibModalInstanc
     showStepNumbers: false,
     skipLabel: "Exit",
     exitOnEsc: true,
-    tooltipClass: "tour-tooltip",
     tooltipButtonClass: "btn btn-default"
   }
 });
