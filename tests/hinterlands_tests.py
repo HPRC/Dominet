@@ -178,12 +178,12 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.player1.hand.add(copper)
 		yield tu.send_input(self.player1, "play", "Spice Merchant")
 		yield tu.send_input(self.player1, "post_selection", ["Copper"])
-		yield tu.send_input(self.player1, "post_selection", ["+2 cards, +1 action"])
+		yield tu.send_input(self.player1, "post_selection", ["+2 cards +1 action"])
 		self.assertTrue(copper in self.game.trash_pile)
 		self.assertTrue(len(self.player1.hand.card_array()) == 8) # We started with 5 cards and then added 2 SMs and a copper (8 cards), then put one in 
 		yield tu.send_input(self.player1, "play", "Spice Merchant") # play and trashed the copper, then drew 2 brining us back to 8
 		yield tu.send_input(self.player1, "post_selection", ["Copper"])
-		yield tu.send_input(self.player1, "post_selection", ["+2$, +1 buy"])
+		yield tu.send_input(self.player1, "post_selection", ["+$2 +1 buy"])
 		self.assertTrue(len(self.game.trash_pile) == 2)
 		self.assertTrue(self.player1.buys == 2)
 		self.assertTrue(self.player1.balance == 2)
