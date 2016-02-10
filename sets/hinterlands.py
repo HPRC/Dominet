@@ -194,7 +194,7 @@ class Trader(crd.Card):
 		crd.Card.on_finished(self, True)
 
 	@gen.coroutine
-	def react(self, reacted_to_callback, to_gain):
+	def react(self, to_gain):
 		self.played_by.wait_modeless("", self.played_by, True)
 		
 		selection = yield self.played_by.select(1, 1, ["Reveal", "Hide"],  
@@ -212,7 +212,6 @@ class Trader(crd.Card):
 					yield self.played_by.gain("Silver")
 				else:
 					self.game.announce("-- but doesnt have anything to trade")
-		reacted_to_callback()
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
@@ -220,6 +219,7 @@ class Trader(crd.Card):
 
 # --------------------------------------------------------
 # ------------------------ 5 Cost ------------------------
+# --------------------------------------------------------
 
 class Cache(crd.Money):
 	def __init__(self, game, played_by):
@@ -233,6 +233,7 @@ class Cache(crd.Money):
 	def on_gain(self):
 		yield self.played_by.gain("Copper")
 		yield self.played_by.gain("Copper")
+
 
 class Highway(crd.Card):
 	def __init__(self, game, played_by):
@@ -253,6 +254,37 @@ class Highway(crd.Card):
 			self.game.price_modifier[i.title] -= 1
 		self.game.update_all_prices()
 		crd.Card.on_finished(self, True)
+
+
+class Ill_Gotten_Gains(crd.Money):
+	def __init__(self, game, played_by):
+		crd.Money.__init__(self, game, played_by)
+		self.title = "Ill Gotten Gains"
+		self.description = "Worth {}When you play this, you may gain a copper, putting it in your hand." \
+		                   " When you gain this, each other player gains a Curse".format(crd.format_money(1))
+		self.value = 1
+		self.price = 5
+		self.type = "Treasure"
+		self.spend_all = False
+
+	@gen.coroutine
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.balance += self.value
+		self.played_by.update_resources(True)
+
+		choice = yield self.played_by.select(1, 1, ["Yes", "No"], "Gain a Copper to hand?")
+		if choice[0] == "Yes":
+			yield self.played_by.gain_to_hand("Copper")
+		crd.Card.on_finished(self, True)
+
+	@gen.coroutine
+	def on_gain(self):
+		for i in self.played_by.get_opponents():
+			yield i.gain("Curse")
+
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-warning'>", self.title, "</span>"])
 
 
 class Mandarin(crd.Card):
@@ -300,3 +332,56 @@ class Mandarin(crd.Card):
 		self.game.announce("-- placing treasures back on top of their deck")
 		if self.game.get_turn_owner() == self.played_by:
 			self.played_by.update_mode()
+
+# --------------------------------------------------------
+# ------------------------ 6 Cost ------------------------
+# --------------------------------------------------------
+
+
+class Border_Village(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Border Village"
+		self.description = "{}{}" \
+		                   "When you gain this, gain a card costing less than this.".format(crd.format_draw(1), crd.format_actions(2))
+		self.price = 6
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.actions += 2
+		drawn = self.played_by.draw(1)
+		self.game.announce("-- gaining two actions and drawing " + drawn)
+		crd.Card.on_finished(self)
+
+	@gen.coroutine
+	def on_gain(self):
+		border_village_cost = self.get_price()
+		reduced_cost = border_village_cost - 1
+		selection = yield self.played_by.select_from_supply("Gain a card costing up to ${}".format(reduced_cost), reduced_cost)
+		yield self.played_by.gain(selection[0], True)
+
+
+class Farmland(crd.VictoryCard):
+	def __init__(self, game, played_by):
+		crd.VictoryCard.__init__(self, game, played_by)
+		self.title = "Farmland"
+		self.description = "{}" \
+		                   "When you buy this, trash a card from your hand. Gain a card costing exactly " \
+		                   "{} more than the trashed card.".format(crd.format_vp(2), crd.format_money(2))
+		self.price = 6
+		self.vp = 2
+
+	@gen.coroutine
+	def on_buy(self):
+		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),
+		                                        "select card to trash")
+		if selection:
+			self.played_by.discard(selection, self.game.trash_pile)
+			card_trashed = self.game.card_from_title(selection[0])
+			self.played_by.update_hand()
+			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
+			selected = yield self.played_by.select_from_supply("Choose the a card to gain", card_trashed.price + 2, True)
+			if selected:
+				yield self.played_by.gain(selected[0])
+				crd.Card.on_finished(self, False, False)

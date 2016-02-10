@@ -1,7 +1,7 @@
-clientModule.controller("reportBugModalController", function($scope, $modalInstance, socket) {
+clientModule.controller("reportBugModalController", function($scope, $uibModalInstance, socket) {
     $scope.text = "";
 	$scope.cancel = function(){
-		$modalInstance.dismiss("cancel");
+		$uibModalInstance.dismiss("cancel");
 	};
 
     $scope.submitBugReport = function(){
@@ -9,6 +9,6 @@ clientModule.controller("reportBugModalController", function($scope, $modalInsta
 			"command": "submitBugReport",
             "text": $scope.text
 		}));
-        $modalInstance.close($scope.newGameTable);
+        $uibModalInstance.close($scope.newGameTable);
     }
 });

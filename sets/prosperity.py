@@ -27,7 +27,7 @@ class Watchtower(crd.Card):
 		crd.Card.on_finished(self)
 
 	@gen.coroutine
-	def react(self, reacted_to_callback, to_gain):
+	def react(self, to_gain):
 		self.played_by.wait_modeless("", self.played_by, True)
 		reveal_choice = yield self.played_by.select(1, 1, ["Reveal", "Hide"],  
 			"Reveal " + self.title + " to trash " + to_gain.title + " or put it on top of deck?")
@@ -49,7 +49,6 @@ class Watchtower(crd.Card):
 					self.played_by.update_deck_size()
 			else:
 				self.game.announce("-- but has nothing to watchtower")
-		reacted_to_callback()
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
@@ -379,14 +378,13 @@ class Mint(crd.Card):
 		if len(treasure_titles) == 0:
 			self.game.announce("-- but there were no treasures to reveal")
 			crd.Card.on_finished(self, False, False)
-		elif len(treasure_titles) == 1:
-			self.game.announce("-- revealing " + treasure_cards[0].log_string() + ", gaining a copy of it.")
-			yield self.played_by.gain(treasure_titles[0])
-			crd.Card.on_finished(self, False, False)
-		else:
-			selection = yield self.played_by.select(1, 1, treasure_titles, "Choose a card to reveal")
-			self.game.announce("-- revealing " + self.game.log_string_from_title(selection[0]) + ", gaining a copy of it.")
-			yield self.played_by.gain(selection[0])
+		else:	
+			selection = yield self.played_by.select(None, 1, treasure_titles, "Choose a card to reveal")
+			if selection:
+				self.game.announce("-- revealing " + self.game.log_string_from_title(selection[0]) + ", gaining a copy of it.")
+				yield self.played_by.gain(selection[0])
+			else:
+				self.game.announce("-- revealing nothing")
 			crd.Card.on_finished(self, False, False)
 
 	def on_buy(self):
@@ -408,7 +406,7 @@ class Mountebank(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Mountebank"
-		self.description = "{}Each other player may discard a Curse. If they don't, they gains a Curse and a Copper.".format(crd.format_money(2))
+		self.description = "{}Each other player may discard a Curse. If they don't, they gain a Curse and a Copper.".format(crd.format_money(2))
 		self.price = 5
 		self.type = "Action|Attack"
 
@@ -711,7 +709,7 @@ class Expand(crd.Card):
 			card_trashed = self.game.card_from_title(selection[0])
 			self.played_by.update_hand()
 			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
-			selected = yield self.played_by.select_from_supply("Choose the expanded card", card_trashed.price + 3, False)
+			selected = yield self.played_by.select_from_supply("Choose the expanded card", card_trashed.get_price() + 3, False)
 			if selected:
 				yield self.played_by.gain(selected[0])
 				crd.Card.on_finished(self, False, False)

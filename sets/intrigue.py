@@ -85,7 +85,7 @@ class Secret_Chamber(crd.Card):
 
 	# below is reaction code
 	@gen.coroutine
-	def react(self, reacted_to_callback):
+	def react(self):
 		selection = yield self.played_by.select(1, 1, ["Reveal", "Hide"],
 		                      "Reveal " + self.title + " to draw 2 and place 2 back to deck?")
 		if selection[0] == "Reveal":
@@ -97,10 +97,7 @@ class Secret_Chamber(crd.Card):
 				"Put two cards to the top of your deck (#1 is on top)", True)
 			if put_back:
 				drawn_cards = self.post_react_draw_select(put_back, drawn_cards)
-				#pass in newly drawn cards to check for new reactions
-				reacted_to_callback(drawn_cards)
-		else:
-			reacted_to_callback()
+				return drawn_cards
 
 	def post_react_draw_select(self, selection, drawn_cards):
 		self.played_by.discard(selection, self.played_by.deck)

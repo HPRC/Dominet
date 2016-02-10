@@ -23,3 +23,11 @@ html, body {
 	word-wrap:break-word;
 }
 
+.modal-backdrop {
+	bottom: 0;
+}
+
+//workaround for angularui modal bug, remove after upgrading to 1.0.4
+body > [uib-modal-window]:not([modal-render]) {
+    display: none;
+}
