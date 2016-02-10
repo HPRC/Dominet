@@ -172,8 +172,8 @@ class Spice_Merchant(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = 'Spice Merchant'
-		self.description = 'You may trash a treasure from your hand.'\
-			 "If you do\n {}, {} or {}, {}".format(crd.format_draw(2, True), crd.format_actions(1), crd.format_money(2, True), crd.format_buys(1, True))
+		self.description = 'You may trash a treasure from your hand. '\
+			 "If you do\n {}, {} or\n {}, {}".format(crd.format_draw(2, True), crd.format_actions(1), crd.format_money(2, True), crd.format_buys(1, True))
 		self.price = 4
 		self.type = "Action"
 
@@ -189,9 +189,10 @@ class Spice_Merchant(crd.Card):
 			card_selection = yield self.played_by.select(None, 1, treasure_titles, "Choose a treasure card to trash")
 			if card_selection:
 				self.played_by.discard(card_selection, self.game.trash_pile)
+				self.played_by.update_hand()
 				self.game.announce("-- trashing " + self.game.log_string_from_title(card_selection[0]))
 				perk_selection = yield self.played_by.select(1, 1, ["+2 cards +1 action", "+$2 +1 buy"], 
-					"Choose one: +2 Cards, +1 Action; or +2$, +1 Buy")
+					"Choose one: +2 Cards +1 Action, or +$2 +1 Buy")
 				if perk_selection[0] == "+2 cards +1 action":
 					drawn = self.played_by.draw(2)
 					self.played_by.actions += 1
@@ -200,8 +201,8 @@ class Spice_Merchant(crd.Card):
 				elif perk_selection[0] == "+$2 +1 buy":	
 					self.played_by.balance += 2
 					self.played_by.buys += 1
-					self.game.announce("-- gaining $2 and 1 buy")
-					crd.Card.on_finished(self, True, True)
+					self.game.announce("-- gaining +$2 and +1 buy")
+					crd.Card.on_finished(self, False, True)
 			else:
 				crd.Card.on_finished(self, False, False)		
 
