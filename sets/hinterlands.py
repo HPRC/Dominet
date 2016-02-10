@@ -381,7 +381,7 @@ class Farmland(crd.VictoryCard):
 			card_trashed = self.game.card_from_title(selection[0])
 			self.played_by.update_hand()
 			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
-			selected = yield self.played_by.select_from_supply("Choose the a card to gain", card_trashed.price + 2, True)
+			selected = yield self.played_by.select_from_supply("Choose the a card to gain", card_trashed.get_price() + 2, True)
 			if selected:
 				yield self.played_by.gain(selected[0])
 				crd.Card.on_finished(self, False, False)
