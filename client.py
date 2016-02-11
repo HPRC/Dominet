@@ -354,6 +354,8 @@ class DmClient(Client):
 				self.update_mode_buy_phase()
 
 	def update_mode_buy_phase(self):
+		if (self.last_mode["mode"] == "buy"):
+			return
 		self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards, banned=self.banned)
 		if "Peddler" in self.game.supply and self.game.get_turn_owner() == self:
 			self.game.card_from_title("Peddler").on_buy_phase()

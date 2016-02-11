@@ -821,4 +821,4 @@ class Peddler(crd.Card):
 	#called when the buy phase begins
 	def on_buy_phase(self):
 		modifier = len([x for x in self.game.get_turn_owner().played_inclusive if "Action" in x.type]) * -2
-		self.game.price_modifier[self.title] = modifier
+		self.game.price_modifier[self.title] += modifier

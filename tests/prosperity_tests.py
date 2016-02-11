@@ -608,6 +608,16 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "buyCard", "Copper")
 		self.assertTrue(self.game.supply.get_count("Copper") == coppers - 2)
 
+	def test_quarry_peddler(self):
+		tu.print_test_header("test Quarry Peddler")
+		village = base.Village(self.game, self.player1)
+		quarry = prosperity.Quarry(self.game, self.player1)
+
+		supply_peddler = self.game.supply.get_card("Peddler")
+		village.play()
+		quarry.play()
+		self.assertTrue(supply_peddler.get_price() == 8-2-2)
+
 
 if __name__ == '__main__':
 	unittest.main()

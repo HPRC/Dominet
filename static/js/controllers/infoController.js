@@ -8,7 +8,7 @@ clientModule.controller("infoController", function($scope, client, $sce, $uibMod
 		if (data.length === 0){
 			return $scope.renderHtml(mat_name + ":<br> -");
 		}
-		return $scope.renderHtml(mat_name + ":<br>" + data);
+		return $scope.renderHtml(mat_name + ":<br>" + data.join(", "));
 	};
 
 	$scope.openReportBugModal = function () {
