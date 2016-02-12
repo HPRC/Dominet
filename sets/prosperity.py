@@ -161,7 +161,7 @@ class Bishop(crd.Card):
 		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Choose a card to trash")
 		if selection:
 			trash = self.played_by.hand.extract(selection[0])
-			half_vp = math.floor(trash.price / 2)
+			half_vp = math.floor(trash.get_price() / 2)
 			self.played_by.vp += half_vp
 			self.game.trash_pile.append(trash)
 			self.game.update_trash_pile()
