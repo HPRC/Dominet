@@ -170,7 +170,7 @@ class DmGame(Game):
 
 	def update_trash_pile(self):
 		for i in self.players:
-			i.write_json(command="updateTrash", trash=self.trash_string())
+			i.write_json(command="updateTrash", trash=self.trash_display())
 
 	def detect_end(self):
 		if self.supply.get_count("Province") == 0 or self.empty_piles >= 3 or ("Colony" in self.supply and self.supply.get_count("Colony") == 0):
@@ -238,7 +238,7 @@ class DmGame(Game):
 				return False
 		return True
 
-	def trash_string(self):
+	def trash_display(self):
 		trash_dict = {}
 		for x in self.trash_pile:
 			if x.title in trash_dict:
@@ -247,11 +247,8 @@ class DmGame(Game):
 				trash_dict[x.title] = [x, 1]
 		to_log = []
 		for title, data in trash_dict.items():
-			if len(to_log) != 0:
-				to_log.append(",")
-			to_log.append(str(data[1]))
-			to_log.append(data[0].log_string() if data[1] == 1 else data[0].log_string(True))
-		return " ".join(to_log)
+			to_log.append("{} {}".format(str(data[1]), data[0].log_string() if data[1] == 1 else data[0].log_string(True)))
+		return to_log
 
 	def card_from_title(self, title):
 		return self.supply.get_card(title)
