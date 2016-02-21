@@ -1,0 +1,45 @@
+@mixin card-variant($color, $background, $border) {
+  width: 200px;
+  margin: 10px;
+
+  .card-header {
+    border: 1px solid $border;
+    background-color: $background;
+    color: $color;
+    width: 100%;
+    padding: 10px;
+    border-radius:5px;
+    text-align: center;
+
+    .badge {
+      color: $background;
+      background-color: $color;
+      float: right;
+    }
+
+    &:hover {
+      @include border-bottom-radius(0);
+
+      & + .card-body {
+        display: block;
+      }
+
+    }
+  }
+
+  .card-body {
+    display: none;
+    padding: 10px 0;
+    background-color: white;
+    text-align: center;
+    @include border-bottom-radius(5px);
+    border: 1px solid rgba(0, 0, 0, .15);
+    border-top: 0;
+    box-shadow:0 1px 3px 0 rgba(0, 0, 0, .1);
+  }
+
+}
+
+.card-victory {
+  @include card-variant($btn-success-color, $btn-success-bg, $btn-success-border);
+}
