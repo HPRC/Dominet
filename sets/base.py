@@ -374,6 +374,8 @@ class Smithy(crd.Card):
 		self.game.announce("-- drawing " + drawn)
 		crd.Card.on_finished(self)
 
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-default'>", "Smithies" if plural else self.title, "</span>"])
 
 class Thief(crd.AttackCard):
 	def __init__(self, game, played_by):
