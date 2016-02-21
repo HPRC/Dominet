@@ -1,45 +1,97 @@
-@mixin card-variant($color, $background, $border) {
-  width: 200px;
-  margin: 10px;
+@mixin card-variant($color, $background, $border, $background-split:"") {
+  $expanded-width: 190px;
+
+  max-width: $expanded-width;
+  margin-top: 10px;
+  display: inline-block;
 
   .card-header {
-    border: 1px solid $border;
-    background-color: $background;
+    @if $background-split == "" {
+      background-color: $background;
+      border: 1px solid $border;
+    } @else {
+      background: repeating-linear-gradient(-45deg, $background, $background 25px, $background-split 25px, $background-split 50px);
+      border: transparent;
+    }
     color: $color;
     width: 100%;
     padding: 10px;
     border-radius:5px;
     text-align: center;
+    cursor: pointer;
 
     .badge {
       color: $background;
       background-color: $color;
-      float: right;
     }
 
     &:hover {
       @include border-bottom-radius(0);
-
+      width: $expanded-width;
       & + .card-body {
         display: block;
       }
+    }
 
+    &:hover,
+    &:focus,
+    &.focus,
+    &:active,
+    &.active, {
+      color: $color;
+      @if $background-split == "" { 
+        background: darken($background, 10%);
+        border-color: darken($border, 10%);
+      }
+      @else {
+        background: repeating-linear-gradient(-45deg, darken($background, 10%), darken($background, 10%) 25px, 
+          darken($background-split, 10%) 25px, darken($background-split, 10%) 50px);      } 
     }
   }
+}
 
-  .card-body {
-    display: none;
-    padding: 10px 0;
-    background-color: white;
-    text-align: center;
-    @include border-bottom-radius(5px);
-    border: 1px solid rgba(0, 0, 0, .15);
-    border-top: 0;
-    box-shadow:0 1px 3px 0 rgba(0, 0, 0, .1);
-  }
+.card-body {
+  display: none;
+  padding: 10px;
+  background-color: white;
+  text-align: center;
+  @include border-bottom-radius(5px);
+  border: 1px solid rgba(0, 0, 0, .15);
+  border-top: 0;
+  box-shadow:0 1px 3px 0 rgba(0, 0, 0, .1);
+  white-space: pre-wrap;
+}
 
+.card-price {
+  position: relative;
+  vertical-align: top;
+  top: 20px;
 }
 
 .card-victory {
-  @include card-variant($btn-success-color, $btn-success-bg, $btn-success-border);
+  @include card-variant(white, $victory-color, darken($victory-color, 5%));
+}
+
+.card-curse {
+  @include card-variant(white, $curse-color, darken($curse-color, 5%));
+}
+
+.card-treasure {
+  @include card-variant(white, $treasure-color, darken($treasure-color, 5%));
+}
+
+.card-action {
+  @include card-variant(white, $action-color, darken($action-color, 5%));
+}
+
+.card-attack {
+  @include card-variant(white, $attack-color, darken($attack-color, 5%));
+}
+
+.card-treasure-victory {
+  @include card-variant(white, $victory-color, darken($victory-color, 5%), $treasure-color);
+}
+
+.card-action-victory {
+  @include card-variant(white, $action-color, darken($action-color, 5%), $treasure-color);
 }
