@@ -37,9 +37,8 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 				} else if ($scope.modeJson.price){
 					return $scope.getPrice(card) > $scope.modeJson.price;
 				} else {
-                    return false
-                }
-
+            return false
+        }
 			}
 		}
 		return (!$scope.turn || $scope.modeJson.mode === "wait" ||  $scope.modeJson.mode === "select" || $scope.modeJson.mode === "action" 
