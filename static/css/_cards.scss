@@ -1,16 +1,15 @@
 @mixin card-variant($color, $background, $border, $background-split:"") {
-  $expanded-width: 190px;
-
-  max-width: $expanded-width;
+  max-width: 190px;
   margin-top: 10px;
   display: inline-block;
+
 
   .card-header {
     @if $background-split == "" {
       background-color: $background;
       border: 1px solid $border;
     } @else {
-      background: repeating-linear-gradient(-45deg, $background, $background 25px, $background-split 25px, $background-split 50px);
+      background: repeating-linear-gradient(-45deg, $background, $background 45px, $background-split 45px, $background-split 90px);
       border: transparent;
     }
     color: $color;
@@ -25,34 +24,28 @@
       background-color: $color;
     }
 
-    &:hover {
-      @include border-bottom-radius(0);
-      width: $expanded-width;
-      & + .card-body {
-        display: block;
-      }
-    }
-
     &:hover,
     &:focus,
     &.focus,
     &:active,
     &.active, {
-      color: $color;
       @if $background-split == "" { 
         background: darken($background, 10%);
         border-color: darken($border, 10%);
       }
       @else {
-        background: repeating-linear-gradient(-45deg, darken($background, 10%), darken($background, 10%) 25px, 
-          darken($background-split, 10%) 25px, darken($background-split, 10%) 50px);      } 
+        background: repeating-linear-gradient(-45deg, darken($background, 10%), darken($background, 10%) 45px, 
+          darken($background-split, 10%) 45px, darken($background-split, 10%) 90px);
+      } 
     }
   }
 }
 
 .card-body {
-  font-size: 13px;
   display: none;
+  width: 100%;
+  color: black;
+  font-size: 13px;
   padding: 10px;
   background-color: white;
   text-align: center;
@@ -63,10 +56,39 @@
   white-space: pre-wrap;
 }
 
-.card-price {
-  position: relative;
-  vertical-align: top;
-  top: 20px;
+.tooltip.card {
+  opacity: 1;
+  font-size: 14px;
+
+  .tooltip-inner {
+    padding: 0;
+    background-color: transparent;
+
+    .card-header {
+      width: 190px;
+      @include border-bottom-radius(0);
+    }
+    .card-body {
+      display: block;
+    }
+
+  }
+  .tooltip-arrow {
+    display: none;
+  }
+}
+
+/* custom disabled style that mimics being disabled but allows us to receive events (issue #42) */
+// don't disable popup opacity (children of tooltips)
+:not(.tooltip-inner) > .disabled-card {
+  opacity:.5;
+}
+.disabled-card:hover {
+  opacity:1;
+}
+.disabled-card:hover, .disabled-card:focus, .disabled-card.focus, .disabled-card:active, .disabled-card.active {
+  outline:0;
+  outline-offset:0;
 }
 
 .card-victory {
@@ -98,5 +120,5 @@
 }
 
 .card-action-victory {
-  @include card-variant(white, $action-color, darken($action-color, 5%), $treasure-color);
+  @include card-variant(white, $action-color, darken($victory-color, 5%), $victory-color);
 }

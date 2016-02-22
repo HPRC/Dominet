@@ -1,1 +1,11 @@
-<b class="card-price">${{getPrice(card)}}</b> <div ng-class="getButtonStyle(card)"><div class="card-header" ng-click="clickCard(card)">{{card.title}}  <span class="badge">{{card.count}}</span></div><div class="card-body" ng-bind-html="card.description | trustHtml"></div></div>
+<b class="card-price">${{getPrice(card)}}</b> 
+<div ng-class="getButtonStyle(card)">
+	<div class="card-header" 
+     	 ng-click="clickCard(card)" 
+     	 uib-tooltip-template="'/static/js/directives/cardTooltip.html'" 
+     	 tooltip-class="card" 
+     	 tooltip-placement="right"
+     	 tooltip-animation="false">
+		{{card.title}}  <span class="badge">{{card.count}}</span>
+	</div>
+</div>
