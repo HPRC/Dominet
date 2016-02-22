@@ -13,7 +13,7 @@ clientModule.controller("helpModalController", function($scope, $uibModalInstanc
   $scope.tourOptions = {
     steps:[
       {
-        element: document.querySelector('#leftColumn'),
+        element: document.querySelector('.leftColumn'),
         intro: "This is the available supply, a set of cards available to buy from for all players"
       },
       {

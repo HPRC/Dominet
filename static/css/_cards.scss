@@ -51,6 +51,7 @@
 }
 
 .card-body {
+  font-size: 13px;
   display: none;
   padding: 10px;
   background-color: white;
@@ -82,6 +83,10 @@
 
 .card-action {
   @include card-variant(white, $action-color, darken($action-color, 5%));
+}
+
+.card-reaction {
+  @include card-variant(white, $reaction-color, darken($reaction-color, 5%));
 }
 
 .card-attack {
