@@ -122,6 +122,7 @@ class DmClient(Client):
 		self.gamelog = []
 		self.cb = None
 		self.protection = 0
+		self.phase = "action"
 		#boolean to keep track of if we bought a card to disable spending treasure afterwards
 		self.bought_cards = False
 		#cards banned from buying
@@ -134,6 +135,7 @@ class DmClient(Client):
 	def take_turn(self):
 		self.actions = 1
 		self.buys = 1
+		self.phase = "action"
 		self.write_json(command="updateMode", mode="action")
 		self.write_json(command="startTurn", actions=self.actions, buys=self.buys, 
 			balance=self.balance)
@@ -354,12 +356,13 @@ class DmClient(Client):
 				self.update_mode_buy_phase()
 
 	def update_mode_buy_phase(self):
-		if (self.last_mode["mode"] != "buy"):
+		if (self.phase != "buy"):
 			#initalize buy phase code here
 			if "Peddler" in self.game.supply and self.game.get_turn_owner() == self:
 				self.game.card_from_title("Peddler").on_buy_phase()
 				self.game.update_all_prices()
 
+		self.phase = "buy"
 		self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards, banned=self.banned)
 
 	def update_deck_size(self):

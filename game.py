@@ -195,9 +195,9 @@ class DmGame(Game):
 				last_player_went = self.players.index(self.get_turn_owner())
 				filtered_winners = [p for p in winners if self.players.index(p[0]) > last_player_went]
 				if len(filtered_winners) == 0:
-					# everyone wins
-					for i, vp in winners:
-						self.announce(self.construct_end_string(i, win_vp, True))
+					# everyone in winners wins
+					for i in player_vp_list:
+						self.announce(self.construct_end_string(i[0], i[1], i in winners))
 				else:
 					for i in player_vp_list:
 						self.announce(self.construct_end_string(i[0], i[1], i in filtered_winners))
