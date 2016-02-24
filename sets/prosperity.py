@@ -765,7 +765,7 @@ class Forge(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Forge"
-		self.description = "Trash any number of cards from your hand." \
+		self.description = "Trash any number of cards from your hand. " \
 		                   "Gain a card with cost exactly equal to the total cost in coins of the trashed cards."
 		self.price = 7
 		self.type = "Action"

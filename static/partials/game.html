@@ -4,14 +4,14 @@
 	</div>
 </div>
 <div id="client-container" class="row row-eq-height" ng-controller="clientController">
-	<div  class="col-xs-4" id="leftColumn" ng-controller="supplyController">
+	<div  class="col-xs-4 leftColumn" ng-controller="supplyController">
 		<div class="row">
-			<div class="col-sm-6">
+			<div class="col-sm-6 supplyColumn">
 				<div ng-repeat="card in kingdomSupplyArray | orderBy:'price':true">
 					<div class="supplyCardContainer"><supply-card></supply-card></div>
 				</div>
 			</div>
-			<div class="col-sm-6">
+			<div class="col-sm-6 supplyColumn">
 				<div ng-repeat="card in baseSupplyArray | orderBy:'price':true">
 					<div class="supplyCardContainer"><supply-card></supply-card></div>
 				</div>

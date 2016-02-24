@@ -1,0 +1,124 @@
+@mixin card-variant($color, $background, $border, $background-split:"") {
+  max-width: 190px;
+  margin-top: 10px;
+  display: inline-block;
+  position: relative;
+
+  .card-header {
+    @if $background-split == "" {
+      background-color: $background;
+      border: 1px solid $border;
+    } @else {
+      background: repeating-linear-gradient(-45deg, $background, $background 45px, $background-split 45px, $background-split 90px);
+      border: transparent;
+    }
+    color: $color;
+    width: 100%;
+    padding: 8px 10px;
+    border-radius:5px;
+    text-align: center;
+    cursor: pointer;
+
+    .badge {
+      color: $background;
+      background-color: $color;
+    }
+
+    &:hover,
+    &:focus,
+    &.focus,
+    &:active,
+    &.active, {
+      @if $background-split == "" { 
+        background: darken($background, 10%);
+        border-color: darken($border, 10%);
+      }
+      @else {
+        background: repeating-linear-gradient(-45deg, darken($background, 10%), darken($background, 10%) 45px, 
+          darken($background-split, 10%) 45px, darken($background-split, 10%) 90px);
+      } 
+    }
+  }
+}
+
+.card-body {
+  display: none;
+  width: 100%;
+  color: black;
+  font-size: 13px;
+  padding: 10px;
+  background-color: white;
+  text-align: center;
+  @include border-bottom-radius(5px);
+  border: 1px solid rgba(0, 0, 0, .15);
+  border-top: 0;
+  box-shadow:0 1px 3px 0 rgba(0, 0, 0, .1);
+  white-space: pre-wrap;
+}
+
+.tooltip.card {
+  opacity: 1;
+  font-size: 14px;
+
+  .tooltip-inner {
+    padding: 0;
+    background-color: transparent;
+
+    .card-header {
+      width: 190px;
+      @include border-bottom-radius(0);
+    }
+    .card-body {
+      display: block;
+    }
+
+  }
+  .tooltip-arrow {
+    display: none;
+  }
+}
+
+/* custom disabled style that mimics being disabled but allows us to receive events (issue #42) */
+// don't disable popup opacity (children of tooltips)
+:not(.tooltip-inner) > .disabled-card {
+  opacity:.5;
+}
+.disabled-card:hover {
+  opacity:1;
+}
+.disabled-card:hover, .disabled-card:focus, .disabled-card.focus, .disabled-card:active, .disabled-card.active {
+  outline:0;
+  outline-offset:0;
+}
+
+.card-victory {
+  @include card-variant(white, $victory-color, darken($victory-color, 5%));
+}
+
+.card-curse {
+  @include card-variant(white, $curse-color, darken($curse-color, 5%));
+}
+
+.card-treasure {
+  @include card-variant(white, $treasure-color, darken($treasure-color, 5%));
+}
+
+.card-action {
+  @include card-variant(white, $action-color, darken($action-color, 5%));
+}
+
+.card-reaction {
+  @include card-variant(white, $reaction-color, darken($reaction-color, 5%));
+}
+
+.card-attack {
+  @include card-variant(white, $attack-color, darken($attack-color, 5%));
+}
+
+.card-treasure-victory {
+  @include card-variant(white, $victory-color, darken($victory-color, 5%), $treasure-color);
+}
+
+.card-action-victory {
+  @include card-variant(white, $action-color, darken($victory-color, 5%), $victory-color);
+}

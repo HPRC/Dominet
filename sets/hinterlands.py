@@ -210,8 +210,8 @@ class Trader(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Trader"
-		self.description = "Trash a card from your hand, Gain X Silvers where X is the cost of the trash card. Whenever you gain a card, you may\
-			reveal Trader to gain a Silver instead"
+		self.description = "Trash a card from your hand, Gain X Silvers where X is the cost of the trash card. Whenever you gain a card, you may"\
+			"reveal Trader to gain a Silver instead"
 		self.price = 4
 		self.type = "Action|Reaction"
 		self.trigger = "Gain"
@@ -328,8 +328,8 @@ class Mandarin(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Mandarin"
-		self.description = "{} Put a card from your hand on top of your deck. \
-		When you gain this, put all treasures in play on top of your deck in any order.".format(crd.format_money(3))
+		self.description = "{} Put a card from your hand on top of your deck."\
+		"When you gain this, put all treasures in play on top of your deck in any order.".format(crd.format_money(3))
 		self.price = 5
 		self.type = "Action"
 

@@ -13,7 +13,7 @@ clientModule.controller("helpModalController", function($scope, $uibModalInstanc
   $scope.tourOptions = {
     steps:[
       {
-        element: document.querySelector('#leftColumn'),
+        element: document.querySelector('.leftColumn'),
         intro: "This is the available supply, a set of cards available to buy from for all players"
       },
       {
@@ -22,12 +22,12 @@ clientModule.controller("helpModalController", function($scope, $uibModalInstanc
         position: "bottom"
       },
       {
-        element: document.querySelector('.supplyCardContainer button'),
+        element: document.querySelector('.supplyCardContainer supply-card div'),
         intro: "Hover over a card to see what it does.",
         position: "bottom"
       },
       {
-        element: document.querySelector('.supplyCardContainer .badge'),
+        element: document.querySelector('.card-header .badge'),
         intro: "The total number of cards available to get is displayed on the right",
         position: "bottom"
       },
