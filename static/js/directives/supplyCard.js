@@ -1,4 +1,4 @@
-clientModule.directive('supplyCard', function($sce){
+clientModule.directive('supplyCard', function(){
 	return {
 		restrict: 'EA',
 		templateUrl: '/static/js/directives/supplyCard.html',

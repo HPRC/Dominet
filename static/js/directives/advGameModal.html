@@ -8,10 +8,8 @@
 			<label for="newGameTitle">Game Title</label>
 			<input type="text" class="form-control" id="newGameTitle" placeholder="Title" maxlength="40" ng-model="newGameTable.title" autofocus>
 		    <label for="newSeats">Num Players</label>
-			<select class="form-control" id="newSeats" ng-model="newGameTable.seats">
-				<option>2</option>
-				<option>3</option>
-				<option>4</option>
+			<select class="form-control" id="newSeats" ng-model="newGameTable.seats"
+				ng-options="x for x in [2,3,4]">
 			</select>
 			<label for="requiredCards">Required Cards</label>
 			<input type="text" class="form-control" id="requiredCards" placeholder="List comma separated cards to include in supply" ng-model="inputRequired">
