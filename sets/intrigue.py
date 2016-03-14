@@ -170,6 +170,7 @@ class Masquerade(crd.Card):
 	def fire(self, player):
 		# need to know which card was passed to them so we can know which card to NOT show user and remove from card_array()
 		card = player.hand.extract(self.passed_card)
+		player.opponents_wait("to pass")
 		im_passing = yield player.select(1, 1, crd.card_list_to_titles(player.hand.card_array()), "Select a card to pass to player on your left")
 		# add back card to hand after displaying cards to pass selection
 		if card is not None:
@@ -179,9 +180,6 @@ class Masquerade(crd.Card):
 		# logging what we received after we pass our card
 		if self.passed_card != "":
 			player.announce_self("-- you received " + self.game.log_string_from_title(self.passed_card))
-		else:
-			# we are the first player, wait for everyone
-			self.played_by.wait_many("to pass", self.played_by.get_opponents())
 		self.passed_card = im_passing[0]
 		card = player.hand.extract(im_passing[0])
 		card.played_by = left_opponent
