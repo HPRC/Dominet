@@ -388,9 +388,6 @@ class DmClient(Client):
 		yield gen.maybe_future(self.hand.do_reactions("Gain", card_obj))
 		if card_obj in self.all_cards():
 			yield gen.maybe_future(self.resolve_on_gain_effects(card_obj))
-		for p in self.game.players:
-			if not p.is_waiting():
-				p.update_mode()
 
 	@gen.coroutine
 	def gain(self, card, from_supply=True, custom_announce=None):

@@ -618,6 +618,5 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		quarry.play()
 		self.assertTrue(supply_peddler.get_price() == 8-2-2)
 
-
 if __name__ == '__main__':
 	unittest.main()
