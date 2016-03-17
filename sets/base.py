@@ -260,13 +260,8 @@ class Militia(crd.AttackCard):
 	def attack(self):
 		affected = [x for x in self.played_by.get_opponents() if not crd.AttackCard.is_blocked(self, x)]
 		if affected:
-			yield crd.discard_down(affected, 3, self.finished_discarding)
-		else:
-			crd.Card.on_finished(self, False, False)
-
-	def finished_discarding(self):
-		if not self.played_by.is_waiting():
-			crd.Card.on_finished(self, False, False)
+			yield crd.discard_down(affected, 3)
+		crd.Card.on_finished(self, False, False)
 
 class Moneylender(crd.Card):
 	def __init__(self, game, played_by):

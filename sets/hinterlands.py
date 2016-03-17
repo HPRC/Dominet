@@ -369,6 +369,31 @@ class Mandarin(crd.Card):
 		if self.game.get_turn_owner() == self.played_by:
 			self.played_by.update_mode()
 
+class Margrave(crd.AttackCard):
+	def __init__(self, game, played_by):
+		crd.AttackCard.__init__(self, game, played_by)
+		self.title = "Margrave"
+		self.description = "{}{} Each other player draws a card, then discards down to 3 cards in hand.".format(
+			crd.format_draw(3), crd.format_buys(1))
+		self.price = 5
+		self.type = "Action|Attack"
+
+	@gen.coroutine
+	def play(self, skip=False):
+		crd.AttackCard.play(self, skip)
+		drawn = self.played_by.draw(3)
+		self.played_by.buys += 1
+		self.game.announce("-- drawing {} and gaining a buy".format(drawn))
+		self.played_by.update_hand()
+		self.played_by.update_resources()
+		affected = [x for x in self.played_by.get_opponents() if not crd.AttackCard.is_blocked(self, x)]
+		if affected:
+			for i in affected:
+				i.draw(1)
+				i.update_hand()
+			yield crd.discard_down(affected, 3)
+		crd.AttackCard.on_finished(self, True, False)
+
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------
 # --------------------------------------------------------

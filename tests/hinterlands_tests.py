@@ -283,8 +283,6 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.game.get_turn_owner() == self.player1)
 
 		self.assertTrue(self.player1.last_mode["mode"] == "select")
-		# trader triggers again for the new silver
-		yield tu.send_input(self.player1, "post_selection", ["Reveal"])
 		yield gen.sleep(.1)
 		# royal seal triggers
 		self.assertTrue(self.game.get_turn_owner() == self.player1)
@@ -364,16 +362,31 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Duchy"]) == 1)
 
 	@tornado.testing.gen_test
-	def Farmland(self):
+	def test_Farmland(self):
 		tu.print_test_header("test Farmland")
-
 		yield tu.send_input(self.player1, "buyCard", "Farmland")
-
 		yield tu.send_input(self.player1, "post_selection", ["Copper"])
 		yield tu.send_input(self.player1, "selectSupply", ["Estate"])
-
 		self.assertTrue(len([x for x in self.player1.discard_pile if x.title == "Estate"]) == 1)
 
+	@tornado.testing.gen_test
+	def test_Margrave(self):
+		tu.print_test_header("test Margrave")
+		margrave = hl.Margrave(self.game, self.player1)
+		tu.set_player_hand(self.player1, [margrave])
+		margrave.play()
+		
+		self.assertTrue(len(self.player1.hand)==3)
+		self.assertTrue(len(self.player2.hand)==6)
+		self.assertTrue(len(self.player3.hand)==6)
+
+		yield tu.send_input(self.player2, "post_selection", ["Copper", "Copper", "Copper"])
+		yield tu.send_input(self.player3, "post_selection", ["Copper", "Copper", "Copper"])
+
+		self.assertTrue(len(self.player2.hand)==3)
+		self.assertTrue(len(self.player2.discard_pile)==3)
+		self.assertTrue(len(self.player3.hand)==3)
+		self.assertTrue(len(self.player3.discard_pile)==3)
 
 if __name__ == '__main__':
 	unittest.main()

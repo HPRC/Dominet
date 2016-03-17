@@ -612,17 +612,10 @@ class Goons(crd.AttackCard):
 
 	@gen.coroutine
 	def attack(self):
-		attacking = False
 		affected = [x for x in self.played_by.get_opponents() if not crd.AttackCard.is_blocked(self, x)]
 		if affected:
-			attacking = True
-			yield crd.discard_down(affected, 3, self.finished_discarding)
-		if not attacking:
-			crd.Card.on_finished(self, False, False)
-
-	def finished_discarding(self):
-		if not self.played_by.is_waiting():
-			crd.Card.on_finished(self, False, False)
+			yield crd.discard_down(affected, 3)
+		crd.Card.on_finished(self, False, False)
 
 	@gen.coroutine
 	def on_buy_effect(self, purchased_card):
