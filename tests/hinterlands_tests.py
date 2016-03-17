@@ -388,5 +388,20 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.assertTrue(len(self.player3.hand)==3)
 		self.assertTrue(len(self.player3.discard_pile)==3)
 
+	@tornado.testing.gen_test
+	def test_Embassy(self):
+		tu.print_test_header("test Embassy")
+		self.player1.balance = 5
+		yield tu.send_input(self.player1, "buyCard", "Embassy")
+		self.assertTrue(self.player2.discard_pile[-1].title == "Silver")
+		self.assertTrue(self.player3.discard_pile[-1].title == "Silver")
+		embassy = hl.Embassy(self.game, self.player2)
+		copper = supply_cards.Copper(self.game, self.player2)
+		tu.set_player_hand(self.player2, [embassy])
+		tu.add_many_to_hand(self.player2, copper, 4)
+		embassy.play()
+		yield tu.send_input(self.player2, "post_selection", ["Copper", "Copper", "Copper"])
+		self.assertTrue(len(self.player2.hand) == 6)
+
 if __name__ == '__main__':
 	unittest.main()

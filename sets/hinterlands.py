@@ -270,6 +270,28 @@ class Cache(crd.Money):
 		yield self.played_by.gain("Copper")
 		yield self.played_by.gain("Copper")
 
+class Embassy(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Embassy"
+		self.price = 5
+		self.type = "Action"
+		self.description = "{} Discard 3 cards.\nWhen you gain this, opponents gain a silver".format(crd.format_draw(5))
+
+	@gen.coroutine
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.draw(5)
+		self.played_by.update_hand()
+		to_discard = yield self.played_by.select(3, 3, crd.card_list_to_titles(self.played_by.hand.card_array()), 
+			"Discard 3 cards")
+		self.played_by.discard(to_discard, self.played_by.discard_pile)
+		crd.Card.on_finished(self, True, False)
+
+	@gen.coroutine
+	def on_gain(self):
+		for i in self.played_by.get_opponents():
+			yield i.gain("Silver", False)
 
 class Highway(crd.Card):
 	def __init__(self, game, played_by):
