@@ -279,18 +279,14 @@ def search_deck_for(player, search_criteria, callback):
 # prompts input players to discard down to input hand size
 # players = list of players who needs to discard
 # reduced_hand_size = number of cards to discard down to
-# callback = callback function called after player discarded, default is card on_finished
 @gen.coroutine
-def discard_down(players, reduced_hand_size, callback):
+def discard_down(players, reduced_hand_size):
 	if not players:
-		callback()
 		return
 		
 	def discard_down_cb(selection, player):
 		player.game.announce("-- " + player.name_string() + " discards down to " + str(reduced_hand_size))
 		player.discard(selection, player.discard_pile)
-		player.update_hand()
-		callback()
 
 	turn_owner = players[0].game.get_turn_owner()
 	discarding_players = [x for x in players if len(x.hand) > reduced_hand_size]
@@ -305,7 +301,4 @@ def discard_down(players, reduced_hand_size, callback):
 			futures.append(x.select(num_discarding, num_discarding,
 				card_list_to_titles(x.hand.card_array()), "choose " + str(num_discarding) + " cards to discard"))
 		yield parallel_selects(futures , discarding_players, discard_down_cb)
-	else:
-		callback()
-
 

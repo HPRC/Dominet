@@ -193,14 +193,12 @@ class Bureaucrat(crd.AttackCard):
 				elif len(set(map(lambda x: x.title, i_victory_cards))) == 1:
 					self.game.announce(i.name_string() + " puts " + i_victory_cards[0].log_string() + " back on top of the deck")
 					i.discard([i_victory_cards[0].title], i.deck)
-					i.update_hand()
 				else:
 					self.played_by.wait("to choose a Victory card to put back", i)
 					order_selection = yield i.select(1, 1, crd.card_list_to_titles(i_victory_cards),
 						"select Victory card to put back")
 					i.discard(order_selection, i.deck)
 					self.game.announce(i.name_string() + " puts " + self.game.card_from_title(order_selection[0]).log_string() + " back on top of the deck")
-					i.update_hand()
 					if not self.played_by.is_waiting():
 						crd.Card.on_finished(self, False, False)
 		if not self.played_by.is_waiting():
@@ -260,13 +258,8 @@ class Militia(crd.AttackCard):
 	def attack(self):
 		affected = [x for x in self.played_by.get_opponents() if not crd.AttackCard.is_blocked(self, x)]
 		if affected:
-			yield crd.discard_down(affected, 3, self.finished_discarding)
-		else:
-			crd.Card.on_finished(self, False, False)
-
-	def finished_discarding(self):
-		if not self.played_by.is_waiting():
-			crd.Card.on_finished(self, False, False)
+			yield crd.discard_down(affected, 3)
+		crd.Card.on_finished(self, False, False)
 
 class Moneylender(crd.Card):
 	def __init__(self, game, played_by):
@@ -304,7 +297,6 @@ class Remodel(crd.Card):
 			self.played_by.discard(selection, self.game.trash_pile)
 			card_trashed = self.game.card_from_title(selection[0])
 			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
-			self.played_by.update_hand()
 			gain_list = yield self.played_by.select_from_supply("Select a card to gain from Remodel", card_trashed.get_price() + 2, False)
 			if gain_list:
 				yield self.played_by.gain(gain_list[0])
@@ -326,7 +318,6 @@ class Spy(crd.AttackCard):
 		drawn = self.played_by.draw(1)
 		self.game.announce("-- getting +1 action and drawing " + drawn)
 		self.played_by.update_resources()
-		self.played_by.update_hand()
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	def attack(self):
@@ -512,10 +503,8 @@ class Council_Room(crd.Card):
 		self.played_by.buys += 1
 		self.game.announce("-- drawing " + drawn + " and getting +1 buy")
 		self.game.announce("-- each other player draws a card")
-		for i in self.game.players:
-			if i != self.played_by:
-				i.draw(1)
-				i.update_hand()
+		for i in self.played_by.get_opponents():
+			i.draw(1)
 		crd.Card.on_finished(self)
 
 
@@ -666,7 +655,6 @@ class Witch(crd.AttackCard):
 		crd.Card.play(self, skip)
 		drawn = self.played_by.draw(2)
 		self.game.announce("-- drawing " + drawn)
-		self.played_by.update_hand()
 		self.played_by.update_resources()
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 

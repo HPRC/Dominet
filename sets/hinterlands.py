@@ -109,8 +109,6 @@ class Develop (crd.Card):
 			self.played_by.discard(selection, self.game.trash_pile)
 			card_trashed = self.game.card_from_title(selection[0])
 			self.game.announce(self.played_by.name_string() + ' trashes ' + card_trashed.log_string())
-			self.played_by.update_hand()
-			
 			self.game.announce('-- gaining a card costing one more than ' + card_trashed.log_string())
 			gain_plus_one = yield self.played_by.select_from_supply('Select a card costing exactly one more than ' + card_trashed.title, 
 				card_trashed.get_price() + 1, 
@@ -189,7 +187,6 @@ class Spice_Merchant(crd.Card):
 			card_selection = yield self.played_by.select(None, 1, treasure_titles, "Choose a treasure card to trash")
 			if card_selection:
 				self.played_by.discard(card_selection, self.game.trash_pile)
-				self.played_by.update_hand()
 				self.game.announce("-- trashing " + self.game.log_string_from_title(card_selection[0]))
 				perk_selection = yield self.played_by.select(1, 1, ["+2 cards +1 action", "+$2 +1 buy"], 
 					"Choose one: +2 Cards +1 Action, or +$2 +1 Buy")
@@ -232,23 +229,22 @@ class Trader(crd.Card):
 
 	@gen.coroutine
 	def react(self, to_gain):
+		if to_gain.title == "Silver":
+			return
 		self.played_by.wait_modeless("", self.played_by, True)
 		
 		selection = yield self.played_by.select(1, 1, ["Reveal", "Hide"],  
 			"Reveal " + self.title + " to return " + to_gain.title + " to the supply and gain a Silver instead?")
 		if selection[0] == "Reveal":
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
-			if to_gain.title == "Silver":
-				self.game.announce("-- trying to trade {} for {}".format(to_gain.log_string(), to_gain.log_string()))
+			to_gain = self.played_by.search_and_extract_card(to_gain)
+			if to_gain:
+				self.game.supply.add(to_gain)
+				self.game.update_supply_pile(to_gain.title)
+				self.game.announce("-- returning " + to_gain.log_string() + " to supply")
+				yield self.played_by.gain("Silver")
 			else:
-				to_gain = self.played_by.search_and_extract_card(to_gain)
-				if to_gain:
-					self.game.supply.add(to_gain)
-					self.game.update_supply_pile(to_gain.title)
-					self.game.announce("-- returning " + to_gain.log_string() + " to supply")
-					yield self.played_by.gain("Silver")
-				else:
-					self.game.announce("-- but doesnt have anything to trade")
+				self.game.announce("-- but doesnt have anything to trade")
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
@@ -271,6 +267,27 @@ class Cache(crd.Money):
 		yield self.played_by.gain("Copper")
 		yield self.played_by.gain("Copper")
 
+class Embassy(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Embassy"
+		self.price = 5
+		self.type = "Action"
+		self.description = "{} Discard 3 cards.\nWhen you gain this, opponents gain a silver".format(crd.format_draw(5))
+
+	@gen.coroutine
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.draw(5)
+		to_discard = yield self.played_by.select(3, 3, crd.card_list_to_titles(self.played_by.hand.card_array()), 
+			"Discard 3 cards")
+		self.played_by.discard(to_discard, self.played_by.discard_pile)
+		crd.Card.on_finished(self, True, False)
+
+	@gen.coroutine
+	def on_gain(self):
+		for i in self.played_by.get_opponents():
+			yield i.gain("Silver", False)
 
 class Highway(crd.Card):
 	def __init__(self, game, played_by):
@@ -370,6 +387,29 @@ class Mandarin(crd.Card):
 		if self.game.get_turn_owner() == self.played_by:
 			self.played_by.update_mode()
 
+class Margrave(crd.AttackCard):
+	def __init__(self, game, played_by):
+		crd.AttackCard.__init__(self, game, played_by)
+		self.title = "Margrave"
+		self.description = "{}{} Each other player draws a card, then discards down to 3 cards in hand.".format(
+			crd.format_draw(3), crd.format_buys(1))
+		self.price = 5
+		self.type = "Action|Attack"
+
+	@gen.coroutine
+	def play(self, skip=False):
+		crd.AttackCard.play(self, skip)
+		drawn = self.played_by.draw(3)
+		self.played_by.buys += 1
+		self.game.announce("-- drawing {} and gaining a buy".format(drawn))
+		self.played_by.update_resources()
+		affected = [x for x in self.played_by.get_opponents() if not crd.AttackCard.is_blocked(self, x)]
+		if affected:
+			for i in affected:
+				i.draw(1)
+			yield crd.discard_down(affected, 3)
+		crd.AttackCard.on_finished(self, True, False)
+
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------
 # --------------------------------------------------------
@@ -416,7 +456,6 @@ class Farmland(crd.VictoryCard):
 		if selection:
 			self.played_by.discard(selection, self.game.trash_pile)
 			card_trashed = self.game.card_from_title(selection[0])
-			self.played_by.update_hand()
 			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
 			selected = yield self.played_by.select_from_supply("Choose the a card to gain", card_trashed.get_price() + 2, True)
 			if selected:

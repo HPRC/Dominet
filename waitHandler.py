@@ -62,11 +62,11 @@ class WaitHandler():
 		def afk_cb():
 			self.is_afk = True
 			afk_players = [x for x in self.player.game.players if x.waiter.is_afk]
+			send_afk_msg_to = [x for x in self.player.get_opponents() if x not in afk_players]
 			futures = []
-			for i in self.player.get_opponents():
-				if i not in afk_players:
-					futures.append(i.select(1,1, ["Yes"],
-						"{} {} not responded for awhile, force forefeit?".format(", ".join([i.name for i in afk_players]), "have" if len(afk_players) > 1 else "has")))	
+			for i in send_afk_msg_to:
+				futures.append(i.select(1,1, ["Yes"],
+					"{} {} not responded for awhile, force forefeit?".format(", ".join([i.name for i in afk_players]), "have" if len(afk_players) > 1 else "has")))	
 			wait_iterator = gen.WaitIterator(*futures)
 			while not wait_iterator.done():
 				selected = yield wait_iterator.next()
@@ -82,5 +82,8 @@ class WaitHandler():
 		if self.afk_timer:
 			ioloop.IOLoop.instance().remove_timeout(self.afk_timer)
 			self.afk_timer = None
+			if self.is_afk:
+				for i in self.player.get_opponents():
+					i.write_json(**i.last_mode)
 			self.is_afk = False
 

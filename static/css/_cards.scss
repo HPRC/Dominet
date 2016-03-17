@@ -1,3 +1,5 @@
+
+
 @mixin card-variant($color, $background, $border, $background-split:"") {
   max-width: 190px;
   margin-top: 10px;
@@ -121,4 +123,8 @@
 
 .card-action-victory {
   @include card-variant(white, $action-color, darken($victory-color, 5%), $victory-color);
+}
+
+.supply-option {
+  @include card-variant($gray, white, darken(white, 15%));
 }

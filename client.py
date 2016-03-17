@@ -75,15 +75,18 @@ class DmClient(Client):
 				drawn.append(card)
 				self.hand.add(card)
 		if not return_string:
+			self.update_hand()
 			self.update_deck_size()
 			return drawn
 		if len(drawn) == 0:
 			return "nothing"
 		elif len(drawn) == 1:
 			self.update_deck_size()
+			self.update_hand()
 			return "a card"
 		else:
 			self.update_deck_size()
+			self.update_hand()
 			return str(len(drawn)) + " cards"
 
 	# get top card of deck
@@ -117,7 +120,6 @@ class DmClient(Client):
 		self.buys = 0
 		self.balance = 0
 		self.draw(self.hand_size)
-		self.update_hand()
 		self.waiter = w.WaitHandler(self)
 		self.gamelog = []
 		self.cb = None
@@ -249,7 +251,6 @@ class DmClient(Client):
 		self.banned = []
 		self.draw(self.hand_size)
 		self.game.reset_prices()
-		self.update_hand()
 		self.update_discard_size()
 		self.update_deck_size()
 		self.game.change_turn()
@@ -337,6 +338,7 @@ class DmClient(Client):
 	def discard(self, cards, pile):
 		for x in cards:
 			card = self.hand.extract(x)
+			self.update_hand()
 			if card is not None:
 				pile.append(card)
 		if pile == self.discard_pile:
@@ -388,9 +390,6 @@ class DmClient(Client):
 		yield gen.maybe_future(self.hand.do_reactions("Gain", card_obj))
 		if card_obj in self.all_cards():
 			yield gen.maybe_future(self.resolve_on_gain_effects(card_obj))
-		for p in self.game.players:
-			if not p.is_waiting():
-				p.update_mode()
 
 	@gen.coroutine
 	def gain(self, card, from_supply=True, custom_announce=None):
