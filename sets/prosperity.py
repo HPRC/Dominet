@@ -766,7 +766,7 @@ class Forge(crd.Card):
 			announce_string = list(map(lambda x: self.game.card_from_title(x).log_string(), forge_selection))
 			self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(announce_string) + " to gain a card with cost " + str(trash_sum))
 		else:
-			self.game.announce("{} trashes nothing to gain a card with cost 0".format(self.played_by.name_string())
+			self.game.announce("{} trashes nothing to gain a card with cost 0".format(self.played_by.name_string()))
 		self.game.update_trash_pile()
 
 		gained = yield self.played_by.select_from_supply("Gain a card from the forge", price_limit=trash_sum, equal_only=True, optional=False)
