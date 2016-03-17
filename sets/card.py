@@ -287,7 +287,6 @@ def discard_down(players, reduced_hand_size):
 	def discard_down_cb(selection, player):
 		player.game.announce("-- " + player.name_string() + " discards down to " + str(reduced_hand_size))
 		player.discard(selection, player.discard_pile)
-		player.update_hand()
 
 	turn_owner = players[0].game.get_turn_owner()
 	discarding_players = [x for x in players if len(x.hand) > reduced_hand_size]

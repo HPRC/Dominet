@@ -218,10 +218,7 @@ class Workers_Village(crd.Card):
 		self.played_by.actions += 2
 		self.played_by.buys += 1
 		drawn = self.played_by.draw(1)
-
 		self.game.announce("-- drawing " + drawn + " and gaining 2 actions and 1 buy")
-
-		self.played_by.update_hand()
 		crd.Card.on_finished(self)
 
 
@@ -297,8 +294,6 @@ class City(crd.Card):
 			drawn = "+1 buy and +$1 " + drawn
 
 		self.game.announce("-- gaining 2 actions " + drawn)
-		self.played_by.update_hand()
-
 		crd.Card.on_finished(self)
 
 	def log_string(self, plural=False):
@@ -428,9 +423,8 @@ class Mountebank(crd.AttackCard):
 				self.played_by.wait("to choose", player)
 				selection = yield player.select(1, 1, ["Yes", "No"], "Discard a curse?")
 				if selection[0] == "Yes":
-					curse = player.hand.extract("Curse")
-					player.update_hand()
-					player.discard_pile.append(curse)
+					player.discard(["Curse"], player.discard_pile)
+					curse = player.discard_pile[-1]
 					self.game.announce("-- " + player.name_string() + " discards a " + curse.log_string())
 					crd.AttackCard.get_next(self, player)
 					return
@@ -452,7 +446,6 @@ class Rabble(crd.AttackCard):
 	def play(self, skip=False):
 		crd.AttackCard.play(self, skip)
 		drawn = self.played_by.draw(3)
-		self.played_by.update_hand()
 		self.game.announce("-- drawing " + drawn)
 		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
@@ -526,13 +519,11 @@ class Vault(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		drawn = self.played_by.draw(2)
-		self.played_by.update_hand()
 		self.game.announce("-- drawing " + drawn)
 
 		selection = yield self.played_by.select(None, len(self.played_by.hand.card_array()),
 		                      crd.card_list_to_titles(self.played_by.hand.card_array()), "Discard any number of cards")
 		self.played_by.discard(selection, self.played_by.discard_pile)
-		self.played_by.update_hand()
 		self.played_by.balance += len(selection)
 		self.game.announce("-- discarding " + str(len(selection)) +
 		                   ", gaining +$" + str(len(selection)))
@@ -551,13 +542,11 @@ class Vault(crd.Card):
 			drawn = "nothing"
 			if len(discard_selection) >= 2:
 				drawn = player.draw(1)
-				player.update_hand()
 			self.game.announce(player.name_string() + " discards " + str(len(discard_selection)) + " cards and draws " + drawn)
 		player.update_wait(True)
 		if not self.played_by.is_waiting():
 			self.played_by.update_mode()
 			crd.Card.on_finished(self, False, True)
-
 
 class Venture(crd.Money):
 	def __init__(self, game, played_by):
@@ -655,7 +644,7 @@ class Grand_Market(crd.Card):
 		self.played_by.actions += 1
 		self.played_by.balance += 2
 		self.played_by.buys += 1
-		self.game.announce("-- drawing " + drawn + " , gaining +1 action and $2")
+		self.game.announce("-- drawing " + drawn + " , gaining +1 action, +1 buy and $2")
 		crd.Card.on_finished(self)
 
 # --------------------------------------------------------
@@ -700,7 +689,6 @@ class Expand(crd.Card):
 		if selection:
 			self.played_by.discard(selection, self.game.trash_pile)
 			card_trashed = self.game.card_from_title(selection[0])
-			self.played_by.update_hand()
 			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
 			selected = yield self.played_by.select_from_supply("Choose the expanded card", card_trashed.get_price() + 3, False)
 			if selected:
@@ -770,19 +758,16 @@ class Forge(crd.Card):
 		forge_selection = yield self.played_by.select(None, len(self.played_by.hand.card_array()), 
 			crd.card_list_to_titles(self.played_by.hand.card_array()), "Trash any number of cards")
 		trash_sum = 0
-		trashed = list()
 		if forge_selection:
 			for card in forge_selection:
 				trash_card = self.played_by.hand.extract(card)
-				trashed.append(trash_card.title)
 				trash_sum += trash_card.get_price()
 				self.game.trash_pile.append(trash_card)
 			announce_string = list(map(lambda x: self.game.card_from_title(x).log_string(), forge_selection))
+			self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(announce_string) + " to gain a card with cost " + str(trash_sum))
 		else:
-			announce_string = "nothing"
-
+			self.game.announce("{} trashes nothing to gain a card with cost 0".format(self.played_by.name_string())
 		self.game.update_trash_pile()
-		self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(announce_string) + " to gain a card with cost " + str(trash_sum))
 
 		gained = yield self.played_by.select_from_supply("Gain a card from the forge", price_limit=trash_sum, equal_only=True, optional=False)
 		if gained:

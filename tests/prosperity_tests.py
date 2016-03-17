@@ -194,6 +194,7 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player2, "post_selection", ["Yes"])
 
 		self.assertTrue(self.player2.discard_pile[0].title == "Curse")
+		yield tu.send_input(self.player2, "post_selection", ["No"])
 		#curse is gained first then copper
 		self.assertTrue(self.player3.discard_pile[0].title == "Curse")
 		self.assertTrue(self.player3.discard_pile[1].title == "Copper")
