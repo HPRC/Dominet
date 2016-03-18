@@ -13,10 +13,34 @@
   @include label-variant($label-curse-bg);
 }
 
-.label-default-success {
+.label-action-victory {
   @include label-variant-split($gray, $label-success-bg)
 }
 
-.label-danger-success {
-    @include label-variant-split($label-warning-bg, $label-success-bg)
+.label-treasure-victory {
+  @include label-variant-split($label-warning-bg, $label-success-bg)
+}
+
+.label-treasure-reaction {
+  @include label-variant-split($label-warning-bg, $label-info-bg)
+}
+
+.label-action {
+  @include label-variant($label-default-bg);
+}
+
+.label-victory {
+  @include label-variant($label-success-bg);
+}
+
+.label-reaction {
+  @include label-variant($label-info-bg);
+}
+
+.label-treasure {
+  @include label-variant($label-warning-bg);
+}
+
+.label-attack {
+  @include label-variant($label-danger-bg);
 }
