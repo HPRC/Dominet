@@ -91,7 +91,7 @@ class Duchess(crd.Card):
 # ------------------------ 3 Cost ------------------------
 # --------------------------------------------------------
 
-class Develop (crd.Card):
+class Develop(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = 'Develop'
@@ -127,6 +127,36 @@ class Develop (crd.Card):
 		else:
 			crd.Card.on_finished(self)
 
+class Scheme(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = 'Scheme'
+		self.description = '{}{} At the end of this turn, you may choose an Action card discarded from play'\
+		' this turn and put it on your deck'.format(crd.format_actions(1), crd.format_draw(1))
+		self.price = 3
+		self.type = 'Action'
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.actions += 1
+		drawn = self.played_by.draw(1)
+		self.game.announce("-- gaining an action and drawing {}".format(drawn))
+		crd.Card.on_finished(self, False, True)
+
+	@gen.coroutine
+	def cleanup(self):
+		total_schemes_played = len([x for x in self.played_by.played_inclusive if x.title == self.title])
+		plural = "s" if total_schemes_played > 1 else ""
+		chosen_cards = yield self.played_by.select(None, total_schemes_played, 
+			[x.title for x in self.played_by.played_cards if "Action" in x.type], 
+			"Select up to {} action card{} to place on top of deck for Scheme".format(total_schemes_played, plural), True)
+
+		for i in chosen_cards:
+			for c in self.played_by.played_cards:
+				if c.title == i:
+					self.played_by.deck.append(c)
+					break
+		self.played_by.played_cards = [x for x in self.played_by.played_cards if x not in self.played_by.deck]
 
 # --------------------------------------------------------
 # ------------------------ 4 Cost ------------------------

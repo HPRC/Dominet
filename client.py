@@ -185,7 +185,7 @@ class DmClient(Client):
 		elif cmd == "discard":
 			self.discard(data["cards"], self.discard_pile)
 		elif cmd == "endTurn":
-			self.end_turn()
+			yield self.end_turn()
 		elif cmd == "buyCard":
 			yield self.buy_card(data["card"])
 		elif cmd == "post_selection": 
@@ -233,14 +233,18 @@ class DmClient(Client):
 		turn_owner.write_json(command="startTurn", actions=turn_owner.actions, buys=turn_owner.buys, 
 			balance=turn_owner.balance)
 
+	@gen.coroutine
 	def end_turn(self):
 		# cleanup before game ends
+		unique_cards_played = {}
 		for x in self.played_cards:
-			x.cleanup() 
+			unique_cards_played[x.title] = x
+		# only call cleanup function once for each card even if a card was played multiple times
+		for card_played in unique_cards_played.values():
+			yield gen.maybe_future(card_played.cleanup())
 		self.discard_pile = self.discard_pile + self.played_cards
 		self.played_cards = []
 		self.waiter.remove_afk_timer()
-
 		if self.game.detect_end():
 			return
 		self.actions = 0
@@ -564,5 +568,3 @@ class DmClient(Client):
 	def resolve_on_gain_effects(self, gained_card):
 		for card in self.played_cards:
 			yield card.on_gain_effect(gained_card)
-
-
