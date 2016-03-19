@@ -206,7 +206,7 @@ class HandPile():
 	def get_reactions_for(self, trigger):
 		reactions = []
 		for card in self:
-			if "Reaction" in card.type and trigger in card.trigger:
+			if "Reaction" in card.type and trigger == card.trigger:
 				reactions.append(card)
 		return reactions
 		

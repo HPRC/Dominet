@@ -403,5 +403,36 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player2, "post_selection", ["Copper", "Copper", "Copper"])
 		self.assertTrue(len(self.player2.hand) == 6)
 
+	@tornado.testing.gen_test
+	def test_Fools_Gold(self):
+		tu.print_test_header("test Fool's Gold")
+		fg = hl.Fools_Gold(self.game, self.player1)
+		tu.clear_player_hand(self.player1)
+		tu.add_many_to_hand(self.player1, fg, 3)
+
+		fg2 = hl.Fools_Gold(self.game, self.player3)
+		tu.add_many_to_hand(self.player3, fg2, 2)
+
+		yield tu.send_input(self.player1, "play", "Fool's Gold")
+		yield tu.send_input(self.player1, "play", "Fool's Gold")
+		yield tu.send_input(self.player1, "play", "Fool's Gold")
+		self.assertTrue(self.player1.balance == 9)
+
+		yield tu.send_input(self.player1, "buyCard", "Province")
+		self.assertTrue(self.player3.last_mode["mode"] == "select")
+		self.assertTrue(self.game.get_turn_owner() == self.player1)
+		# Trash fool's gold
+		yield tu.send_input(self.player3, "post_selection", ["Yes"])
+		self.assertTrue(len(self.player3.hand) == 6)
+		self.assertTrue(self.player3.deck[-1].title == "Gold")
+		self.assertTrue(self.game.trash_pile[-1].title == "Fool's Gold")
+		print(self.player3.last_mode)
+		self.assertTrue(self.player3.last_mode["mode"] == "select")
+		yield tu.send_input(self.player3, "post_selection", ["Yes"])
+		yield tu.send_input(self.player3, "post_selection", ["Yes"])
+		self.assertTrue(self.player3.deck[-2].title == "Gold")
+
+
+
 if __name__ == '__main__':
 	unittest.main()

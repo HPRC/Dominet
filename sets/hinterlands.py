@@ -112,13 +112,12 @@ class Fools_Gold(crd.Money):
 
 	@gen.coroutine
 	def react(self, gained):
-		if gained.title != "Province":
-			return
-		selection = yield self.played_by.select(1, 1, ["Yes", "No"], "Trash Fool's Gold from hand to gain a gold on top of your deck?")
-		if selection[0] == "Yes":
-			self.played_by.discard(["Fool's Gold"], self.game.trash_pile)
-			self.game.announce("-- {} trashes {}", self.played_by.name_string(), self.log_string())
-			yield self.played_by.gain_to_deck("Gold")
+		if gained.title == "Province":
+			selection = yield self.played_by.select(1, 1, ["Yes", "No"], "Trash Fool's Gold from hand to gain a gold on top of your deck?")
+			if selection[0] == "Yes":
+				self.played_by.discard(["Fool's Gold"], self.game.trash_pile)
+				self.game.announce("-- {} trashes {}".format(self.played_by.name_string(), self.log_string()))
+				yield self.played_by.gain_to_deck("Gold")
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-treasure-reaction'>", self.title, "</span>"])
@@ -265,22 +264,21 @@ class Trader(crd.Card):
 
 	@gen.coroutine
 	def react(self, to_gain):
-		if to_gain.title == "Silver":
-			return
-		self.played_by.wait_modeless("", self.played_by, True)
-		
-		selection = yield self.played_by.select(1, 1, ["Reveal", "Hide"],  
-			"Reveal " + self.title + " to return " + to_gain.title + " to the supply and gain a Silver instead?")
-		if selection[0] == "Reveal":
-			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
-			to_gain = self.played_by.search_and_extract_card(to_gain)
-			if to_gain:
-				self.game.supply.add(to_gain)
-				self.game.update_supply_pile(to_gain.title)
-				self.game.announce("-- returning " + to_gain.log_string() + " to supply")
-				yield self.played_by.gain("Silver")
-			else:
-				self.game.announce("-- but doesnt have anything to trade")
+		if to_gain.title != "Silver":
+			self.played_by.wait_modeless("", self.played_by, True)
+			
+			selection = yield self.played_by.select(1, 1, ["Reveal", "Hide"],  
+				"Reveal " + self.title + " to return " + to_gain.title + " to the supply and gain a Silver instead?")
+			if selection[0] == "Reveal":
+				self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
+				to_gain = self.played_by.search_and_extract_card(to_gain)
+				if to_gain:
+					self.game.supply.add(to_gain)
+					self.game.update_supply_pile(to_gain.title)
+					self.game.announce("-- returning " + to_gain.log_string() + " to supply")
+					yield self.played_by.gain("Silver")
+				else:
+					self.game.announce("-- but doesnt have anything to trade")
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-reaction'>", self.title, "s</span>" if plural else "</span>"])

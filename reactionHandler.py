@@ -4,7 +4,7 @@ class ReactionHandler():
 	def __init__(self, player):
 		self.player = player
 		self.game = self.player.game
-		#we are using a list as a queue here since largest hand in dominion is <10 (most reactions < 10) hence performance not important
+		#we are using a list as a queue here since hands in dominion are usually 5 hence performance not important
 		self.reactions_queue = []
 		
 
@@ -74,3 +74,4 @@ class ReactionHandler():
 			yield self.trigger_reactions()
 
 
+		

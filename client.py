@@ -6,6 +6,7 @@ import sets.base as b
 import sets.supply as supply_cards
 import sets.prosperity as prosperity
 import sets.intrigue as intrigue
+import sets.hinterlands as hl
 import html
 import game as g
 import waitHandler as w
