@@ -256,9 +256,9 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "post_selection", ["Reveal"])
 		self.assertTrue(self.game.supply.get_count("Copper") == 30)
 		#gaining silver now
-
 		yield tu.send_input(self.player1, "post_selection", ["Watchtower", "Trader"])
-		yield tu.send_input(self.player1, "post_selection", ["Hide"])
+		# trader's reaction is ignored since its for silver
+		# reveal watchtower
 		yield tu.send_input(self.player1, "post_selection", ["Reveal"])
 		yield tu.send_input(self.player1, "post_selection", ["Put on top of deck"])
 		self.assertTrue(self.player1.deck[-1].title == "Silver")
@@ -426,12 +426,30 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.assertTrue(len(self.player3.hand) == 6)
 		self.assertTrue(self.player3.deck[-1].title == "Gold")
 		self.assertTrue(self.game.trash_pile[-1].title == "Fool's Gold")
-		print(self.player3.last_mode)
 		self.assertTrue(self.player3.last_mode["mode"] == "select")
 		yield tu.send_input(self.player3, "post_selection", ["Yes"])
 		yield tu.send_input(self.player3, "post_selection", ["Yes"])
 		self.assertTrue(self.player3.deck[-2].title == "Gold")
 
+	@tornado.testing.gen_test
+	def test_Fools_Gold_Trader(self):
+		tu.print_test_header("test Fool's Gold Trader")
+		fg = hl.Fools_Gold(self.game, self.player2)
+		trader = hl.Trader(self.game, self.player2)
+		self.player2.hand.add(fg)
+		self.player2.hand.add(trader)
+
+		self.player1.balance = 8
+		yield tu.send_input(self.player1, "buyCard", "Province")
+
+		# trash fool's gold
+		yield tu.send_input(self.player2, "post_selection", ["Yes"])
+		# reveal trader
+		yield tu.send_input(self.player2, "post_selection", ["Reveal"])
+		yield tu.send_input(self.player2, "post_selection", ["Yes"])
+		self.assertTrue(self.player2.discard_pile[-1].title == "Silver")
+		self.assertTrue(self.game.trash_pile[-1].title == "Fool's Gold")
+		self.assertTrue(self.player2.deck[-1].title != "Gold")
 
 
 if __name__ == '__main__':

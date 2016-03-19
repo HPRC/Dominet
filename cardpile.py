@@ -217,7 +217,7 @@ class HandPile():
 		if len(reactions) == 0:
 			return
 		else:
-			yield self.reacthelper.initiate_reactions(trigger, react_data)
+			yield self.reacthelper.initiate_reaction_event(trigger, react_data)
 
 	def is_homogeneous(self):
 		return len(self.data) == 1
