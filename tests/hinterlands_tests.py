@@ -402,6 +402,50 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		embassy.play()
 		yield tu.send_input(self.player2, "post_selection", ["Copper", "Copper", "Copper"])
 		self.assertTrue(len(self.player2.hand) == 6)
+	
+	@tornado.testing.gen_test
+	def test_Scheme(self):
+		tu.print_test_header("test Scheme")
+		scheme1 = hl.Scheme(self.game, self.player1)
+		scheme2 = hl.Scheme(self.game, self.player2)
+
+		tu.add_many_to_hand(self.player1, scheme1, 2)
+		self.player2.hand.add(scheme2)
+
+		tu.send_input(self.player1, "play", "Scheme")
+		tu.send_input(self.player1, "play", "Scheme")
+		self.player1.end_turn()
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
+		yield tu.send_input(self.player1, "post_selection", ["Scheme", "Scheme"])
+		self.assertTrue(self.game.get_turn_owner() == self.player2)
+		self.assertTrue(self.player1.hand.get_count("Scheme") == 2)
+
+		tu.send_input(self.player2, "play", "Scheme")
+
+		self.player2.end_turn()
+		self.assertTrue(self.player2.last_mode["mode"] == "select")
+		self.assertTrue(self.player2.last_mode["max_cards"] == 1)
+		yield tu.send_input(self.player2, "post_selection", ["Scheme"])
+
+		self.player3.end_turn()
+		self.assertTrue(self.player3.last_mode["mode"] != "select")
+
+	@tornado.testing.gen_test
+	def test_Throne_Room_Scheme(self):
+		tu.print_test_header("test Throne Room Scheme")
+		scheme = hl.Scheme(self.game, self.player1)
+		tr = base.Throne_Room(self.game, self.player1)
+		self.player1.hand.add(scheme)
+		self.player1.hand.add(tr)
+
+		tr.play()
+		yield tu.send_input(self.player1, "post_selection", ["Scheme"])
+		self.player1.end_turn()
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
+		self.assertTrue(self.player1.last_mode["max_cards"] == 2)
+		yield tu.send_input(self.player1, "post_selection", ["Throne Room", "Scheme"])
+		self.assertTrue("Throne Room" in self.player1.hand)
+		self.assertTrue("Scheme" in self.player1.hand)
 
 if __name__ == '__main__':
 	unittest.main()

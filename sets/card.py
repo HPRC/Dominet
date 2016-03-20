@@ -50,7 +50,9 @@ class Card():
 	def on_supply_init(self):
 		pass
 
-	#called at the end of turn if this card was played
+	# called at the end of turn if this card was played
+	# note only called a maximum of once for each card class played
+	# i.e. playing 3 schemes fires Scheme's cleanup function to be called once
 	def cleanup(self):
 		pass
 
