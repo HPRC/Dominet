@@ -6,6 +6,7 @@ import sets.base as b
 import sets.supply as supply_cards
 import sets.prosperity as prosperity
 import sets.intrigue as intrigue
+import sets.hinterlands as hl
 import html
 import game as g
 import waitHandler as w
@@ -392,6 +393,8 @@ class DmClient(Client):
 		self.update_discard_size()
 		yield gen.maybe_future(card_obj.on_gain())
 		yield gen.maybe_future(self.hand.do_reactions("Gain", card_obj))
+		for i in self.get_opponents():
+			yield gen.maybe_future(i.hand.do_reactions("OpponentGain", card_obj))
 		if card_obj in self.all_cards():
 			yield gen.maybe_future(self.resolve_on_gain_effects(card_obj))
 
@@ -403,6 +406,19 @@ class DmClient(Client):
 				yield self.gain_helper(new_card, from_supply, self.name_string() + " gains " + new_card.log_string())
 			else:
 				yield self.gain_helper(new_card, from_supply, custom_announce)
+		else:
+			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
+
+	@gen.coroutine
+	def gain_to_deck(self, card, from_supply=True):
+		new_card = self.get_card_from_supply(card, from_supply)
+		if new_card is not None:
+			yield self.gain_helper(new_card, from_supply, "{} gains {} and puts it on top of their deck.".format(
+				self.name_string(), new_card.log_string()))
+			#if the gained card is still in discard pile, then we can remove and add to deck
+			if self.discard_pile and new_card == self.discard_pile[-1]:
+				self.deck.append(self.discard_pile.pop())
+				self.update_deck_size()
 		else:
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 

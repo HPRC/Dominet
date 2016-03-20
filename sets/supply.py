@@ -93,7 +93,7 @@ class Duchy(crd.VictoryCard):
 		self.vp = 3
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-success'>", "Duchies</span>" if plural else self.title, "</span>"])
+		return "".join(["<span class='label label-victory'>", "Duchies</span>" if plural else self.title, "</span>"])
 
 
 class Province(crd.VictoryCard):
@@ -114,4 +114,4 @@ class Colony(crd.VictoryCard):
 		self.vp = 10
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-success'>", "Colonies</span>" if plural else self.title, "</span>"])
+		return "".join(["<span class='label label-victory'>", "Colonies</span>" if plural else self.title, "</span>"])
