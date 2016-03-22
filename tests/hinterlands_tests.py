@@ -446,6 +446,32 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "post_selection", ["Throne Room", "Scheme"])
 		self.assertTrue("Throne Room" in self.player1.hand)
 		self.assertTrue("Scheme" in self.player1.hand)
+	
+	@tornado.testing.gen_test
+	def test_Cartographer(self):
+		tu.print_test_header("test Cartographer")
+		cart = hl.Cartographer(self.game, self.player1)
+		village = base.Village(self.game, self.player1)
+		silver = supply_cards.Silver(self.game, self.player1)
+		self.player1.deck += [village, silver, village, village]
+		#draw the gold with cartographer
+		self.player1.deck.append(supply_cards.Gold(self.game, self.player1))
+		self.player1.hand.add(cart)
+
+		cart.play()
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
+		self.assertTrue(self.player1.last_mode["max_cards"] == 4)
+		yield tu.send_input(self.player1, "post_selection", ["Village", "Village"])
+		self.assertTrue(self.player1.discard_pile[-1].title == "Village")
+		self.assertTrue(self.player1.discard_pile[-2].title == "Village")
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
+		self.assertTrue(self.player1.last_mode["max_cards"] == 2)
+		yield tu.send_input(self.player1, "post_selection", ["Silver", "Village"])
+		
+		self.assertTrue(self.player1.deck[-1].title == "Village")
+		self.assertTrue(self.player1.deck[-2].title == "Silver")
+
+
 
 if __name__ == '__main__':
 	unittest.main()

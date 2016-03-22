@@ -316,7 +316,6 @@ class Cartographer(crd.Card):
 		self.played_by.actions += 1
 		if len(self.played_by.deck) < 4:
 			self.played_by.shuffle_discard_to_deck()
-
 		top4 = self.played_by.deck[-4:]
 		del self.played_by.deck[-len(top4):]
 		self.game.announce("-- looking at the top {} cards of their deck".format(len(top4)))
