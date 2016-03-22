@@ -127,6 +127,49 @@ class Develop(crd.Card):
 		else:
 			crd.Card.on_finished(self)
 
+
+class Oracle(crd.AttackCard):
+	def __init__(self, game, played_by):
+		crd.AttackCard.__init__(self, game, played_by)
+		self.title = 'Oracle'
+		self.description = 'Each player reveals the top 2 cards of their deck and you choose to discard them or'\
+		' put them back in the order of the player\'s choice. {}'.format(crd.format_draw(2))
+		self.price = 3
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+
+	def attack(self):
+		self.fire(self.played_by)
+
+	@gen.coroutine
+	def fire(self, player):
+		if crd.AttackCard.fire(self, player):
+			if len(player.deck) < 2:
+				player.shuffle_discard_to_deck()
+			if len(player.deck) < 1:
+					self.game.announce(player.name_string() + " has no cards to Spy.")
+					crd.AttackCard.get_next(self, player)
+					return
+			revealed_cards = player.deck[-2:]
+			revealed_cards_titles = crd.card_list_to_titles(revealed_cards)
+			reveal_string = " & ".join(crd.card_list_log_strings(revealed_cards))
+			selection = yield self.played_by.select(1, 1, ["discard", "keep"],
+				"{} reveals {}".format(player.name, " & ".join(revealed_cards_titles)))
+			if selection[0] == "discard":
+				self.game.announce("{} discards {} from {}'s deck".format(self.played_by.name_string(),
+					 reveal_string, player.name_string()))
+				for i in range(0, len(revealed_cards)):
+					card = player.deck.pop()
+					player.discard_pile.append(card)
+					player.update_deck_size()
+					player.update_discard_size()
+			else:
+				self.game.announce("{} leaves {} on {}'s deck".format(self.played_by.name_string(), reveal_string,
+					player.name_string()))
+			crd.AttackCard.get_next(self, player)
+
 class Scheme(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
