@@ -132,7 +132,7 @@ class Scheme(crd.Card):
 		crd.Card.__init__(self, game, played_by)
 		self.title = 'Scheme'
 		self.description = '{}{} At the end of this turn, you may choose an Action card discarded from play'\
-		' this turn and put it on your deck'.format(crd.format_actions(1), crd.format_draw(1))
+		' this turn and put it on your deck'.format(crd.format_draw(1), crd.format_actions(1))
 		self.price = 3
 		self.type = 'Action'
 
@@ -150,7 +150,9 @@ class Scheme(crd.Card):
 		chosen_cards = yield self.played_by.select(None, total_schemes_played, 
 			[x.title for x in self.played_by.played_cards if "Action" in x.type], 
 			"Select up to {} action card{} to place on top of deck for Scheme".format(total_schemes_played, plural), True)
-
+		self.game.announce("{} puts {} card{} back on top of their deck for scheme".format(
+			self.played_by.name_string(),
+			len(chosen_cards), "s" if len(chosen_cards) != 1 else ""))
 		for i in chosen_cards:
 			for c in self.played_by.played_cards:
 				if c.title == i:
@@ -297,6 +299,40 @@ class Cache(crd.Money):
 		yield self.played_by.gain("Copper")
 		yield self.played_by.gain("Copper")
 
+
+class Cartographer(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Cartographer"
+		self.price = 5
+		self.type = "Action"
+		self.description = "{}{}Look at the top 4 cards of your deck and discard any. Put the rest back in any order".format(
+			crd.format_draw(1), crd.format_actions(1))
+
+	@gen.coroutine
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.draw(1)
+		self.played_by.actions += 1
+		if len(self.played_by.deck) < 4:
+			self.played_by.shuffle_discard_to_deck()
+
+		top4 = self.played_by.deck[-4:]
+		del self.played_by.deck[-len(top4):]
+		self.game.announce("-- looking at the top {} cards of their deck".format(len(top4)))
+		to_discard = yield self.played_by.select(None, len(top4), crd.card_list_to_titles(top4), 
+			"Discard cards from the top of your deck")
+		self.game.announce("-- discarding {} cards from it".format(len(to_discard)))
+		put_back = top4
+		for i in to_discard:
+			for c in top4:
+				if c.title == i:
+					self.played_by.discard_pile.append(c)
+					put_back.remove(c)
+					break
+		yield crd.reorder_top(self.played_by, put_back)
+		crd.Card.on_finished(self)
+
 class Embassy(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -308,16 +344,18 @@ class Embassy(crd.Card):
 	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		self.played_by.draw(5)
+		drawn = self.played_by.draw(5)
+		self.game.announce("-- drawing {}".format(drawn))
 		to_discard = yield self.played_by.select(3, 3, crd.card_list_to_titles(self.played_by.hand.card_array()), 
 			"Discard 3 cards")
+		self.game.announce("-- discarding {} cards".format(len(to_discard)))
 		self.played_by.discard(to_discard, self.played_by.discard_pile)
 		crd.Card.on_finished(self, True, False)
 
 	@gen.coroutine
 	def on_gain(self):
 		for i in self.played_by.get_opponents():
-			yield i.gain("Silver", False)
+			yield i.gain("Silver", True)
 
 class Highway(crd.Card):
 	def __init__(self, game, played_by):
@@ -410,12 +448,10 @@ class Mandarin(crd.Card):
 			self.game.announce("-- placing treasures back on top of their deck")
 			self.played_by.deck += played_treasures
 		else:
-			yield crd.reorder_top(self.played_by, played_treasures, lambda :self.done_gaining())
-
-	def done_gaining(self):
-		self.game.announce("-- placing treasures back on top of their deck")
-		if self.game.get_turn_owner() == self.played_by:
-			self.played_by.update_mode()
+			yield crd.reorder_top(self.played_by, played_treasures)
+			self.game.announce("-- placing treasures back on top of their deck")
+			if self.game.get_turn_owner() == self.played_by:
+				self.played_by.update_mode()
 
 class Margrave(crd.AttackCard):
 	def __init__(self, game, played_by):

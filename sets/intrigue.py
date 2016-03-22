@@ -531,7 +531,8 @@ class Scout(crd.Card):
 		self.played_by.update_deck_size()
 
 		cards_left = [x for x in revealed if "Victory" not in x.type]
-		yield crd.reorder_top(self.played_by, cards_left, lambda : crd.Card.on_finished(self, False, False))
+		yield crd.reorder_top(self.played_by, cards_left)
+		crd.Card.on_finished(self, False, False)
 
 # --------------------------------------------------------
 # ------------------------ 5 Cost ------------------------
