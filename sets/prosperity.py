@@ -479,12 +479,10 @@ class Rabble(crd.AttackCard):
 					player.update_discard_size()
 
 				cards_left = [x for x in revealed if "Action" not in x.type and "Treasure" not in x.type]
-				yield crd.reorder_top(player, cards_left, self.finish)
+				yield crd.reorder_top(player, cards_left)
+				if not self.played_by.is_waiting():
+					crd.Card.on_finished(self, False, False)
 		else:
-			crd.Card.on_finished(self, False, False)
-
-	def finish(self):
-		if not self.played_by.is_waiting():
 			crd.Card.on_finished(self, False, False)
 
 class Royal_Seal(crd.Money):

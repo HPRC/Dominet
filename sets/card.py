@@ -228,15 +228,14 @@ def parallel_selects(futures, players, callback):
 # asks player to reorder input list of cards
 # player = player who is reordering
 # cards_to_reorder = list of card objects have already been removed from the top of deck
-# callback = called when player finishes reordering the top of his/her deck
 @gen.coroutine
-def reorder_top(player, cards_to_reorder, callback):
+def reorder_top(player, cards_to_reorder):
 	if len(cards_to_reorder) == 0:
-		callback()
+		return
 	elif len(set(map(lambda x: x.title, cards_to_reorder))) == 1:
 		player.deck += cards_to_reorder
 		player.update_deck_size()
-		callback()
+		return
 	else:
 		turn_owner = player.game.get_turn_owner()
 		if turn_owner != player:
@@ -249,7 +248,6 @@ def reorder_top(player, cards_to_reorder, callback):
 					player.deck.append(y)
 					break
 		player.update_deck_size()
-		callback()
 
 #search through a players deck and discard until findng a specific card
 # player = player who owns deck to search through
