@@ -471,6 +471,30 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player1.deck[-1].title == "Village")
 		self.assertTrue(self.player1.deck[-2].title == "Silver")
 
+	@tornado.testing.gen_test
+	def test_Oracle(self):
+		tu.print_test_header("test Oracle")
+		oracle = hl.Oracle(self.game, self.player1)
+		curse = supply_cards.Curse(self.game, self.player1)
+		self.player1.deck += [curse, curse]
+		self.player1.hand.add(oracle)
+
+		deck_size2 = len(self.player2.deck)
+		deck_size3 = len(self.player3.deck)
+		discard_size2 = len(self.player2.discard_pile)
+		discard_size3 = len(self.player3.discard_pile)
+		oracle.play()
+
+		yield tu.send_input(self.player1, "post_selection", ["discard"])
+		self.assertTrue(curse not in self.player1.deck)
+		self.assertTrue(curse in self.player1.discard_pile)
+
+		yield tu.send_input(self.player1, "post_selection", ["keep"])
+		self.assertTrue(len(self.player2.deck) == deck_size2)
+		self.assertTrue(len(self.player2.discard_pile) == discard_size2)
+		yield tu.send_input(self.player1, "post_selection", ["discard"])
+		self.assertTrue(len(self.player3.deck) == deck_size3 - 2)
+		self.assertTrue(len(self.player3.discard_pile) == discard_size3 + 2)
 
 
 if __name__ == '__main__':
