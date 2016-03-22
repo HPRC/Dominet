@@ -217,6 +217,9 @@ class Trader(crd.Card):
 		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
 
 
+
+
+
 # --------------------------------------------------------
 # ------------------------ 5 Cost ------------------------
 # --------------------------------------------------------
@@ -329,6 +332,60 @@ class Mandarin(crd.Card):
 		if self.game.get_turn_owner() == self.played_by:
 			self.played_by.update_mode()
 
+
+class Jack_of_All_Trades(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Jack of All Trades"
+		self.description("Gain a silver. Look at the top card of your deck, discard it or put it back."\
+											"Draw until you have 5 cards in hand. You may trash a card from your hand that's not a treasure ")
+		self.price = 4
+		self.type = "Action"
+
+	@gen.coroutine
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		# Gain a silver
+		silver = self.played_by.get_card_from_supply("Silver", True)
+		if silver is not None:
+			yield self.played_by.gain_helper(silver, True, self.played_by.name_string() + " gains " + silver.log_string())
+		else:
+			self.game.announce(self.played_by.name_string() + " tries to gain " + self.game.card_from_title("Silver").log_string() + " but it is out of supply.")
+		# Check the top card	
+		top_card = played_by.topdeck()	
+		if top_card
+			selection = yield self.played_by.select(1, 1, ["Discard", "Put Back"], "Discard " + x.deck[-1].title + " from the top of your deck?")
+			if selection[0] == "Discard":
+				played_by.discard_pile.append(card)
+				self.game.announce("-- " + played_by.name_string() + " discards " + card.log_string())
+			else:
+				caller.deck.append(card)
+				self.game.announce("-- " + played_by.name_string() + " puts back a card")
+		else:
+			self.game.announce("-- " + played_by.name_string() + "tries to look at the top card, but the deck is empty")
+		# Draw up to 5
+		num_to_draw = 5 - len(self.played_by.hand)
+		if num_to_draw > 0:
+			drawn = self.played_by.draw(num_to_draw)
+			self.played_by.update_hand()
+			self.game.announce("-- drawing " + drawn)
+		else:
+			self.game.announce("-- but already has at least 5 cards in hand")
+		# Trash a non-treasure	
+		non_treasure_cards = self.played_by.hand.get_cards_by_type("Treasure", False)
+		non_treasure_titles = list(set(map(lambda x: x.title, treasure_cards)))
+		if len(non_treasure_titles) == 0:
+			self.game.announce("-- but there were no non-treasure cards in hand")
+			crd.Card.on_finished(self, False, False)
+		else:	
+			card_selection = yield self.played_by.select(None, 1, non_treasure_titles, "Choose a non-treasure card to trash")
+			if card_selection:
+				self.played_by.discard(card_selection, self.game.trash_pile)
+				self.game.announce("-- trashing " + self.game.log_string_from_title(card_selection[0]))
+				self.played_by.update_hand()
+			else:
+		crd.Card.on_finished(self, False, False)
+
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------
 # --------------------------------------------------------
@@ -374,8 +431,10 @@ class Farmland(crd.VictoryCard):
 		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),
 		                                        "select card to trash")
 		if selection:
+			self.played_by.update_resources()
 			self.played_by.discard(selection, self.game.trash_pile)
 			card_trashed = self.game.card_from_title(selection[0])
+			print("TRASHED CARD PRICE " + str(card_trashed.price))
 			self.played_by.update_hand()
 			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
 			selected = yield self.played_by.select_from_supply("Choose the a card to gain", card_trashed.price + 2, True)
