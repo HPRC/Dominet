@@ -111,15 +111,13 @@ class Develop(crd.Card):
 			self.game.announce(self.played_by.name_string() + ' trashes ' + card_trashed.log_string())
 			self.game.announce('-- gaining a card costing one more than ' + card_trashed.log_string())
 			gain_plus_one = yield self.played_by.select_from_supply('Select a card costing exactly one more than ' + card_trashed.title, 
-				card_trashed.get_price() + 1, 
-				equal_only=True)
+				lambda x : x.get_price() == card_trashed.get_price() + 1)
 			if gain_plus_one:
 				yield self.played_by.gain(gain_plus_one[0])
 			
 			self.game.announce('-- gaining a card costing one less than ' + card_trashed.log_string())
 			gain_minus_one = yield self.played_by.select_from_supply('Select a card costing exactly one less than ' + card_trashed.title, 
-				card_trashed.get_price() - 1, 
-				equal_only=True)
+				lambda x : x.get_price() == card_trashed.get_price() - 1)
 			if gain_minus_one:
 				yield self.played_by.gain(gain_minus_one[0])
 			
@@ -399,6 +397,30 @@ class Embassy(crd.Card):
 		for i in self.played_by.get_opponents():
 			yield i.gain("Silver", True)
 
+class Haggler(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Haggler"
+		self.price = 5
+		self.type = "Action"
+		self.description = "{} While this is in play, when you buy a card, gain a card "\
+		"costing less than the bought card that is not a victory card".format(crd.format_money(2))
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.balance += 2
+		self.game.announce("-- gaining +$2")
+		crd.Card.on_finished(self, False, True)
+
+	@gen.coroutine
+	def on_buy_effect(self, purchased_card):
+		gain_price = purchased_card.get_price()
+		self.game.announce("-- haggling for more")
+		selected = yield self.played_by.select_from_supply("Gain a card costing less than {}".format(gain_price),
+			lambda x : x.get_price() <= gain_price - 1 and "Victory" not in x.type)
+		if selected:
+			yield self.played_by.gain(selected[0], custom_announce="-- gaining a {}".format(self.game.log_string_from_title(selected[0])))
+
 class Highway(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -543,7 +565,8 @@ class Border_Village(crd.Card):
 	def on_gain(self):
 		border_village_cost = self.get_price()
 		reduced_cost = border_village_cost - 1
-		selection = yield self.played_by.select_from_supply("Gain a card costing up to ${}".format(reduced_cost), reduced_cost)
+		selection = yield self.played_by.select_from_supply("Gain a card costing up to ${}".format(reduced_cost), 
+			lambda x : x.get_price() <= reduced_cost)
 		yield self.played_by.gain(selection[0], True)
 
 
@@ -565,7 +588,7 @@ class Farmland(crd.VictoryCard):
 			self.played_by.discard(selection, self.game.trash_pile)
 			card_trashed = self.game.card_from_title(selection[0])
 			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
-			selected = yield self.played_by.select_from_supply("Choose the a card to gain", card_trashed.get_price() + 2, True)
+			selected = yield self.played_by.select_from_supply("Choose the a card to gain", lambda x : x.get_price() == card_trashed.get_price() + 2)
 			if selected:
 				yield self.played_by.gain(selected[0])
 				crd.Card.on_finished(self, False, False)

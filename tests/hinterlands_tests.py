@@ -496,6 +496,23 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.assertTrue(len(self.player3.deck) == deck_size3 - 2)
 		self.assertTrue(len(self.player3.discard_pile) == discard_size3 + 2)
 
+	@tornado.testing.gen_test
+	def test_Haggler(self):
+		tu.print_test_header("test Haggler")
+		haggler = hl.Haggler(self.game, self.player1)
+		self.player1.hand.add(haggler)
+		haggler.play()
+		self.assertTrue(self.player1.balance == 2)
+		self.player1.balance = 8
+		self.player1.buys = 2
+
+		tu.send_input(self.player1, "buyCard", "Gold")
+		self.assertTrue(self.player1.last_mode["mode"] == "selectSupply")
+		yield tu.send_input(self.player1, "post_selection", ["Duchy"])
+		self.assertTrue(self.player1.discard_pile[-1].title ==  "Duchy")
+		tu.send_input(self.player1, "buyCard", "Estate")
+		yield tu.send_input(self.player1, "post_selection", ["Copper"])
+		self.assertTrue(self.player1.discard_pile[-1].title ==  "Copper")
 
 if __name__ == '__main__':
 	unittest.main()
