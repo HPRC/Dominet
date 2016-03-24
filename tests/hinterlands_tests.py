@@ -514,5 +514,43 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "post_selection", ["Copper"])
 		self.assertTrue(self.player1.discard_pile[-1].title ==  "Copper")
 
+	@tornado.testing.gen_test
+	def test_Stables(self):
+		tu.print_test_header("test Stables")
+		stables = hl.Stables(self.game, self.player1)
+		stables2 = hl.Stables(self.game, self.player1)
+		self.player1.hand.add(stables)
+		self.player1.deck.append(stables2)
+		stables.play()
+		yield tu.send_input(self.player1, "post_selection", ["Copper"])
+		# original hand of 6 - stables - copper = 4, draw 3 = 7
+		self.assertTrue(len(self.player1.hand) == 7)
+		self.assertTrue(self.player1.actions == 1)
+		stables2.play()
+		# nothing happens if you don't discard a treasure
+		yield tu.send_input(self.player1, "post_selection", [])
+		self.assertTrue(len(self.player1.hand) == 6)
+		self.assertTrue(self.player1.actions == 0)
+
+	@tornado.testing.gen_test
+	def test_Noble_Brigand(self):
+		tu.print_test_header("test Noble Brigand")
+		silver = supply_cards.Silver(self.game, self.player2)
+		estate = supply_cards.Estate(self.game, self.player3)
+		self.player2.deck.append(silver)
+		self.player3.deck += [estate, estate]
+		nb = hl.Noble_Brigand(self.game, self.player1)
+		deck2size = len(self.player2.deck)
+		deck3size = len(self.player3.deck)
+		nb.play()
+		yield tu.send_input(self.player1, "post_selection", ["Silver"])
+		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
+		self.assertTrue(len(self.player2.discard_pile) == 1)
+		self.assertTrue(len(self.player2.deck) == deck2size - 2)
+		self.assertTrue(self.player2.deck[-1].title != "Silver")
+		self.assertTrue(len(self.player3.deck) == deck3size - 2)
+		self.assertTrue(len(self.player3.discard_pile) == 3)
+		self.assertTrue(self.player3.discard_pile[-1].title == "Copper")
+
 if __name__ == '__main__':
 	unittest.main()
