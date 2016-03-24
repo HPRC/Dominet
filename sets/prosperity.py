@@ -688,7 +688,7 @@ class Expand(crd.Card):
 			self.played_by.discard(selection, self.game.trash_pile)
 			card_trashed = self.game.card_from_title(selection[0])
 			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
-			selected = yield self.played_by.select_from_supply("Choose the expanded card", card_trashed.get_price() + 3, False)
+			selected = yield self.played_by.select_from_supply("Choose the expanded card", lambda x : x.get_price() <= card_trashed.get_price() + 3)
 			if selected:
 				yield self.played_by.gain(selected[0])
 				crd.Card.on_finished(self, False, False)
@@ -767,7 +767,7 @@ class Forge(crd.Card):
 			self.game.announce("{} trashes nothing to gain a card with cost 0".format(self.played_by.name_string()))
 		self.game.update_trash_pile()
 
-		gained = yield self.played_by.select_from_supply("Gain a card from the forge", price_limit=trash_sum, equal_only=True, optional=False)
+		gained = yield self.played_by.select_from_supply("Gain a card from the forge", lambda x : x.get_price() == trash_sum, optional=False)
 		if gained:
 			yield self.played_by.gain(gained[0])
 		self.played_by.update_wait(True)

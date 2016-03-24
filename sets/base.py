@@ -151,7 +151,7 @@ class Workshop(crd.Card):
 	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		gaining_list = yield self.played_by.select_from_supply("Select a card to gain costing up to $4", 4, False)
+		gaining_list = yield self.played_by.select_from_supply("Select a card to gain costing up to $4", lambda x : x.get_price() <= 4)
 		if gaining_list:
 			yield self.played_by.gain(gaining_list[0])
 		crd.Card.on_finished(self, False, False)
@@ -211,7 +211,7 @@ class Feast(crd.Card):
 			self.game.update_trash_pile()
 			self.game.announce("-- trashing " + self.log_string())
 		self.played_by.update_resources()
-		selection = yield self.played_by.select_from_supply("Select a card to gain from Feast", 5, False)
+		selection = yield self.played_by.select_from_supply("Select a card to gain from Feast", lambda x : x.get_price() <= 5)
 		if selection:
 			yield self.played_by.gain(selection[0])
 		crd.Card.on_finished(self, False, False)
@@ -288,7 +288,7 @@ class Remodel(crd.Card):
 			self.played_by.discard(selection, self.game.trash_pile)
 			card_trashed = self.game.card_from_title(selection[0])
 			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
-			gain_list = yield self.played_by.select_from_supply("Select a card to gain from Remodel", card_trashed.get_price() + 2, False)
+			gain_list = yield self.played_by.select_from_supply("Select a card to gain from Remodel", lambda x : x.get_price() <= card_trashed.get_price() + 2)
 			if gain_list:
 				yield self.played_by.gain(gain_list[0])
 				crd.Card.on_finished(self, False, False)
@@ -627,7 +627,8 @@ class Mine(crd.Card):
 				self.played_by.discard(selection, self.game.trash_pile)
 				card_trashed = self.game.card_from_title(selection[0])
 				self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
-				gain_treasure = yield self.played_by.select_from_supply("Select a treasure to gain", card_trashed.get_price() + 3, False, "Treasure")
+				gain_treasure = yield self.played_by.select_from_supply("Select a treasure to gain", 
+					lambda x : x.get_price() <= card_trashed.get_price() + 3 and "Treasure" in x.type)
 				if gain_treasure:
 					yield self.played_by.gain_to_hand(gain_treasure[0])
 			crd.Card.on_finished(self, False, False)

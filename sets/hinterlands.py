@@ -146,21 +146,62 @@ class Develop(crd.Card):
 			self.game.announce(self.played_by.name_string() + ' trashes ' + card_trashed.log_string())
 			self.game.announce('-- gaining a card costing one more than ' + card_trashed.log_string())
 			gain_plus_one = yield self.played_by.select_from_supply('Select a card costing exactly one more than ' + card_trashed.title, 
-				card_trashed.get_price() + 1, 
-				equal_only=True)
+				lambda x : x.get_price() == card_trashed.get_price() + 1)
 			if gain_plus_one:
 				yield self.played_by.gain(gain_plus_one[0])
 			
 			self.game.announce('-- gaining a card costing one less than ' + card_trashed.log_string())
 			gain_minus_one = yield self.played_by.select_from_supply('Select a card costing exactly one less than ' + card_trashed.title, 
-				card_trashed.get_price() - 1, 
-				equal_only=True)
+				lambda x : x.get_price() == card_trashed.get_price() - 1)
 			if gain_minus_one:
 				yield self.played_by.gain(gain_minus_one[0])
 			
 			crd.Card.on_finished(self, False, False)			
 		else:
 			crd.Card.on_finished(self)
+
+
+class Oracle(crd.AttackCard):
+	def __init__(self, game, played_by):
+		crd.AttackCard.__init__(self, game, played_by)
+		self.title = 'Oracle'
+		self.description = 'Each player reveals the top 2 cards of their deck and you choose to discard them or'\
+		' put them back in the order of the player\'s choice. {}'.format(crd.format_draw(2))
+		self.price = 3
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+
+	def attack(self):
+		self.fire(self.played_by)
+
+	@gen.coroutine
+	def fire(self, player):
+		if crd.AttackCard.fire(self, player):
+			if len(player.deck) < 2:
+				player.shuffle_discard_to_deck()
+			if len(player.deck) < 1:
+					self.game.announce(player.name_string() + " has no cards to Spy.")
+					crd.AttackCard.get_next(self, player)
+					return
+			revealed_cards = player.deck[-2:]
+			revealed_cards_titles = crd.card_list_to_titles(revealed_cards)
+			reveal_string = " & ".join(crd.card_list_log_strings(revealed_cards))
+			selection = yield self.played_by.select(1, 1, ["discard", "keep"],
+				"{} reveals {}".format(player.name, " & ".join(revealed_cards_titles)))
+			if selection[0] == "discard":
+				self.game.announce("{} discards {} from {}'s deck".format(self.played_by.name_string(),
+					 reveal_string, player.name_string()))
+				for i in range(0, len(revealed_cards)):
+					card = player.deck.pop()
+					player.discard_pile.append(card)
+					player.update_deck_size()
+					player.update_discard_size()
+			else:
+				self.game.announce("{} leaves {} on {}'s deck".format(self.played_by.name_string(), reveal_string,
+					player.name_string()))
+			crd.AttackCard.get_next(self, player)
 
 class Scheme(crd.Card):
 	def __init__(self, game, played_by):
@@ -198,6 +239,69 @@ class Scheme(crd.Card):
 # --------------------------------------------------------
 # ------------------------ 4 Cost ------------------------
 # --------------------------------------------------------
+
+class Noble_Brigand(crd.AttackCard):
+	def __init__(self, game, played_by):
+		crd.AttackCard.__init__(self, game, played_by)
+		self.title = 'Noble Brigand'
+		self.description = '{}When you buy this or play it, each other player reveals the top '\
+		'2 cards of their deck. You may trash and gain one revealed Silver or Gold. Discard '\
+		'the rest of the revealed cards. If they reveal no Treasures, they gain a Copper.'.format(crd.format_money(1))
+		self.price = 4
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+
+	def attack(self):
+		self.fire(self.played_by.get_left_opponent())
+
+	@gen.coroutine
+	def fire(self, player, from_buy=False):
+		if crd.AttackCard.fire(self, player) or from_buy:
+			if len(player.deck) < 2:
+				player.shuffle_discard_to_deck()
+				if len(player.deck) < 1:
+					self.game.announce(player.name_string() + " has no cards to Noble Brigand.")
+					crd.AttackCard.get_next(self, player)
+					return
+			revealed_cards = player.deck[-2:]
+			del player.deck[-2:]
+			revealed_cards_titles = crd.card_list_to_titles(revealed_cards)
+			reveal_string = " & ".join(crd.card_list_log_strings(revealed_cards))
+			revealed_treasures = [x for x in revealed_cards if "Treasure" in x.type]
+
+			revealed_gold_or_silver = [x for x in revealed_cards_titles if x == "Gold" or x == "Silver"]
+
+			if revealed_gold_or_silver:
+				self.game.announce("-- {} reveals {}".format(player.name_string(), reveal_string))
+				trash_selection = yield self.played_by.select(None, 1, list(set(revealed_gold_or_silver)),
+					"Trash and gain {}'s revealed Gold or Silver?".format(player.name))
+				if trash_selection[0]:
+					self.game.announce("-- {} trashes {} from {}'s deck".format(self.played_by.name_string(),
+						 self.game.log_string_from_title(trash_selection[0]), player.name_string()))
+					to_trash = revealed_cards.pop(0) if revealed_cards[0].title == trash_selection[0] else revealed_cards.pop(1)
+					yield self.played_by.gain(to_trash.title, from_supply=False, custom_announce="-- {} gains {}".format(self.played_by.name_string(), to_trash.log_string()))
+			else:
+				self.game.announce("-- {} reveals and discards {}".format(player.name_string(), reveal_string))
+			player.discard_pile += revealed_cards
+			if not revealed_treasures:
+				yield player.gain("Copper")
+			player.update_discard_size()
+			if from_buy:
+				self.get_next(player)
+			else:
+				crd.AttackCard.get_next(self, player)
+
+	@gen.coroutine
+	def get_next(self, victim):
+		next_player_index = (self.game.players.index(victim) + 1) % len(self.game.players)
+		if self.game.players[next_player_index] != self.played_by:
+			yield gen.maybe_future(self.fire(self.game.players[next_player_index]))
+
+	@gen.coroutine
+	def on_buy(self):
+		yield self.fire(self.played_by.get_left_opponent(), True)
 
 class Nomad_Camp(crd.Card):
 	def __init__(self, game, played_by):
@@ -390,6 +494,30 @@ class Embassy(crd.Card):
 		for i in self.played_by.get_opponents():
 			yield i.gain("Silver", True)
 
+class Haggler(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Haggler"
+		self.price = 5
+		self.type = "Action"
+		self.description = "{} While this is in play, when you buy a card, gain a card "\
+		"costing less than the bought card that is not a victory card".format(crd.format_money(2))
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.balance += 2
+		self.game.announce("-- gaining +$2")
+		crd.Card.on_finished(self, False, True)
+
+	@gen.coroutine
+	def on_buy_effect(self, purchased_card):
+		gain_price = purchased_card.get_price()
+		self.game.announce("-- haggling for more")
+		selected = yield self.played_by.select_from_supply("Gain a card costing less than {}".format(gain_price),
+			lambda x : x.get_price() <= gain_price - 1 and "Victory" not in x.type)
+		if selected:
+			yield self.played_by.gain(selected[0], custom_announce="-- gaining a {}".format(self.game.log_string_from_title(selected[0])))
+
 class Highway(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -509,6 +637,29 @@ class Margrave(crd.AttackCard):
 			yield crd.discard_down(affected, 3)
 		crd.AttackCard.on_finished(self, True, False)
 
+class Stables(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Stables"
+		self.description = "You may discard a Treasure from hand. If you do:\n" \
+		                   "{}{}".format(crd.format_draw(3), crd.format_actions(1))
+		self.price = 5
+		self.type = "Action"
+
+	@gen.coroutine
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		treasure_cards_in_hand = self.played_by.hand.get_cards_by_type("Treasure", True)
+		if treasure_cards_in_hand:
+			to_discard = yield self.played_by.select(None, 1, list(set(crd.card_list_to_titles(treasure_cards_in_hand))), 
+				"Select a treasure to discard")
+			if to_discard:
+				self.played_by.discard(to_discard, self.played_by.discard_pile)
+				drawn = self.played_by.draw(3)
+				self.game.announce("-- discarding {} to gain an action and draw {}".format(self.game.log_string_from_title(to_discard[0]), drawn))
+				self.played_by.actions += 1
+		crd.Card.on_finished(self, False, True)
+
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------
 # --------------------------------------------------------
@@ -534,7 +685,8 @@ class Border_Village(crd.Card):
 	def on_gain(self):
 		border_village_cost = self.get_price()
 		reduced_cost = border_village_cost - 1
-		selection = yield self.played_by.select_from_supply("Gain a card costing up to ${}".format(reduced_cost), reduced_cost)
+		selection = yield self.played_by.select_from_supply("Gain a card costing up to ${}".format(reduced_cost), 
+			lambda x : x.get_price() <= reduced_cost)
 		yield self.played_by.gain(selection[0], True)
 
 
@@ -556,7 +708,7 @@ class Farmland(crd.VictoryCard):
 			self.played_by.discard(selection, self.game.trash_pile)
 			card_trashed = self.game.card_from_title(selection[0])
 			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
-			selected = yield self.played_by.select_from_supply("Choose the a card to gain", card_trashed.get_price() + 2, True)
+			selected = yield self.played_by.select_from_supply("Choose the a card to gain", lambda x : x.get_price() == card_trashed.get_price() + 2)
 			if selected:
 				yield self.played_by.gain(selected[0])
 				crd.Card.on_finished(self, False, False)

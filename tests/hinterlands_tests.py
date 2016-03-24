@@ -471,7 +471,86 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player1.deck[-1].title == "Village")
 		self.assertTrue(self.player1.deck[-2].title == "Silver")
 
+	@tornado.testing.gen_test
+	def test_Oracle(self):
+		tu.print_test_header("test Oracle")
+		oracle = hl.Oracle(self.game, self.player1)
+		curse = supply_cards.Curse(self.game, self.player1)
+		self.player1.deck += [curse, curse]
+		self.player1.hand.add(oracle)
 
+		deck_size2 = len(self.player2.deck)
+		deck_size3 = len(self.player3.deck)
+		discard_size2 = len(self.player2.discard_pile)
+		discard_size3 = len(self.player3.discard_pile)
+		oracle.play()
+
+		yield tu.send_input(self.player1, "post_selection", ["discard"])
+		self.assertTrue(curse not in self.player1.deck)
+		self.assertTrue(curse in self.player1.discard_pile)
+
+		yield tu.send_input(self.player1, "post_selection", ["keep"])
+		self.assertTrue(len(self.player2.deck) == deck_size2)
+		self.assertTrue(len(self.player2.discard_pile) == discard_size2)
+		yield tu.send_input(self.player1, "post_selection", ["discard"])
+		self.assertTrue(len(self.player3.deck) == deck_size3 - 2)
+		self.assertTrue(len(self.player3.discard_pile) == discard_size3 + 2)
+
+	@tornado.testing.gen_test
+	def test_Haggler(self):
+		tu.print_test_header("test Haggler")
+		haggler = hl.Haggler(self.game, self.player1)
+		self.player1.hand.add(haggler)
+		haggler.play()
+		self.assertTrue(self.player1.balance == 2)
+		self.player1.balance = 8
+		self.player1.buys = 2
+
+		tu.send_input(self.player1, "buyCard", "Gold")
+		self.assertTrue(self.player1.last_mode["mode"] == "selectSupply")
+		yield tu.send_input(self.player1, "post_selection", ["Duchy"])
+		self.assertTrue(self.player1.discard_pile[-1].title ==  "Duchy")
+		tu.send_input(self.player1, "buyCard", "Estate")
+		yield tu.send_input(self.player1, "post_selection", ["Copper"])
+		self.assertTrue(self.player1.discard_pile[-1].title ==  "Copper")
+
+	@tornado.testing.gen_test
+	def test_Stables(self):
+		tu.print_test_header("test Stables")
+		stables = hl.Stables(self.game, self.player1)
+		stables2 = hl.Stables(self.game, self.player1)
+		self.player1.hand.add(stables)
+		self.player1.deck.append(stables2)
+		stables.play()
+		yield tu.send_input(self.player1, "post_selection", ["Copper"])
+		# original hand of 6 - stables - copper = 4, draw 3 = 7
+		self.assertTrue(len(self.player1.hand) == 7)
+		self.assertTrue(self.player1.actions == 1)
+		stables2.play()
+		# nothing happens if you don't discard a treasure
+		yield tu.send_input(self.player1, "post_selection", [])
+		self.assertTrue(len(self.player1.hand) == 6)
+		self.assertTrue(self.player1.actions == 0)
+
+	@tornado.testing.gen_test
+	def test_Noble_Brigand(self):
+		tu.print_test_header("test Noble Brigand")
+		silver = supply_cards.Silver(self.game, self.player2)
+		estate = supply_cards.Estate(self.game, self.player3)
+		self.player2.deck.append(silver)
+		self.player3.deck += [estate, estate]
+		nb = hl.Noble_Brigand(self.game, self.player1)
+		deck2size = len(self.player2.deck)
+		deck3size = len(self.player3.deck)
+		nb.play()
+		yield tu.send_input(self.player1, "post_selection", ["Silver"])
+		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
+		self.assertTrue(len(self.player2.discard_pile) == 1)
+		self.assertTrue(len(self.player2.deck) == deck2size - 2)
+		self.assertTrue(self.player2.deck[-1].title != "Silver")
+		self.assertTrue(len(self.player3.deck) == deck3size - 2)
+		self.assertTrue(len(self.player3.discard_pile) == 3)
+		self.assertTrue(self.player3.discard_pile[-1].title == "Copper")
 
 	@tornado.testing.gen_test
 	def test_Fools_Gold(self):

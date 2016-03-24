@@ -29,16 +29,10 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 		}
 
 		if ($scope.modeJson.mode === "selectSupply"){
-			if ($scope.modeJson.type_constraint !== null && card.type.indexOf($scope.modeJson.type_constraint) === -1){
-				return true;
+			if ($scope.modeJson.allowed.indexOf(card.title) !== -1){
+				return false;
 			} else {
-				if ($scope.modeJson.equal_only){
-					return $scope.getPrice(card) !== $scope.modeJson.price;
-				} else if ($scope.modeJson.price){
-					return $scope.getPrice(card) > $scope.modeJson.price;
-				} else {
-            return false
-        }
+				return true;
 			}
 		}
 		return (!$scope.turn || $scope.modeJson.mode === "wait" ||  $scope.modeJson.mode === "select" || $scope.modeJson.mode === "action" 
