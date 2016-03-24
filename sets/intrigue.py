@@ -629,7 +629,9 @@ class Torturer(crd.AttackCard):
 					self.game.announce(player.name_string() + " discards " + str(len(discard_selection)) + " cards")
 					player.discard(discard_selection, player.discard_pile)
 			player.update_wait(True)
-			player.update_mode()
+			for i in self.game.players:
+				if not i.is_waiting():
+					i.update_mode()
 			crd.AttackCard.get_next(self, player)
 
 
