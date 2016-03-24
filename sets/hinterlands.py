@@ -246,14 +246,12 @@ class Noble_Brigand(crd.AttackCard):
 					self.game.announce("-- {} trashes {} from {}'s deck".format(self.played_by.name_string(),
 						 self.game.log_string_from_title(trash_selection[0]), player.name_string()))
 					to_trash = revealed_cards.pop(0) if revealed_cards[0].title == trash_selection[0] else revealed_cards.pop(1)
-					yield self.played_by.gain_helper(to_trash, from_supply=False)
-					self.game.announce("-- {} gains {}".format(self.played_by.name_string(), to_trash.log_string()))
-					self.played_by.update_discard_size()
+					yield self.played_by.gain(to_trash.title, from_supply=False, custom_announce="-- {} gains {}".format(self.played_by.name_string(), to_trash.log_string()))
 			else:
 				self.game.announce("-- {} reveals and discards {}".format(player.name_string(), reveal_string))
 			player.discard_pile += revealed_cards
 			if not revealed_treasures:
-					yield player.gain("Copper")
+				yield player.gain("Copper")
 			player.update_discard_size()
 			if from_buy:
 				self.get_next(player)
