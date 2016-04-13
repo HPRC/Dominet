@@ -743,7 +743,7 @@ class Saboteur(crd.AttackCard):
 		self.game.announce("-- " + victim.name_string() + " is being sabotaged")
 
 		sabotaged = False
-		crd.search_deck_for(victim, lambda x : x.price >=3, lambda c: self.found(c, victim=victim))
+		crd.search_deck_for(victim, lambda x : x.get_price() >=3, lambda c: self.found(c, victim=victim))
 
 	@gen.coroutine
 	def found(self, card, victim):
