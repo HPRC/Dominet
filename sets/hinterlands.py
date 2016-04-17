@@ -30,7 +30,7 @@ class Crossroads(crd.Card):
 		crd.Card.on_finished(self, True)
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-default'>", self.title, "</span>"])
+		return "".join(["<span class='label label-action'>", self.title, "</span>"])
 
 
 class Duchess(crd.Card):
@@ -84,7 +84,7 @@ class Duchess(crd.Card):
 			duchy.played_by.update_mode()
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-default'>", self.title, "</span>"])
+		return "".join(["<span class='label label-action'>", self.title, "</span>"])
 
 
 # --------------------------------------------------------
@@ -383,7 +383,7 @@ class Trader(crd.Card):
 				self.game.announce("-- but doesnt have anything to trade")
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
+		return "".join(["<span class='label label-reaction'>", self.title, "s</span>" if plural else "</span>"])
 
 
 # --------------------------------------------------------
@@ -533,7 +533,7 @@ class Ill_Gotten_Gains(crd.Money):
 			yield i.gain("Curse")
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-warning'>", self.title, "</span>"])
+		return "".join(["<span class='label label-treasure'>", self.title, "</span>"])
 
 
 class Mandarin(crd.Card):

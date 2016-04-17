@@ -79,7 +79,7 @@ class Moat(crd.Card):
 			self.played_by.protection = 1
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
+		return "".join(["<span class='label label-reaction'>", self.title, "s</span>" if plural else "</span>"])
 
 
 # --------------------------------------------------------
@@ -237,7 +237,7 @@ class Gardens(crd.VictoryCard):
 		return int(self.played_by.total_deck_size() / 10)
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-success'>", self.title, "</span>"])
+		return "".join(["<span class='label label-victory'>", self.title, "</span>"])
 
 
 class Militia(crd.AttackCard):
@@ -349,7 +349,7 @@ class Spy(crd.AttackCard):
 			crd.AttackCard.get_next(self, player)
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-danger'>", "Spies" if plural else self.title, "</span>"])
+		return "".join(["<span class='label label-attack'>", "Spies" if plural else self.title, "</span>"])
 
 class Smithy(crd.Card):
 	def __init__(self, game, played_by):
@@ -366,7 +366,7 @@ class Smithy(crd.Card):
 		crd.Card.on_finished(self)
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-default'>", "Smithies" if plural else self.title, "</span>"])
+		return "".join(["<span class='label label-action'>", "Smithies" if plural else self.title, "</span>"])
 
 class Thief(crd.AttackCard):
 	def __init__(self, game, played_by):
@@ -442,7 +442,7 @@ class Thief(crd.AttackCard):
 		yield self.post_select_gain(steal_trashed, thieved, card_to_trash.title)
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-danger'>", "Thieves" if plural else self.title, "</span>"])
+		return "".join(["<span class='label label-attack'>", "Thieves" if plural else self.title, "</span>"])
 
 
 class Throne_Room(crd.Card):
@@ -541,7 +541,7 @@ class Laboratory(crd.Card):
 		crd.Card.on_finished(self)
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-default'>", "Laboratories" if plural else self.title, "</span>"])
+		return "".join(["<span class='label label-action'>", "Laboratories" if plural else self.title, "</span>"])
 
 
 class Library(crd.Card):
@@ -594,7 +594,7 @@ class Library(crd.Card):
 		crd.Card.on_finished(self)
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-default'>", "Libraries" if plural else self.title, "</span>"])
+		return "".join(["<span class='label label-action'>", "Libraries" if plural else self.title, "</span>"])
 
 
 class Market(crd.Card):
@@ -670,7 +670,7 @@ class Witch(crd.AttackCard):
 		crd.AttackCard.get_next(self, victim)
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-danger'>", self.title, "es</span>" if plural else "</span>"])
+		return "".join(["<span class='label label-attack'>", self.title, "es</span>" if plural else "</span>"])
 
 
 # --------------------------------------------------------

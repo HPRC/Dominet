@@ -9,6 +9,26 @@
   }
 }
 
+.label-action {
+  @include label-variant($label-action-bg);
+}
+
+.label-victory {
+  @include label-variant($label-victory-bg)
+}
+
+.label-attack {
+  @include label-variant($label-attack-bg)
+}
+
+.label-reaction {
+  @include label-variant($label-reaction-bg)
+}
+
+.label-treasure {
+  @include label-variant($label-treasure-bg)
+}
+
 .label-curse {
   @include label-variant($label-curse-bg);
 }
@@ -18,5 +38,5 @@
 }
 
 .label-danger-success {
-    @include label-variant-split($label-warning-bg, $label-success-bg)
+  @include label-variant-split($label-warning-bg, $label-success-bg)
 }

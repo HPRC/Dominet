@@ -81,7 +81,7 @@ class Card():
 		pass
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-default'>", self.title, "s</span>" if plural else "</span>"])
+		return "".join(["<span class='label label-action'>", self.title, "s</span>" if plural else "</span>"])
 
 class Money(Card):
 	def __init__(self, game, played_by):
@@ -114,7 +114,7 @@ class Money(Card):
 		return self.spend_all
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-warning'>", self.title, "s</span>" if plural else "</span>"])
+		return "".join(["<span class='label label-treasure'>", self.title, "s</span>" if plural else "</span>"])
 
 
 class AttackCard(Card):
@@ -169,7 +169,7 @@ class AttackCard(Card):
 		pass
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-danger'>", self.title, "s</span>" if plural else "</span>"])
+		return "".join(["<span class='label label-attack'>", self.title, "s</span>" if plural else "</span>"])
 
 class VictoryCard(Card):
 	def __init__(self, game, played_by):
@@ -183,7 +183,7 @@ class VictoryCard(Card):
 		return
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-success'>", self.title, "s</span>" if plural else "</span>"])
+		return "".join(["<span class='label label-victory'>", self.title, "s</span>" if plural else "</span>"])
 
 # Utility
 #format game resources used for card descriptions

@@ -105,7 +105,7 @@ class Secret_Chamber(crd.Card):
 		return final_drawn
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
+		return "".join(["<span class='label label-reaction'>", self.title, "s</span>" if plural else "</span>"])
 
 
 # --------------------------------------------------------
@@ -129,7 +129,7 @@ class Great_Hall(crd.VictoryCard):
 		crd.Card.on_finished(self)
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-default-success'>", self.title + "s</span>" if plural else self.title, "</span>"])
+		return "".join(["<span class='label label-action-victory'>", self.title + "s</span>" if plural else self.title, "</span>"])
 
 
 class Masquerade(crd.Card):
@@ -463,7 +463,7 @@ class Ironworks(crd.Card):
 		post_gain()
 		
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-default'>", self.title, "</span>"])
+		return "".join(["<span class='label label-action'>", self.title, "</span>"])
 
 
 class Mining_Village(crd.Card):
@@ -813,7 +813,7 @@ class Harem(crd.Money):
 		self.type = "Treasure|Victory"
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-danger-success'>", self.title + "s</span>" if plural else self.title, "</span>"])
+		return "".join(["<span class='label label-treasure-victory'>", self.title + "s</span>" if plural else self.title, "</span>"])
 
 	def get_vp(self):
 		return self.vp
@@ -845,4 +845,4 @@ class Nobles(crd.VictoryCard):
 		crd.Card.on_finished(self)
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-default-success'>", "Nobles</span>" if plural else self.title, "</span>"])
+		return "".join(["<span class='label label-action-victory'>", "Nobles</span>" if plural else self.title, "</span>"])
