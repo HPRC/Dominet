@@ -1,0 +1,41 @@
+.label-danger {
+  background: transparent;
+  font-style: bold;
+  font-size: 13px;
+  color: $attack-color;
+}
+
+.label-success {
+  background: transparent;
+  font-style: bold;
+  font-size: 13px;
+  color: $victory-color;
+}
+
+.label-info {
+  background: transparent;
+  font-style: bold;
+  font-size: 13px;
+  color: $reaction-color;
+}
+
+.label-warning {
+  background: transparent;
+  font-style: bold;
+  font-size: 13px;
+  color: $treasure-color;
+}
+
+.label-curse {
+  background: transparent;
+  font-style: bold;
+  font-size: 13px;
+  color: $curse-color;
+}
+
+.label-default {
+  background: transparent;
+  font-style: bold;
+  font-size: 13px;
+  color: $action-color;
+}
