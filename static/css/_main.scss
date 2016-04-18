@@ -11,6 +11,27 @@ html, body {
 	height: 100%;
 }
 
+#userBar {
+	height: 50px;
+	.userbar-wrapper {
+		position: relative;
+		top: 50%;
+		transform: translateY(-50%);
+
+		#theme {
+				background-color: transparent;
+				border: none;
+				float: right;
+			}
+	}
+	
+}
+
+.main-container {
+	height:96%;
+}
+
+
 #container {
 	padding-left:2%;
 	padding-right:2%;

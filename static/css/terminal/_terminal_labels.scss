@@ -1,41 +1,30 @@
-.label-danger {
+@mixin terminal_label($color) {
   background: transparent;
   font-style: bold;
   font-size: 13px;
-  color: $attack-color;
+  color: $color;
 }
 
-.label-success {
-  background: transparent;
-  font-style: bold;
-  font-size: 13px;
-  color: $victory-color;
+.label-attack {
+  @include terminal_label($attack_color);
 }
 
-.label-info {
-  background: transparent;
-  font-style: bold;
-  font-size: 13px;
-  color: $reaction-color;
+.label-victory {
+  @include terminal_label($victory-color);
 }
 
-.label-warning {
-  background: transparent;
-  font-style: bold;
-  font-size: 13px;
-  color: $treasure-color;
+.label-reaction {
+  @include terminal_label($reaction-color);
+}
+
+.label-treasure {
+  @include terminal_label($treasure-color);
 }
 
 .label-curse {
-  background: transparent;
-  font-style: bold;
-  font-size: 13px;
-  color: $curse-color;
+  @include terminal_label($curse-color);
 }
 
-.label-default {
-  background: transparent;
-  font-style: bold;
-  font-size: 13px;
-  color: $action-color;
+.label-action {
+  @include terminal_label($action-color);
 }

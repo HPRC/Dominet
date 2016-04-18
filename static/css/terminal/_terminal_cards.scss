@@ -88,3 +88,6 @@
   @include terminal-card($treasure-color, $reaction-color);
 }
 
+.supply-option {
+  @include terminal-card($terminal-default);
+}
