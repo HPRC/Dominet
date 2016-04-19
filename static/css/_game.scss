@@ -1,4 +1,13 @@
+.client-container {
+	padding: $header_height 0 15px;
+}
+
+#leftColumn {
+	padding-right: 0;
+}
+
 #middleColumn {
+	padding-left: 0;
 	height:100%;
 }
 
@@ -7,6 +16,7 @@
 	padding-bottom:1em;
 	height:69%;
 	width:100%;
+
 }
 
 #hand {
