@@ -33,10 +33,10 @@
   @include label-variant($label-curse-bg);
 }
 
-.label-default-success {
-  @include label-variant-split($gray, $label-success-bg)
+.label-action-victory {
+  @include label-variant-split($gray, $label-victory-bg)
 }
 
-.label-danger-success {
-  @include label-variant-split($label-warning-bg, $label-success-bg)
+.label-treasure-victory {
+  @include label-variant-split($label-treasure-bg, $label-victory-bg)
 }

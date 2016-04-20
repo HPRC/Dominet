@@ -1,8 +1,16 @@
-@mixin terminal_label($color) {
+@mixin terminal_label($color, $color2:"") {
   background: transparent;
   font-style: bold;
   font-size: 13px;
   color: $color;
+  @if ($color2 == "") {
+      // nothing
+  } @else {
+    &::before {
+      content: "▶ ";
+      color: $color2;
+    }
+  }
 }
 
 .label-attack {
@@ -28,3 +36,16 @@
 .label-action {
   @include terminal_label($action-color);
 }
+
+.label-action-victory {
+  @include terminal_label($action-color, $victory-color)
+}
+
+.label-treasure-reaction {
+  @include terminal_label($treasure-color, $reaction-color)
+}
+
+.label-treasure-victory {
+  @include terminal_label($treasure-color, $victory-color)
+}
+

@@ -12,7 +12,7 @@
       // nothing
     } @else {
       &::before {
-        content: "◤";
+        content: "▶";
         color: $color2;
       }
     }

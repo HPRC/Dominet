@@ -17,6 +17,11 @@
   }
 }
 
+.game-userbar {
+  background: transparent;
+  color: $terminal_default;
+}
+
 * {
   font-family: Courier;
   background-color: $terminal_background;

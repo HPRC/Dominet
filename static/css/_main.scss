@@ -27,13 +27,15 @@ h1, h2, h3, h4, h5, h6 {
 	height: 100%;
 }
 
-#userBar {
-	margin:0 -15px;
+.userbar {
 	background-color: black;
+	color: white;
+}
+
+.userbar-wrapper {
+	margin:0 -15px;
 	height: $header_height;
 	line-height: $header_height;
-	color: white;
-
 	#theme {
 		background-color: transparent;
 		border: none;
@@ -45,11 +47,9 @@ h1, h2, h3, h4, h5, h6 {
 		color: white;
 		float: right;
 	}
-
 	span {
 		margin: 0 15px;
 	}
-	
 }
 
 .main-container {
@@ -60,7 +60,6 @@ h1, h2, h3, h4, h5, h6 {
 	overflow: auto;
 	word-wrap:break-word;
 	height: 125px;
-	background-color: white;
 }
 
 .footer {

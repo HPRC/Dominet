@@ -40,8 +40,8 @@
     <title>Dominet</title>
 </head>
 <div id="container" class="container-fluid full-height" ng-init="main.game = false">
-	<div id="userBar">
-		<div class="userbar-wrapper">
+	<div class="userbar-wrapper">
+		<div ng-class="main.game ? 'game-userbar': 'userbar'">
 			<span class="h4">Welcome {{name}}</span>
 				<select
 					id="theme"
