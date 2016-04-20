@@ -652,7 +652,7 @@ class Grand_Market(crd.Card):
 
 class Bank(crd.Money):
 	def __init__(self, game, played_by):
-		crd.Card.__init__(self, game, played_by)
+		crd.Money.__init__(self, game, played_by)
 		self.title = "Bank"
 		self.description = "{}When you play this, it’s worth $1 per Treasure card you have in play (counting this).".format(crd.format_money("X"))
 		self.price = 7

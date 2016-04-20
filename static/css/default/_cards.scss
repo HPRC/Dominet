@@ -88,6 +88,11 @@
   @include card-variant(white, $action-color, darken($victory-color, 5%), $victory-color);
 }
 
+.card-treasure-reaction {
+  @include card-variant(white, $treasure-color, darken($treasure-color, 5%), $reaction-color);
+}
+
+
 .supply-option {
   @include card-variant($gray, white, darken(white, 15%));
 }

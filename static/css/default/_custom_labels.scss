@@ -37,6 +37,10 @@
   @include label-variant-split($gray, $label-victory-bg)
 }
 
+.label-treasure-reaction {
+  @include label-variant-split($label-warning-bg, $label-info-bg)
+}
+
 .label-treasure-victory {
   @include label-variant-split($label-treasure-bg, $label-victory-bg)
 }
