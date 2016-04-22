@@ -5,6 +5,10 @@ clientModule.controller("lobbyController", function($rootScope, $scope, $uibModa
 	$scope.atTable = false;
 	$scope.newGameTable = gameTable;
 
+	socket.send(JSON.stringify({
+		"command": "getLobby"
+	}));
+
 	$scope.lobby = function(json){
 		$scope.name = client.name;
 		$scope.lobbyList = json.lobby_list;
@@ -95,8 +99,6 @@ clientModule.controller("lobbyController", function($rootScope, $scope, $uibModa
 			$scope.createGameTable();
 		});
 	};
-
-
 
 	$scope.$on("$destroy", function(){
 		socketlistener();
