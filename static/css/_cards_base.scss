@@ -1,0 +1,34 @@
+.tooltip.card {
+  opacity: 1;
+  font-size: 14px;
+
+  .tooltip-inner {
+    padding: 0;
+    background-color: transparent;
+
+    .card-header {
+      width: 190px;
+      @include border-bottom-radius(0);
+    }
+    .card-body {
+      display: block;
+    }
+
+  }
+  .tooltip-arrow {
+    display: none;
+  }
+}
+
+/* custom disabled style that mimics being disabled but allows us to receive events (issue #42) */
+// don't disable popup opacity (children of tooltips)
+:not(.tooltip-inner) > .disabled-card {
+  opacity:.5;
+}
+.disabled-card:hover {
+  opacity:1;
+}
+.disabled-card:hover, .disabled-card:focus, .disabled-card.focus, .disabled-card:active, .disabled-card.active {
+  outline:0;
+  outline-offset:0;
+}

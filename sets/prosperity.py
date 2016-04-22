@@ -51,7 +51,7 @@ class Watchtower(crd.Card):
 				self.game.announce("-- but has nothing to watchtower")
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
+		return "".join(["<span class='label label-reaction'>", self.title, "s</span>" if plural else "</span>"])
 
 class Loan(crd.Money):
 	def __init__(self, game, played_by):
@@ -259,7 +259,7 @@ class Quarry(crd.Money):
 		crd.Money.on_finished(self)
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-warning'>", "Quarries</span>" if plural else self.title + "</span>"])
+		return "".join(["<span class='label label-treasure'>", "Quarries</span>" if plural else self.title + "</span>"])
 
 
 # --------------------------------------------------------
@@ -297,7 +297,7 @@ class City(crd.Card):
 		crd.Card.on_finished(self)
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-default'>", "Cities</span>" if plural else self.title + "</span>"])
+		return "".join(["<span class='label label-action'>", "Cities</span>" if plural else self.title + "</span>"])
 
 
 class Contraband(crd.Money):
@@ -610,7 +610,7 @@ class Goons(crd.AttackCard):
 		self.game.announce("-- gaining +1 VP")
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-danger'>", self.title, "</span>"])
+		return "".join(["<span class='label label-attack'>", self.title, "</span>"])
 
 class Hoard(crd.Money):
 	def __init__(self, game, played_by):
@@ -652,7 +652,7 @@ class Grand_Market(crd.Card):
 
 class Bank(crd.Money):
 	def __init__(self, game, played_by):
-		crd.Card.__init__(self, game, played_by)
+		crd.Money.__init__(self, game, played_by)
 		self.title = "Bank"
 		self.description = "{}When you play this, it’s worth $1 per Treasure card you have in play (counting this).".format(crd.format_money("X"))
 		self.price = 7

@@ -77,7 +77,12 @@ $label-warning-bg:            $brand-warning !default;
 //** Danger label background color
 $label-danger-bg:             $brand-danger !default;
 //** curse label background color
-$label-curse-bg:             $brand-curse !default;
+$label-curse-bg:             $curse-color !default;
+$label-action-bg:            $action-color !default;
+$label-victory-bg:           $victory-color !default;
+$label-reaction-bg:          $reaction-color !default;
+$label-treasure-bg:          $treasure-color !default;
+$label-attack-bg:            $attack-color !default;
 
 //** Default label text color
 $label-color:                 #fff !default;

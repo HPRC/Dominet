@@ -30,7 +30,7 @@ class Crossroads(crd.Card):
 		crd.Card.on_finished(self, True)
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-default'>", self.title, "</span>"])
+		return "".join(["<span class='label label-action'>", self.title, "</span>"])
 
 
 class Duchess(crd.Card):
@@ -84,8 +84,43 @@ class Duchess(crd.Card):
 			duchy.played_by.update_mode()
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-default'>", self.title, "</span>"])
+		return "".join(["<span class='label label-action'>", self.title, "</span>"])
 
+class Fools_Gold(crd.Money):
+	def __init__(self, game, played_by):
+		crd.Money.__init__(self, game, played_by)
+		self.title = "Fool's Gold"
+		self.value = 1
+		self.price = 2
+		self.description = "The first time you play Fool's Gold this turn, {}"\
+		"otherwise {}. Reaction: When another player buys a Province, you may trash Fool's Gold from your hand. "\
+		"If you do, gain a Gold on top of your deck.".format(crd.format_money(1), crd.format_money(4, True))
+		self.type = "Treasure|Reaction"
+		self.spend_all = False
+		self.trigger = "OpponentGain"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		fools_golds_played = [c for c in self.played_by.played_cards if c.title == self.title]
+		if len(fools_golds_played) == 1:
+			self.value = 1
+		else:
+			self.value = 4
+		self.played_by.balance += self.value
+		self.game.announce("-- gaining ${}".format(self.value))
+		crd.Money.on_finished(self)
+
+	@gen.coroutine
+	def react(self, gained):
+		if gained.title == "Province":
+			selection = yield self.played_by.select(1, 1, ["Yes", "No"], "Trash Fool's Gold from hand to gain a gold on top of your deck?")
+			if selection[0] == "Yes":
+				self.played_by.discard(["Fool's Gold"], self.game.trash_pile)
+				self.game.announce("-- {} trashes {}".format(self.played_by.name_string(), self.log_string()))
+				yield self.played_by.gain_to_deck("Gold")
+
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-treasure-reaction'>", self.title, "</span>"])
 
 # --------------------------------------------------------
 # ------------------------ 3 Cost ------------------------
@@ -365,25 +400,24 @@ class Trader(crd.Card):
 
 	@gen.coroutine
 	def react(self, to_gain):
-		if to_gain.title == "Silver":
-			return
-		self.played_by.wait_modeless("", self.played_by, True)
-		
-		selection = yield self.played_by.select(1, 1, ["Reveal", "Hide"],  
-			"Reveal " + self.title + " to return " + to_gain.title + " to the supply and gain a Silver instead?")
-		if selection[0] == "Reveal":
-			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
-			to_gain = self.played_by.search_and_extract_card(to_gain)
-			if to_gain:
-				self.game.supply.add(to_gain)
-				self.game.update_supply_pile(to_gain.title)
-				self.game.announce("-- returning " + to_gain.log_string() + " to supply")
-				yield self.played_by.gain("Silver")
-			else:
-				self.game.announce("-- but doesnt have anything to trade")
+		if to_gain.title != "Silver":
+			self.played_by.wait_modeless("", self.played_by, True)
+			
+			selection = yield self.played_by.select(1, 1, ["Reveal", "Hide"],  
+				"Reveal " + self.title + " to return " + to_gain.title + " to the supply and gain a Silver instead?")
+			if selection[0] == "Reveal":
+				self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
+				to_gain = self.played_by.search_and_extract_card(to_gain)
+				if to_gain:
+					self.game.supply.add(to_gain)
+					self.game.update_supply_pile(to_gain.title)
+					self.game.announce("-- returning " + to_gain.log_string() + " to supply")
+					yield self.played_by.gain("Silver")
+				else:
+					self.game.announce("-- but doesnt have anything to trade")
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-info'>", self.title, "s</span>" if plural else "</span>"])
+		return "".join(["<span class='label label-reaction'>", self.title, "s</span>" if plural else "</span>"])
 
 
 # --------------------------------------------------------
@@ -533,7 +567,7 @@ class Ill_Gotten_Gains(crd.Money):
 			yield i.gain("Curse")
 
 	def log_string(self, plural=False):
-		return "".join(["<span class='label label-warning'>", self.title, "</span>"])
+		return "".join(["<span class='label label-treasure'>", self.title, "</span>"])
 
 
 class Mandarin(crd.Card):

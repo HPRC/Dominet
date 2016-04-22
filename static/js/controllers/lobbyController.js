@@ -1,7 +1,6 @@
 clientModule.controller("lobbyController", function($rootScope, $scope, $uibModal, gameTable, socket, client){
 	$scope.lobbyList = [];
 	$scope.gameTables = [];
-	$scope.name = "";
 	$scope.atTable = false;
 	$scope.newGameTable = gameTable;
 
@@ -10,15 +9,9 @@ clientModule.controller("lobbyController", function($rootScope, $scope, $uibModa
 	}));
 
 	$scope.lobby = function(json){
-		$scope.name = client.name;
+		$scope.name = client.getName();
 		$scope.lobbyList = json.lobby_list;
 		$scope.gameTables = json.game_tables;
-	};
-
-	$scope.resume = function(json){
-		$scope.$apply(function(){
-			$scope.main.game = true;
-		});
 	};
 
 	$scope.createGameTable = function(){
@@ -71,17 +64,17 @@ clientModule.controller("lobbyController", function($rootScope, $scope, $uibModa
 		return table.players.indexOf($scope.name) !== -1;
 	};
 
-    $scope.usingIncludes = function(table){
-        return table.required.join(", ");
-    };
+  $scope.usingIncludes = function(table){
+      return table.required.join(", ");
+  };
 
-    $scope.usingExcludes = function(table){
-        return table.excluded.join(", ");
-    };
+  $scope.usingExcludes = function(table){
+      return table.excluded.join(", ");
+  };
 
-    $scope.supplyInfo = function(table){
-        return table.req_supply;
-    };
+  $scope.supplyInfo = function(table){
+      return table.req_supply;
+  };
 
 	$scope.openAdvGameModal = function () {
 		var modal = $uibModal.open({
@@ -106,9 +99,6 @@ clientModule.controller("lobbyController", function($rootScope, $scope, $uibModa
 
 	var socketlistener = $rootScope.$on("socketmsg", function(data, event){
 		var jsonres = JSON.parse(event.data);
-		if (jsonres.command === "init"){
-			client.onmessage(event);
-		}
 		var exec = $scope[jsonres.command];
 		if (exec != undefined){
 			exec.call($scope, jsonres);

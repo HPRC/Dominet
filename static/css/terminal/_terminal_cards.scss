@@ -1,0 +1,93 @@
+@mixin terminal-card($color, $color2:"") {
+  max-width: 190px;
+  margin-top: 10px;
+  display: inline-block;
+  position: relative;
+  
+  .card-header {
+  	border: none;
+  	background: transparent;
+    color: $color;
+    @if $color2 == "" {
+      // nothing
+    } @else {
+      &::before {
+        content: "▶";
+        color: $color2;
+      }
+    }
+    width: 100%;
+    padding: 8px 10px;
+    text-align: center;
+    cursor: pointer;
+
+    .badge {
+      color: $terminal_default;
+      background: transparent;	
+    }
+
+    &:hover,
+    &:focus,
+    &.focus,
+    &:active,
+    &.active, {
+    	background: transparent;
+	  }
+    b {
+      color: $color;
+    }
+	}
+}
+
+.card-body {
+  display: none;
+  width: 100%;
+  color: $terminal_default;
+  background: black;
+  font-size: 13px;
+  padding: 10px;
+  text-align: center;
+  @include border-bottom-radius(5px);
+  border-top: 0;
+  white-space: pre-wrap;
+}
+
+.card-victory {
+  @include terminal-card($victory-color);
+}
+
+.card-treasure {
+  @include terminal-card($treasure-color);
+}
+
+.card-action {
+  @include terminal-card($action-color);
+}
+
+.card-attack {
+  @include terminal-card($attack-color);
+}
+
+.card-curse {
+  @include terminal-card($curse-color);
+}
+
+.card-reaction {
+  @include terminal-card($reaction-color);
+}
+
+.card-action-victory {
+  @include terminal-card($action-color, $victory-color);
+}
+
+.card-treasure-victory {
+  @include terminal-card($victory-color, $treasure-color);
+}
+
+.card-treasure-reaction {
+  @include terminal-card($treasure-color, $reaction-color);
+}
+
+.supply-option {
+  @include terminal-card($terminal-default);
+}

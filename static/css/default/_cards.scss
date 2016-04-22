@@ -1,5 +1,3 @@
-
-
 @mixin card-variant($color, $background, $border, $background-split:"") {
   max-width: 190px;
   margin-top: 10px;
@@ -58,41 +56,6 @@
   white-space: pre-wrap;
 }
 
-.tooltip.card {
-  opacity: 1;
-  font-size: 14px;
-
-  .tooltip-inner {
-    padding: 0;
-    background-color: transparent;
-
-    .card-header {
-      width: 190px;
-      @include border-bottom-radius(0);
-    }
-    .card-body {
-      display: block;
-    }
-
-  }
-  .tooltip-arrow {
-    display: none;
-  }
-}
-
-/* custom disabled style that mimics being disabled but allows us to receive events (issue #42) */
-// don't disable popup opacity (children of tooltips)
-:not(.tooltip-inner) > .disabled-card {
-  opacity:.5;
-}
-.disabled-card:hover {
-  opacity:1;
-}
-.disabled-card:hover, .disabled-card:focus, .disabled-card.focus, .disabled-card:active, .disabled-card.active {
-  outline:0;
-  outline-offset:0;
-}
-
 .card-victory {
   @include card-variant(white, $victory-color, darken($victory-color, 5%));
 }
@@ -124,6 +87,11 @@
 .card-action-victory {
   @include card-variant(white, $action-color, darken($victory-color, 5%), $victory-color);
 }
+
+.card-treasure-reaction {
+  @include card-variant(white, $treasure-color, darken($treasure-color, 5%), $reaction-color);
+}
+
 
 .supply-option {
   @include card-variant($gray, white, darken(white, 15%));

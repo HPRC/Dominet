@@ -1,17 +1,22 @@
-#userBar {
-	height:3%;
-}
-
-.lobby-clients {
-	overflow:auto;
-	height:90%;
-}
+$title_height: 30px;
 
 #lobby-container {
-	height:97%;
-}
+	padding-top: 15px;
+	@include calc-height(100%, $header_height);
 
-#games-list {
-	overflow:auto;
-	height:60%;
+	.lobby-clients {
+		padding-top: 20px;
+		overflow: auto;
+		@include calc-height(100%, $title_height);
+	}
+	
+	#games-list {
+		padding-top: 20px;
+		overflow: auto;
+		@include calc-height(100%, $header_height + $footer_height);
+	}
+	.alert {
+		margin-bottom: 10px;
+	}
+
 }

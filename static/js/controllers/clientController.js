@@ -14,7 +14,7 @@ clientModule.controller("clientController", function($rootScope, $scope, socket,
 		$scope.gameLog = $sce.trustAsHtml(client.getGameLog());
 		$scope.gameMat = client.getGameMat();
 	};
-
+	
 	$scope.c = client;	
 	client.initGameProperties();
 	socket.send(JSON.stringify({"command": "ready", "name": client.name}));

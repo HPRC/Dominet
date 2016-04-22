@@ -1,22 +1,13 @@
-.title-bar {
-	height:8%;
+.client-container {
+	padding: 20px 15px 0;
 }
 
-#client-container {
-	height:92%;
+#leftColumn {
+	padding-right: 0;
 }
-
-.popover {
-	width:15em;
-}
-
-.popover-content {
-	text-align: center;
-	white-space: pre-wrap;
-}
-
 
 #middleColumn {
+	padding-left: 0;
 	height:100%;
 }
 
@@ -55,5 +46,10 @@
 
 .supplyColumn {
 	min-width: 205px;
+}
+
+.game-userbar {
+	background: transparent;
+	color: black;
 }
 

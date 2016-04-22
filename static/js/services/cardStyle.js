@@ -8,7 +8,8 @@ clientModule.factory('cardStyle', function(){
 				"Action|Attack": "card-attack",
 				"Action|Reaction": "card-reaction",
 				"Action|Victory": "card-action-victory",
-				"Treasure|Victory": "card-treasure-victory"
+				"Treasure|Victory": "card-treasure-victory",
+				"Treasure|Reaction": "card-treasure-reaction"
 			};
 
 			if (card !== null && card.type in colorDict){

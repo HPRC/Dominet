@@ -1,5 +1,19 @@
+$footer_height: 200px;
+$header_height: 45px;
+
+@mixin calc-height($total, $subtract) {
+    height: -moz-calc(#{$total} - #{$subtract});
+    height: -webkit-calc(#{$total} - #{$subtract});
+    height: calc(#{$total} - #{$subtract});
+}
+
+
 html, body {
 	height: 100%;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	margin: 0;
 }
 
 /* selector to select bootstrap td */
@@ -8,19 +22,51 @@ html, body {
 }
 
 .full-height {
+	margin-top: 0;
+	margin-bottom: 0;
 	height: 100%;
 }
 
-#container {
-	padding-left:2%;
-	padding-right:2%;
-	height:100%;
+.userbar {
+	background-color: black;
+	color: white;
+}
+
+.userbar-wrapper {
+	margin:0 -15px;
+	height: $header_height;
+	line-height: $header_height;
+	#theme {
+		background-color: transparent;
+		border: none;
+		float: right;
+		height: $header_height;
+		margin-right:	 15px;
+	}
+	a {
+		color: white;
+		float: right;
+	}
+	span {
+		margin: 0 15px;
+	}
+}
+
+.main-container {
+	@include calc-height(100%, $header_height);
 }
 
 .scrollChat {
-	height:100px;
 	overflow: auto;
 	word-wrap:break-word;
+	height: 125px;
+}
+
+.footer {
+	position: absolute;
+	bottom: 0;
+	width: 100%;
+	height: $footer_height;
 }
 
 .modal-backdrop {

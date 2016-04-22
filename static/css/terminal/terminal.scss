@@ -1,0 +1,30 @@
+@import "../bootstrap_mixins";
+@import "terminal_colors";
+@import "terminal_cards";
+@import "terminal_buttons";
+@import "terminal_labels";
+
+.form-control {
+  background: $terminal_background;
+  border: none;
+}
+
+.list-group-item {
+  background: transparent;
+  border: none;
+  .badge {
+    background: transparent;
+  }
+}
+
+.game-userbar {
+  background: transparent;
+  color: $terminal_default;
+}
+
+* {
+  font-family: Courier;
+  background-color: $terminal_background;
+  color: $terminal_default;
+}
+

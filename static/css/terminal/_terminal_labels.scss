@@ -1,0 +1,51 @@
+@mixin terminal_label($color, $color2:"") {
+  background: transparent;
+  font-style: bold;
+  font-size: 13px;
+  color: $color;
+  @if ($color2 == "") {
+      // nothing
+  } @else {
+    &::before {
+      content: "▶ ";
+      color: $color2;
+    }
+  }
+}
+
+.label-attack {
+  @include terminal_label($attack_color);
+}
+
+.label-victory {
+  @include terminal_label($victory-color);
+}
+
+.label-reaction {
+  @include terminal_label($reaction-color);
+}
+
+.label-treasure {
+  @include terminal_label($treasure-color);
+}
+
+.label-curse {
+  @include terminal_label($curse-color);
+}
+
+.label-action {
+  @include terminal_label($action-color);
+}
+
+.label-action-victory {
+  @include terminal_label($action-color, $victory-color)
+}
+
+.label-treasure-reaction {
+  @include terminal_label($treasure-color, $reaction-color)
+}
+
+.label-treasure-victory {
+  @include terminal_label($treasure-color, $victory-color)
+}
+

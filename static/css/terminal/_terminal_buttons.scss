@@ -1,0 +1,58 @@
+@mixin terminal-button($color) {
+  color: $color;
+  background-color: transparent;
+  &:hover,
+  &:focus,
+  &.focus,
+  &:active,
+  &.active,
+  &:active:hover,
+  &:active:focus,
+  .open > &.dropdown-toggle {
+    background-color: transparent;
+    color: $color;
+  }
+  &:active,
+  &.active,
+  .open > &.dropdown-toggle {
+    background-image: none;
+  }
+  &.disabled,
+  &[disabled],
+  fieldset[disabled] & {
+    &,
+    &:hover,
+    &:focus,
+    &.focus,
+    &:active,
+    &.active,
+    {
+      background-color: transparent;
+    }
+  }
+
+  .badge {
+    color: $terminal_default;
+    background-color: transparent;
+  }
+}
+
+
+
+.btn {
+	padding: 5px;
+	border: none;
+	background-color: transparent;
+	&:hover,
+    &:focus,
+    &.focus,
+    &:active,
+    &.active {
+    	border: none;
+		  background-color: transparent;
+    }
+}
+
+.btn-default {
+  @include terminal-button($terminal_default);
+}

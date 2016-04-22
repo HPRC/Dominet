@@ -16,7 +16,7 @@ class mainHandler(web.RequestHandler):
 	def get(self):
 		cookie_name = self.get_cookie("DMTusername")
 		if cookie_name is not None:
-			self.render("main.html")
+			self.render("main.html", name=cookie_name)
 		else:
 			self.render(INDEX)
 
@@ -26,19 +26,19 @@ class mainHandler(web.RequestHandler):
 		#no cookie and no name conflicts
 		if not self.application.in_game_or_lobby(input_name) and cookie_name is None:
 			self.set_cookie("DMTusername", input_name, expires_days=1)
-			self.render("main.html")
+			self.render("main.html", name=input_name)
 		#new user, name conflict
 		elif self.application.in_game_or_lobby(input_name) and cookie_name is None:
 			self.render(INDEX, error="That username is currently being used!")
 		#we have a cookie already 
 		elif cookie_name == input_name:
 			#in game/lobby with same name and cookie set - resume
-			self.render("main.html")
+			self.render("main.html", name=cookie_name)
 		else:
 			#have old name in cookie but requesting new name
 			if not self.application.in_game_or_lobby(cookie_name):
 				self.set_cookie("DMTusername", input_name, expires_days=1)
-				self.render("main.html")
+				self.render("main.html", name=cookie_name)
 			#trying to play in new tab with new name while connected as another name conflict
 			else:
 				self.render(INDEX, error="You are already connected!")
@@ -142,6 +142,8 @@ class GameHandler(websocket.WebSocketHandler):
 				print(self.application.game_tables)
 			table = self.application.game_tables[jsondata["host"]]
 			self.start_game(table)
+		elif cmd == "getLobby":
+			self.update_lobby()
 
 	def create_table(self, json):
 		tableData = json["table"]
