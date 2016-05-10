@@ -1,3 +1,4 @@
+import random
 import sets.card as crd
 import tornado.gen as gen
 
@@ -569,6 +570,37 @@ class Ill_Gotten_Gains(crd.Money):
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-treasure'>", self.title, "</span>"])
 
+class Inn(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Inn"
+		self.description = "{}{}Discard 2 cards\nWhen you gain Inn, look through your discard pile"\
+							" and reveal any action cards to shuffle into your deck.".format(
+							crd.format_actions(2),
+							crd.format_draw(2))
+		self.price = 5
+		self.type = "Action"
+
+	@gen.coroutine
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.actions += 2
+		drawn = self.played_by.draw(2)
+		self.game.announce("-- gaining 2 actions and drawing {}".format(drawn))
+		to_discard = yield self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), 
+			"Discard 2 cards")
+		self.played_by.discard(to_discard, self.played_by.discard_pile)
+		self.game.announce("-- discarding {} cards".format(len(to_discard)))
+		crd.Card.on_finished()
+
+	@gen.coroutine
+	def on_gain(self):
+		action_cards_in_discard = [x for x in self.played_by.discard_pile if "Action" in x.type]
+		to_reshuffle = yield self.played_by.select(None, len(action_cards_in_discard),
+			action_cards_in_discard, "Select action cards from discard to reshuffle into your deck")
+		self.game.announce("-- revealing {}".format(", ".join(crd.card_list_to_titles(to_reshuffle))))
+		self.played_by.deck.append(to_reshuffle)
+		random.shuffle(self.played_by.deck)
 
 class Mandarin(crd.Card):
 	def __init__(self, game, played_by):
