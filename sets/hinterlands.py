@@ -170,12 +170,16 @@ class Oracle(crd.AttackCard):
 		' put them back in the order of the player\'s choice. {}'.format(crd.format_draw(2))
 		self.price = 3
 
+	@gen.coroutine
 	def play(self, skip=False):
-		crd.Card.play(self, skip)
-		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+		crd.AttackCard.play(self, skip)
+		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+		drawn = self.played_by.draw(2)
+		self.game.announce("-- drawing {}".format(drawn))
 
+	@gen.coroutine
 	def attack(self):
-		self.fire(self.played_by)
+		yield self.fire(self.played_by)
 
 	@gen.coroutine
 	def fire(self, player):
@@ -591,16 +595,26 @@ class Inn(crd.Card):
 			"Discard 2 cards")
 		self.played_by.discard(to_discard, self.played_by.discard_pile)
 		self.game.announce("-- discarding {} cards".format(len(to_discard)))
-		crd.Card.on_finished()
+		crd.Card.on_finished(self)
 
 	@gen.coroutine
 	def on_gain(self):
 		action_cards_in_discard = [x for x in self.played_by.discard_pile if "Action" in x.type]
 		to_reshuffle = yield self.played_by.select(None, len(action_cards_in_discard),
-			action_cards_in_discard, "Select action cards from discard to reshuffle into your deck")
-		self.game.announce("-- revealing {}".format(", ".join(crd.card_list_to_titles(to_reshuffle))))
-		self.played_by.deck.append(to_reshuffle)
+			crd.card_list_to_titles(action_cards_in_discard), 
+			"Select action cards from discard to reshuffle into your deck")
+		revealed = ", ".join(map(lambda x: self.game.log_string_from_title(x), to_reshuffle))
+		self.game.announce("-- removing {} from their discard to their deck".format(revealed))
+		for i in to_reshuffle:
+			for c in self.played_by.discard_pile:
+				if c.title == i:
+					self.played_by.discard_pile.remove(c)
+					self.played_by.deck.append(c)
+					break
+		self.played_by.update_deck_size()
+		self.played_by.update_discard_size()
 		random.shuffle(self.played_by.deck)
+		self.game.announce("<i>{} shuffles their deck</i>".format(self.played_by.name_string()))
 
 class Mandarin(crd.Card):
 	def __init__(self, game, played_by):

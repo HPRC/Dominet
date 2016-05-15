@@ -233,4 +233,3 @@ class HandPile():
 
 	def __contains__(self, title):
 		return title in self.data
-
