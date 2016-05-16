@@ -600,6 +600,24 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.game.trash_pile[-1].title == "Fool's Gold")
 		self.assertTrue(self.player2.deck[-1].title != "Gold")
 
+	@tornado.testing.gen_test
+	def test_inn_gain(self):
+		tu.print_test_header("test Inn on gain")
+		village = base.Village(self.game, self.player1)
+		moat = base.Moat(self.game, self.player1)
+		copper = supply_cards.Copper(self.game, self.player1)
+		self.player1.discard_pile = [village, moat, copper]
+
+		self.player1.gain('Inn')
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
+		self.assertTrue("Village" in self.player1.last_mode["select_from"])
+		self.assertTrue("Moat" in self.player1.last_mode["select_from"])
+		self.assertTrue("Inn" in self.player1.last_mode["select_from"])
+		self.assertTrue("Copper" not in self.player1.last_mode["select_from"])
+		yield tu.send_input(self.player1, "post_selection", ["Village", "Moat", "Inn"])
+		self.assertTrue(self.player1.discard_pile == [copper])
+		self.assertTrue(village in self.player1.deck)
+		self.assertTrue(moat in self.player1.deck)
 
 if __name__ == '__main__':
 	unittest.main()
