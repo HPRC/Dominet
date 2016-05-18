@@ -241,6 +241,24 @@ class Scheme(crd.Card):
 					break
 		self.played_by.played_cards = [x for x in self.played_by.played_cards if x not in self.played_by.deck]
 
+class Tunnel(crd.VictoryCard):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = 'Tunnel'
+		self.description = '{} when you discard this outside of cleanup phase, you may reveal it and gain a Gold.'.format(
+			crd.format_vp(2))
+		self.price = 3
+		self.type = "Reaction|Victory"
+		self.trigger = "Discard"
+
+	@gen.coroutine
+	def react(self):
+		selection = yield self.played_by.select(1, 1, ["Reveal", "Hide"],  
+			"Reveal " + self.title + " to gain a Gold?")
+		if selection[0] == "Reveal":
+			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
+			yield self.played_by.gain("Gold")
+
 # --------------------------------------------------------
 # ------------------------ 4 Cost ------------------------
 # --------------------------------------------------------
