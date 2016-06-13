@@ -640,6 +640,25 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player1.last_mode["mode"] == "select")
 
 	@tornado.testing.gen_test
+	def test_Masquerade_with_no_cards(self):
+		tu.print_test_header("test Masquerade with no cards")
+		masquerade = intrigue.Masquerade(self.game, self.player1)
+		tu.set_player_hand(self.player1, [masquerade])
+		self.player1.deck = []
+		self.player1.discard_pile = []
+		self.player2.hand.add(supply_cards.Estate(self.game, self.player2))
+		self.player3.hand.add(supply_cards.Estate(self.game, self.player2))
+
+		masquerade.play()
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		yield tu.send_input(self.player2, "post_selection", ["Estate"])
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		yield tu.send_input(self.player3, "post_selection", ["Estate"])
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
+		yield tu.send_input(self.player1, "post_selection", ["Estate"])
+		self.assertTrue(len(self.player1.hand) == 0)
+
+	@tornado.testing.gen_test
 	def test_Saboteur(self):
 		tu.print_test_header("test Saboteur")
 		saboteur = intrigue.Saboteur(self.game, self.player1)
