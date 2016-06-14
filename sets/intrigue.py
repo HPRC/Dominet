@@ -172,14 +172,16 @@ class Masquerade(crd.Card):
 		if card is not None:
 			player.hand.add(card)
 		left_opponent = player.get_left_opponent()
-		player.announce_self("-- you pass " + self.game.log_string_from_title(im_passing[0]))
+
+		player.announce_self("-- you pass {}".format(self.game.log_string_from_title(im_passing[0]) if im_passing else "nothing"))
 		# logging what we received after we pass our card
 		if self.passed_card != "":
 			player.announce_self("-- you received " + self.game.log_string_from_title(self.passed_card))
-		self.passed_card = im_passing[0]
-		card = player.hand.extract(im_passing[0])
-		card.played_by = left_opponent
-		left_opponent.hand.add(card)
+		if im_passing: 
+			self.passed_card = im_passing[0]
+			card = player.hand.extract(im_passing[0])
+			card.played_by = left_opponent
+			left_opponent.hand.add(card)
 		player.update_hand()
 
 		# if we are last, update the first person's receive log

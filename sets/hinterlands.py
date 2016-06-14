@@ -256,6 +256,7 @@ class Noble_Brigand(crd.AttackCard):
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
+		self.played_by.balance += 1
 		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	def attack(self):
@@ -705,6 +706,9 @@ class Stables(crd.Card):
 				self.game.announce("-- discarding {} to gain an action and draw {}".format(self.game.log_string_from_title(to_discard[0]), drawn))
 				self.played_by.actions += 1
 		crd.Card.on_finished(self, False, True)
+
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-action'>", self.title, "</span>"])
 
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------
