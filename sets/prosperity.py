@@ -473,10 +473,7 @@ class Rabble(crd.AttackCard):
 				if len(action_treasure_cards) > 0:
 					action_treasure_card_titles = [x.log_string() for x in action_treasure_cards]
 					self.game.announce("-- discarding " + ", ".join(action_treasure_card_titles))
-					for at in action_treasure_cards:
-						player.discard_pile.append(at)
-					player.update_deck_size()
-					player.update_discard_size()
+					player.discard_floating(action_treasure_cards)
 
 				cards_left = [x for x in revealed if "Action" not in x.type and "Treasure" not in x.type]
 				yield crd.reorder_top(player, cards_left)

@@ -340,17 +340,35 @@ class DmClient(Client):
 		for i in self.game.players:
 			i.waiter.notify(self, manually_called)
 
-	def discard(self, cards, pile):
+	# assumes removed card from where discarding from beforehand
+	def discard_floating(self, cards):
+		if not isinstance(cards, list):
+			cards = [cards]
+		for x in cards:
+			self.discard_pile.append(x)
+		self.update_deck_size()
+		self.update_discard_size()
+
+	def discard_topdeck(self):
+		card = self.deck.pop()
+		self.discard_pile.append(card)
+		self.update_deck_size()
+		self.update_discard_size()
+		return card
+
+	# cards = list of card titles
+	def discard(self, cards, discard_to):
 		for x in cards:
 			card = self.hand.extract(x)
-			self.update_hand()
 			if card is not None:
-				pile.append(card)
-		if pile == self.discard_pile:
+				discard_to.append(card)
+		self.update_hand()
+		if discard_to == self.discard_pile:
 			self.update_discard_size()
-		elif pile == self.game.trash_pile:
+		elif discard_to == self.game.trash_pile:
 			self.game.update_trash_pile()
 
+		
 	def update_mode(self):
 		played_money = [x for x in self.played_cards if "Treasure" in x.type]
 		# if we have no actions or no action cards and no money cards, buy mode

@@ -652,12 +652,8 @@ class Tribute(crd.Card):
 		tributes = list()
 		left_opponent = self.played_by.get_left_opponent()
 
-		topdeck1 = left_opponent.topdeck()
-		topdeck2 = left_opponent.topdeck()
-		left_opponent.discard_pile.append(topdeck1)
-		left_opponent.discard_pile.append(topdeck2)
-		left_opponent.update_deck_size()
-		left_opponent.update_discard_size()
+		topdeck1 = left_opponent.discard_topdeck()
+		topdeck2 = left_opponent.discard_topdeck()
 		tributes.append(topdeck1)
 		if topdeck1.title != topdeck2.title:
 			tributes.append(topdeck2)

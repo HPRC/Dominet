@@ -63,7 +63,7 @@ class Duchess(crd.Card):
 	def post_select(self, selection, caller):
 		card = caller.topdeck()
 		if selection[0] == "Discard":
-			caller.discard_pile.append(card)
+			caller.discard_floating(card)
 			self.game.announce("-- " + caller.name_string() + " discards " + card.log_string())
 		else:
 			caller.deck.append(card)
@@ -184,26 +184,22 @@ class Oracle(crd.AttackCard):
 	@gen.coroutine
 	def fire(self, player):
 		if crd.AttackCard.fire(self, player):
-			if len(player.deck) < 2:
-				player.shuffle_discard_to_deck()
-			if len(player.deck) < 1:
-					self.game.announce(player.name_string() + " has no cards to Spy.")
+			revealed_cards = [player.topdeck(), player.topdeck()]
+			if not any(revealed_cards):
+					self.game.announce(player.name_string() + " has no cards to Oracle.")
 					crd.AttackCard.get_next(self, player)
 					return
-			revealed_cards = player.deck[-2:]
-			revealed_cards_titles = crd.card_list_to_titles(revealed_cards)
 			reveal_string = " & ".join(crd.card_list_log_strings(revealed_cards))
+			revealed_cards_titles = crd.card_list_to_titles(revealed_cards)
 			selection = yield self.played_by.select(1, 1, ["discard", "keep"],
 				"{} reveals {}".format(player.name, " & ".join(revealed_cards_titles)))
 			if selection[0] == "discard":
 				self.game.announce("{} discards {} from {}'s deck".format(self.played_by.name_string(),
 					 reveal_string, player.name_string()))
-				for i in range(0, len(revealed_cards)):
-					card = player.deck.pop()
-					player.discard_pile.append(card)
-					player.update_deck_size()
-					player.update_discard_size()
+				player.discard_floating(revealed_cards)
 			else:
+				player.deck += revealed_cards
+				player.update_deck_size()
 				self.game.announce("{} leaves {} on {}'s deck".format(self.played_by.name_string(), reveal_string,
 					player.name_string()))
 			crd.AttackCard.get_next(self, player)
@@ -282,14 +278,11 @@ class Noble_Brigand(crd.AttackCard):
 	@gen.coroutine
 	def fire(self, player, from_buy=False):
 		if crd.AttackCard.fire(self, player) or from_buy:
-			if len(player.deck) < 2:
-				player.shuffle_discard_to_deck()
-				if len(player.deck) < 1:
-					self.game.announce(player.name_string() + " has no cards to Noble Brigand.")
-					crd.AttackCard.get_next(self, player)
-					return
-			revealed_cards = player.deck[-2:]
-			del player.deck[-2:]
+			revealed_cards = [player.topdeck(), player.topdeck()]
+			if not any(revealed_cards):
+				self.game.announce(player.name_string() + " has no cards to Noble Brigand.")
+				crd.AttackCard.get_next(self, player)
+				return
 			revealed_cards_titles = crd.card_list_to_titles(revealed_cards)
 			reveal_string = " & ".join(crd.card_list_log_strings(revealed_cards))
 			revealed_treasures = [x for x in revealed_cards if "Treasure" in x.type]
@@ -307,10 +300,9 @@ class Noble_Brigand(crd.AttackCard):
 					yield self.played_by.gain(to_trash.title, from_supply=False, custom_announce="-- {} gains {}".format(self.played_by.name_string(), to_trash.log_string()))
 			else:
 				self.game.announce("-- {} reveals and discards {}".format(player.name_string(), reveal_string))
-			player.discard_pile += revealed_cards
+			player.discard_floating(revealed_cards)
 			if not revealed_treasures:
 				yield player.gain("Copper")
-			player.update_discard_size()
 			if from_buy:
 				self.get_next(player)
 			else:
@@ -487,7 +479,7 @@ class Cartographer(crd.Card):
 		for i in to_discard:
 			for c in top4:
 				if c.title == i:
-					self.played_by.discard_pile.append(c)
+					self.played_by.discard_floating(c)
 					put_back.remove(c)
 					break
 		yield crd.reorder_top(self.played_by, put_back)
