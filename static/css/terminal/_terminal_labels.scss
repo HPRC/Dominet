@@ -49,3 +49,7 @@
   @include terminal_label($treasure-color, $victory-color)
 }
 
+.label-reaction-victory {
+  @include terminal_label($reaction-color, $victory-color)
+}
+

@@ -44,3 +44,7 @@
 .label-treasure-victory {
   @include label-variant-split($label-treasure-bg, $label-victory-bg)
 }
+
+.label-reaction-victory {
+  @include label-variant-split($label-reaction-bg, $label-victory-bg)
+}

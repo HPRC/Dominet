@@ -99,29 +99,9 @@ clientModule.factory('client', function(socket, favicon) {
 			return;
 		}
 		this.turn = false;
-		this.discard(this.hand);
 		this.played = []; //discarded on backend
 		favicon.stopAlert();
 		socket.send(JSON.stringify({"command": "endTurn"}));
-	};
-
-	constructor.prototype.discard = function(cards){
-		if (cards.length == 0){
-			return;
-		}
-		var cardsByTitle = cards.map(function(val){
-			return val.title;
-		});
-		socket.send(JSON.stringify({"command": "discard", "cards": cardsByTitle}));
-		//remove from hand
-		for (var j=0; j<cards.length; j++){
-			for (var i=0; i<this.hand.length; i++){
-				if (cards[j] == this.hand[i]){
-					this.hand.splice(i,1);
-					i--;
-				}
-			}
-		}
 	};
 
 	constructor.prototype.updateSpendable = function (){

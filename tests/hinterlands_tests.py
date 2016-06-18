@@ -619,5 +619,27 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.assertTrue(village in self.player1.deck)
 		self.assertTrue(moat in self.player1.deck)
 
+	@tornado.testing.gen_test
+	def test_tunnel(self):
+		tu.print_test_header("test Tunnel")
+		tunnel = hl.Tunnel(self.game, self.player1)
+
+		@gen.coroutine
+		def should_react_correctly(self):
+			self.assertTrue(self.player1.last_mode["mode"] == "select")
+			yield tu.send_input(self.player1, "post_selection", ["Reveal"])
+			yield gen.sleep(.1)
+			self.assertTrue(self.player1.discard_pile[-1].title == "Tunnel")
+			self.assertTrue(self.player1.discard_pile[-2].title == "Gold")
+
+		self.player1.discard_floating(tunnel)
+		yield should_react_correctly(self)
+		self.player1.deck.append(tunnel)
+		self.player1.discard_topdeck()
+		yield should_react_correctly(self)
+		self.player1.hand.add(tunnel)
+		self.player1.discard(["Tunnel"], self.player1.discard_pile)
+		yield should_react_correctly(self)
+
 if __name__ == '__main__':
 	unittest.main()

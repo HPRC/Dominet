@@ -80,8 +80,7 @@ class Loan(crd.Money):
 
 				selection = yield self.played_by.select(1, 1, ["Discard", "Trash"], "Discard or Trash " + treasure.title)
 				if selection[0] == "Discard":
-					self.played_by.discard_pile.append(treasure)
-					self.played_by.update_hand()
+					yield self.played_by.discard_floating(treasure)
 					self.game.announce("-- discarding " + treasure.log_string())
 				else:
 					self.game.trash_pile.append(treasure)
@@ -89,7 +88,7 @@ class Loan(crd.Money):
 					self.game.announce("-- trashing " + treasure.log_string())
 			crd.Money.on_finished(self)
 
-		crd.search_deck_for(self.played_by, lambda x : "Treasure" in x.type, found_treasure)
+		yield crd.search_deck_for(self.played_by, lambda x : "Treasure" in x.type, found_treasure)
 
 class Trade_Route(crd.Card):
 
@@ -423,7 +422,7 @@ class Mountebank(crd.AttackCard):
 				self.played_by.wait("to choose", player)
 				selection = yield player.select(1, 1, ["Yes", "No"], "Discard a curse?")
 				if selection[0] == "Yes":
-					player.discard(["Curse"], player.discard_pile)
+					yield player.discard(["Curse"], player.discard_pile)
 					curse = player.discard_pile[-1]
 					self.game.announce("-- " + player.name_string() + " discards a " + curse.log_string())
 					crd.AttackCard.get_next(self, player)
@@ -473,7 +472,7 @@ class Rabble(crd.AttackCard):
 				if len(action_treasure_cards) > 0:
 					action_treasure_card_titles = [x.log_string() for x in action_treasure_cards]
 					self.game.announce("-- discarding " + ", ".join(action_treasure_card_titles))
-					player.discard_floating(action_treasure_cards)
+					yield player.discard_floating(action_treasure_cards)
 
 				cards_left = [x for x in revealed if "Action" not in x.type and "Treasure" not in x.type]
 				yield crd.reorder_top(player, cards_left)
@@ -518,7 +517,7 @@ class Vault(crd.Card):
 
 		selection = yield self.played_by.select(None, len(self.played_by.hand.card_array()),
 		                      crd.card_list_to_titles(self.played_by.hand.card_array()), "Discard any number of cards")
-		self.played_by.discard(selection, self.played_by.discard_pile)
+		yield self.played_by.discard(selection, self.played_by.discard_pile)
 		self.played_by.balance += len(selection)
 		self.game.announce("-- discarding " + str(len(selection)) +
 		                   ", gaining +$" + str(len(selection)))
@@ -533,7 +532,7 @@ class Vault(crd.Card):
 	def discard_2_for_1(self, selection, player):
 		if selection[0] == "Yes":
 			discard_selection = yield player.select(min(len(player.hand.card_array()), 2), 2, crd.card_list_to_titles(player.hand.card_array()), "Discard up to 2")
-			player.discard(discard_selection, player.discard_pile)
+			yield player.discard(discard_selection, player.discard_pile)
 			drawn = "nothing"
 			if len(discard_selection) >= 2:
 				drawn = player.draw(1)
@@ -554,12 +553,13 @@ class Venture(crd.Money):
 		self.type = "Treasure"
 		self.spend_all = False
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		self.played_by.balance += self.value
 		self.played_by.update_resources(True)
 
-		crd.search_deck_for(self.played_by, lambda x : "Treasure" in x.type, self.found)
+		yield crd.search_deck_for(self.played_by, lambda x : "Treasure" in x.type, self.found)
 
 	def found(self, card):
 		if card is None:
@@ -682,7 +682,7 @@ class Expand(crd.Card):
 		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),
 		                      "select card to expand")
 		if selection:
-			self.played_by.discard(selection, self.game.trash_pile)
+			yield self.played_by.discard(selection, self.game.trash_pile)
 			card_trashed = self.game.card_from_title(selection[0])
 			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
 			selected = yield self.played_by.select_from_supply("Choose the expanded card", lambda x : x.get_price() <= card_trashed.get_price() + 3)
@@ -730,7 +730,8 @@ class Kings_Court(crd.Card):
 			#after playing the card the first time, we set the done callback to play_again and override the default
 			#done callback for the 2nd time the card is played to play_again to play a 3rd time
 			selected_card.done = lambda : play_again(done_cb=play_again)
-			self.played_by.discard(selection, self.played_by.played_cards)
+			#TODO not discard action
+			yield self.played_by.discard(selection, self.played_by.played_cards)
 			self.game.announce(kings_court_str)
 			selected_card.play(True)
 			self.played_by.update_resources()

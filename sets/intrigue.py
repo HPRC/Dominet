@@ -23,7 +23,7 @@ class Courtyard(crd.Card):
 		 "Choose a card to put back on top of your deck.")
 		if selection:
 			self.game.announce("-- " + self.game.log_string_from_title(selection[0]) + " is placed on top of the deck.")
-			self.played_by.discard(selection, self.played_by.deck)
+			yield self.played_by.discard(selection, self.played_by.deck)
 			self.played_by.update_deck_size()
 			crd.Card.on_finished(self, True, False)
 		else:
@@ -77,7 +77,7 @@ class Secret_Chamber(crd.Card):
 		crd.Card.play(self, skip)
 		selection = yield self.played_by.select(None, None,
 		                      crd.card_list_to_titles(self.played_by.hand.card_array()), "select cards to discard")
-		self.played_by.discard(selection, self.played_by.discard_pile)
+		yield self.played_by.discard(selection, self.played_by.discard_pile)
 		self.played_by.balance += len(selection)
 		self.game.announce(self.played_by.name_string() + " discarding " + str(len(selection)) + " gaining +$" + str(len(selection)) + ".")
 		crd.Card.on_finished(self)
@@ -94,11 +94,12 @@ class Secret_Chamber(crd.Card):
 			put_back = yield self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), 
 				"Put two cards to the top of your deck (#1 is on top)", True)
 			if put_back:
-				drawn_cards = self.post_react_draw_select(put_back, drawn_cards)
+				drawn_cards = yield self.post_react_draw_select(put_back, drawn_cards)
 				return drawn_cards
 
+	@gen.coroutine
 	def post_react_draw_select(self, selection, drawn_cards):
-		self.played_by.discard(selection, self.played_by.deck)
+		yield self.played_by.discard(selection, self.played_by.deck)
 		self.game.announce("-- drawing two cards, putting two of them on the top of their deck.")
 		#if we put back the drawn card then remove from drawn list
 		final_drawn = [x for x in drawn_cards if x != self.played_by.deck[-1] and x!= self.played_by.deck[-2]]
@@ -158,7 +159,7 @@ class Masquerade(crd.Card):
 			trash_selection = yield self.played_by.select(None, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Select a card to trash")
 			if len(trash_selection) > 0:
 				self.game.announce("-- " + self.played_by.name_string() + " trashes " + self.played_by.hand.get_card(trash_selection[0]).log_string())
-				self.played_by.discard([trash_selection[0]], self.game.trash_pile)
+				yield self.played_by.discard([trash_selection[0]], self.game.trash_pile)
 			self.passed_card = ""
 			crd.Card.on_finished(self)
 
@@ -243,18 +244,19 @@ class Steward(crd.Card):
 
 			if len(self.played_by.hand) > 2 and not self.played_by.hand.is_homogeneous():
 				to_trash = yield self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "select cards to trash")
-				self.trash_select(to_trash)
+				yield self.trash_select(to_trash)
 			else:
 				card_selection = self.played_by.hand.auto_select(2, True)
-				self.trash_select(card_selection)
+				yield self.trash_select(card_selection)
 
+	@gen.coroutine
 	def trash_select(self, selection):
 		if len(selection) == 0:
 			selection_string = "nothing"
 		else:
 			selection_string = ", ".join(list(map(lambda x: self.game.log_string_from_title(x), selection)))
 		self.game.announce(self.played_by.name_string() + " trashes " + selection_string)
-		self.played_by.discard(selection, self.game.trash_pile)
+		yield self.played_by.discard(selection, self.game.trash_pile)
 		crd.Card.on_finished(self, True, False)
 
 
@@ -351,7 +353,7 @@ class Baron(crd.Card):
 			if "Yes" in selection:
 				self.played_by.balance += 4
 				self.game.announce("-- discarding an " + self.played_by.hand.data['Estate'][0].log_string() + " and gaining +$4 ")
-				self.played_by.discard(["Estate"], self.played_by.discard_pile)
+				yield self.played_by.discard(["Estate"], self.played_by.discard_pile)
 			else:
 				yield self.played_by.gain("Estate")
 			crd.Card.on_finished(self)
@@ -576,17 +578,18 @@ class Minion(crd.AttackCard):
 			self.game.announce("-- gaining $2")
 			crd.Card.on_finished(self, False, True)
 		else:
-			self.played_by.discard(crd.card_list_to_titles(self.played_by.hand.card_array()), self.played_by.discard_pile)
+			yield self.played_by.discard(crd.card_list_to_titles(self.played_by.hand.card_array()), self.played_by.discard_pile)
 			drawn = self.played_by.draw(4)
 			self.game.announce("-- drawing " + drawn)
-			crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+			yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
+	@gen.coroutine
 	def attack(self):
 		for i in self.played_by.get_opponents():
 			if not crd.AttackCard.is_blocked(self, i):
 				if len(i.hand) >= 5:
 					self.game.announce("-- " + i.name_string() + " discards hand and draws 4")
-					i.discard(crd.card_list_to_titles(i.hand.card_array()), i.discard_pile)
+					yield i.discard(crd.card_list_to_titles(i.hand.card_array()), i.discard_pile)
 					i.draw(4)
 				else:
 					self.game.announce("-- " + i.name_string() + " has less than 5 cards in hand")
@@ -602,15 +605,17 @@ class Torturer(crd.AttackCard):
 		self.price = 5
 		self.type = "Action|Attack"
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		drawn = self.played_by.draw(3)
 		self.played_by.update_resources()
 		self.game.announce("-- drawing " + drawn)
-		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
+	@gen.coroutine
 	def attack(self):
-		crd.AttackCard.get_next(self, self.played_by)
+		yield crd.AttackCard.get_next(self, self.played_by)
 
 	@gen.coroutine
 	def fire(self, player):
@@ -646,14 +651,15 @@ class Tribute(crd.Card):
 		self.price = 5
 		self.type = "Action"
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 
 		tributes = list()
 		left_opponent = self.played_by.get_left_opponent()
 
-		topdeck1 = left_opponent.discard_topdeck()
-		topdeck2 = left_opponent.discard_topdeck()
+		topdeck1 = yield left_opponent.discard_topdeck()
+		topdeck2 = yield left_opponent.discard_topdeck()
 		tributes.append(topdeck1)
 		if topdeck1.title != topdeck2.title:
 			tributes.append(topdeck2)
@@ -705,7 +711,7 @@ class Upgrade(crd.Card):
 	def trash_select(self, selection):
 		if selection:
 			card = self.played_by.hand.get_card(selection[0])
-			self.played_by.discard([card.title], self.game.trash_pile)
+			yield self.played_by.discard([card.title], self.game.trash_pile)
 			self.game.announce("-- trashing " + card.log_string() + " to gain a card with cost " + str(card.get_price() + 1))
 			select_gain = yield self.played_by.select_from_supply("Select an upgrade to gain", lambda x : x.get_price() == card.get_price() + 1)
 			if select_gain:
@@ -724,13 +730,16 @@ class Saboteur(crd.AttackCard):
 		self.price = 5
 		self.type = "Action|Attack"
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
+	@gen.coroutine
 	def attack(self):
-		crd.AttackCard.get_next(self, self.played_by)
+		yield crd.AttackCard.get_next(self, self.played_by)
 
+	@gen.coroutine
 	def fire(self, victim):
 		# check if blocked by moat first.
 		if not crd.AttackCard.fire(self, victim):
@@ -739,7 +748,7 @@ class Saboteur(crd.AttackCard):
 		self.game.announce("-- " + victim.name_string() + " is being sabotaged")
 
 		sabotaged = False
-		crd.search_deck_for(victim, lambda x : x.get_price() >=3, lambda c: self.found(c, victim=victim))
+		yield crd.search_deck_for(victim, lambda x : x.get_price() >=3, lambda c: self.found(c, victim=victim))
 
 	@gen.coroutine
 	def found(self, card, victim):
@@ -760,11 +769,11 @@ class Saboteur(crd.AttackCard):
 			self.played_by.wait("to gain a card", victim)
 			selection = yield victim.select_from_supply("Choose a remnant of the sabotaged goods", lambda x : x.get_price() <= card.get_price() - 2, optional=True)
 			if selection[0] != "None":
-				victim.gain(selection[0])
-				crd.AttackCard.get_next(self, victim)
+				yield victim.gain(selection[0])
+				yield crd.AttackCard.get_next(self, victim)
 			else:
 				self.game.announce("-- " + victim.name_string() + " gains nothing")
-				crd.AttackCard.get_next(self, victim)
+				yield crd.AttackCard.get_next(self, victim)
 
 class Trading_Post(crd.Card):
 	def __init__(self, game, played_by):
@@ -790,7 +799,7 @@ class Trading_Post(crd.Card):
 			self.game.announce("But there was nothing to trash")
 		else:
 			self.game.announce("Trashing " + ", ".join(list(map(lambda x: self.game.log_string_from_title(x), selection))))
-			self.played_by.discard(selection, self.game.trash_pile)
+			yield self.played_by.discard(selection, self.game.trash_pile)
 
 		if len(selection) >= 2:
 			yield self.played_by.gain_to_hand("Silver")

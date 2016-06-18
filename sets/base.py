@@ -27,7 +27,7 @@ class Cellar(crd.Card):
 		else:
 			self.played_by.announce_self("-- you discard nothing")
 		self.played_by.announce_opponents("-- discarding and drawing " + str(len(selection)) + " cards")
-		self.played_by.discard(selection, self.played_by.discard_pile)
+		yield self.played_by.discard(selection, self.played_by.discard_pile)
 		self.played_by.draw(len(selection))
 		crd.Card.on_finished(self)
 
@@ -50,7 +50,7 @@ class Chapel(crd.Card):
 			self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(selection_string))
 		else:
 			self.game.announce(self.played_by.name_string() + " trashes nothing")
-		self.played_by.discard(selection, self.game.trash_pile)
+		yield self.played_by.discard(selection, self.game.trash_pile)
 		crd.Card.on_finished(self, True, False, False)
 
 class Moat(crd.Card):
@@ -260,10 +260,11 @@ class Moneylender(crd.Card):
 		self.price = 4
 		self.type = "Action"
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		if "Copper" in self.played_by.hand:
-			self.played_by.discard(["Copper"], self.game.trash_pile)
+			yield self.played_by.discard(["Copper"], self.game.trash_pile)
 			self.played_by.balance += 3
 			self.game.announce("-- trashing a " + self.game.log_string_from_title("Copper") + " and gaining $3")
 		else:
@@ -285,7 +286,7 @@ class Remodel(crd.Card):
 		 "select card to remodel")
 		if selection:
 			self.played_by.update_resources()
-			self.played_by.discard(selection, self.game.trash_pile)
+			yield self.played_by.discard(selection, self.game.trash_pile)
 			card_trashed = self.game.card_from_title(selection[0])
 			self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
 			gain_list = yield self.played_by.select_from_supply("Select a card to gain from Remodel", lambda x : x.get_price() <= card_trashed.get_price() + 2)
@@ -327,7 +328,7 @@ class Spy(crd.AttackCard):
 			selection = yield self.played_by.select(1, 1, ["discard", "keep"],
 				player.name + " revealed " + revealed_card.title)
 			if selection[0] == "discard":
-				card = player.discard_topdeck()
+				card = yield player.discard_topdeck()
 				self.game.announce(self.played_by.name_string() + " discards " + card.log_string() + " from " +
 					player.name_string() + "'s deck")
 			else:
@@ -388,9 +389,9 @@ class Thief(crd.AttackCard):
 					self.game.trash_pile.append(revealed_treasure[0])
 					self.game.update_trash_pile()
 					if revealed_cards[0] == revealed_treasure[0]:
-						player.discard_floating(revealed_cards[1])
+						yield player.discard_floating(revealed_cards[1])
 					else:
-						player.discard_floating(revealed_cards[0])
+						yield player.discard_floating(revealed_cards[0])
 
 					self.game.announce(player.name_string() + " trashes "
 					+ revealed_treasure[0].log_string())
@@ -404,7 +405,7 @@ class Thief(crd.AttackCard):
 					yield self.post_select_trash(select_trash, player, revealed_treasure)
 			else:
 				#if no treasure, add the revealed cards to the discard
-				player.discard_floating(revealed_cards)
+				yield player.discard_floating(revealed_cards)
 				crd.AttackCard.get_next(self, player)
 
 	@gen.coroutine
@@ -421,7 +422,7 @@ class Thief(crd.AttackCard):
 		cards.remove(card_to_trash)
 		self.game.trash_pile.append(card_to_trash)
 		self.game.update_trash_pile()
-		thieved.discard_floating(cards[0])
+		yield thieved.discard_floating(cards[0])
 		self.game.announce(self.played_by.name_string() + " trashes " + card_to_trash.log_string() + " from " +
 				thieved.name_string() + "'s deck")
 		self.game.announce(thieved.name_string() + " discards " + cards[0].log_string() + " from their deck")
@@ -466,7 +467,8 @@ class Throne_Room(crd.Card):
 				card.played_by.update_resources()
 
 			selected_card.done = second_play
-			self.played_by.discard(selection, self.played_by.played_cards)
+			#TODO not technically a discard action
+			yield self.played_by.discard(selection, self.played_by.played_cards)
 			self.game.announce(throne_room_str)
 			selected_card.play(True)
 			self.played_by.update_resources()
@@ -560,7 +562,7 @@ class Library(crd.Card):
 					if len(self.played_by.hand) < 7:
 						self.play(True)
 					else:
-						self.on_finish()
+						yield self.on_finish()
 					return
 				else:
 					self.played_by.announce_self("-- You draw " + top_card.log_string())
@@ -570,10 +572,11 @@ class Library(crd.Card):
 			else:
 				self.played_by.announce_self("-- You have no cards left to draw")
 				break
-		self.on_finish()
+		yield self.on_finish()
 
+	@gen.coroutine
 	def on_finish(self):
-		self.played_by.discard_floating(self.set_aside)
+		yield self.played_by.discard_floating(self.set_aside)
 		self.set_aside = []
 		crd.Card.on_finished(self)
 
@@ -617,7 +620,7 @@ class Mine(crd.Card):
 			selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(treasure_cards),
 			 "select treasure to trash")
 			if selection:
-				self.played_by.discard(selection, self.game.trash_pile)
+				yield self.played_by.discard(selection, self.game.trash_pile)
 				card_trashed = self.game.card_from_title(selection[0])
 				self.game.announce(self.played_by.name_string() + " trashes " + card_trashed.log_string())
 				gain_treasure = yield self.played_by.select_from_supply("Select a treasure to gain", 
@@ -669,6 +672,7 @@ class Adventurer(crd.Card):
 		self.price = 6
 		self.type = "Action"
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		to_discard = []
@@ -681,8 +685,8 @@ class Adventurer(crd.Card):
 				treasures.append(card)
 				if len(treasures) == 2:
 					self.game.announce(self.played_by.name_string() + " reveals " + " , ".join(crd.card_list_log_strings(to_discard + treasures)))
-					self.game.announce(self.played_by.name_string() + " puts " + " , ".join(crd.card_list_log_strings(treasures)) + "in hand")
-					self.played_by.discard_floating(to_discard)
+					self.game.announce(self.played_by.name_string() + " puts " + " , ".join(crd.card_list_log_strings(treasures)) + " in hand")
+					yield self.played_by.discard_floating(to_discard)
 					for t in treasures:
 						self.played_by.hand.add(t)
 					crd.Card.on_finished(self)
@@ -697,7 +701,7 @@ class Adventurer(crd.Card):
 			self.game.announce(self.played_by.name_string() + " puts " + " , ".join(crd.card_list_log_strings(treasures)) + " in hand")
 		else:
 			self.game.announce(self.played_by.name_string() + " finds no treasures to put in hand")
-		self.played_by.discard_floating(to_discard)
+		yield self.played_by.discard_floating(to_discard)
 		for t in treasures:
 			self.played_by.hand.add(t)
 		crd.Card.on_finished(self)

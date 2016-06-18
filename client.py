@@ -184,7 +184,7 @@ class DmClient(Client):
 			else:
 				yield self.hand.play(data["card"])
 		elif cmd == "discard":
-			self.discard(data["cards"], self.discard_pile)
+			yield self.discard(data["cards"], self.discard_pile)
 		elif cmd == "endTurn":
 			yield self.end_turn()
 		elif cmd == "buyCard":
@@ -194,7 +194,7 @@ class DmClient(Client):
 		elif cmd == "selectSupply":
 			self.exec_selected_choice(data["card"])
 		elif cmd == "spendAllMoney":
-			self.spend_all_money()
+			yield self.spend_all_money()
 			
 	def exec_selected_choice(self, choice):
 		self.update_wait()
@@ -236,6 +236,8 @@ class DmClient(Client):
 
 	@gen.coroutine
 	def end_turn(self):
+		self.phase = "cleanup"
+		yield self.discard(crd.card_list_to_titles(self.hand.card_array()), self.discard_pile)
 		# cleanup before game ends
 		unique_cards_played = {}
 		for x in self.played_cards:
@@ -258,6 +260,7 @@ class DmClient(Client):
 		self.game.reset_prices()
 		self.update_discard_size()
 		self.update_deck_size()
+		self.phase = None
 		self.game.change_turn()
 
 	#used to properly generate a copy of a card from supply to add to my deck
@@ -341,33 +344,48 @@ class DmClient(Client):
 			i.waiter.notify(self, manually_called)
 
 	# assumes removed card from where discarding from beforehand
+	@gen.coroutine
 	def discard_floating(self, cards):
 		if not isinstance(cards, list):
 			cards = [cards]
 		for x in cards:
+			yield self.discard_reaction(x)
 			self.discard_pile.append(x)
 		self.update_deck_size()
 		self.update_discard_size()
 
+	@gen.coroutine
 	def discard_topdeck(self):
 		card = self.deck.pop()
+		yield self.discard_reaction(card)
 		self.discard_pile.append(card)
 		self.update_deck_size()
 		self.update_discard_size()
 		return card
 
 	# cards = list of card titles
+	@gen.coroutine
 	def discard(self, cards, discard_to):
 		for x in cards:
 			card = self.hand.extract(x)
 			if card is not None:
+				if discard_to == self.discard_pile:
+					yield self.discard_reaction(card)
 				discard_to.append(card)
 		self.update_hand()
 		if discard_to == self.discard_pile:
-			self.update_discard_size()
+			self.update_discard_size()	
 		elif discard_to == self.game.trash_pile:
 			self.game.update_trash_pile()
 
+	@gen.coroutine
+	def discard_reaction(self, card):
+		if "Reaction" in card.type and card.trigger == "Discard":
+			turn_owner = self.game.get_turn_owner()
+			if self != turn_owner:
+				turn_owner.wait("to react", self, True)
+			yield card.react()
+			self.update_wait(True)
 		
 	def update_mode(self):
 		played_money = [x for x in self.played_cards if "Treasure" in x.type]
@@ -526,6 +544,7 @@ class DmClient(Client):
 		self.gamelog.append(msg)
 		self.write_json(command="announce",msg=msg)
 
+	@gen.coroutine
 	def spend_all_money(self):
 		to_log = []
 		to_discard = []
@@ -542,7 +561,7 @@ class DmClient(Client):
 				to_discard += self.hand.get_all(card_title)
 				to_log.append(str(count))
 				to_log.append(card.log_string() if count == 1 else card.log_string(True))
-			self.discard(list(map(lambda x: x.title, to_discard)), self.played_cards)
+			yield self.discard(list(map(lambda x: x.title, to_discard)), self.played_cards)
 			if len(to_log) > 0:
 				self.game.announce(self.name_string() + " played " + " ".join(to_log))
 				self.update_resources(True)
