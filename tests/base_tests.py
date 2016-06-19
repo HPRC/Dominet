@@ -384,7 +384,7 @@ class TestCard(tornado.testing.AsyncTestCase):
 		throneroom2 = base.Throne_Room(self.game, self.player1)
 		self.player1.hand.add(throneroom)
 		self.player1.hand.add(throneroom2)
-		throneroom.play()
+		yield tu.send_input(self.player1, "play", "Throne Room")
 		yield tu.send_input(self.player1, "post_selection", ["Throne Room"])
 
 		self.player1.end_turn()
@@ -394,17 +394,18 @@ class TestCard(tornado.testing.AsyncTestCase):
 		self.player1.hand.add(throneroom)
 		self.player1.hand.add(throneroom2)
 		self.player1.hand.add(base.Village(self.game, self.player1))
+		self.player1.hand.add(base.Village(self.game, self.player1))
 		self.player1.hand.add(base.Woodcutter(self.game, self.player1))
-		throneroom.play()
+		yield tu.send_input(self.player1, "play", "Throne Room")
 		yield tu.send_input(self.player1, "post_selection", ["Village"])
 		self.assertTrue(self.player1.actions == 4)
 		self.assertTrue(self.player1.last_mode["mode"] == "action")
 
-		throneroom2.play()
+		yield tu.send_input(self.player1, "play", "Throne Room")
 		yield tu.send_input(self.player1, "post_selection", ["Woodcutter"])
 		self.assertTrue(self.player1.balance == 4)
 		self.assertTrue(self.player1.last_mode["mode"] == "action")
-		
+
 
 if __name__ == '__main__':
 	unittest.main()
