@@ -223,7 +223,7 @@ def parallel_selects(futures, players, callback):
 		selected = yield wait_iterator.next()
 		selecting_player_index = wait_iterator.current_index
 		selecting_player = players[selecting_player_index]
-		callback(selected, selecting_player)
+		yield gen.maybe_future(callback(selected, selecting_player))
 
 # asks player to reorder input list of cards
 # player = player who is reordering
@@ -254,6 +254,7 @@ def reorder_top(player, cards_to_reorder):
 # search_criteria = function that needs to accept a card object as a parameter and return True if the card object matches
 #     what we are looking for False otherwise
 # callback = callback function we will call after finding our match, passing in the matching card to it or None
+@gen.coroutine
 def search_deck_for(player, search_criteria, callback):
 	total_deck_count = len(player.discard_pile) + len(player.deck)
 	discarded = list()
@@ -264,13 +265,10 @@ def search_deck_for(player, search_criteria, callback):
 			match_found = True
 		else:
 			discarded.append(topdeck)
-
-	player.discard_pile += discarded
-
+	
 	if len(discarded) > 0:
+		yield player.discard_floating(discarded)
 		player.game.announce("-- discarding " + ", ".join(map(lambda card : card.log_string(), discarded)))
-		player.update_discard_size()
-		player.update_deck_size()
 	if match_found:
 		callback(topdeck)
 	else:
@@ -283,10 +281,11 @@ def search_deck_for(player, search_criteria, callback):
 def discard_down(players, reduced_hand_size):
 	if not players:
 		return
-		
+	
+	@gen.coroutine
 	def discard_down_cb(selection, player):
 		player.game.announce("-- " + player.name_string() + " discards down to " + str(reduced_hand_size))
-		player.discard(selection, player.discard_pile)
+		yield player.discard(selection, player.discard_pile)
 
 	turn_owner = players[0].game.get_turn_owner()
 	discarding_players = [x for x in players if len(x.hand) > reduced_hand_size]

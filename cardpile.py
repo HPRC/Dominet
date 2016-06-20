@@ -107,7 +107,7 @@ class CardPile():
 	def has_selectable(self, constraint):
 		return [x for x in self.unique_cards() if constraint(x) and self.get_count(x.title) > 0]
 
-class HandPile():
+class HandPile(CardPile):
 	def __init__(self, player):
 		# The underlying data is a dictionary with key = cardtitle, value = [card object, card object, etc...]
 		CardPile.__init__(self)

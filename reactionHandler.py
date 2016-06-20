@@ -17,7 +17,7 @@ class ReactionHandler():
 		if self.player != self.turn_owner:
 			self.turn_owner.wait("to react", self.player, True)
 		
-		self.reaction_events.append(ReactionEvent(trigger, self.player,react_data))
+		self.reaction_events.append(ReactionEvent(trigger, self.player, react_data))
 		while self.reaction_events:
 			reacting = self.reaction_events.pop(0)
 			yield reacting.start_reactions()
