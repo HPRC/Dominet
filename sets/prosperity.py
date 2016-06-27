@@ -567,8 +567,8 @@ class Venture(crd.Money):
 		else:
 			self.game.announce("-- revealing " + card.log_string())
 			self.game.announce("-- " + self.played_by.name_string() + " played " + card.log_string())
-			card.play(True)
 			self.played_by.played_cards.append(card)
+			card.play(True)
 		crd.Money.on_finished(self)
 
 # --------------------------------------------------------
