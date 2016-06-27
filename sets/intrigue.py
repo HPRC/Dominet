@@ -629,7 +629,7 @@ class Torturer(crd.AttackCard):
 			else:
 				discard_selection = player.hand.auto_select(2, True)
 				if discard_selection:
-					player.discard(discard_selection, player.discard_pile)
+					yield player.discard(discard_selection, player.discard_pile)
 					self.game.announce(player.name_string() + " discards " + str(len(discard_selection)) + " cards")
 				elif len(player.hand) > 0:
 					player.opponents_wait("to discard", locked=False)
