@@ -162,6 +162,27 @@ class Develop(crd.Card):
 		else:
 			crd.Card.on_finished(self)
 
+class Oasis(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = 'Oasis'
+		self.description = '{}{}{} Discard a card'.format(crd.format_draw(1), crd.format_actions(1), crd.format_money(1))
+		self.type = "Action"
+		self.price = 3
+
+	@gen.coroutine
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		drawn = self.played_by.draw(1)
+		self.played_by.actions += 1
+		self.played_by.balance += 1
+		self.played_by.update_resources()
+		self.game.announce("-- drawing {} and gaining +1 action, +$1".format(drawn))
+		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), 
+			'Select a card to discard')
+		yield self.played_by.discard(selection, self.played_by.discard_pile)
+		self.game.announce("-- discarding {}".format(self.game.log_string_from_title(selection[0])))
+		crd.Card.on_finished(self, False, False)
 
 class Oracle(crd.AttackCard):
 	def __init__(self, game, played_by):

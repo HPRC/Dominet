@@ -114,7 +114,20 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "selectSupply", ["Silver"])
 		self.assertTrue("Silver" == self.player1.discard_pile[-1].title)
 
+	@tornado.testing.gen_test
+	def test_Oasis(self):
+		tu.print_test_header("Test Oasis")
+		oasis = hl.Oasis(self.game, self.player1)
+		self.player1.hand.add(oasis)
 
+		initial_balance = self.player1.balance
+		initial_hand_size = len(self.player1.hand)
+		oasis.play()
+		self.assertTrue(self.player1.balance == initial_balance + 1)
+		self.assertTrue(self.player1.actions == 1)
+		yield tu.send_input(self.player1, "post_selection", ['Copper'])
+		self.assertTrue(len(self.player1.hand) == initial_hand_size - 1)
+		self.assertTrue(self.player1.discard_pile[-1].title == 'Copper')
 
 	@tornado.testing.gen_test
 	def test_Duchess_Feast(self):
