@@ -104,7 +104,7 @@ class Fools_Gold(crd.Money):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		fools_golds_played = [c for c in self.played_by.played_cards if c.title == self.title]
-		if len(fools_golds_played) == 1:
+		if len(fools_golds_played) <= 1:
 			self.value = 1
 		else:
 			self.value = 4
