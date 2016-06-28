@@ -18,13 +18,11 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 	}, true);
 
 	$scope.disabled = function(card){
-		if ((card.title in $scope.kingdom && $scope.kingdom[card.title].count === 0 || 
-			card.title in $scope.baseSupply && $scope.baseSupply[card.title].count === 0) 
-			&& $scope.modeJson.allow_empty !== true){
-			return true;
-		}
-
 		if ($scope.turn && $scope.modeJson.mode === "buy"){
+			if ((card.title in $scope.kingdom && $scope.kingdom[card.title].count === 0 || 
+				card.title in $scope.baseSupply && $scope.baseSupply[card.title].count === 0)){
+				return true;
+			}
 			return $scope.getPrice(card) > $scope.balance || $scope.modeJson.banned.indexOf(card.title) !== -1;
 		}
 
