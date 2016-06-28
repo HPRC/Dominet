@@ -268,6 +268,7 @@ class Tunnel(crd.VictoryCard)	:
 		self.price = 3
 		self.type = "Reaction|Victory"
 		self.trigger = "Discard"
+		self.vp = 2
 
 	@gen.coroutine
 	def react(self):

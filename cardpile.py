@@ -104,8 +104,8 @@ class CardPile():
 
 	#returns true if there are available cards left in supply to gain from with the given parameters
 	#constraint = function to filter supply selection
-	def has_selectable(self, constraint):
-		return [x for x in self.unique_cards() if constraint(x) and self.get_count(x.title) > 0]
+	def has_selectable(self, constraint, allow_empty=False):
+		return [x for x in self.unique_cards() if constraint(x) and self.get_count(x.title) > 0 or allow_empty]
 
 class HandPile(CardPile):
 	def __init__(self, player):

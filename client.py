@@ -471,10 +471,10 @@ class DmClient(Client):
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 
 	def select_from_supply(self, msg, constraint=lambda x: True, allow_empty=False, optional=False):
-		avail = self.game.supply.has_selectable(constraint)
+		avail = self.game.supply.has_selectable(constraint, allow_empty)
 		if allow_empty or avail:
 			self.write_json(command="updateMode", mode="selectSupply", msg=msg, allowed=crd.card_list_to_titles(avail), 
-				allow_empty=allow_empty, optional=optional)
+				optional=optional)
 
 			future = tornado.concurrent.Future()
 			self.cb = future
