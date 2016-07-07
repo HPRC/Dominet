@@ -254,7 +254,7 @@ clientModule.factory('client', function(socket, favicon) {
 	};
 
 	constructor.prototype.getGameLog = function(){
-		return this.gameLog;
+		return this.gameLog || "Waiting for other players...";
 	};
 
 	return new constructor();
