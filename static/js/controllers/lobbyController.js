@@ -64,16 +64,19 @@ clientModule.controller("lobbyController", function($rootScope, $scope, $uibModa
 		return table.players.indexOf($scope.name) !== -1;
 	};
 
-  $scope.usingIncludes = function(table){
-      return table.required.join(", ");
+  $scope.cardsSpecifiedString = function(list){
+    return list.join(", ");
   };
 
-  $scope.usingExcludes = function(table){
-      return table.excluded.join(", ");
+  $scope.cardsSpecifiedLength = function(list){
+  	if (list.length == 1){
+  		return list[0].length > 0 ? 1 : 0;
+  	}
+  	return list.length;
   };
 
   $scope.supplyInfo = function(table){
-      return table.req_supply;
+    return table.req_supply;
   };
 
 	$scope.openAdvGameModal = function () {
