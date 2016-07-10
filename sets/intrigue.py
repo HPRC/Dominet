@@ -667,9 +667,9 @@ class Tribute(crd.Card):
 			tributes.append(topdeck2)
 		self.game.announce("-- "+ left_opponent.name_string() + " reveals " + ", ".join(crd.card_list_log_strings([topdeck1, topdeck2])) + " as a tribute.")
 
-		self.tribute_card(left_opponent, tributes)
+		self.tribute_card(tributes)
 
-	def tribute_card(self, left_opponent, tributes):
+	def tribute_card(self, tributes):
 		for x in tributes:
 			gaining = []
 			if "Action" in x.type:

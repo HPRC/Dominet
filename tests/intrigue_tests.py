@@ -398,26 +398,26 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player1.hand.get_count("Estate") == estates + 2)
 		self.assertTrue(self.player2.last_mode["mode"] != "wait")
 
+	@tornado.testing.gen_test
 	def test_Tribute(self):
 		tu.print_test_header("test Tribute")
 		tribute = intrigue.Tribute(self.game, self.player1)
-		tu.add_many_to_hand(self.player1, tribute, 2)
+		tu.set_player_hand(self.player1, [tribute, tribute])
 		copper = supply_cards.Copper(self.game, self.player2)
 		great_hall = intrigue.Great_Hall(self.game, self.player2)
 		swindler = intrigue.Swindler(self.game, self.player2)
 
-		self.player2.deck.append(copper)
-		self.player2.deck.append(copper)
-		self.player2.deck.append(great_hall)
-		self.player2.deck.append(swindler)
+		self.player2.deck = [copper, copper]
 
-		cards_in_hand = len(self.player1.hand.card_array())
-		tribute.play()
-		self.assertTrue(self.player1.actions == 4)
+		yield tribute.play()
+		self.assertTrue(self.player1.balance == 2)
+		self.assertFalse(self.player2.deck)
 		self.assertTrue(len(self.player2.discard_pile) == 2)
 
-		tribute.play()
-		self.assertTrue(self.player1.balance == 2)
+		self.player2.discard_pile = [swindler, great_hall]
+		yield tribute.play()
+		self.assertTrue(self.player1.actions == 3)
+		self.assertTrue(len(self.player1.hand) == 2)
 
 	@tornado.testing.gen_test
 	def test_Mining_Village(self):

@@ -356,6 +356,10 @@ class DmClient(Client):
 
 	@gen.coroutine
 	def discard_topdeck(self):
+		if not self.deck:
+			self.shuffle_discard_to_deck()
+		if not self.deck:
+			return None
 		card = self.deck.pop()
 		yield self.discard_reaction(card)
 		self.discard_pile.append(card)
