@@ -358,7 +358,7 @@ class Mint(crd.Card):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Mint"
 		self.description = "You may reveal a Treasure card from your hand. Gain a copy of it.\n" \
-		                   "When you buy this, trash all Treasures you have in play."
+		"When you buy this, trash all Treasures you have in play."
 		self.price = 5
 		self.type = "Action"
 

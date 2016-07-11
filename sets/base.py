@@ -607,8 +607,8 @@ class Mine(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Mine"
-		self.description = "Trash a Treasure card from your hand. Gain a Treasure card costing up to $3 more;\
-		put it into your hand."
+		self.description = "Trash a Treasure card from your hand. Gain a Treasure card costing up to $3 more;"\
+		"put it into your hand."
 		self.price = 5
 		self.type = "Action"
 

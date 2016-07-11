@@ -4,13 +4,14 @@ import sets.supply as supply_cards
 import sets.intrigue as intrigue
 import sets.prosperity as prosperity
 import sets.hinterlands as hl
+import sets.seaside as seaside
 import inspect
 import random
 import string
 
 
 class kingdomGenerator():
-	avail_sets = [base, intrigue, prosperity, hl]
+	avail_sets = [base, intrigue, prosperity, hl, seaside]
 	kingdom_size = 10
 
 	def __init__(self, game, required_cards=[], excluded_cards=[]):

@@ -117,6 +117,7 @@ class DmClient(Client):
 		self.played_cards = []
 		# all cards played, if a card was throne roomed, it is added twice
 		self.played_inclusive = []
+		self.durations = []
 		self.actions = 0
 		self.buys = 0
 		self.balance = 0
@@ -135,9 +136,14 @@ class DmClient(Client):
 		self.write_json(command="updateHand", hand=[x.to_json() for x in self.hand.card_array()])
 
 	# override
+	@gen.coroutine
 	def take_turn(self):
 		self.actions = 1
 		self.buys = 1
+		for d in self.durations:
+			yield gen.maybe_future(d.duration())
+			self.played_cards.append(d)
+		self.durations = []
 		self.phase = "action"
 		self.write_json(command="updateMode", mode="action")
 		self.write_json(command="startTurn", actions=self.actions, buys=self.buys, 

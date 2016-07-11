@@ -7,7 +7,7 @@ import cardpile as cp
 import random
 import time
 import logHandler
-from tornado import ioloop
+from tornado import ioloop, gen
 import datetime
 
 class Game():
@@ -22,12 +22,13 @@ class Game():
 		for i in self.players:
 			i.write_json(command="chat", msg=msg, speaker=speaker)
 
+	@gen.coroutine
 	def start_game(self):
 		for i in self.players:
 			i.setup()
 		self.announce("Starting game with " + " and ".join(map(lambda x: str(x.name), self.players)))
 		self.announce("<b>---- " + self.players[self.turn].name_string() + " 's turn " + str(self.turn_count) + " ----</b>")
-		self.players[self.turn].take_turn()
+		yield self.players[self.turn].take_turn()
 
 	def announce(self, msg):
 		for i in self.players:
