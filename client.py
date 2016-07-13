@@ -144,6 +144,8 @@ class DmClient(Client):
 			yield gen.maybe_future(d.duration())
 			self.played_cards.append(d)
 		self.durations = []
+		self.update_duration_mat()
+		self.game.update_mat()
 		self.phase = "action"
 		self.write_json(command="updateMode", mode="action")
 		self.write_json(command="startTurn", actions=self.actions, buys=self.buys, 
@@ -179,7 +181,7 @@ class DmClient(Client):
 			if self.game.turn_count == 0:
 				if self.game.players_ready():
 					self.game.turn_count = 1
-					self.game.start_game()
+					yield self.game.start_game()
 			#else game started, we are reconnecting
 			else:
 				self.reconnect()
@@ -267,7 +269,7 @@ class DmClient(Client):
 		self.update_discard_size()
 		self.update_deck_size()
 		self.phase = None
-		self.game.change_turn()
+		yield self.game.change_turn()
 
 	#used to properly generate a copy of a card from supply to add to my deck
 	def gen_new_card(self, card_title):
@@ -488,6 +490,14 @@ class DmClient(Client):
 		else:
 			self.game.announce("-- but there is nothing available in supply")
 			return []
+
+	def update_duration_mat(self):
+		duration_key = "{} durations".format(self.name_string())
+		if self.durations:
+			self.game.mat[duration_key] = crd.card_list_log_strings(self.durations)
+			self.game.update_mat()
+		elif duration_key in self.game.mat:
+			del self.game.mat[duration_key]
 
 	def update_resources(self, playedMoney=False):
 		if playedMoney:

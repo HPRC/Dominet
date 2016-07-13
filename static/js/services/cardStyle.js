@@ -6,6 +6,7 @@ clientModule.factory('cardStyle', function(){
 				"Victory": "card-victory",
 				"Curse": "card-curse",
 				"Action|Attack": "card-attack",
+				"Action|Duration": "card-duration",
 				"Action|Reaction": "card-reaction",
 				"Action|Victory": "card-action-victory",
 				"Treasure|Victory": "card-treasure-victory",

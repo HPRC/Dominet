@@ -37,6 +37,10 @@
   @include terminal_label($action-color);
 }
 
+.label-duration {
+  @include terminal_label($duration-color);
+}
+
 .label-action-victory {
   @include terminal_label($action-color, $victory-color)
 }

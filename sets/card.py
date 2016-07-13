@@ -181,9 +181,13 @@ class Duration(Card):
 			self.played_by.discard([self.title], self.played_by.durations)
 			self.game.announce(self.played_by.name_string() + " played " + self.log_string())
 			self.played_by.actions -= 1
+			self.played_by.update_duration_mat()
 
 	def duration(self):
 		self.game.announce("{} duration effect resolves".format(self.log_string()))
+
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-duration'>", self.title, "s</span>" if plural else "</span>"])
 
 class VictoryCard(Card):
 	def __init__(self, game, played_by):

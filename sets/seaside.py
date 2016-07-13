@@ -22,4 +22,5 @@ class Lighthouse(crd.Duration):
   def duration(self):
     crd.Duration.duration(self)
     self.played_by.balance += 1
+    self.game.announce("-- gaining +$1")
     self.played_by.protection = 0

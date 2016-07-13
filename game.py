@@ -27,19 +27,20 @@ class Game():
 		for i in self.players:
 			i.setup()
 		self.announce("Starting game with " + " and ".join(map(lambda x: str(x.name), self.players)))
-		self.announce("<b>---- " + self.players[self.turn].name_string() + " 's turn " + str(self.turn_count) + " ----</b>")
+		self.announce("<b>---- " + self.players[self.turn].name_string() + "'s turn " + str(self.turn_count) + " ----</b>")
 		yield self.players[self.turn].take_turn()
 
 	def announce(self, msg):
 		for i in self.players:
 			i.write_json(command="announce", msg=msg)
 
+	@gen.coroutine
 	def change_turn(self):
 		self.turn = (self.turn + 1) % len(self.players)
 		if self.turn == self.first:
 			self.turn_count += 1
-		self.announce("<b>---- " + str(self.players[self.turn].name_string()) + " 's turn " + str(self.turn_count) + " ----</b>")
-		self.players[self.turn].take_turn()
+		self.announce("<b>---- " + str(self.players[self.turn].name_string()) + "'s turn " + str(self.turn_count) + " ----</b>")
+		yield gen.maybe_future(self.players[self.turn].take_turn())
 
 	def get_turn_owner(self):
 		return self.players[self.turn]
@@ -92,12 +93,13 @@ class DmGame(Game):
 		self.game_log = []
 
 	# override
+	@gen.coroutine
 	def start_game(self):
 		self.logger.setup_log_file()
 		self.logger.log_html_data("<br>".join(["Supply:", str(self.base_supply), "Kingdom:", str(self.kingdom)]))
 		self.game_log.extend(["Supply:", str(self.base_supply), "Kingdom:", str(self.kingdom)])
 		self.load_supplies()
-		Game.start_game(self)
+		yield Game.start_game(self)
 
 	def load_supplies(self):
 		for i in self.players:
@@ -121,9 +123,6 @@ class DmGame(Game):
 			i.write_json(command="updateAllPrices", modifier=self.price_modifier)
 
 	def update_mat(self):
-		display_mat = {}
-		for key, item in self.mat.items():
-			display_mat[key] = " ".join(item)
 		for i in self.players:
 			i.write_json(command="updateMat", mat=self.mat)
 

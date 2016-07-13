@@ -80,6 +80,10 @@
   @include card-variant(white, $attack-color, darken($attack-color, 5%));
 }
 
+.card-duration {
+  @include card-variant(white, $duration-color, darken($duration-color, 5%));
+}
+
 .card-treasure-victory {
   @include card-variant(white, $victory-color, darken($victory-color, 5%), $treasure-color);
 }

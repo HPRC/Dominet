@@ -1,4 +1,5 @@
 import unittest
+import unittest.mock
 import net
 import client as c
 import game as g
@@ -135,6 +136,19 @@ class TestGame(unittest.TestCase):
 		player3opponents = self.player3.get_opponents()
 		self.assertTrue(player3opponents[0] == self.player1)
 		self.assertTrue(player3opponents[1] == self.player2)
+
+	@gen.coroutine
+	def test_duration(self):
+		tu.print_test_header("test duration")
+		mock_duration_card = unittest.mock.Mock()
+		mock_duration_card2 = unittest.mock.Mock()
+		self.player1.durations = [mock_duration_card, mock_duration_card2]
+		yield self.player1.take_turn()
+		mock_duration_card.duration.assert_called_once_with()
+		mock_duration_card2.duration.assert_called_once_with()
+		self.assertTrue(self.player1.durations == [])
+		self.assertTrue(mock_duration_card in self.player1.played_cards)
+		self.assertTrue(mock_duration_card2 in self.player1.played_cards)
 
 if __name__ == '__main__':
 	unittest.main()
