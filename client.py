@@ -144,8 +144,7 @@ class DmClient(Client):
 			yield gen.maybe_future(d.duration())
 			self.played_cards.append(d)
 		self.durations = []
-		self.update_duration_mat()
-		self.game.update_mat()
+		self.game.update_duration_mat()
 		self.phase = "action"
 		self.write_json(command="updateMode", mode="action")
 		self.write_json(command="startTurn", actions=self.actions, buys=self.buys, 
@@ -491,13 +490,10 @@ class DmClient(Client):
 			self.game.announce("-- but there is nothing available in supply")
 			return []
 
-	def update_duration_mat(self):
-		duration_key = "{} durations".format(self.name_string())
+	def get_duration_string(self):
 		if self.durations:
-			self.game.mat[duration_key] = crd.card_list_log_strings(self.durations)
-			self.game.update_mat()
-		elif duration_key in self.game.mat:
-			del self.game.mat[duration_key]
+			return "{}: {}".format(self.name_string(), ", ".join(crd.card_list_log_strings(self.durations)))
+		return ""
 
 	def update_resources(self, playedMoney=False):
 		if playedMoney:

@@ -122,6 +122,14 @@ class DmGame(Game):
 		for i in self.players:
 			i.write_json(command="updateAllPrices", modifier=self.price_modifier)
 
+	def update_duration_mat(self):
+			player_durations = [x for x in (p.get_duration_string() for p in self.players) if x]
+			if any(player_durations):
+				self.mat["Durations"] = ["<br>".join(player_durations)]
+			elif "Durations" in self.mat:
+				del self.mat["Durations"]
+			self.update_mat()
+
 	def update_mat(self):
 		for i in self.players:
 			i.write_json(command="updateMat", mat=self.mat)

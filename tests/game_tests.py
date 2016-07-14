@@ -138,7 +138,7 @@ class TestGame(unittest.TestCase):
 		self.assertTrue(player3opponents[1] == self.player2)
 
 	@gen.coroutine
-	def test_duration(self):
+	def test_duration_called(self):
 		tu.print_test_header("test duration")
 		mock_duration_card = unittest.mock.Mock()
 		mock_duration_card2 = unittest.mock.Mock()
