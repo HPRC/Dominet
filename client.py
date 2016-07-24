@@ -1,3 +1,4 @@
+from collections import deque
 import json
 import sets.card as crd
 import cardpile as cp
@@ -125,6 +126,9 @@ class DmClient(Client):
 		self.waiter = w.WaitHandler(self)
 		self.gamelog = []
 		self.cb = None
+		# input from client that wasn't ready yet stored
+		self.input_deque = deque()
+		self.queue_choices = []
 		self.protection = 0
 		self.phase = "action"
 		#boolean to keep track of if we bought a card to disable spending treasure afterwards
@@ -216,6 +220,8 @@ class DmClient(Client):
 		if self.cb is not None:
 			self.cb.set_result(choice)
 			self.cb = None
+		else:
+			self.input_deque.append(choice)
 
 	def reconnect(self):
 		self.game.announce(self.name_string() + " has reconnected!")
@@ -303,6 +309,8 @@ class DmClient(Client):
 			self.write_json(command="updateMode", mode="select", min_cards=min_cards, max_cards=max_cards,
 				select_from=select_from, msg=msg, ordered=ordered)
 
+			if self.input_deque:
+				return gen.maybe_future(self.input_deque.pop())
 			future = tornado.concurrent.Future()
 			self.cb = future
 			return future
@@ -483,6 +491,8 @@ class DmClient(Client):
 			self.write_json(command="updateMode", mode="selectSupply", msg=msg, allowed=crd.card_list_to_titles(avail), 
 				optional=optional)
 
+			if self.input_deque:
+				return gen.maybe_future(self.input_deque.pop())
 			future = tornado.concurrent.Future()
 			self.cb = future
 			return future

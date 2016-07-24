@@ -91,11 +91,9 @@ class TestCard(tornado.testing.AsyncTestCase):
 		self.player1.hand.add(workshopCard)
 		throne_room_card.play()
 		yield tu.send_input(self.player1, "post_selection", ["Workshop"])
-		self.assertTrue(workshopCard.done.__name__ == "second_play")
 
 		yield tu.send_input(self.player1, "selectSupply", ["Silver"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
-		self.assertTrue(workshopCard.done.__name__ == "final_done")
 
 		yield tu.send_input(self.player1, "selectSupply", ["Estate"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Estate")

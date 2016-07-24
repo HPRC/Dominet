@@ -452,27 +452,15 @@ class Throne_Room(crd.Card):
 			self.game.announce(" -- but has no action cards")
 			crd.Card.on_finished(self, False, False)
 		else:
-			selected_card = self.played_by.hand.get_card(selection[0])
+			selected_card = self.played_by.hand.extract(selection[0])
 			throne_room_str = self.played_by.name_string() + " " + self.log_string(True) + " " + selected_card.log_string()
-			def second_play(card=selected_card):
-
-				def final_done(card=card):
-					# after the second play of card is finished, throne room is done
-					card.done = lambda: None
-					crd.Card.on_finished(self, False, False)
-
-				card.game.announce(throne_room_str)
-				card.done = final_done
-				card.play(True)
-				card.played_by.update_resources()
-
-			selected_card.done = second_play
-			#TODO not technically a discard action
-			yield self.played_by.discard(selection, self.played_by.played_cards)
-			self.game.announce(throne_room_str)
-			selected_card.play(True)
-			self.played_by.update_resources()
-			self.played_by.update_hand()
+			self.played_by.played_cards.append(selected_card)
+			for i in range(0, 2):
+				self.game.announce(throne_room_str)
+				yield gen.maybe_future(selected_card.play(True))
+				self.played_by.update_resources()
+				self.played_by.update_hand()
+			crd.Card.on_finished(self, False, False)
 
 # --------------------------------------------------------
 # ------------------------ 5 Cost ------------------------

@@ -153,12 +153,10 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		tu.send_input(self.player1, "play", "Witch")
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		yield tu.send_input(self.player2, "post_selection", ["Reveal"])
-		yield tu.send_input(self.player2, "post_selection", ["Hide"])
-		#workaround for heavily nested coroutines not finishing before test occur causing failure
-		yield gen.sleep(.2)
 		self.assertTrue(len(self.game.trash_pile) == 0)
 		#and gained a silver
 		self.assertTrue(self.player2.discard_pile[-1].title == "Silver")
+		yield gen.sleep(.1)
 		self.assertTrue(self.player1.last_mode["mode"] != "wait")
 		self.assertTrue(self.player3.discard_pile[-1].title == "Curse")
 		self.assertTrue(self.game.supply.get_count("Curse") == 19)
