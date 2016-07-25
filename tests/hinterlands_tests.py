@@ -294,7 +294,6 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.game.get_turn_owner() == self.player1)
 
 		self.assertTrue(self.player1.last_mode["mode"] == "select")
-		yield gen.sleep(.1)
 		# royal seal triggers
 		self.assertTrue(self.game.get_turn_owner() == self.player1)
 		self.assertTrue(self.player1.last_mode["mode"] == "select")

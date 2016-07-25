@@ -261,7 +261,6 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		# choosing to discard 2
 		yield tu.send_input(self.player2, "post_selection", ["Discard 2 cards"])
 		yield tu.send_input(self.player2, "post_selection", ["Copper", "Copper"])
-		yield gen.sleep(.2)
 		yield tu.send_input(self.player3, "post_selection", ["Gain a Curse"])
 		self.assertTrue(self.player2.last_mode["mode"] != "wait")
 		self.assertTrue(self.player3.last_mode["mode"] != "wait")
