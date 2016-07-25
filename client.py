@@ -126,7 +126,7 @@ class DmClient(Client):
 		self.waiter = w.WaitHandler(self)
 		self.gamelog = []
 		self.cb = None
-		# input from client that wasn't ready yet stored
+		# input from client that was received when there wasn't a callback, stored and popped if available on next selection
 		self.input_deque = deque()
 		self.queue_choices = []
 		self.protection = 0
@@ -144,10 +144,10 @@ class DmClient(Client):
 	def take_turn(self):
 		self.actions = 1
 		self.buys = 1
-		for d in self.durations:
+		while self.durations:
+			d = self.durations.pop(0)
 			yield gen.maybe_future(d.duration())
 			self.played_cards.append(d)
-		self.durations = []
 		self.game.update_duration_mat()
 		self.phase = "action"
 		self.write_json(command="updateMode", mode="action")

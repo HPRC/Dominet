@@ -713,13 +713,29 @@ class Kings_Court(crd.Card):
 		else:
 			selected_card = self.played_by.hand.extract(selection[0])
 			kings_court_str = self.played_by.name_string() + " " + self.log_string(True) + " " + selected_card.log_string()
-			self.played_by.played_cards.append(selected_card)
+			on_duration = "Duration" in selected_card.type
+			if not on_duration:
+				self.played_by.played_cards.append(selected_card)
+			else:
+				self.played_by.played_cards.pop()
+				self.played_by.durations.append(self)
+				self.played_by.durations.append(selected_card)
+				self.game.update_duration_mat()
 			for i in range(0, 3):
 				self.game.announce(kings_court_str)
 				yield gen.maybe_future(selected_card.play(True))
 				self.played_by.update_resources()
 				self.played_by.update_hand()
 			crd.Card.on_finished(self, False, False)
+
+	@gen.coroutine
+	def duration(self):
+		selected_duration = self.played_by.durations.pop(0)
+		kings_court_str = "{} resolves {}".format(self.log_string(), selected_duration.log_string())
+		self.game.announce(kings_court_str)
+		for i in range(0, 3):
+			yield gen.maybe_future(selected_duration.duration())
+		self.played_by.played_cards.append(selected_duration)
 
 class Forge(crd.Card):
 	def __init__(self, game, played_by):

@@ -214,7 +214,7 @@ class Oracle(crd.AttackCard):
 			reveal_string = " & ".join(crd.card_list_log_strings(revealed_cards))
 			revealed_cards_titles = crd.card_list_to_titles(revealed_cards)
 			selection = yield self.played_by.select(1, 1, ["discard", "keep"],
-				"{} reveals {}".format(player.name, " & ".join(revealed_cards_titles)))
+				"{} reveals {}".format(player.name, " and ".join(revealed_cards_titles)))
 			if selection[0] == "discard":
 				self.game.announce("{} discards {} from {}'s deck".format(self.played_by.name_string(),
 					 reveal_string, player.name_string()))

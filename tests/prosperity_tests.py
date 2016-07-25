@@ -3,6 +3,7 @@ import client as c
 import sets.base as base
 import sets.intrigue as intrigue
 import sets.prosperity as prosperity
+import sets.seaside as sea
 import sets.supply as supply_cards
 import game as g
 import kingdomGenerator as kg
@@ -149,6 +150,25 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		self.player1.end_turn()
 		conspirators_in_deck = [x for x in self.player1.all_cards() if x.title == "Conspirator"]
 		self.assertTrue(len(conspirators_in_deck) == 1)
+
+	@tornado.testing.gen_test
+	def test_Kings_Court_duration(self):
+		tu.print_test_header("testing King's Court Duration")
+		lighthouse = sea.Lighthouse(self.game, self.player1)
+		kings_court = prosperity.Kings_Court(self.game, self.player1)
+		tu.set_player_hand(self.player1, [lighthouse, kings_court])
+		kings_court.play()
+		yield tu.send_input(self.player1, "post_selection", ["Lighthouse"])
+		self.assertTrue(self.player1.actions == 3)
+		self.assertTrue(self.player1.balance == 3)
+		self.player1.end_turn()
+		self.player2.end_turn()
+		self.player3.end_turn()
+		self.assertTrue(kings_court not in self.player1.durations)
+		self.assertTrue(lighthouse not in self.player1.durations)
+		self.assertTrue(kings_court in self.player1.played_cards)
+		self.assertTrue(lighthouse in self.player1.played_cards)
+		self.assertTrue(self.player1.balance == 3)
 
 	@tornado.testing.gen_test
 	def test_Mint(self):
