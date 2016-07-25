@@ -452,27 +452,31 @@ class Throne_Room(crd.Card):
 			self.game.announce(" -- but has no action cards")
 			crd.Card.on_finished(self, False, False)
 		else:
-			selected_card = self.played_by.hand.get_card(selection[0])
+			selected_card = self.played_by.hand.extract(selection[0])
 			throne_room_str = self.played_by.name_string() + " " + self.log_string(True) + " " + selected_card.log_string()
-			def second_play(card=selected_card):
+			on_duration = "Duration" in selected_card.type
+			if not on_duration:
+				self.played_by.played_cards.append(selected_card)
+			else:
+				self.played_by.played_cards.pop()
+				self.played_by.durations.append(self)
+				self.played_by.durations.append(selected_card)
+				self.game.update_duration_mat()
+			for i in range(0, 2):
+				self.game.announce(throne_room_str)
+				yield gen.maybe_future(selected_card.play(True))
+				self.played_by.update_resources()
+				self.played_by.update_hand()
+			crd.Card.on_finished(self, False, False)
 
-				def final_done(card=card):
-					# after the second play of card is finished, throne room is done
-					card.done = lambda: None
-					crd.Card.on_finished(self, False, False)
-
-				card.game.announce(throne_room_str)
-				card.done = final_done
-				card.play(True)
-				card.played_by.update_resources()
-
-			selected_card.done = second_play
-			#TODO not technically a discard action
-			yield self.played_by.discard(selection, self.played_by.played_cards)
-			self.game.announce(throne_room_str)
-			selected_card.play(True)
-			self.played_by.update_resources()
-			self.played_by.update_hand()
+	@gen.coroutine
+	def duration(self):
+		selected_duration = self.played_by.durations.pop(0)
+		throne_room_str = "{} resolves {}".format(self.log_string(), selected_duration.log_string())
+		self.game.announce(throne_room_str)
+		for i in range(0, 2):
+			yield gen.maybe_future(selected_duration.duration())
+		self.played_by.played_cards.append(selected_duration)
 
 # --------------------------------------------------------
 # ------------------------ 5 Cost ------------------------
@@ -607,8 +611,8 @@ class Mine(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Mine"
-		self.description = "Trash a Treasure card from your hand. Gain a Treasure card costing up to $3 more;\
-		put it into your hand."
+		self.description = "Trash a Treasure card from your hand. Gain a Treasure card costing up to $3 more;"\
+		"put it into your hand."
 		self.price = 5
 		self.type = "Action"
 

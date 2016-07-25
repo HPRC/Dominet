@@ -227,15 +227,13 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		self.player1.deck.append(province)
 		self.player1.deck.append(supply_cards.Silver(self.game, self.player1))
 		self.player1.deck.append(province)
-
 		wishing_well.play()
 		yield tu.send_input(self.player1, "selectSupply", ["Curse"])
-		yield tu.send_input(self.player1, "selectSupply", ["Province"])
 		self.assertTrue(self.player1.hand.get_count('Province') == 1)
 
 		wishing_well.play()
-		yield tu.send_input(self.player1, "selectSupply", ["Copper"])
-		self.assertTrue(self.player1.hand.get_count('Province') == 1)
+		yield tu.send_input(self.player1, "selectSupply", ["Province"])
+		self.assertTrue(self.player1.hand.get_count('Province') == 2)
 
 	@tornado.testing.gen_test
 	def test_Upgrade(self):
@@ -263,7 +261,6 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		# choosing to discard 2
 		yield tu.send_input(self.player2, "post_selection", ["Discard 2 cards"])
 		yield tu.send_input(self.player2, "post_selection", ["Copper", "Copper"])
-		yield gen.sleep(.2)
 		yield tu.send_input(self.player3, "post_selection", ["Gain a Curse"])
 		self.assertTrue(self.player2.last_mode["mode"] != "wait")
 		self.assertTrue(self.player3.last_mode["mode"] != "wait")
@@ -699,7 +696,7 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player1.discard_pile[-1].title == "Coppersmith")
 		yield tu.send_input(self.player1, "post_selection", ["Estate"])
 		yield tu.send_input(self.player1, "selectSupply", ["Silver"])
-		
+
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
 
 	@tornado.testing.gen_test

@@ -21,6 +21,10 @@
   @include label-variant($label-attack-bg)
 }
 
+.label-duration {
+  @include label-variant($label-duration-bg)
+}
+
 .label-reaction {
   @include label-variant($label-reaction-bg)
 }

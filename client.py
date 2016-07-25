@@ -1,3 +1,4 @@
+from collections import deque
 import json
 import sets.card as crd
 import cardpile as cp
@@ -117,6 +118,7 @@ class DmClient(Client):
 		self.played_cards = []
 		# all cards played, if a card was throne roomed, it is added twice
 		self.played_inclusive = []
+		self.durations = []
 		self.actions = 0
 		self.buys = 0
 		self.balance = 0
@@ -124,6 +126,9 @@ class DmClient(Client):
 		self.waiter = w.WaitHandler(self)
 		self.gamelog = []
 		self.cb = None
+		# input from client that was received when there wasn't a callback, stored and popped if available on next selection
+		self.input_deque = deque()
+		self.queue_choices = []
 		self.protection = 0
 		self.phase = "action"
 		#boolean to keep track of if we bought a card to disable spending treasure afterwards
@@ -135,9 +140,15 @@ class DmClient(Client):
 		self.write_json(command="updateHand", hand=[x.to_json() for x in self.hand.card_array()])
 
 	# override
+	@gen.coroutine
 	def take_turn(self):
 		self.actions = 1
 		self.buys = 1
+		while self.durations:
+			d = self.durations.pop(0)
+			yield gen.maybe_future(d.duration())
+			self.played_cards.append(d)
+		self.game.update_duration_mat()
 		self.phase = "action"
 		self.write_json(command="updateMode", mode="action")
 		self.write_json(command="startTurn", actions=self.actions, buys=self.buys, 
@@ -173,7 +184,7 @@ class DmClient(Client):
 			if self.game.turn_count == 0:
 				if self.game.players_ready():
 					self.game.turn_count = 1
-					self.game.start_game()
+					yield self.game.start_game()
 			#else game started, we are reconnecting
 			else:
 				self.reconnect()
@@ -209,6 +220,8 @@ class DmClient(Client):
 		if self.cb is not None:
 			self.cb.set_result(choice)
 			self.cb = None
+		else:
+			self.input_deque.append(choice)
 
 	def reconnect(self):
 		self.game.announce(self.name_string() + " has reconnected!")
@@ -261,7 +274,7 @@ class DmClient(Client):
 		self.update_discard_size()
 		self.update_deck_size()
 		self.phase = None
-		self.game.change_turn()
+		yield self.game.change_turn()
 
 	#used to properly generate a copy of a card from supply to add to my deck
 	def gen_new_card(self, card_title):
@@ -296,6 +309,8 @@ class DmClient(Client):
 			self.write_json(command="updateMode", mode="select", min_cards=min_cards, max_cards=max_cards,
 				select_from=select_from, msg=msg, ordered=ordered)
 
+			if self.input_deque:
+				return gen.maybe_future(self.input_deque.pop())
 			future = tornado.concurrent.Future()
 			self.cb = future
 			return future
@@ -476,12 +491,19 @@ class DmClient(Client):
 			self.write_json(command="updateMode", mode="selectSupply", msg=msg, allowed=crd.card_list_to_titles(avail), 
 				optional=optional)
 
+			if self.input_deque:
+				return gen.maybe_future(self.input_deque.pop())
 			future = tornado.concurrent.Future()
 			self.cb = future
 			return future
 		else:
 			self.game.announce("-- but there is nothing available in supply")
 			return []
+
+	def get_duration_string(self):
+		if self.durations:
+			return "{}: {}".format(self.name_string(), ", ".join(crd.card_list_log_strings(self.durations)))
+		return ""
 
 	def update_resources(self, playedMoney=False):
 		if playedMoney:

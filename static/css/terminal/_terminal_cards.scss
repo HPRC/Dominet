@@ -64,6 +64,10 @@
   @include terminal-card($action-color);
 }
 
+.card-duration {
+  @include terminal-card($duration-color);
+}
+
 .card-attack {
   @include terminal-card($attack-color);
 }

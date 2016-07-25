@@ -7,7 +7,7 @@ import cardpile as cp
 import random
 import time
 import logHandler
-from tornado import ioloop
+from tornado import ioloop, gen
 import datetime
 
 class Game():
@@ -22,23 +22,25 @@ class Game():
 		for i in self.players:
 			i.write_json(command="chat", msg=msg, speaker=speaker)
 
+	@gen.coroutine
 	def start_game(self):
 		for i in self.players:
 			i.setup()
 		self.announce("Starting game with " + " and ".join(map(lambda x: str(x.name), self.players)))
-		self.announce("<b>---- " + self.players[self.turn].name_string() + " 's turn " + str(self.turn_count) + " ----</b>")
-		self.players[self.turn].take_turn()
+		self.announce("<b>---- " + self.players[self.turn].name_string() + "'s turn " + str(self.turn_count) + " ----</b>")
+		yield self.players[self.turn].take_turn()
 
 	def announce(self, msg):
 		for i in self.players:
 			i.write_json(command="announce", msg=msg)
 
+	@gen.coroutine
 	def change_turn(self):
 		self.turn = (self.turn + 1) % len(self.players)
 		if self.turn == self.first:
 			self.turn_count += 1
-		self.announce("<b>---- " + str(self.players[self.turn].name_string()) + " 's turn " + str(self.turn_count) + " ----</b>")
-		self.players[self.turn].take_turn()
+		self.announce("<b>---- " + str(self.players[self.turn].name_string()) + "'s turn " + str(self.turn_count) + " ----</b>")
+		yield gen.maybe_future(self.players[self.turn].take_turn())
 
 	def get_turn_owner(self):
 		return self.players[self.turn]
@@ -91,12 +93,13 @@ class DmGame(Game):
 		self.game_log = []
 
 	# override
+	@gen.coroutine
 	def start_game(self):
 		self.logger.setup_log_file()
 		self.logger.log_html_data("<br>".join(["Supply:", str(self.base_supply), "Kingdom:", str(self.kingdom)]))
 		self.game_log.extend(["Supply:", str(self.base_supply), "Kingdom:", str(self.kingdom)])
 		self.load_supplies()
-		Game.start_game(self)
+		yield Game.start_game(self)
 
 	def load_supplies(self):
 		for i in self.players:
@@ -119,10 +122,15 @@ class DmGame(Game):
 		for i in self.players:
 			i.write_json(command="updateAllPrices", modifier=self.price_modifier)
 
+	def update_duration_mat(self):
+			player_durations = [x for x in (p.get_duration_string() for p in self.players) if x]
+			if any(player_durations):
+				self.mat["Durations"] = ["<br>".join(player_durations)]
+			elif "Durations" in self.mat:
+				del self.mat["Durations"]
+			self.update_mat()
+
 	def update_mat(self):
-		display_mat = {}
-		for key, item in self.mat.items():
-			display_mat[key] = " ".join(item)
 		for i in self.players:
 			i.write_json(command="updateMat", mat=self.mat)
 

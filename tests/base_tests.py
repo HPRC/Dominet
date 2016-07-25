@@ -3,6 +3,7 @@ import client as c
 import sets.base as base
 import sets.intrigue as intrigue
 import sets.prosperity as prosperity
+import sets.seaside as sea
 import sets.supply as supply_cards
 import sets.card as crd
 import game as g
@@ -91,11 +92,9 @@ class TestCard(tornado.testing.AsyncTestCase):
 		self.player1.hand.add(workshopCard)
 		throne_room_card.play()
 		yield tu.send_input(self.player1, "post_selection", ["Workshop"])
-		self.assertTrue(workshopCard.done.__name__ == "second_play")
 
 		yield tu.send_input(self.player1, "selectSupply", ["Silver"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
-		self.assertTrue(workshopCard.done.__name__ == "final_done")
 
 		yield tu.send_input(self.player1, "selectSupply", ["Estate"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Estate")
@@ -406,6 +405,31 @@ class TestCard(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player1.balance == 4)
 		self.assertTrue(self.player1.last_mode["mode"] == "action")
 
+	@tornado.testing.gen_test
+	def test_throne_room_duration(self):
+		tu.print_test_header("Test throne room duration")
+		throne_room = base.Throne_Room(self.game, self.player1)
+		lighthouse = sea.Lighthouse(self.game, self.player1)
+		self.player1.hand.add(throne_room)
+		self.player1.hand.add(lighthouse)
+		yield tu.send_input(self.player1, "play", "Throne Room")
+		yield tu.send_input(self.player1, "post_selection", ["Lighthouse"])
+		self.assertTrue(throne_room in self.player1.durations)
+		self.assertTrue(lighthouse in self.player1.durations)
+		self.assertTrue(throne_room not in self.player1.played_cards)
+		self.assertTrue(lighthouse not in self.player1.played_cards)
+		self.assertTrue(self.player1.actions == 2)
+		self.assertTrue(self.player1.balance == 2)
+
+		self.player1.end_turn()
+		self.player2.end_turn()
+		self.player3.end_turn()
+
+		self.assertTrue(throne_room not in self.player1.durations)
+		self.assertTrue(lighthouse not in self.player1.durations)
+		self.assertTrue(throne_room in self.player1.played_cards)
+		self.assertTrue(lighthouse in self.player1.played_cards)
+		self.assertTrue(self.player1.balance == 2)
 
 if __name__ == '__main__':
 	unittest.main()

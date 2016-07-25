@@ -358,7 +358,7 @@ class Mint(crd.Card):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Mint"
 		self.description = "You may reveal a Treasure card from your hand. Gain a copy of it.\n" \
-		                   "When you buy this, trash all Treasures you have in play."
+		"When you buy this, trash all Treasures you have in play."
 		self.price = 5
 		self.type = "Action"
 
@@ -711,32 +711,31 @@ class Kings_Court(crd.Card):
 			self.game.announce(" -- but has no action cards")
 			crd.Card.on_finished(self, False, False)
 		else:
-			selected_card = self.played_by.hand.get_card(selection[0])
+			selected_card = self.played_by.hand.extract(selection[0])
 			kings_court_str = self.played_by.name_string() + " " + self.log_string(True) + " " + selected_card.log_string()
+			on_duration = "Duration" in selected_card.type
+			if not on_duration:
+				self.played_by.played_cards.append(selected_card)
+			else:
+				self.played_by.played_cards.pop()
+				self.played_by.durations.append(self)
+				self.played_by.durations.append(selected_card)
+				self.game.update_duration_mat()
+			for i in range(0, 3):
+				self.game.announce(kings_court_str)
+				yield gen.maybe_future(selected_card.play(True))
+				self.played_by.update_resources()
+				self.played_by.update_hand()
+			crd.Card.on_finished(self, False, False)
 
-			def final_done(card=selected_card):
-				# after the third play of card is finished, kings court is finished
-				card.done = lambda: None
-				crd.Card.on_finished(self, False, False)
-
-			#plays the selected card 2nd and 3rd time, done_cb is the callback called after a card finishes playing
-			#the default done cb is final_done to be called after the 3rd card is played.
-			def play_again(card=selected_card, done_cb=final_done):
-				card.game.announce(kings_court_str)
-				card.done = done_cb
-				card.play(True)
-				card.played_by.update_resources()
-
-			#after playing the card the first time, we set the done callback to play_again and override the default
-			#done callback for the 2nd time the card is played to play_again to play a 3rd time
-			selected_card.done = lambda : play_again(done_cb=play_again)
-			#TODO not discard action
-			yield self.played_by.discard(selection, self.played_by.played_cards)
-			self.game.announce(kings_court_str)
-			selected_card.play(True)
-			self.played_by.update_resources()
-			self.played_by.update_hand()
-		self.played_by.update_resources()
+	@gen.coroutine
+	def duration(self):
+		selected_duration = self.played_by.durations.pop(0)
+		kings_court_str = "{} resolves {}".format(self.log_string(), selected_duration.log_string())
+		self.game.announce(kings_court_str)
+		for i in range(0, 3):
+			yield gen.maybe_future(selected_duration.duration())
+		self.played_by.played_cards.append(selected_duration)
 
 class Forge(crd.Card):
 	def __init__(self, game, played_by):
