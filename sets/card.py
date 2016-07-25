@@ -35,7 +35,6 @@ class Card():
 		self.played_by.update_mode()
 		if waiting_cleanup:
 			self.played_by.cb = None
-		self.done()
 
 	def to_json(self):
 		return {
@@ -73,10 +72,6 @@ class Card():
 	#called when you gain a card with this card in play
 	@gen.coroutine
 	def on_gain_effect(self, gained_card):
-		pass
-
-	#called after card finishes resolving and is put into the played_cards pile
-	def done(self):
 		pass
 
 	def log_string(self, plural=False):
