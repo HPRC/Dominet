@@ -169,7 +169,7 @@ class Bishop(crd.Card):
 
 			self.game.announce("-- trashing " + trash.log_string() + " gaining " + str(half_vp) + " VP")
 		self.played_by.wait_many("to trash", self.played_by.get_opponents())
-		self.get_next(self.played_by)
+		yield self.get_next(self.played_by)
 
 	@gen.coroutine
 	def get_next(self, player):
@@ -404,14 +404,16 @@ class Mountebank(crd.AttackCard):
 		self.price = 5
 		self.type = "Action|Attack"
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.AttackCard.play(self, skip)
 		self.played_by.balance += 2
 		self.played_by.update_resources()
-		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
+	@gen.coroutine
 	def attack(self):
-		crd.AttackCard.get_next(self, self.played_by)
+		yield crd.AttackCard.get_next(self, self.played_by)
 
 	@gen.coroutine
 	def fire(self, player):
@@ -429,7 +431,7 @@ class Mountebank(crd.AttackCard):
 					return
 			yield player.gain("Curse")
 			yield player.gain("Copper")
-			crd.AttackCard.get_next(self, player)
+			yield crd.AttackCard.get_next(self, player)
 
 class Rabble(crd.AttackCard):
 	def __init__(self, game, played_by):
@@ -585,6 +587,7 @@ class Goons(crd.AttackCard):
 		self.price = 6
 		self.type = "Action|Attack"
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.AttackCard.play(self, skip)
 		self.played_by.balance += 2
@@ -592,7 +595,7 @@ class Goons(crd.AttackCard):
 
 		self.game.announce("-- gaining +$2 and +1 Buy")
 		self.played_by.update_resources()
-		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	@gen.coroutine
 	def attack(self):

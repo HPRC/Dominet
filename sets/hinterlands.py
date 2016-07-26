@@ -296,13 +296,15 @@ class Noble_Brigand(crd.AttackCard):
 		'the rest of the revealed cards. If they reveal no Treasures, they gain a Copper.'.format(crd.format_money(1))
 		self.price = 4
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		self.played_by.balance += 1
-		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
+	@gen.coroutine
 	def attack(self):
-		self.fire(self.played_by.get_left_opponent())
+		yield self.fire(self.played_by.get_left_opponent())
 
 	@gen.coroutine
 	def fire(self, player, from_buy=False):

@@ -143,10 +143,11 @@ class Masquerade(crd.Card):
 		self.type = "Action"
 		self.passed_card = ""
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		self.played_by.draw(2)
-		self.fire(self.played_by)
+		yield self.fire(self.played_by)
 
 	# custom get_next since masquerade is not an attack card
 	@gen.coroutine
@@ -271,15 +272,17 @@ class Swindler(crd.AttackCard):
 		self.price = 3
 		self.type = "Action|Attack"
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		self.played_by.balance += 2
 		self.game.announce("-- gaining +$2")
 		self.played_by.update_resources()
-		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
+	@gen.coroutine
 	def attack(self):
-		crd.AttackCard.get_next(self, self.played_by)
+		yield crd.AttackCard.get_next(self, self.played_by)
 
 	@gen.coroutine
 	def fire(self, player):
@@ -440,7 +443,7 @@ class Ironworks(crd.Card):
 
 		selection = yield self.played_by.select_from_supply("Select a card to gain for Ironworks", lambda x : x.get_price() <= 4)
 		if selection:
-			self.post_select(selection)
+			yield self.post_select(selection)
 		else:
 			crd.Card.on_finished(self, False, False)
 

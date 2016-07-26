@@ -172,7 +172,7 @@ class Bureaucrat(crd.AttackCard):
 		crd.Card.play(self, skip)
 		self.played_by.gain_to_deck("Silver")
 		self.played_by.update_resources()
-		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	@gen.coroutine
 	def attack(self):
@@ -304,16 +304,18 @@ class Spy(crd.AttackCard):
 			their deck and either discards it or puts it back, your choice".format(crd.format_draw(1), crd.format_actions(1))
 		self.price = 4
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		self.played_by.actions += 1
 		drawn = self.played_by.draw(1)
 		self.game.announce("-- getting +1 action and drawing " + drawn)
 		self.played_by.update_resources()
-		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
+	@gen.coroutine
 	def attack(self):
-		self.fire(self.played_by)
+		yield self.fire(self.played_by)
 
 	@gen.coroutine
 	def fire(self, player):
@@ -365,12 +367,14 @@ class Thief(crd.AttackCard):
 			"they trash one that you choose and you may gain the trashed card."
 		self.price = 4
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
+	@gen.coroutine
 	def attack(self):
-		crd.AttackCard.get_next(self, self.played_by)
+		yield crd.AttackCard.get_next(self, self.played_by)
 
 	@gen.coroutine
 	def fire(self, player):
