@@ -256,6 +256,9 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		tu.print_test_header("test Torturer")
 		torturer = intrigue.Torturer(self.game, self.player1)
 		tu.add_many_to_hand(self.player1, torturer, 2)
+		copper = supply_cards.Copper(self.game, self.player2)
+		estate = supply_cards.Estate(self.game, self.player2)
+		tu.set_player_hand(self.player2, [copper, copper, copper, estate, estate])
 		self.player1.actions = 2
 		tu.send_input(self.player1, "play", "Torturer")
 		# choosing to discard 2
@@ -296,7 +299,8 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player3, "post_selection", ["Gain a Curse"])
 		self.assertTrue("Curse" in self.player3.hand)
 		#Second torturer
-		yield tu.send_input(self.player2, "post_selection", ["Discard two cards"])
+		yield tu.send_input(self.player2, "post_selection", ["Discard 2 cards"])
+		yield gen.sleep(.1)
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		self.assertTrue(self.player3.last_mode["mode"] == "wait")
 		yield tu.send_input(self.player2, "post_selection", ["Curse", "Copper"])

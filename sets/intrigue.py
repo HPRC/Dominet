@@ -638,12 +638,12 @@ class Torturer(crd.AttackCard):
 					player.opponents_wait("to discard", locked=False)
 					discard_selection = yield player.select(2, 2, crd.card_list_to_titles(player.hand.card_array()), "Discard two cards from hand")
 					self.game.announce(player.name_string() + " discards " + str(len(discard_selection)) + " cards")
-					player.discard(discard_selection, player.discard_pile)
+					yield player.discard(discard_selection, player.discard_pile)
 			player.update_wait(True)
 			for i in self.game.players:
 				if not i.is_waiting():
 					i.update_mode()
-			crd.AttackCard.get_next(self, player)
+			yield crd.AttackCard.get_next(self, player)
 
 
 class Tribute(crd.Card):
