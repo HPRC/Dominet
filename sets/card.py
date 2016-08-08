@@ -266,9 +266,8 @@ def reorder_top(player, cards_to_reorder):
 # player = player who owns deck to search through
 # search_criteria = function that needs to accept a card object as a parameter and return True if the card object matches
 #     what we are looking for False otherwise
-# callback = callback function we will call after finding our match, passing in the matching card to it or None
 @gen.coroutine
-def search_deck_for(player, search_criteria, callback):
+def search_deck_for(player, search_criteria):
 	total_deck_count = len(player.discard_pile) + len(player.deck)
 	discarded = list()
 	match_found = False
@@ -283,9 +282,7 @@ def search_deck_for(player, search_criteria, callback):
 		yield player.discard_floating(discarded)
 		player.game.announce("-- discarding " + ", ".join(map(lambda card : card.log_string(), discarded)))
 	if match_found:
-		callback(topdeck)
-	else:
-		callback(None)
+		return topdeck
 
 # prompts input players to discard down to input hand size
 # players = list of players who needs to discard
