@@ -25,9 +25,7 @@ class Courtyard(crd.Card):
 			self.game.announce("-- " + self.game.log_string_from_title(selection[0]) + " is placed on top of the deck.")
 			yield self.played_by.discard(selection, self.played_by.deck)
 			self.played_by.update_deck_size()
-			crd.Card.on_finished(self, True, False)
-		else:
-			crd.Card.on_finished(self, True, False)
+		crd.Card.on_finished(self, True, False)
 
 class Pawn(crd.Card):
 	def __init__(self, game, played_by):
@@ -299,10 +297,10 @@ class Swindler(crd.AttackCard):
 					"Select a card for " + player.name + " to gain", lambda x : x.get_price() == topdeck.get_price())
 				if selection:
 					yield player.gain(selection[0])
-				crd.AttackCard.get_next(self, player)
+				yield crd.AttackCard.get_next(self, player)
 			else:
 				self.game.announce(player.name_string() + " has no cards to Swindle.")
-				crd.AttackCard.get_next(self, player)
+				yield crd.AttackCard.get_next(self, player)
 
 class Wishing_Well(crd.Card):
 	def __init__(self, game, played_by):
@@ -753,26 +751,20 @@ class Saboteur(crd.AttackCard):
 		self.game.announce("-- " + victim.name_string() + " is being sabotaged")
 
 		sabotaged = False
-		yield crd.search_deck_for(victim, lambda x : x.get_price() >=3, lambda c: self.found(c, victim=victim))
-
-	@gen.coroutine
-	def found(self, card, victim):
-		if card is None:
+		sabotaged_card = yield crd.search_deck_for(victim, lambda x : x.get_price() >=3)
+		if sabotaged_card is None:
 			self.game.announce("-- but there was nothing to sabotage")
 			crd.AttackCard.get_next(self, victim)
 		else:
-			self.game.trash_pile.append(card)
+			self.game.trash_pile.append(sabotaged_card)
 			self.game.update_trash_pile()
-			self.game.announce("-- trashing " + card.log_string())
-
-			def post_select_cb(selection, victim=victim):
-				self.post_select(selection, victim)
-
+			self.game.announce("-- trashing " + sabotaged_card.log_string())
 			self.game.announce("-- " + victim.name_string() + " gains a card costing "
-			                   + str(card.get_price() - 2) + " or less")
+			                   + str(sabotaged_card.get_price() - 2) + " or less")
 			
 			self.played_by.wait("to gain a card", victim)
-			selection = yield victim.select_from_supply("Choose a remnant of the sabotaged goods", lambda x : x.get_price() <= card.get_price() - 2, optional=True)
+			selection = yield victim.select_from_supply("Choose a remnant of the sabotaged goods", 
+				lambda x : x.get_price() <= sabotaged_card.get_price() - 2, optional=True)
 			if selection[0] != "None":
 				yield victim.gain(selection[0])
 				yield crd.AttackCard.get_next(self, victim)
@@ -796,7 +788,7 @@ class Trading_Post(crd.Card):
 			self.post_select(auto_select)
 		else:
 			selection = yield self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "Trash 2 cards from your hand")
-			self.post_select(selection)
+			yield self.post_select(selection)
 
 	@gen.coroutine
 	def post_select(self, selection):

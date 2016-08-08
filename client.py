@@ -371,7 +371,9 @@ class DmClient(Client):
 
 	@gen.coroutine
 	def discard_topdeck(self):
-		card = self.deck.pop()
+		card = self.topdeck()
+		if card is None:
+			return
 		yield self.discard_reaction(card)
 		self.discard_pile.append(card)
 		self.update_deck_size()
@@ -638,7 +640,7 @@ class DmClient(Client):
 	@gen.coroutine
 	def resolve_on_buy_effects(self, purchased_card):
 		for card in self.played_cards:
-			yield card.on_buy_effect(purchased_card)
+			yield gen.maybe_future(card.on_buy_effect(purchased_card))
 
 	@gen.coroutine
 	def resolve_on_gain_effects(self, gained_card):

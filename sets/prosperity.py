@@ -70,25 +70,22 @@ class Loan(crd.Money):
 		crd.Card.play(self, skip)
 		self.played_by.balance += self.value
 		self.played_by.update_resources(True)
+		found_treasure = yield crd.search_deck_for(self.played_by, lambda x : "Treasure" in x.type)
+		if found_treasure is None:
+			self.game.announce("-- but could not find any treasures in his or her deck.")
+		else:
+			self.game.announce("-- revealing " + found_treasure.log_string())
 
-		@gen.coroutine
-		def found_treasure(treasure):
-			if treasure is None:
-				self.game.announce("-- but could not find any treasures in his or her deck.")
+			selection = yield self.played_by.select(1, 1, ["Discard", "Trash"], "Discard or Trash " + found_treasure.title)
+			if selection[0] == "Discard":
+				yield self.played_by.discard_floating(found_treasure)
+				self.game.announce("-- discarding {}".format(found_treasure.log_string()))
 			else:
-				self.game.announce("-- revealing " + treasure.log_string())
+				self.game.trash_pile.append(found_treasure)
+				self.game.update_trash_pile()
+				self.game.announce("-- trashing {}".format(found_treasure.log_string()))
+		crd.Money.on_finished(self)
 
-				selection = yield self.played_by.select(1, 1, ["Discard", "Trash"], "Discard or Trash " + treasure.title)
-				if selection[0] == "Discard":
-					yield self.played_by.discard_floating(treasure)
-					self.game.announce("-- discarding " + treasure.log_string())
-				else:
-					self.game.trash_pile.append(treasure)
-					self.game.update_trash_pile()
-					self.game.announce("-- trashing " + treasure.log_string())
-			crd.Money.on_finished(self)
-
-		yield crd.search_deck_for(self.played_by, lambda x : "Treasure" in x.type, found_treasure)
 
 class Trade_Route(crd.Card):
 
@@ -186,7 +183,7 @@ class Bishop(crd.Card):
 				self.game.update_trash_pile()
 				next_player.update_hand()
 				self.game.announce("-- " + next_player.name + " trashes " + trash.log_string())
-			self.get_next(next_player)
+			yield self.get_next(next_player)
 
 class Monument(crd.Card):
 	def __init__(self, game, played_by):
@@ -561,16 +558,14 @@ class Venture(crd.Money):
 		self.played_by.balance += self.value
 		self.played_by.update_resources(True)
 
-		yield crd.search_deck_for(self.played_by, lambda x : "Treasure" in x.type, self.found)
-
-	def found(self, card):
-		if card is None:
+		found_card = yield crd.search_deck_for(self.played_by, lambda x : "Treasure" in x.type)
+		if found_card is None:
 			self.game.announce("-- but could not find any treasures in his or her deck.")
 		else:
-			self.game.announce("-- revealing " + card.log_string())
-			self.game.announce("-- " + self.played_by.name_string() + " played " + card.log_string())
-			self.played_by.played_cards.append(card)
-			card.play(True)
+			self.game.announce("-- revealing " + found_card.log_string())
+			self.game.announce("-- " + self.played_by.name_string() + " played " + found_card.log_string())
+			self.played_by.played_cards.append(found_card)
+			yield gen.maybe_future(found_card.play(True))
 		crd.Money.on_finished(self)
 
 # --------------------------------------------------------
@@ -603,8 +598,7 @@ class Goons(crd.AttackCard):
 		if affected:
 			yield crd.discard_down(affected, 3)
 		crd.Card.on_finished(self, False, False)
-
-	@gen.coroutine
+		
 	def on_buy_effect(self, purchased_card):
 		self.played_by.vp += 1
 		self.game.announce("-- gaining +1 VP")

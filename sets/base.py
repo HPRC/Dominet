@@ -183,12 +183,12 @@ class Bureaucrat(crd.AttackCard):
 					self.game.announce(i.name_string() + " has no Victory cards & reveals " + i.hand.reveal_string())
 				elif len(set(map(lambda x: x.title, i_victory_cards))) == 1:
 					self.game.announce(i.name_string() + " puts " + i_victory_cards[0].log_string() + " back on top of the deck")
-					i.discard([i_victory_cards[0].title], i.deck)
+					yield i.discard([i_victory_cards[0].title], i.deck)
 				else:
 					self.played_by.wait("to choose a Victory card to put back", i)
 					order_selection = yield i.select(1, 1, crd.card_list_to_titles(i_victory_cards),
 						"select Victory card to put back")
-					i.discard(order_selection, i.deck)
+					yield i.discard(order_selection, i.deck)
 					self.game.announce(i.name_string() + " puts " + self.game.card_from_title(order_selection[0]).log_string() + " back on top of the deck")
 					if not self.played_by.is_waiting():
 						crd.Card.on_finished(self, False, False)
@@ -239,11 +239,12 @@ class Militia(crd.AttackCard):
 		self.price = 4
 		self.type = "Action|Attack"
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		self.played_by.balance += 2
 		self.played_by.update_resources()
-		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 		
 	@gen.coroutine
 	def attack(self):
@@ -382,7 +383,7 @@ class Thief(crd.AttackCard):
 			revealed_cards = [player.topdeck(), player.topdeck()]
 			if not any(revealed_cards):
 				self.game.announce(player.name_string() + " has no cards to Thieve.")
-				crd.AttackCard.get_next(self, player)
+				yield crd.AttackCard.get_next(self, player)
 				return
 			revealed_treasure = [x for x in revealed_cards if "Treasure" in x.type]
 
@@ -410,7 +411,7 @@ class Thief(crd.AttackCard):
 			else:
 				#if no treasure, add the revealed cards to the discard
 				yield player.discard_floating(revealed_cards)
-				crd.AttackCard.get_next(self, player)
+				yield crd.AttackCard.get_next(self, player)
 
 	@gen.coroutine
 	def post_select_gain(self, selection, thieved, card):
@@ -418,7 +419,7 @@ class Thief(crd.AttackCard):
 			self.game.trash_pile.pop()
 			self.game.update_trash_pile()
 			yield self.played_by.gain(card, False)
-		crd.AttackCard.get_next(self, thieved)
+		yield crd.AttackCard.get_next(self, thieved)
 
 	@gen.coroutine
 	def post_select_trash(self, selection, thieved, cards):
@@ -647,12 +648,13 @@ class Witch(crd.AttackCard):
 		self.description = "{}Each other player gains a curse card".format(crd.format_draw(2))
 		self.price = 5
 
+	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		drawn = self.played_by.draw(2)
 		self.game.announce("-- drawing " + drawn)
 		self.played_by.update_resources()
-		crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	@gen.coroutine
 	def attack(self):
@@ -662,7 +664,7 @@ class Witch(crd.AttackCard):
 	def fire(self, victim):
 		if not crd.AttackCard.is_blocked(self, victim):
 			yield victim.gain("Curse")
-		crd.AttackCard.get_next(self, victim)
+		yield crd.AttackCard.get_next(self, victim)
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-attack'>", self.title, "es</span>" if plural else "</span>"])
