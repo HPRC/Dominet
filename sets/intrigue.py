@@ -154,7 +154,7 @@ class Masquerade(crd.Card):
 	def get_next(self, player):
 		next_player_index = (self.game.players.index(player) + 1) % len(self.game.players)
 		if self.game.players[next_player_index] != self.played_by:
-			self.fire(self.game.players[next_player_index])
+			yield self.fire(self.game.players[next_player_index])
 		else:
 			#everyone finished passing, trash
 			trash_selection = yield self.played_by.select(None, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Select a card to trash")
@@ -190,7 +190,7 @@ class Masquerade(crd.Card):
 		if left_opponent == self.played_by:
 			self.played_by.announce_self("-- you received " + self.game.log_string_from_title(im_passing[0]))
 			self.played_by.update_hand()
-		self.get_next(player)
+		yield self.get_next(player)
 
 class Shanty_Town(crd.Card):
 	def __init__(self, game, played_by):
