@@ -453,7 +453,9 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.player1.end_turn()
 		self.assertTrue(self.player1.last_mode["mode"] == "select")
 		self.assertTrue(self.player1.last_mode["max_cards"] == 2)
+		num_cards = len(self.player1.all_cards())
 		yield tu.send_input(self.player1, "post_selection", ["Throne Room", "Scheme"])
+		self.assertTrue(num_cards == len(self.player1.all_cards()))
 		self.assertTrue("Throne Room" in self.player1.hand)
 		self.assertTrue("Scheme" in self.player1.hand)
 	

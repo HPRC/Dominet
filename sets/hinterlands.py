@@ -252,12 +252,12 @@ class Scheme(crd.Card):
 		self.game.announce("{} puts {} card{} back on top of their deck for scheme".format(
 			self.played_by.name_string(),
 			len(chosen_cards), "s" if len(chosen_cards) != 1 else ""))
-		for i in chosen_cards:
-			for c in self.played_by.played_cards:
-				if c.title == i:
-					self.played_by.deck.append(c)
+		for card_title in chosen_cards:
+			for i in range(len(self.played_by.played_cards)-1, -1, -1):
+				if self.played_by.played_cards[i].title == card_title:
+					self.played_by.deck.append(self.played_by.played_cards[i])
+					self.played_by.deck.pop(i)
 					break
-		self.played_by.played_cards = [x for x in self.played_by.played_cards if x not in self.played_by.deck]
 
 class Tunnel(crd.VictoryCard)	:
 	def __init__(self, game, played_by):
