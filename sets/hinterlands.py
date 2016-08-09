@@ -207,11 +207,12 @@ class Oracle(crd.AttackCard):
 	def fire(self, player):
 		if crd.AttackCard.fire(self, player):
 			revealed_cards = [player.topdeck(), player.topdeck()]
-			if not any(revealed_cards):
+			revealed_cards = [x for x in revealed_cards if x is not None]
+			if not revealed_cards:
 					self.game.announce(player.name_string() + " has no cards to Oracle.")
 					crd.AttackCard.get_next(self, player)
 					return
-			reveal_string = " & ".join(crd.card_list_log_strings(revealed_cards))
+			reveal_string = " and ".join(crd.card_list_log_strings(revealed_cards))
 			revealed_cards_titles = crd.card_list_to_titles(revealed_cards)
 			selection = yield self.played_by.select(1, 1, ["discard", "keep"],
 				"{} reveals {}".format(player.name, " and ".join(revealed_cards_titles)))
@@ -224,7 +225,7 @@ class Oracle(crd.AttackCard):
 				player.update_deck_size()
 				self.game.announce("{} leaves {} on {}'s deck".format(self.played_by.name_string(), reveal_string,
 					player.name_string()))
-			crd.AttackCard.get_next(self, player)
+			yield crd.AttackCard.get_next(self, player)
 
 class Scheme(crd.Card):
 	def __init__(self, game, played_by):
@@ -245,10 +246,9 @@ class Scheme(crd.Card):
 	@gen.coroutine
 	def cleanup(self):
 		total_schemes_played = len([x for x in self.played_by.played_inclusive if x.title == self.title])
-		plural = "s" if total_schemes_played > 1 else ""
 		chosen_cards = yield self.played_by.select(None, total_schemes_played, 
 			[x.title for x in self.played_by.played_cards if "Action" in x.type], 
-			"Select up to {} action card{} to place on top of deck for Scheme".format(total_schemes_played, plural), True)
+			"Select up to {} action card{} to place on top of deck for Scheme".format(total_schemes_played, "s" if total_schemes_played > 1 else ""), True)
 		self.game.announce("{} puts {} card{} back on top of their deck for scheme".format(
 			self.played_by.name_string(),
 			len(chosen_cards), "s" if len(chosen_cards) != 1 else ""))
@@ -312,7 +312,7 @@ class Noble_Brigand(crd.AttackCard):
 			revealed_cards = [player.topdeck(), player.topdeck()]
 			if not any(revealed_cards):
 				self.game.announce(player.name_string() + " has no cards to Noble Brigand.")
-				crd.AttackCard.get_next(self, player)
+				yield crd.AttackCard.get_next(self, player)
 				return
 			revealed_cards_titles = crd.card_list_to_titles(revealed_cards)
 			reveal_string = " & ".join(crd.card_list_log_strings(revealed_cards))
@@ -335,9 +335,9 @@ class Noble_Brigand(crd.AttackCard):
 			if not revealed_treasures:
 				yield player.gain("Copper")
 			if from_buy:
-				self.get_next(player)
+				yield self.get_next(player)
 			else:
-				crd.AttackCard.get_next(self, player)
+				yield crd.AttackCard.get_next(self, player)
 
 	@gen.coroutine
 	def get_next(self, victim):
@@ -482,7 +482,6 @@ class Cache(crd.Money):
 	def on_gain(self):
 		yield self.played_by.gain("Copper")
 		yield self.played_by.gain("Copper")
-
 
 class Cartographer(crd.Card):
 	def __init__(self, game, played_by):
@@ -645,17 +644,18 @@ class Inn(crd.Card):
 			crd.card_list_to_titles(action_cards_in_discard), 
 			"Select action cards from discard to reshuffle into your deck")
 		revealed = ", ".join(map(lambda x: self.game.log_string_from_title(x), to_reshuffle))
-		self.game.announce("-- removing {} from their discard to their deck".format(revealed))
-		for i in to_reshuffle:
-			for c in self.played_by.discard_pile:
-				if c.title == i:
-					self.played_by.discard_pile.remove(c)
-					self.played_by.deck.append(c)
-					break
-		self.played_by.update_deck_size()
-		self.played_by.update_discard_size()
-		random.shuffle(self.played_by.deck)
-		self.game.announce("<i>{} shuffles their deck</i>".format(self.played_by.name_string()))
+		if to_reshuffle:
+			self.game.announce("-- removing {} from their discard to their deck".format(revealed))
+			for i in to_reshuffle:
+				for c in self.played_by.discard_pile:
+					if c.title == i:
+						self.played_by.discard_pile.remove(c)
+						self.played_by.deck.append(c)
+						break
+			self.played_by.update_deck_size()
+			self.played_by.update_discard_size()
+			random.shuffle(self.played_by.deck)
+			self.game.announce("<i>{} shuffles their deck</i>".format(self.played_by.name_string()))
 
 class Mandarin(crd.Card):
 	def __init__(self, game, played_by):
