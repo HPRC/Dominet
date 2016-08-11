@@ -69,7 +69,7 @@ class Salvager(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		self.played_by.buys += 1
-		self.game.announce("-- gaining {}".format(crd.format_buys(1)))
+		self.game.announce("-- gaining +1 Buy")
 
 		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Select a card to salvage")
 		selected_card = self.game.card_from_title(selection[0])
@@ -78,7 +78,8 @@ class Salvager(crd.Card):
 		yield self.played_by.discard(selection, self.game.trash_pile)
 		self.played_by.balance += selected_card_cost
 
-		self.game.announce('-- trashing {}, gaining {}'.format(selected_card.log_string(), crd.format_money(selected_card_cost)))
+		self.game.announce('-- trashing {}, gaining +${}'.format(selected_card.log_string(), selected_card_cost))
+		crd.Card.on_finished(self)
 
 # --------------------------------------------------------
 # ------------------------ 5 Cost ------------------------
