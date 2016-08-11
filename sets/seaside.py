@@ -65,7 +65,8 @@ class Treasure_Map(crd.Card):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Treasure Map"
 		self.price = 4
-		self.description = ""
+		self.description = "Trash this and another copy of Treasure Map from your hand." \
+		                   " If you do trash two Treasure Maps, gain 4 Gold cards, putting them on top of your deck."
 		self.type = "Action"
 
 	@gen.coroutine
