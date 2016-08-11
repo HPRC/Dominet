@@ -44,7 +44,7 @@ class Caravan(crd.Duration):
 		self.title = "Caravan"
 		self.price = 4
 		self.description = "{} " \
-		"Now and at the start of your next turn, {}".format(crd.format_draw(1), crd.format_actions(1), crd.format_draw(1))
+		"Now and at the start of your next turn, {}".format(crd.format_actions(1), crd.format_draw(1))
 		self.type = "Action|Duration"
 
 	def play(self, skip=False):
