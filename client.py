@@ -467,11 +467,14 @@ class DmClient(Client):
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 
 	@gen.coroutine
-	def gain_to_deck(self, card, from_supply=True):
+	def gain_to_deck(self, card, from_supply=True, custom_announce=None):
 		new_card = self.get_card_from_supply(card, from_supply)
 		if new_card is not None:
-			yield self.gain_helper(new_card, from_supply, "{} gains {} and puts it on top of their deck.".format(
+			if custom_announce is None:
+				yield self.gain_helper(new_card, from_supply, "{} gains {} and puts it on top of their deck.".format(
 				self.name_string(), new_card.log_string()))
+			else:
+				yield self.gain_helper(new_card, from_supply, custom_announce)
 			#if the gained card is still in discard pile, then we can remove and add to deck
 			if self.discard_pile and new_card == self.discard_pile[-1]:
 				self.deck.append(self.discard_pile.pop())
@@ -570,7 +573,7 @@ class DmClient(Client):
 	def announce_self(self, msg):
 		self.game.game_log.append("{} {}{}".format("to:", self.name_string(), msg))
 		self.gamelog.append(msg)
-		self.write_json(command="announce",msg=msg)
+		self.write_json(command="announce", msg=msg)
 
 	@gen.coroutine
 	def spend_all_money(self):
