@@ -73,6 +73,16 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 			self.assertTrue(self.player1.deck.pop().title == 'Gold')
 		self.assertTrue(self.player1.hand.get_count('Treasure Map') == 0)
 
+	def test_Tactician(self):
+		tu.print_test_header("test Tactician")
+		tactician = sea.Tactician(self.game, self.player1)
+		tactician.play()
+		self.assertTrue(len(self.player1.hand) == 0)
+
+		tactician.duration()
+		self.assertTrue(self.player1.actions == 1)
+		self.assertTrue(self.player1.buys == 2)
+		self.assertTrue(len(self.player1.hand) == 5)
 
 if __name__ == '__main__':
 		unittest.main()

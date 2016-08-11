@@ -129,6 +129,33 @@ class Merchant_Ship(crd.Duration):
 		self.game.announce("-- gaining +$2")
 
 
+class Tactician(crd.Duration):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Tactician"
+		self.price = 5
+		self.description = "Discard your hand. " \
+		                   "If you discarded any cards this way, then at the start of your next turn, \n" \
+		                   "{} {} and {}".format(crd.format_draw(5), crd.format_buys(1), crd.format_actions(1))
+		self.type = "Action|Duration"
+
+	def play(self, skip=False):
+		crd.Duration.play(self, skip)
+		if len(self.played_by.hand):
+			self.played_by.discard(crd.card_list_to_titles(self.played_by.hand.card_array()), self.played_by.discard_pile)
+
+		else:
+			self.game.announce("but there was nothing to discard")
+
+		crd.Card.on_finished(self)
+
+	def duration(self):
+		crd.Duration.duration(self)
+		drawn = self.played_by.draw(5)
+		self.played_by.buys += 1
+		self.played_by.actions += 1
+		self.game.announce("-- drawing " + drawn + " and gaining +1 Buy, +1 Action")
+
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------
 # --------------------------------------------------------
