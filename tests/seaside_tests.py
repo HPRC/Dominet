@@ -54,7 +54,6 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		self.assertTrue(len(self.player1.hand) == 6)
 		self.assertTrue(self.player1.balance == 1)
 
-
 	@tornado.testing.gen_test
 	def test_Treasury(self):
 		tu.print_test_header("test Treasury")
@@ -70,6 +69,13 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "post_selection", [2])
 		self.assertTrue(self.player1.hand.get_count("Treasury") == 2)
 
+	def test_Merchant_Ship(self):
+		tu.print_test_header("test Merchant Ship")
+		merchant_ship = sea.Merchant_Ship(self.game, self.player1)
+		merchant_ship.play()
+		self.assertTrue(self.player1.balance == 2)
+		merchant_ship.duration()
+		self.assertTrue(self.player1.balance == 4)
 
 if __name__ == '__main__':
 		unittest.main()

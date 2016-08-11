@@ -80,7 +80,6 @@ class Bazaar(crd.Card):
 		self.game.announce("-- drawing {}, gaining +2 actions and gaining +$1".format(drawn))
 		crd.Card.on_finished(self)
 
-
 class Treasury(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -125,6 +124,25 @@ class Treasury(crd.Card):
 
 				if count == amount_to_return:
 					break
+
+class Merchant_Ship(crd.Duration):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Merchant Ship"
+		self.price = 5
+		self.description = "Now and at the start of your next turn {}".format(crd.format_money(2))
+		self.type = "Action|Duration"
+
+	def play(self, skip=False):
+		crd.Duration.play(self, skip)
+		self.played_by.balance += 2
+		self.game.announce("-- gaining +$2")
+		crd.Duration.on_finished(self)
+
+	def duration(self):
+		crd.Duration.duration(self)
+		self.played_by.balance += 2
+		self.game.announce("-- gaining +$2")
 
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------
