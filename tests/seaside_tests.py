@@ -36,5 +36,16 @@ class TestSeaside(tornado.testing.AsyncTestCase):
     lighthouse.duration()
     self.assertFalse(militia.is_blocked(self.player1))
 
+	@tornado.testing.gen_test()
+	def test_Salvager(self):
+		tu.print_test_header("test Salvager")
+		salvager = sea.Salvager(self.game, self.player1)
+		platinum = supply_cards.Platinum(self.game, self.player1)
+		self.player1.hand.add(platinum)
+		salvager.play()
+		yield tu.send_input(self.player1, "post_selection", ["Platinum"])
+		self.assertTrue(self.player1.buys == 2)
+		self.assertTrue(self.player1.balance == 9)
+
 if __name__ == '__main__':
     unittest.main()
