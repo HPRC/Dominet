@@ -62,5 +62,17 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		merchant_ship.duration()
 		self.assertTrue(self.player1.balance == 4)
 
+	@tornado.testing.gen_test
+	def test_Treasure_map(self):
+		tu.print_test_header("test Treasure Map")
+		treasure_map = sea.Treasure_Map(self.game, self.player1)
+		tu.add_many_to_hand(self.player1, treasure_map, 2)
+		treasure_map.play()
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
+		for i in range (0, 4):
+			self.assertTrue(self.player1.deck.pop().title == 'Gold')
+		self.assertTrue(self.player1.hand.get_count('Treasure Map') == 0)
+
+
 if __name__ == '__main__':
 		unittest.main()
