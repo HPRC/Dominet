@@ -114,5 +114,20 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "post_selection", [2])
 		self.assertTrue(self.player1.hand.get_count("Treasury") == 2)
 
+	@tornado.testing.gen_test
+	def test_Warehouse(self):
+		tu.print_test_header("test Warehouse")
+		copper = supply_cards.Copper(self.game, self.player1)
+		self.player1.hand.add(copper)
+		warehouse = sea.Warehouse(self.game, self.player1)
+		warehouse.play()
+
+		self.assertTrue(self.player1.actions == 1)
+		self.assertTrue(len(self.player1.hand) == 9)
+
+		yield tu.send_input(self.player1, "post_selection", ["Copper", "Copper", "Copper"])
+
+		self.assertTrue(len(self.player1.hand) == 6)
+
 if __name__ == '__main__':
 		unittest.main()
