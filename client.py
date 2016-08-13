@@ -132,7 +132,8 @@ class DmClient(Client):
 		self.protection = 0
 		self.phase = "action"
 		#boolean to keep track of if we bought a card to disable spending treasure afterwards
-		self.bought_cards = False
+		self.has_bought_cards = False
+		self.bought_cards = []
 		#cards banned from buying
 		self.banned = []
 
@@ -267,7 +268,8 @@ class DmClient(Client):
 		self.buys = 0
 		self.balance = 0
 		self.played_inclusive = []
-		self.bought_cards = False
+		self.has_bought_cards = False
+		self.bought_cards = []
 		self.banned = []
 		self.draw(self.hand_size)
 		self.game.reset_prices()
@@ -296,7 +298,8 @@ class DmClient(Client):
 			self.game.announce("<b>" + self.name + "</b> buys " + new_card.log_string())
 			self.buys -= 1
 			self.balance -= new_card.get_price()
-			self.bought_cards = True
+			self.has_bought_cards = True
+			self.bought_cards.append(new_card)
 			self.game.remove_from_supply(card_title)
 			
 			yield gen.maybe_future(new_card.on_buy())
@@ -410,7 +413,7 @@ class DmClient(Client):
 		if (len(self.hand.get_cards_by_type("Action")) == 0 or self.actions == 0) and len(self.hand.get_cards_by_type("Treasure")) == 0:
 			self.update_mode_buy_phase()
 		else:
-			if not played_money and self.actions > 0 and len(self.hand.get_cards_by_type("Action")) != 0 and not self.bought_cards:
+			if not played_money and self.actions > 0 and len(self.hand.get_cards_by_type("Action")) != 0 and self.has_bought_cards:
 				self.write_json(command="updateMode", mode="action")
 			else:
 				self.update_mode_buy_phase()
@@ -423,7 +426,8 @@ class DmClient(Client):
 				self.game.update_all_prices()
 
 		self.phase = "buy"
-		self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards, banned=self.banned)
+		self.write_json(command="updateMode", mode="buy", bought_cards=self.has_bought_cards, banned=self.banned)
+
 
 	def update_deck_size(self):
 		self.write_json(command="updateDeckSize", size=len(self.deck))
