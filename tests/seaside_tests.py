@@ -126,7 +126,6 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		self.assertTrue(len(self.player1.hand) == 9)
 
 		yield tu.send_input(self.player1, "post_selection", ["Copper", "Copper", "Copper"])
-
 		self.assertTrue(len(self.player1.hand) == 6)
 
 if __name__ == '__main__':

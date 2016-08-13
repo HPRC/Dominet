@@ -37,7 +37,7 @@ class Warehouse(crd.Card):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Warehouse"
 		self.description = "{} {} Discard 3 cards".format(crd.format_draw(3), crd.format_actions(1))
-		self.price = 5
+		self.price = 3
 		self.type = "Action"
 
 	@gen.coroutine
@@ -155,7 +155,6 @@ class Bazaar(crd.Card):
 		drawn = self.played_by.draw(1)
 		self.game.announce("-- drawing {}, gaining +2 actions and gaining +$1".format(drawn))
 		crd.Card.on_finished(self)
-
 
 class Merchant_Ship(crd.Duration):
 	def __init__(self, game, played_by):
