@@ -46,5 +46,13 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		caravan.duration()
 		self.assertTrue(len(self.player1.hand) == hand_count + 2)
 
+	def test_Bazaar(self):
+		tu.print_test_header("test Bazaar")
+		bazaar = sea.Bazaar(self.game, self.player1)
+		bazaar.play()
+		self.assertTrue(self.player1.actions == 2)
+		self.assertTrue(len(self.player1.hand) == 6)
+		self.assertTrue(self.player1.balance == 1)
+
 if __name__ == '__main__':
 		unittest.main()

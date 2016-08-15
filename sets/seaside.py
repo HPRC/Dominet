@@ -64,6 +64,22 @@ class Caravan(crd.Duration):
 # ------------------------ 5 Cost ------------------------
 # --------------------------------------------------------
 
+class Bazaar(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Bazaar"
+		self.price = 5
+		self.description = "{} {} {}".format(crd.format_draw(1), crd.format_actions(2), crd.format_money(1))
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.balance += 1
+		self.played_by.actions += 2
+		drawn = self.played_by.draw(1)
+		self.game.announce("-- drawing {}, gaining +2 actions and gaining +$1".format(drawn))
+		crd.Card.on_finished(self)
+
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------
 # --------------------------------------------------------
