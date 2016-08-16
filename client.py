@@ -135,6 +135,7 @@ class DmClient(Client):
 		self.bought_cards = False
 		#cards banned from buying
 		self.banned = []
+		self.island_pile = []
 
 	def update_hand(self):
 		self.write_json(command="updateHand", hand=[x.to_json() for x in self.hand.card_array()])
@@ -635,7 +636,7 @@ class DmClient(Client):
 		return count
 
 	def all_cards(self):
-		return self.deck + self.discard_pile + self.played_cards + self.hand.card_array()
+		return self.deck + self.discard_pile + self.played_cards + self.hand.card_array() + self.island_pile
 
 	@gen.coroutine
 	def resolve_on_buy_effects(self, purchased_card):
