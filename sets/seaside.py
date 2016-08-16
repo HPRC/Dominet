@@ -84,15 +84,14 @@ class Treasury(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Treasury"
-		self.description = "{} {} {} \n" \
-		                   "When you discard this card from ply, if you didn't buy a Victory card this turn, " \
+		self.description = "{} {} {}" \
+		                   "When you discard this card from play, if you didn't buy a Victory card this turn, " \
 		                   "you may put this on top of your deck".format(crd.format_draw(1), crd.format_money(1), crd.format_buys(1))
 		self.price = 5
 		self.type = "Action"
 
 		self.played_by.actions += 1
 		drawn = self.played_by.draw(1)
-
 		self.game.announce("-- drawing " + drawn + " and gaining +$1, +1 action")
 		crd.Card.on_finished(self)
 
