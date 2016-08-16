@@ -34,6 +34,29 @@ class Lighthouse(crd.Duration):
 # ------------------------ 3 Cost ------------------------
 # --------------------------------------------------------
 
+
+class Fishing_Village(crd.Duration):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Fishing Village"
+		self.description = "{}{}. At the start of your next turn, {}{}".format(crd.format_actions(2), crd.format_money(1),
+		                                                                       crd.format_actions(1), crd.format_money(1))
+		self.price = 3
+		self.type = "Action|Duration"
+
+	def play(self, skip=False):
+		crd.Duration.play(self, skip)
+		self.played_by.balance += 1
+		self.played_by.actions += 2
+		self.game.announce("-- gaining +$1 and +2 actions")
+		crd.Duration.on_finished(self)
+
+	def duration(self):
+		crd.Duration.duration(self)
+		self.played_by.balance += 1
+		self.played_by.actions += 1
+		self.game.announce('-- gaining +$1 and +1 action')
+
 # --------------------------------------------------------
 # ------------------------ 4 Cost ------------------------
 # --------------------------------------------------------
