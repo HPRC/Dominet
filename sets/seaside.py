@@ -44,9 +44,6 @@ class Island(crd.VictoryCard):
 		self.game.announce('-- banishing ' + self.game.log_string_from_title(selection[0]) + ' to the island')
 		island = self.played_by.played_cards.pop()
 		self.played_by.island_pile.append(island)
-		card_log_list = self.game.self.played_by.card_list_from_titles(self.played_by.island_pile)
-		self.game.announce('-- the island: ' + crd.card_list_log_strings(card_log_list))
-
 		crd.Card.on_finished(self)
 
 	def log_string(self, plural=False):
