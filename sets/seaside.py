@@ -34,6 +34,22 @@ class Lighthouse(crd.Duration):
 # ------------------------ 3 Cost ------------------------
 # --------------------------------------------------------
 
+class Lookout(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Lookout"
+		self.price = 3
+		self.description = "{} {} {}".format(crd.format_draw(1), crd.format_actions(2), crd.format_money(1))
+		self.type = "Action"
+
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.actions += 1
+		self.game.announce('-- gaining 1 action')
+		topdeck1 = self.played_by.topdeck()
+		topdeck2 = self.played_by.topdeck()
+		topdeck3 = self.played_by.topdeck()
+
 # --------------------------------------------------------
 # ------------------------ 4 Cost ------------------------
 # --------------------------------------------------------
