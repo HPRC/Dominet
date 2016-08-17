@@ -8,7 +8,7 @@ import tornado.gen as gen
 
 class Lighthouse(crd.Duration):
 	def __init__(self, game, played_by):
-		crd.Card.__init__(self, game, played_by)
+		crd.Duration.__init__(self, game, played_by)
 		self.title = "Lighthouse"
 		self.description = "{} Now and at the start of your next turn {}." \
 		"While this is in play, you are unaffected by attack cards".format(crd.format_actions(1), crd.format_money(1))
@@ -39,11 +39,12 @@ class Lighthouse(crd.Duration):
 
 class Caravan(crd.Duration):
 	def __init__(self, game, played_by):
-		crd.Card.__init__(self, game, played_by)
+		crd.Duration.__init__(self, game, played_by)
 		self.title = "Caravan"
 		self.price = 4
 		self.description = "{} " \
 		"Now and at the start of your next turn, {}".format(crd.format_actions(1), crd.format_draw(1))
+		self.type = "Action|Duration"
 
 	def play(self, skip=False):
 		crd.Duration.play(self, skip)
@@ -97,6 +98,7 @@ class Bazaar(crd.Card):
 		self.title = "Bazaar"
 		self.price = 5
 		self.description = "{} {} {}".format(crd.format_draw(1), crd.format_actions(2), crd.format_money(1))
+		self.type = "Action"
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
@@ -153,10 +155,11 @@ class Treasury(crd.Card):
 
 class Merchant_Ship(crd.Duration):
 	def __init__(self, game, played_by):
-		crd.Card.__init__(self, game, played_by)
+		crd.Duration.__init__(self, game, played_by)
 		self.title = "Merchant Ship"
 		self.price = 5
 		self.description = "Now and at the start of your next turn {}".format(crd.format_money(2))
+		self.type = "Action|Duration"
 
 	def play(self, skip=False):
 		crd.Duration.play(self, skip)
@@ -173,13 +176,16 @@ class Treasury(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Treasury"
-		self.description = "{} {} {} \n" \
-		                   "When you discard this card from ply, if you didn't buy a Victory card this turn, " \
-		                   "you may put this on top of your deck".format(crd.format_draw(1), crd.format_money(1), crd.format_buys(1))
+		self.description = "{} {} {}" \
+		                   "When you discard this card from play, if you didn't buy a Victory card this turn, " \
+		                   "you may put this on top of your deck".format(crd.format_draw(1), crd.format_money(1), crd.format_actions(1))
 		self.price = 5
 		self.type = "Action"
 
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
 		self.played_by.actions += 1
+		self.played_by.balance += 1
 		drawn = self.played_by.draw(1)
 
 		self.game.announce("-- drawing " + drawn + " and gaining +$1, +1 action")
