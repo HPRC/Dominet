@@ -55,7 +55,7 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player1.balance == 1)
 
 
-	@tornado.testing.gen_test()
+	@tornado.testing.gen_test
 	def test_Treasury(self):
 		tu.print_test_header("test Treasury")
 		treasury = sea.Treasury(self.game, self.player1)
