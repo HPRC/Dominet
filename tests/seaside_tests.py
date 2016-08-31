@@ -36,6 +36,17 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		lighthouse.duration()
 		self.assertFalse(militia.is_blocked(self.player1))
 
+	@tornado.testing.gen_test
+	def test_Salvager(self):
+		tu.print_test_header("test Salvager")
+		salvager = sea.Salvager(self.game, self.player1)
+		province = supply_cards.Province(self.game, self.player1)
+		self.player1.hand.add(province)
+		salvager.play()
+		yield tu.send_input(self.player1, "post_selection", ["Province"])
+		self.assertTrue(self.player1.buys == 2)
+		self.assertTrue(self.player1.balance == 8)
+
 	def test_Caravan(self):
 		tu.print_test_header("test Caravan")
 		caravan = sea.Caravan(self.game, self.player1)
@@ -84,7 +95,7 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		tu.add_many_to_hand(self.player1, treasure_map, 2)
 		treasure_map.play()
 		yield tu.send_input(self.player1, "post_selection", ["Yes"])
-		for i in range (0, 4):
+		for i in range(0, 4):
 			self.assertTrue(self.player1.deck.pop().title == 'Gold')
 		self.assertTrue(self.player1.hand.get_count('Treasure Map') == 0)
 

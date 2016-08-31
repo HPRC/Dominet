@@ -28,7 +28,6 @@ class Lighthouse(crd.Duration):
 		self.game.announce("-- gaining +$1")
 		self.played_by.protection = 0
 
-
 # --------------------------------------------------------
 # ------------------------ 3 Cost ------------------------
 # --------------------------------------------------------
@@ -36,6 +35,7 @@ class Lighthouse(crd.Duration):
 # --------------------------------------------------------
 # ------------------------ 4 Cost ------------------------
 # --------------------------------------------------------
+
 
 class Caravan(crd.Duration):
 	def __init__(self, game, played_by):
@@ -59,6 +59,33 @@ class Caravan(crd.Duration):
 		self.game.announce("-- drawing {}".format(drawn))
 
 
+class Salvager(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Salvager"
+		self.price = 4
+		self.description = "{} " \
+		"Trash a card from your hand. {} equal to its cost.".format(crd.format_buys(1), crd.format_money('X'))
+		self.type = "Action"
+
+	@gen.coroutine
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.buys += 1
+		self.game.announce("-- gaining +1 Buy")
+
+		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),
+		                                        "Select a card to salvage")
+		selected_card = self.game.card_from_title(selection[0])
+		selected_card_cost = selected_card.get_price()
+
+		yield self.played_by.discard(selection, self.game.trash_pile)
+		self.played_by.balance += selected_card_cost
+
+		self.game.announce('-- trashing {}, gaining +${}'.format(selected_card.log_string(), selected_card_cost))
+		crd.Card.on_finished(self)
+
+
 class Treasure_Map(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
@@ -80,7 +107,7 @@ class Treasure_Map(crd.Card):
 				self.game.update_trash_pile()
 				for i in range(0, 4):
 					yield self.played_by.gain_to_deck("Gold", True, "")
-				self.game.announce("-- gaining 4 {} to the top of their deck").format(self.game.log_string_from_title("Gold", True))
+				self.game.announce("-- gaining 4 {} to the top of their deck".format(self.game.log_string_from_title("Gold", True)))
 
 		else:
 			self.game.announce('-- but there were no other copies of treasure map in hand')
@@ -108,50 +135,6 @@ class Bazaar(crd.Card):
 		self.game.announce("-- drawing {}, gaining +2 actions and gaining +$1".format(drawn))
 		crd.Card.on_finished(self)
 
-class Treasury(crd.Card):
-	def __init__(self, game, played_by):
-		crd.Card.__init__(self, game, played_by)
-		self.title = "Treasury"
-		self.description = "{} {} {}" \
-		                   "When you discard this card from play, if you didn't buy a Victory card this turn, " \
-		                   "you may put this on top of your deck".format(crd.format_draw(1), crd.format_money(1), crd.format_actions(1))
-		self.price = 5
-		self.type = "Action"
-
-	def play(self, skip=False):
-		crd.Card.play(self, skip)
-		self.played_by.actions += 1
-		self.played_by.balance += 1
-		drawn = self.played_by.draw(1)
-		self.game.announce("-- drawing " + drawn + " and gaining +$1, +1 action")
-		crd.Card.on_finished(self)
-
-	@gen.coroutine
-	def cleanup(self):
-		total_victories_bought = len([x for x in self.played_by.bought_cards if 'Victory' in x.type])
-		if total_victories_bought == 0:
-			total_treasuries_played = len([x for x in self.played_by.played_inclusive if x.title == self.title])
-			if total_treasuries_played > 1:
-				selection = yield self.played_by.select(1, 1, [x for x in range(1, total_treasuries_played + 1)],
-				                                        'Select the amount of treasuries you would like to return to the top of your deck')
-				amount_to_return = selection[0]
-			else:
-				selection = yield self.played_by.select(1, 1, ['Yes', 'No'],
-				                                        'Would you like to return Treasury to the top of your deck?')
-				if selection[0] == 'Yes':
-					amount_to_return = 1
-				else:
-					amount_to_return = 0
-
-			count = 0
-			for i in range(len(self.played_by.played_cards) - 1, -1, -1):
-				if self.played_by.played_cards[i].title == 'Treasury':
-					self.played_by.deck.append(self.played_by.played_cards[i])
-					self.played_by.played_cards.pop(i)
-					count += 1
-
-				if count == amount_to_return:
-					break
 
 class Merchant_Ship(crd.Duration):
 	def __init__(self, game, played_by):
@@ -172,13 +155,15 @@ class Merchant_Ship(crd.Duration):
 		self.played_by.balance += 2
 		self.game.announce("-- gaining +$2")
 
+
 class Treasury(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Treasury"
 		self.description = "{} {} {}" \
 		                   "When you discard this card from play, if you didn't buy a Victory card this turn, " \
-		                   "you may put this on top of your deck".format(crd.format_draw(1), crd.format_money(1), crd.format_actions(1))
+		                   "you may put this on top of your deck".format(crd.format_draw(1), crd.format_money(1),
+		                                                                 crd.format_actions(1))
 		self.price = 5
 		self.type = "Action"
 
@@ -187,7 +172,6 @@ class Treasury(crd.Card):
 		self.played_by.actions += 1
 		self.played_by.balance += 1
 		drawn = self.played_by.draw(1)
-
 		self.game.announce("-- drawing " + drawn + " and gaining +$1, +1 action")
 		crd.Card.on_finished(self)
 
@@ -217,7 +201,6 @@ class Treasury(crd.Card):
 
 				if count == amount_to_return:
 					break
-
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------
 # --------------------------------------------------------
