@@ -47,5 +47,40 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player1.buys == 2)
 		self.assertTrue(self.player1.balance == 8)
 
+	def test_Caravan(self):
+		tu.print_test_header("test Caravan")
+		caravan = sea.Caravan(self.game, self.player1)
+		hand_count = len(self.player1.hand)
+		caravan.play()
+		self.assertTrue(self.player1.actions == 1)
+		self.assertTrue(len(self.player1.hand) == hand_count + 1)
+		caravan.duration()
+		self.assertTrue(len(self.player1.hand) == hand_count + 2)
+
+	def test_Bazaar(self):
+		tu.print_test_header("test Bazaar")
+		bazaar = sea.Bazaar(self.game, self.player1)
+		bazaar.play()
+		self.assertTrue(self.player1.actions == 2)
+		self.assertTrue(len(self.player1.hand) == 6)
+		self.assertTrue(self.player1.balance == 1)
+
+
+	@tornado.testing.gen_test
+	def test_Treasury(self):
+		tu.print_test_header("test Treasury")
+		treasury = sea.Treasury(self.game, self.player1)
+
+		tu.add_many_to_hand(self.player1, treasury, 2)
+
+		tu.send_input(self.player1, "play", "Treasury")
+		tu.send_input(self.player1, "play", "Treasury")
+		self.player1.buy_card('Copper')
+		self.player1.end_turn()
+
+		yield tu.send_input(self.player1, "post_selection", [2])
+		self.assertTrue(self.player1.hand.get_count("Treasury") == 2)
+
+
 if __name__ == '__main__':
 		unittest.main()

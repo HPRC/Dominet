@@ -253,7 +253,7 @@ class Scheme(crd.Card):
 			self.played_by.name_string(),
 			len(chosen_cards), "s" if len(chosen_cards) != 1 else ""))
 		for card_title in chosen_cards:
-			for i in range(len(self.played_by.played_cards)-1, -1, -1):
+			for i in range(len(self.played_by.played_cards) - 1, -1, -1):
 				if self.played_by.played_cards[i].title == card_title:
 					self.played_by.deck.append(self.played_by.played_cards[i])
 					self.played_by.played_cards.pop(i)
