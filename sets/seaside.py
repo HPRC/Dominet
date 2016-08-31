@@ -13,7 +13,6 @@ class Lighthouse(crd.Duration):
 		self.description = "{} Now and at the start of your next turn {}." \
 		"While this is in play, you are unaffected by attack cards".format(crd.format_actions(1), crd.format_money(1))
 		self.price = 2
-		self.type = "Action|Duration"
 
 	def play(self, skip=False):
 		crd.Duration.play(self, skip)
@@ -45,7 +44,6 @@ class Caravan(crd.Duration):
 		self.price = 4
 		self.description = "{} " \
 		"Now and at the start of your next turn, {}".format(crd.format_actions(1), crd.format_draw(1))
-		self.type = "Action|Duration"
 
 	def play(self, skip=False):
 		crd.Duration.play(self, skip)
@@ -77,11 +75,11 @@ class Treasure_Map(crd.Card):
 			            "this and another copy of treasure map from hand to gain 4 Gold to the top of your deck?")
 			if selection[0] == 'Yes':
 				self.game.trash_pile.append(self.played_by.played_cards.pop())
-				self.played_by.discard(['Treasure Map'], self.game.trash_pile)
+				yield self.played_by.discard(['Treasure Map'], self.game.trash_pile)
 				self.game.update_trash_pile()
 				for i in range(0, 4):
 					yield self.played_by.gain_to_deck("Gold", True, "")
-				self.game.announce("-- gaining 4 " + self.game.log_string_from_title("Gold") + " to the top of their deck")
+				self.game.announce("-- gaining 4 {} to the top of their deck").format(self.game.log_string_from_title("Gold", True))
 
 		else:
 			self.game.announce('-- but there were no other copies of treasure map in hand')
@@ -160,7 +158,6 @@ class Merchant_Ship(crd.Duration):
 		self.title = "Merchant Ship"
 		self.price = 5
 		self.description = "Now and at the start of your next turn {}".format(crd.format_money(2))
-		self.type = "Action|Duration"
 
 	def play(self, skip=False):
 		crd.Duration.play(self, skip)
