@@ -42,18 +42,19 @@ class Pearl_Diver(crd.Card):
 		crd.Card.play(self, skip)
 		self.played_by.actions += 1
 		drawn = self.played_by.draw(1)
-		self.game.announce("Drawing " + drawn + " and gaining + 1 actions")
+		self.game.announce("-- drawing " + drawn + " and gaining +1 actions")
 
 		if len(self.played_by.deck) == 0:
 			self.played_by.shuffle_discard_to_deck()
 
 		bottom_card = self.played_by.deck[0].title
 		selection = yield self.played_by.select(1, 1, ["Yes", "No"],
-		            "The bottom card of your deck is " + bottom_card.title() + " Move it to the top of your deck?")
+		            "The bottom card of your deck is " + bottom_card.title() + ". Move it to the top of your deck?")
 
 		if selection[0] == "Yes":
 			bottom_card = self.played_by.deck.pop(0)
 			self.played_by.deck.append(bottom_card)
+			self.game.announce("-- moving the bottom card to the top")
 
 		crd.Card.on_finished(self)
 
@@ -96,7 +97,7 @@ class Warehouse(crd.Card):
 		crd.Card.play(self, skip)
 		drawn = self.played_by.draw(3)
 		self.played_by.actions += 1
-		self.game.announce("-- gaining 1 action and drawing " + drawn + " cards")
+		self.game.announce("-- gaining 1 action and drawing " + drawn)
 
 		to_discard = yield self.played_by.select(3, 3, crd.card_list_to_titles(self.played_by.hand.card_array()),
 		                                         "Discard 3 cards")
@@ -135,7 +136,7 @@ class Salvager(crd.Card):
 		self.title = "Salvager"
 		self.price = 4
 		self.description = "{} " \
-		"Trash a card from your hand. {} equal to its cost.".format(crd.format_buys(1), crd.format_money('X'))
+		"Trash a card from your hand, {} equal to its cost.".format(crd.format_buys(1), crd.format_money('X'))
 		self.type = "Action"
 
 	@gen.coroutine
@@ -178,7 +179,7 @@ class Sea_Hag(crd.AttackCard):
 	def fire(self, player):
 		if crd.AttackCard.fire(self, player):
 			topdeck = player.topdeck()
-			yield player.discard([topdeck.title], player.discard_pile)
+			yield player.discard_floating([topdeck])
 
 			self.game.announce('-- ' + player.name_string() + ' discards ' + self.game.log_string_from_title(topdeck.title))
 			yield player.gain_to_deck('Curse')
@@ -291,7 +292,7 @@ class Tactician(crd.Duration):
 		self.price = 5
 		self.description = "Discard your hand. " \
 		                   "If you discarded any cards this way, then at the start of your next turn, \n" \
-		                   "{} {} and {}".format(crd.format_draw(5), crd.format_buys(1), crd.format_actions(1))
+		                   "{} {} {}".format(crd.format_draw(5), crd.format_buys(1), crd.format_actions(1))
 		self.type = "Action|Duration"
 
 	@gen.coroutine
@@ -366,7 +367,7 @@ class Wharf(crd.Duration):
 	def __init__(self, game, played_by):
 		crd.Duration.__init__(self, game, played_by)
 		self.title = "Wharf"
-		self.description = "Now and at the start of your next turn " \
+		self.description = "Now and at the start of your next turn:\n" \
 		                   "{} {}.".format(crd.format_draw(2), crd.format_buys(1))
 		self.price = 5
 
