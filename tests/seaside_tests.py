@@ -36,6 +36,21 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		lighthouse.duration()
 		self.assertFalse(militia.is_blocked(self.player1))
 
+	@tornado.testing.gen_test
+	def test_Explorer(self):
+		tu.print_test_header("test Explorer")
+		explorer = sea.Explorer(self.game, self.player1)
+		explorer.play()
+		self.assertTrue(self.player1.hand.get_count('Silver') == 1)
+
+		self.player1.actions += 1
+
+		province = supply_cards.Province(self.game, self.player1)
+		self.player1.hand.add(province)
+		explorer.play()
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
+		self.assertTrue(self.player1.hand.get_count('Gold') == 1)
+
 	def test_Wharf(self):
 		tu.print_test_header("test Wharf")
 		wharf = sea.Wharf(self.game, self.player1)
