@@ -84,6 +84,16 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		self.assertTrue(len(self.player1.hand) == 6)
 		self.assertTrue(self.player1.balance == 1)
 
+	def test_Fishing_Village(self):
+		tu.print_test_header("test Fishing Village")
+		fishing_village = sea.Fishing_Village(self.game, self.player1)
+		fishing_village.play()
+		self.assertTrue(self.player1.actions == 2)
+		self.assertTrue(self.player1.balance == 1)
+		fishing_village.duration()
+		self.assertTrue(self.player1.actions == 3)
+		self.assertTrue(self.player1.balance == 2)
+
 	@tornado.testing.gen_test
 	def test_Treasury(self):
 		tu.print_test_header("test Treasury")
