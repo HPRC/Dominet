@@ -68,7 +68,6 @@ class Salvager(crd.Card):
 		"Trash a card from your hand. {} equal to its cost.".format(crd.format_buys(1), crd.format_money('X'))
 		self.type = "Action"
 
-
 	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
@@ -94,7 +93,11 @@ class Treasure_Map(crd.Card):
 		self.price = 4
 		self.description = "Trash this and another copy of Treasure Map from your hand." \
 		                   " If you do trash two Treasure Maps, gain 4 Gold cards, putting them on top of your deck."
+		self.type = "Action"
 
+	@gen.coroutine
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
 		if self.played_by.hand.get_count('Treasure Map') > 0:
 			selection = yield self.played_by.select(1, 1, ["Yes", "No"], "Would you like to trash "
 			            "this and another copy of treasure map from hand to gain 4 Gold to the top of your deck?")
@@ -104,7 +107,7 @@ class Treasure_Map(crd.Card):
 				self.game.update_trash_pile()
 				for i in range(0, 4):
 					yield self.played_by.gain_to_deck("Gold", True, "")
-				self.game.announce("-- gaining 4 {} to the top of their deck").format(self.game.log_string_from_title("Gold", True))
+				self.game.announce("-- gaining 4 {} to the top of their deck".format(self.game.log_string_from_title("Gold", True)))
 
 		else:
 			self.game.announce('-- but there were no other copies of treasure map in hand')

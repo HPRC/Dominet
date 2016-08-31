@@ -95,7 +95,7 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		tu.add_many_to_hand(self.player1, treasure_map, 2)
 		treasure_map.play()
 		yield tu.send_input(self.player1, "post_selection", ["Yes"])
-		for i in range (0, 4):
+		for i in range(0, 4):
 			self.assertTrue(self.player1.deck.pop().title == 'Gold')
 		self.assertTrue(self.player1.hand.get_count('Treasure Map') == 0)
 
