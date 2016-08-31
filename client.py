@@ -132,7 +132,8 @@ class DmClient(Client):
 		self.protection = 0
 		self.phase = "action"
 		#boolean to keep track of if we bought a card to disable spending treasure afterwards
-		self.bought_cards = False
+		self.has_bought_cards = False
+		self.bought_cards = []
 		#cards banned from buying
 		self.banned = []
 
@@ -267,7 +268,8 @@ class DmClient(Client):
 		self.buys = 0
 		self.balance = 0
 		self.played_inclusive = []
-		self.bought_cards = False
+		self.has_bought_cards = False
+		self.bought_cards = []
 		self.banned = []
 		self.draw(self.hand_size)
 		self.game.reset_prices()
@@ -296,7 +298,8 @@ class DmClient(Client):
 			self.game.announce("<b>" + self.name + "</b> buys " + new_card.log_string())
 			self.buys -= 1
 			self.balance -= new_card.get_price()
-			self.bought_cards = True
+			self.has_bought_cards = True
+			self.bought_cards.append(new_card)
 			self.game.remove_from_supply(card_title)
 			
 			yield gen.maybe_future(new_card.on_buy())
@@ -410,7 +413,7 @@ class DmClient(Client):
 		if (len(self.hand.get_cards_by_type("Action")) == 0 or self.actions == 0) and len(self.hand.get_cards_by_type("Treasure")) == 0:
 			self.update_mode_buy_phase()
 		else:
-			if not played_money and self.actions > 0 and len(self.hand.get_cards_by_type("Action")) != 0 and not self.bought_cards:
+			if not played_money and self.actions > 0 and len(self.hand.get_cards_by_type("Action")) != 0 and not self.has_bought_cards:
 				self.write_json(command="updateMode", mode="action")
 			else:
 				self.update_mode_buy_phase()
@@ -423,7 +426,8 @@ class DmClient(Client):
 				self.game.update_all_prices()
 
 		self.phase = "buy"
-		self.write_json(command="updateMode", mode="buy", bought_cards=self.bought_cards, banned=self.banned)
+		self.write_json(command="updateMode", mode="buy", bought_cards=self.has_bought_cards, banned=self.banned)
+
 
 	def update_deck_size(self):
 		self.write_json(command="updateDeckSize", size=len(self.deck))
@@ -463,11 +467,14 @@ class DmClient(Client):
 			self.game.announce(self.name_string() + " tries to gain " + self.game.card_from_title(card).log_string() + " but it is out of supply.")
 
 	@gen.coroutine
-	def gain_to_deck(self, card, from_supply=True):
+	def gain_to_deck(self, card, from_supply=True, custom_announce=None):
 		new_card = self.get_card_from_supply(card, from_supply)
 		if new_card is not None:
-			yield self.gain_helper(new_card, from_supply, "{} gains {} and puts it on top of their deck.".format(
+			if custom_announce is None:
+				yield self.gain_helper(new_card, from_supply, "{} gains {} and puts it on top of their deck.".format(
 				self.name_string(), new_card.log_string()))
+			else:
+				yield self.gain_helper(new_card, from_supply, custom_announce)
 			#if the gained card is still in discard pile, then we can remove and add to deck
 			if self.discard_pile and new_card == self.discard_pile[-1]:
 				self.deck.append(self.discard_pile.pop())
@@ -566,7 +573,7 @@ class DmClient(Client):
 	def announce_self(self, msg):
 		self.game.game_log.append("{} {}{}".format("to:", self.name_string(), msg))
 		self.gamelog.append(msg)
-		self.write_json(command="announce",msg=msg)
+		self.write_json(command="announce", msg=msg)
 
 	@gen.coroutine
 	def spend_all_money(self):
