@@ -135,6 +135,9 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player1.buys == 2)
 		self.assertTrue(len(self.player1.hand) == 5)
 
+		tu.set_player_hand(self.player1, [tactician])
+		tactician.play()
+
 	@tornado.testing.gen_test
 	def test_Treasury(self):
 		tu.print_test_header("test Treasury")

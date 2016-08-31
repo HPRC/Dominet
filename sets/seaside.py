@@ -64,7 +64,7 @@ class Fishing_Village(crd.Duration):
 	def __init__(self, game, played_by):
 		crd.Duration.__init__(self, game, played_by)
 		self.title = "Fishing Village"
-		self.description = "{}{}. At the start of your next turn, {}{}".format(crd.format_actions(2), crd.format_money(1),
+		self.description = "Now and at the start of your next turn, {}{}".format(crd.format_actions(2), crd.format_money(1),
 		                                                                       crd.format_actions(1), crd.format_money(1))
 		self.price = 3
 
@@ -268,13 +268,16 @@ class Tactician(crd.Duration):
 		                   "{} {} and {}".format(crd.format_draw(5), crd.format_buys(1), crd.format_actions(1))
 		self.type = "Action|Duration"
 
+	@gen.coroutine
 	def play(self, skip=False):
-		crd.Duration.play(self, skip)
-		if len(self.played_by.hand):
-			self.played_by.discard(crd.card_list_to_titles(self.played_by.hand.card_array()), self.played_by.discard_pile)
-
+		# checks to see if Tactician is the only card in hand, if so call duration super play(), otherwise call card super play()
+		if len(self.played_by.hand) > 1:
+			crd.Duration.play(self, skip)
+			yield self.played_by.discard(crd.card_list_to_titles(self.played_by.hand.card_array()), self.played_by.discard_pile)
+			self.game.announce("-- discarding their hand")
 		else:
-			self.game.announce("but there was nothing to discard")
+			crd.Card.play(self, skip)
+			self.game.announce("-- but there was nothing to discard")
 
 		crd.Card.on_finished(self)
 
