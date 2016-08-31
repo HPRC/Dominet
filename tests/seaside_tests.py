@@ -37,6 +37,14 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		self.assertFalse(militia.is_blocked(self.player1))
 
 	@tornado.testing.gen_test
+	def test_Sea_Hag(self):
+		tu.print_test_header("test Sea Hag")
+		sea_hag = sea.Sea_Hag(self.game, self.player1)
+		sea_hag.play()
+		self.assertTrue(len(self.player2.discard_pile) == 1)
+		self.assertTrue(self.player2.topdeck().title == 'Curse')
+
+	@tornado.testing.gen_test
 	def test_Pearl_Diver(self):
 		tu.print_test_header("test Pearl Diver")
 		pearl_diver = sea.Pearl_Diver(self.game, self.player1)

@@ -14,6 +14,7 @@ class Lighthouse(crd.Duration):
 		"While this is in play, you are unaffected by attack cards".format(crd.format_actions(1), crd.format_money(1))
 		self.price = 2
 
+
 	def play(self, skip=False):
 		crd.Duration.play(self, skip)
 		self.played_by.balance += 1
@@ -134,6 +135,36 @@ class Salvager(crd.Card):
 
 		self.game.announce('-- trashing {}, gaining +${}'.format(selected_card.log_string(), selected_card_cost))
 		crd.Card.on_finished(self)
+
+
+class Sea_Hag(crd.AttackCard):
+	def __init__(self, game, played_by):
+		crd.AttackCard.__init__(self, game, played_by)
+		self.title = "Sea Hag"
+		self.description = "Each other player discards the top card of their deck, " \
+		                   "then gains a Curse putting it on top of their deck"
+		self.price = 4
+		self.type = "Action|Attack"
+
+	@gen.coroutine
+	def play(self, skip=False):
+		crd.AttackCard.play(self, skip)
+		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+
+	@gen.coroutine
+	def attack(self):
+		yield self.fire(self.played_by.get_left_opponent())
+
+	@gen.coroutine
+	def fire(self, player):
+		if crd.AttackCard.fire(self, player):
+			topdeck = player.topdeck()
+			yield player.discard([topdeck.title], player.discard_pile)
+
+			self.game.announce('-- ' + player.name_string() + ' discards ' + self.game.log_string_from_title(topdeck.title))
+			yield player.gain_to_deck('Curse')
+
+		yield crd.AttackCard.get_next(self, player)
 
 
 class Treasure_Map(crd.Card):
