@@ -338,7 +338,7 @@ class Spy(crd.AttackCard):
 				card = player.deck[-1]
 				self.game.announce(self.played_by.name_string() + " leaves " + card.log_string() + " on " +
 					player.name_string() + "'s deck")
-			crd.AttackCard.get_next(self, player)
+			yield crd.AttackCard.get_next(self, player)
 
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-attack'>", "Spies" if plural else self.title, "</span>"])

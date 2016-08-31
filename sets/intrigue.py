@@ -754,7 +754,7 @@ class Saboteur(crd.AttackCard):
 		sabotaged_card = yield crd.search_deck_for(victim, lambda x : x.get_price() >=3)
 		if sabotaged_card is None:
 			self.game.announce("-- but there was nothing to sabotage")
-			crd.AttackCard.get_next(self, victim)
+			yield crd.AttackCard.get_next(self, victim)
 		else:
 			self.game.trash_pile.append(sabotaged_card)
 			self.game.update_trash_pile()
