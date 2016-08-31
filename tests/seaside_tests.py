@@ -65,7 +65,6 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		self.assertTrue(len(self.player1.hand) == 6)
 		self.assertTrue(self.player1.balance == 1)
 
-
 	@tornado.testing.gen_test
 	def test_Treasury(self):
 		tu.print_test_header("test Treasury")
@@ -81,6 +80,39 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "post_selection", [2])
 		self.assertTrue(self.player1.hand.get_count("Treasury") == 2)
 
+	def test_Merchant_Ship(self):
+		tu.print_test_header("test Merchant Ship")
+		merchant_ship = sea.Merchant_Ship(self.game, self.player1)
+		merchant_ship.play()
+		self.assertTrue(self.player1.balance == 2)
+		merchant_ship.duration()
+		self.assertTrue(self.player1.balance == 4)
+
+	@tornado.testing.gen_test
+	def test_Treasure_map(self):
+		tu.print_test_header("test Treasure Map")
+		treasure_map = sea.Treasure_Map(self.game, self.player1)
+		tu.add_many_to_hand(self.player1, treasure_map, 2)
+		treasure_map.play()
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
+		for i in range (0, 4):
+			self.assertTrue(self.player1.deck.pop().title == 'Gold')
+		self.assertTrue(self.player1.hand.get_count('Treasure Map') == 0)
+
+	@tornado.testing.gen_test
+	def test_Treasury(self):
+		tu.print_test_header("test Treasury")
+		treasury = sea.Treasury(self.game, self.player1)
+
+		tu.add_many_to_hand(self.player1, treasury, 2)
+
+		tu.send_input(self.player1, "play", "Treasury")
+		tu.send_input(self.player1, "play", "Treasury")
+		self.player1.buy_card('Copper')
+		self.player1.end_turn()
+
+		yield tu.send_input(self.player1, "post_selection", [2])
+		self.assertTrue(self.player1.hand.get_count("Treasury") == 2)
 
 if __name__ == '__main__':
 		unittest.main()
