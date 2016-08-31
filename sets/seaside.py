@@ -29,6 +29,35 @@ class Lighthouse(crd.Duration):
 		self.game.announce("-- gaining +$1")
 		self.played_by.protection = 0
 
+
+class Pearl_Diver(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Pearl Diver"
+		self.description = "{} {}" \
+											 "Look at the bottom card of your deck. You may put it on top.".format(crd.format_draw(1), crd.format_actions(1))
+		self.price = 2
+		self.type = "Action"
+
+	@gen.coroutine
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		self.played_by.actions += 1
+		drawn = self.played_by.draw(1)
+		self.game.announce("Drawing " + drawn + " and gaining + 1 actions")
+
+		if len(self.played_by.deck) == 0:
+			self.played_by.shuffle_discard_to_deck()
+
+		bottom_card = self.played_by.deck[0].title
+		selection = yield self.played_by.select(1, 1, ["Yes", "No"],
+		            "The bottom card of your deck is " + bottom_card.title() + " Move it to the top of your deck?")
+
+		if selection[0] == "Yes":
+			bottom_card = self.played_by.deck.pop(0)
+			self.played_by.deck.append(bottom_card)
+
+		crd.Card.on_finished(self)
 # --------------------------------------------------------
 # ------------------------ 3 Cost ------------------------
 # --------------------------------------------------------
@@ -145,6 +174,7 @@ class Treasure_Map(crd.Card):
 		self.price = 4
 		self.description = "Trash this and another copy of Treasure Map from your hand." \
 		                   " If you do trash two Treasure Maps, gain 4 Gold cards, putting them on top of your deck."
+
 		self.type = "Action"
 
 	@gen.coroutine
@@ -255,4 +285,3 @@ class Treasury(crd.Card):
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------
 # --------------------------------------------------------
-

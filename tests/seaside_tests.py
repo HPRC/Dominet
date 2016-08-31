@@ -45,6 +45,17 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player2.topdeck().title == 'Curse')
 
 	@tornado.testing.gen_test
+	def test_Pearl_Diver(self):
+		tu.print_test_header("test Pearl Diver")
+		pearl_diver = sea.Pearl_Diver(self.game, self.player1)
+		pearl_diver.play()
+		self.assertTrue(len(self.player1.hand) == 6)
+		self.assertTrue(self.player1.actions == 1)
+		bottom_deck = self.player1.deck[0]
+		yield tu.send_input(self.player1, "post_selection", ["Yes"])
+		self.assertTrue(self.player1.topdeck() == bottom_deck)
+
+	@tornado.testing.gen_test
 	def test_Salvager(self):
 		tu.print_test_header("test Salvager")
 		salvager = sea.Salvager(self.game, self.player1)
