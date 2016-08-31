@@ -32,6 +32,27 @@ class Lighthouse(crd.Duration):
 # ------------------------ 3 Cost ------------------------
 # --------------------------------------------------------
 
+class Warehouse(crd.Card):
+	def __init__(self, game, played_by):
+		crd.Card.__init__(self, game, played_by)
+		self.title = "Warehouse"
+		self.description = "{} {} Discard 3 cards".format(crd.format_draw(3), crd.format_actions(1))
+		self.price = 3
+		self.type = "Action"
+
+	@gen.coroutine
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
+		drawn = self.played_by.draw(3)
+		self.played_by.actions += 1
+		self.game.announce("-- gaining 1 action and drawing " + drawn + " cards")
+
+		to_discard = yield self.played_by.select(3, 3, crd.card_list_to_titles(self.played_by.hand.card_array()),
+		                                         "Discard 3 cards")
+		yield self.played_by.discard(to_discard, self.played_by.discard_pile)
+		self.game.announce("-- discarding {} cards".format(len(to_discard)))
+		crd.Card.on_finished(self)
+
 # --------------------------------------------------------
 # ------------------------ 4 Cost ------------------------
 # --------------------------------------------------------
@@ -135,7 +156,6 @@ class Bazaar(crd.Card):
 		self.game.announce("-- drawing {}, gaining +2 actions and gaining +$1".format(drawn))
 		crd.Card.on_finished(self)
 
-
 class Merchant_Ship(crd.Duration):
 	def __init__(self, game, played_by):
 		crd.Duration.__init__(self, game, played_by)
@@ -204,3 +224,4 @@ class Treasury(crd.Card):
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------
 # --------------------------------------------------------
+
