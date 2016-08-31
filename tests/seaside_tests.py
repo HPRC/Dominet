@@ -36,6 +36,17 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		lighthouse.duration()
 		self.assertFalse(militia.is_blocked(self.player1))
 
+	def test_Wharf(self):
+		tu.print_test_header("test Wharf")
+		wharf = sea.Wharf(self.game, self.player1)
+		wharf.play()
+		self.assertTrue(len(self.player1.hand) == 7)
+		self.assertTrue(self.player1.buys == 2)
+
+		wharf.duration()
+		self.assertTrue(len(self.player1.hand) == 9)
+		self.assertTrue(self.player1.buys == 3)
+
 	@tornado.testing.gen_test
 	def test_Sea_Hag(self):
 		tu.print_test_header("test Sea Hag")

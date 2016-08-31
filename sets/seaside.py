@@ -5,7 +5,6 @@ import tornado.gen as gen
 # ------------------------ 2 Cost ------------------------
 # --------------------------------------------------------
 
-
 class Lighthouse(crd.Duration):
 	def __init__(self, game, played_by):
 		crd.Duration.__init__(self, game, played_by)
@@ -13,7 +12,6 @@ class Lighthouse(crd.Duration):
 		self.description = "{} Now and at the start of your next turn {}." \
 		"While this is in play, you are unaffected by attack cards".format(crd.format_actions(1), crd.format_money(1))
 		self.price = 2
-
 
 	def play(self, skip=False):
 		crd.Duration.play(self, skip)
@@ -28,7 +26,6 @@ class Lighthouse(crd.Duration):
 		self.played_by.balance += 1
 		self.game.announce("-- gaining +$1")
 		self.played_by.protection = 0
-
 
 class Pearl_Diver(crd.Card):
 	def __init__(self, game, played_by):
@@ -65,12 +62,11 @@ class Pearl_Diver(crd.Card):
 
 class Fishing_Village(crd.Duration):
 	def __init__(self, game, played_by):
-		crd.Card.__init__(self, game, played_by)
+		crd.Duration.__init__(self, game, played_by)
 		self.title = "Fishing Village"
 		self.description = "{}{}. At the start of your next turn, {}{}".format(crd.format_actions(2), crd.format_money(1),
 		                                                                       crd.format_actions(1), crd.format_money(1))
 		self.price = 3
-		self.type = "Action|Duration"
 
 	def play(self, skip=False):
 		crd.Duration.play(self, skip)
@@ -119,14 +115,12 @@ class Caravan(crd.Duration):
 		self.price = 4
 		self.description = "{} " \
 		"Now and at the start of your next turn, {}".format(crd.format_actions(1), crd.format_draw(1))
-		self.type = "Action|Duration"
 
 	def play(self, skip=False):
 		crd.Duration.play(self, skip)
 		self.played_by.actions += 1
 		drawn = self.played_by.draw(1)
 		self.game.announce("-- gaining +1 action and drawing {}".format(drawn))
-		crd.Duration.on_finished(self)
 
 	def duration(self):
 		crd.Duration.duration(self)
@@ -247,7 +241,6 @@ class Merchant_Ship(crd.Duration):
 		self.title = "Merchant Ship"
 		self.price = 5
 		self.description = "Now and at the start of your next turn {}".format(crd.format_money(2))
-		self.type = "Action|Duration"
 
 	def play(self, skip=False):
 		crd.Duration.play(self, skip)
@@ -306,6 +299,27 @@ class Treasury(crd.Card):
 
 				if count == amount_to_return:
 					break
+
+
+class Wharf(crd.Duration):
+	def __init__(self, game, played_by):
+		crd.Duration.__init__(self, game, played_by)
+		self.title = "Wharf"
+		self.description = "Now and at the start of your next turn " \
+		                   "{} {}.".format(crd.format_draw(2), crd.format_buys(1))
+		self.price = 5
+
+	def play(self, skip=False):
+		crd.Duration.play(self, skip)
+		drawn = self.played_by.draw(2)
+		self.played_by.buys += 1
+		self.game.announce("-- gaining +1 Buy and drawing " + drawn + " cards")
+		crd.Duration.on_finished(self)
+
+	def duration(self):
+		drawn = self.played_by.draw(2)
+		self.played_by.buys += 1
+		self.game.announce(" -- gaining +1 Buy and drawing " + drawn + " cards")
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------
 # --------------------------------------------------------
