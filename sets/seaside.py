@@ -70,6 +70,7 @@ class Bazaar(crd.Card):
 		self.title = "Bazaar"
 		self.price = 5
 		self.description = "{} {} {}".format(crd.format_draw(1), crd.format_actions(2), crd.format_money(1))
+		self.type = "Action"
 
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
@@ -86,11 +87,14 @@ class Treasury(crd.Card):
 		self.title = "Treasury"
 		self.description = "{} {} {}" \
 		                   "When you discard this card from play, if you didn't buy a Victory card this turn, " \
-		                   "you may put this on top of your deck".format(crd.format_draw(1), crd.format_money(1), crd.format_buys(1))
+		                   "you may put this on top of your deck".format(crd.format_draw(1), crd.format_money(1), crd.format_actions(1))
 		self.price = 5
 		self.type = "Action"
 
+	def play(self, skip=False):
+		crd.Card.play(self, skip)
 		self.played_by.actions += 1
+		self.played_by.balance += 1
 		drawn = self.played_by.draw(1)
 		self.game.announce("-- drawing " + drawn + " and gaining +$1, +1 action")
 		crd.Card.on_finished(self)
