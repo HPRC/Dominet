@@ -123,6 +123,7 @@ class Caravan(crd.Duration):
 		self.played_by.actions += 1
 		drawn = self.played_by.draw(1)
 		self.game.announce("-- gaining +1 action and drawing {}".format(drawn))
+		crd.Card.on_finished(self)
 
 	def duration(self):
 		crd.Duration.duration(self)
@@ -379,6 +380,7 @@ class Wharf(crd.Duration):
 		crd.Duration.on_finished(self)
 
 	def duration(self):
+		crd.Duration.duration(self)
 		drawn = self.played_by.draw(2)
 		self.played_by.buys += 1
 		self.game.announce(" -- gaining +1 Buy and drawing " + drawn + " cards")
