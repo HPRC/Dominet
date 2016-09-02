@@ -334,7 +334,7 @@ class Noble_Brigand(crd.AttackCard):
 				self.game.announce("-- {} reveals {}".format(player.name_string(), reveal_string))
 				trash_selection = yield self.played_by.select(None, 1, list(set(revealed_gold_or_silver)),
 					"Trash and gain {}'s revealed Gold or Silver?".format(player.name))
-				if trash_selection[0]:
+				if trash_selection:
 					self.game.announce("-- {} trashes {} from {}'s deck".format(self.played_by.name_string(),
 						 self.game.log_string_from_title(trash_selection[0]), player.name_string()))
 					to_trash = revealed_cards.pop(0) if revealed_cards[0].title == trash_selection[0] else revealed_cards.pop(1)
