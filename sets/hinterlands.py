@@ -196,8 +196,7 @@ class Oracle(crd.AttackCard):
 	def play(self, skip=False):
 		crd.AttackCard.play(self, skip)
 		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
-		drawn = self.played_by.draw(2)
-		self.game.announce("-- drawing {}".format(drawn))
+
 
 	@gen.coroutine
 	def attack(self):
@@ -210,7 +209,7 @@ class Oracle(crd.AttackCard):
 			revealed_cards = [x for x in revealed_cards if x is not None]
 			if not revealed_cards:
 					self.game.announce(player.name_string() + " has no cards to Oracle.")
-					crd.AttackCard.get_next(self, player)
+					yield self.get_next(player)
 					return
 			reveal_string = " and ".join(crd.card_list_log_strings(revealed_cards))
 			revealed_cards_titles = crd.card_list_to_titles(revealed_cards)
@@ -225,7 +224,18 @@ class Oracle(crd.AttackCard):
 				player.update_deck_size()
 				self.game.announce("{} leaves {} on {}'s deck".format(self.played_by.name_string(), reveal_string,
 					player.name_string()))
-			yield crd.AttackCard.get_next(self, player)
+			yield self.get_next(player)
+
+	#override
+	@gen.coroutine
+	def get_next(self, victim):
+		next_player_index = (self.game.players.index(victim) + 1) % len(self.game.players)
+		if self.game.players[next_player_index] != self.played_by:
+			yield gen.maybe_future(self.fire(self.game.players[next_player_index]))
+		else:
+			drawn = self.played_by.draw(2)
+			self.game.announce("-- drawing {}".format(drawn))
+			crd.Card.on_finished(self)
 
 class Scheme(crd.Card):
 	def __init__(self, game, played_by):
@@ -253,7 +263,7 @@ class Scheme(crd.Card):
 			self.played_by.name_string(),
 			len(chosen_cards), "s" if len(chosen_cards) != 1 else ""))
 		for card_title in chosen_cards:
-			for i in range(len(self.played_by.played_cards)-1, -1, -1):
+			for i in range(len(self.played_by.played_cards) - 1, -1, -1):
 				if self.played_by.played_cards[i].title == card_title:
 					self.played_by.deck.append(self.played_by.played_cards[i])
 					self.played_by.played_cards.pop(i)
@@ -324,7 +334,7 @@ class Noble_Brigand(crd.AttackCard):
 				self.game.announce("-- {} reveals {}".format(player.name_string(), reveal_string))
 				trash_selection = yield self.played_by.select(None, 1, list(set(revealed_gold_or_silver)),
 					"Trash and gain {}'s revealed Gold or Silver?".format(player.name))
-				if trash_selection[0]:
+				if trash_selection:
 					self.game.announce("-- {} trashes {} from {}'s deck".format(self.played_by.name_string(),
 						 self.game.log_string_from_title(trash_selection[0]), player.name_string()))
 					to_trash = revealed_cards.pop(0) if revealed_cards[0].title == trash_selection[0] else revealed_cards.pop(1)
