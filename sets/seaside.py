@@ -247,7 +247,7 @@ class Explorer(crd.Card):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Explorer"
 		self.description = "You may reveal a Province card from your hand. If you do, gain a Gold card, putting it into your hand." \
-		                   "Otherwise, gain a Silver card, putting it into your hand"
+		                   " Otherwise, gain a Silver card, putting it into your hand"
 		self.price = 5
 		self.type = "Action"
 
@@ -376,14 +376,14 @@ class Wharf(crd.Duration):
 		crd.Duration.play(self, skip)
 		drawn = self.played_by.draw(2)
 		self.played_by.buys += 1
-		self.game.announce("-- gaining +1 Buy and drawing " + drawn + " cards")
+		self.game.announce("-- gaining +1 Buy and drawing {}".format(drawn))
 		crd.Duration.on_finished(self)
 
 	def duration(self):
 		crd.Duration.duration(self)
 		drawn = self.played_by.draw(2)
 		self.played_by.buys += 1
-		self.game.announce(" -- gaining +1 Buy and drawing " + drawn + " cards")
+		self.game.announce(" -- gaining +1 Buy and drawing {}".format(drawn))
 
 # --------------------------------------------------------
 # ------------------------ 6 Cost ------------------------
