@@ -762,14 +762,16 @@ class Saboteur(crd.AttackCard):
 			self.game.announce("-- " + victim.name_string() + " gains a card costing "
 			                   + str(sabotaged_card.get_price() - 2) + " or less")
 			
-			self.played_by.wait("to gain a card", victim)
+			self.played_by.wait("to gain a card", victim, True)
 			selection = yield victim.select_from_supply("Choose a remnant of the sabotaged goods", 
 				lambda x : x.get_price() <= sabotaged_card.get_price() - 2, optional=True)
 			if selection[0] != "None":
 				yield victim.gain(selection[0])
+				victim.update_wait(True)
 				yield crd.AttackCard.get_next(self, victim)
 			else:
 				self.game.announce("-- " + victim.name_string() + " gains nothing")
+				victim.update_wait(True)
 				yield crd.AttackCard.get_next(self, victim)
 
 class Trading_Post(crd.Card):
