@@ -138,10 +138,11 @@ class GameHandler(websocket.WebSocketHandler):
 		elif cmd == "joinTable":
 			self.join_table(jsondata)
 		elif cmd == "startGame":
-			if jsondata["host"] not in self.application.game_tables:
-				print(self.application.game_tables)
-			table = self.application.game_tables[jsondata["host"]]
-			self.start_game(table)
+			host = jsondata["host"]
+			if host in self.application.game_tables:
+				table = self.application.game_tables[host]
+				if len(table.players) == table.seats:
+					self.start_game(table)
 		elif cmd == "getLobby":
 			self.update_lobby()
 
