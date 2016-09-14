@@ -723,5 +723,20 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		self.player1.exec_commands({"command": "endTurn"})
 		self.assertTrue(mv not in self.player1.discard_pile)
 
+	@tornado.testing.gen_test
+	def test_Saboteur_waits(self):
+		tu.print_test_header("test Saboteur on gain")
+		saboteur = intrigue.Saboteur(self.game, self.player1)
+		province = supply_cards.Province(self.game, self.player2)
+		self.player2.deck.append(province)
+		self.player1.hand.add(saboteur)
+		saboteur.play()
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		yield tu.send_input(self.player2, "selectSupply", ["Inn"])
+		self.assertTrue(self.player1.last_mode["mode"] == "wait")
+		yield tu.send_input(self.player2, "post_selection", ["Inn"])
+		yield gen.sleep(.1)
+		self.assertTrue(self.player1.last_mode["mode"] != "wait")
+
 if __name__ == '__main__':
 	unittest.main()
