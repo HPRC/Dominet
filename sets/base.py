@@ -57,9 +57,9 @@ class Moat(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Moat"
-		self.description = "{} Reaction: Whenever another player plays an Attack card,\
-		                   you may reveal this card from your hand,\
-		                   if you do, you are unaffected by the Attack.".format(crd.format_draw(2))
+		self.description = "{} Reaction: Whenever another player plays an Attack card,"\
+		                   " you may reveal this card from your hand,"\
+		                   " if you do, you are unaffected by the Attack.".format(crd.format_draw(2))
 		self.price = 2
 		self.type = "Action|Reaction"
 		self.trigger = "Attack"
@@ -114,10 +114,11 @@ class Chancellor(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		self.played_by.balance += 2
+		self.game.announce("-- gaining +$2")
 		selection = yield self.played_by.select(1, 1, ["Yes", "No"],  
 			"Put your deck into your discard pile?")
 		if selection[0] == "Yes":
-			self.game.announce("-- puting their deck into their discard pile")
+			self.game.announce("-- putting their deck into their discard pile")
 			self.played_by.discard_pile += self.played_by.deck
 			self.played_by.deck = []
 			self.played_by.update_discard_size()
@@ -164,7 +165,8 @@ class Bureaucrat(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Bureaucrat"
-		self.description = "Gain a Silver, put it on top of your deck. Each other player reveals a Victory card and puts it on their deck or reveals a hand with no Victory cards."
+		self.description = "Gain a Silver, put it on top of your deck."\
+			" Each other player reveals a Victory card and puts it on their deck or reveals a hand with no Victory cards."
 		self.price = 4
 
 	@gen.coroutine
@@ -242,6 +244,7 @@ class Militia(crd.AttackCard):
 	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
+		self.game.announce("-- gaining +$2")
 		self.played_by.balance += 2
 		self.played_by.update_resources()
 		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
@@ -301,8 +304,8 @@ class Spy(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Spy"
-		self.description = "{}{}Each player (including you) reveals the top card of \
-			their deck and either discards it or puts it back, your choice".format(crd.format_draw(1), crd.format_actions(1))
+		self.description = "{}{}Each player (including you) reveals the top card of "\
+			"their deck and either discards it or puts it back, your choice".format(crd.format_draw(1), crd.format_actions(1))
 		self.price = 4
 
 	@gen.coroutine
@@ -365,7 +368,7 @@ class Thief(crd.AttackCard):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Thief"
 		self.description = "Each other player reveals and discards the top 2 cards of their deck. If they revealed any Treasure cards,"\
-			"they trash one that you choose and you may gain the trashed card."
+			" they trash one that you choose and you may gain the trashed card."
 		self.price = 4
 
 	@gen.coroutine
@@ -546,7 +549,8 @@ class Library(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Library"
-		self.description = "Draw until you have 7 cards in hand. You may set aside any action cards drawn this way. Discard the set aside cards after drawing"
+		self.description = "Draw until you have 7 cards in hand. You may set aside any action cards drawn this way."\
+		" Discard the set aside cards after drawing"
 		self.price = 5
 		self.type = "Action"
 		self.set_aside = []

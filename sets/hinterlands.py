@@ -47,6 +47,7 @@ class Duchess(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		self.played_by.balance += 2
+		self.game.announce("-- gaining +$2")
 		acting_on = []	
 		for i in self.game.players:
 			top_card = i.topdeck()
@@ -184,6 +185,10 @@ class Oasis(crd.Card):
 		self.game.announce("-- discarding {}".format(self.game.log_string_from_title(selection[0])))
 		crd.Card.on_finished(self, False, False)
 
+	def log_string(self, plural=False):
+		return "".join(["<span class='label label-action'>", self.title, "es</span>" if plural else "</span>"])
+
+
 class Oracle(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
@@ -310,6 +315,7 @@ class Noble_Brigand(crd.AttackCard):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		self.played_by.balance += 1
+		self.game.announce("-- gaining +$1")
 		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
 	@gen.coroutine
@@ -435,7 +441,7 @@ class Trader(crd.Card):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Trader"
 		self.description = "Trash a card from your hand, Gain X Silvers where X is the cost of the trash card. Whenever you gain a card, you may"\
-			"reveal Trader to gain a Silver instead"
+			" reveal Trader to gain a Silver instead"
 		self.price = 4
 		self.type = "Action|Reaction"
 		self.trigger = "Gain"
@@ -672,7 +678,7 @@ class Mandarin(crd.Card):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Mandarin"
 		self.description = "{} Put a card from your hand on top of your deck."\
-		"When you gain this, put all treasures in play on top of your deck in any order.".format(crd.format_money(3))
+		" When you gain this, put all treasures in play on top of your deck in any order.".format(crd.format_money(3))
 		self.price = 5
 		self.type = "Action"
 
