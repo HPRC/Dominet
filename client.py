@@ -497,7 +497,7 @@ class DmClient(Client):
 	def select_from_supply(self, msg, constraint=lambda x: True, allow_empty=False, optional=False):
 		avail = self.game.supply.has_selectable(constraint, allow_empty)
 		if allow_empty or avail:
-			self.write_json(command="updateMode", mode="selectSupply", msg=msg, allowed=crd.card_list_to_titles(avail), 
+			self.write_json(command="updateMode", mode="selectSupply", msg=msg, select_from=crd.card_list_to_titles(avail), 
 				optional=optional)
 
 			if self.input_deque:

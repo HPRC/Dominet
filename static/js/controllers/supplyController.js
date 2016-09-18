@@ -27,7 +27,7 @@ clientModule.controller("supplyController", function($scope, socket, client, car
 		}
 
 		if ($scope.modeJson.mode === "selectSupply"){
-			if ($scope.modeJson.allowed.indexOf(card.title) !== -1){
+			if ($scope.modeJson.select_from.indexOf(card.title) !== -1){
 				return false;
 			} else {
 				return true;
