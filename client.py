@@ -209,6 +209,9 @@ class DmClient(Client):
 			yield self.spend_all_money()
 			
 	def exec_selected_choice(self, choice):
+		if len(choice) > 0 and choice[0] not in self.last_mode["select_from"]:
+			self.write_json(**self.last_mode)
+			return
 		self.update_wait()
 		# if its my turn allow card that triggered selection to handle mode
 		# else default update mode
