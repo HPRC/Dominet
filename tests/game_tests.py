@@ -150,5 +150,14 @@ class TestGame(unittest.TestCase):
 		self.assertTrue(mock_duration_card in self.player1.played_cards)
 		self.assertTrue(mock_duration_card2 in self.player1.played_cards)
 
+	def test_add_to_supply(self):
+		tu.print_test_header("test add to supply")
+		estate = supply_cards.Estate(None, None)
+		for i in range(0, self.game.supply.get_count("Estate")):
+			self.game.remove_from_supply("Estate")
+		self.assertTrue(self.game.empty_piles == 1)
+		self.game.add_to_supply(estate)
+		self.assertTrue(self.game.empty_piles == 0)
+
 if __name__ == '__main__':
 	unittest.main()
