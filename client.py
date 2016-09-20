@@ -209,7 +209,7 @@ class DmClient(Client):
 			yield self.spend_all_money()
 			
 	def exec_selected_choice(self, choice):
-		if len(choice) > 0 and choice[0] not in self.last_mode["select_from"]:
+		if len(choice) > 0 and "select_from" in self.last_mode and choice[0] not in self.last_mode["select_from"]:
 			self.write_json(**self.last_mode)
 			return
 		self.update_wait()
@@ -315,10 +315,10 @@ class DmClient(Client):
 			self.write_json(command="updateMode", mode="select", min_cards=min_cards, max_cards=max_cards,
 				select_from=select_from, msg=msg, ordered=ordered)
 
-			if self.input_deque:
-				return gen.maybe_future(self.input_deque.pop())
 			future = tornado.concurrent.Future()
 			self.cb = future
+			if self.input_deque:
+				self.exec_selected_choice(self.input_deque.pop())
 			return future
 		else:
 			return []
@@ -503,10 +503,10 @@ class DmClient(Client):
 			self.write_json(command="updateMode", mode="selectSupply", msg=msg, select_from=crd.card_list_to_titles(avail), 
 				optional=optional)
 
-			if self.input_deque:
-				return gen.maybe_future(self.input_deque.pop())
 			future = tornado.concurrent.Future()
 			self.cb = future
+			if self.input_deque:
+				self.exec_selected_choice(self.input_deque.pop())
 			return future
 		else:
 			self.game.announce("-- but there is nothing available in supply")
