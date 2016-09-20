@@ -465,8 +465,7 @@ class Trader(crd.Card):
 				self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
 				to_gain = self.played_by.search_and_extract_card(to_gain)
 				if to_gain:
-					self.game.supply.add(to_gain)
-					self.game.update_supply_pile(to_gain.title)
+					self.game.add_to_supply(to_gain)
 					self.game.announce("-- returning " + to_gain.log_string() + " to supply")
 					yield self.played_by.gain("Silver")
 				else:

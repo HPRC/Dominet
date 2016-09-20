@@ -114,6 +114,12 @@ class DmGame(Game):
 		if self.supply.get_count(card_title) == 0:
 			self.empty_piles += 1
 
+	def add_to_supply(self, card):
+		self.supply.add(card)
+		self.update_supply_pile(card.title)
+		if self.supply.get_count(card.title) == 1:
+			self.empty_piles -= 1
+
 	def update_supply_pile(self, card_title):
 		for i in self.players:
 			i.write_json(command="updatePiles", card=card_title, count=self.supply.get_count(card_title))
