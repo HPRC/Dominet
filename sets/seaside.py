@@ -47,14 +47,17 @@ class Pearl_Diver(crd.Card):
 		if len(self.played_by.deck) == 0:
 			self.played_by.shuffle_discard_to_deck()
 
-		bottom_card = self.played_by.deck[0].title
-		selection = yield self.played_by.select(1, 1, ["Yes", "No"],
-		            "The bottom card of your deck is " + bottom_card.title() + ". Move it to the top of your deck?")
+		if len(self.played_by.deck):
+			bottom_card = self.played_by.deck[0].title
+			selection = yield self.played_by.select(1, 1, ["Yes", "No"],
+			            "The bottom card of your deck is " + bottom_card.title() + ". Move it to the top of your deck?")
 
-		if selection[0] == "Yes":
-			bottom_card = self.played_by.deck.pop(0)
-			self.played_by.deck.append(bottom_card)
-			self.game.announce("-- moving the bottom card to the top")
+			if selection[0] == "Yes":
+				bottom_card = self.played_by.deck.pop(0)
+				self.played_by.deck.append(bottom_card)
+				self.game.announce("-- moving the bottom card to the top")
+		else:
+			self.game.announce("-- but has no cards in deck")
 
 		crd.Card.on_finished(self)
 
