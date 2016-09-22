@@ -55,7 +55,7 @@ class TestProsperity(tornado.testing.AsyncTestCase):
 		all_copper = len([x for x in self.player1.all_cards() if x.title == "Copper"])
 		
 		counting_house.play()
-		yield tu.send_input(self.player1, "post_selection", [2])
+		yield tu.send_input(self.player1, "post_selection", ['2'])
 		self.assertTrue(self.player1.hand.get_count('Copper') == num_coppers + 2)
 		self.assertTrue(len(self.player1.discard_pile) == 1)
 		self.assertTrue(len([x for x in self.player1.all_cards() if x.title == "Copper"]) == all_copper)

@@ -84,7 +84,7 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player1.last_mode["mode"] == "select")
 		self.assertTrue(self.player2.discard_pile[-1] == player2top)
 		self.assertTrue(self.player2.last_mode["mode"] != "select")
-		yield tu.send_input(self.player1, "post_selection", ["Put back"])
+		yield tu.send_input(self.player1, "post_selection", ["Put Back"])
 		self.assertTrue(self.player1.deck[-1] == player1top)
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		yield tu.send_input(self.player3, "post_selection", ["Discard"])
@@ -520,8 +520,8 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 
 		tu.send_input(self.player1, "buyCard", "Gold")
 		self.assertTrue(self.player1.last_mode["mode"] == "selectSupply")
-		yield tu.send_input(self.player1, "post_selection", ["Duchy"])
-		self.assertTrue(self.player1.discard_pile[-1].title ==  "Duchy")
+		yield tu.send_input(self.player1, "post_selection", ["Silver"])
+		self.assertTrue(self.player1.discard_pile[-1].title ==  "Silver")
 		tu.send_input(self.player1, "buyCard", "Estate")
 		yield tu.send_input(self.player1, "post_selection", ["Copper"])
 		self.assertTrue(self.player1.discard_pile[-1].title ==  "Copper")
@@ -588,7 +588,6 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player3.deck[-1].title == "Gold")
 		self.assertTrue(self.game.trash_pile[-1].title == "Fool's Gold")
 		self.assertTrue(self.player3.last_mode["mode"] == "select")
-		yield tu.send_input(self.player3, "post_selection", ["Yes"])
 		yield tu.send_input(self.player3, "post_selection", ["Yes"])
 		self.assertTrue(self.player3.deck[-2].title == "Gold")
 

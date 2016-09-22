@@ -10,6 +10,7 @@ import cardpile as cp
 import kingdomGenerator as kg
 
 import tornado.gen as gen
+import tornado.testing
 import tests.test_utils as tu
 
 
@@ -25,8 +26,9 @@ class SilentHandler():
 		pass
 
 
-class TestGame(unittest.TestCase):
+class TestGame(tornado.testing.AsyncTestCase):
 	def setUp(self):
+		super().setUp()
 		self.player1 = c.DmClient("player1", 0, DummyHandler())
 		self.player2 = c.DmClient("player2", 1, SilentHandler())
 		self.player3 = c.DmClient("player3", 2, SilentHandler())
@@ -97,7 +99,7 @@ class TestGame(unittest.TestCase):
 		self.player1.discard(["Copper"], self.player1.discard_pile)
 		self.assertTrue(len(self.player1.hand) == 0)
 
-	@gen.coroutine
+	@tornado.testing.gen_test
 	def test_spam_cb(self):
 		tu.print_test_header("test spam cb")
 		self.player1.hand.add(base.Remodel(self.game, self.player1))
@@ -106,13 +108,13 @@ class TestGame(unittest.TestCase):
 
 		tu.send_input(self.player1, "play", "Remodel")
 		yield tu.send_input(self.player1, "post_selection", ["Silver"])
-		yield tu.send_input(self.player1, "selectSupply", ["Duchy"])
+		yield tu.send_input(self.player1, "selectSupply", ["Silver"])
 		self.assertTrue(self.player1.cb == None)
-		yield tu.send_input(self.player1, "selectSupply", ["Duchy"])
+		yield tu.send_input(self.player1, "selectSupply", ["Silver"])
 		self.assertTrue(len(self.player1.discard_pile) == 1)
 
 	#tests gaining a card not available anymore doesnt lead to deadlock
-	@gen.coroutine
+	@tornado.testing.gen_test
 	def test_has_selectable(self):
 		tu.print_test_header("test has selectable")
 		#2 Remodels in hand
@@ -137,7 +139,7 @@ class TestGame(unittest.TestCase):
 		self.assertTrue(player3opponents[0] == self.player1)
 		self.assertTrue(player3opponents[1] == self.player2)
 
-	@gen.coroutine
+	@tornado.testing.gen_test
 	def test_duration_called(self):
 		tu.print_test_header("test duration")
 		mock_duration_card = unittest.mock.Mock()
@@ -149,6 +151,17 @@ class TestGame(unittest.TestCase):
 		self.assertTrue(self.player1.durations == [])
 		self.assertTrue(mock_duration_card in self.player1.played_cards)
 		self.assertTrue(mock_duration_card2 in self.player1.played_cards)
+
+	@tornado.testing.gen_test
+	def test_invalid_selection(self):
+		tu.print_test_header("test invalid selection")
+		selection_future = self.player1.select(1, 1, ["Copper", "Curse"], "Select Copper or Curse")
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
+		yield tu.send_input(self.player1, "post_selection", ["Province"])
+		self.assertTrue(selection_future.running())
+		self.assertTrue(self.player1.last_mode["mode"] == "select")
+		yield tu.send_input(self.player1, "post_selection", ["Curse"])
+		self.assertTrue(selection_future.result() == ["Curse"])
 
 if __name__ == '__main__':
 	unittest.main()
