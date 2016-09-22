@@ -404,6 +404,7 @@ class Mountebank(crd.AttackCard):
 	@gen.coroutine
 	def play(self, skip=False):
 		crd.AttackCard.play(self, skip)
+		self.game.announce("-- gaining +$2")
 		self.played_by.balance += 2
 		self.played_by.update_resources()
 		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
@@ -775,8 +776,8 @@ class Peddler(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Peddler"
-		self.description = "{}{}{}During your Buy phase, \
-			this costs $2 less for each action card in play (not less than $0)".format(crd.format_draw(1), crd.format_actions(1), crd.format_money(1))
+		self.description = "{}{}{}During your Buy phase, "\
+			"this costs $2 less for each action card in play (not less than $0)".format(crd.format_draw(1), crd.format_actions(1), crd.format_money(1))
 		self.price = 8
 		self.type = "Action"
 

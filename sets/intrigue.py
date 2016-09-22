@@ -65,7 +65,9 @@ class Secret_Chamber(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
 		self.title = "Secret Chamber"
-		self.description = "Discard any number of cards. +$1 per card discarded.\n Reaction: When another player plays an Attack card, you may reveal this from your hand. If you do, +2 cards, then put 2 cards from your hand on top of your deck."
+		self.description = "Discard any number of cards. +$1 per card discarded.\n "\
+			"Reaction: When another player plays an Attack card, you may reveal this from your hand. "\
+			"If you do, +2 cards, then put 2 cards from your hand on top of your deck."
 		self.price = 2
 		self.type = "Action|Reaction"
 		self.trigger = "Attack"
@@ -564,8 +566,8 @@ class Minion(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Minion"
-		self.description = "{}Choose one: {} or discard your hand, draw 4 cards and each other player\
-		with at least 5 cards in hand discards their hand and draws 4 cards.".format(crd.format_actions(1), crd.format_money(2, True))
+		self.description = "{}Choose one: {} or discard your hand, draw 4 cards and each other player "\
+			"with at least 5 cards in hand discards their hand and draws 4 cards.".format(crd.format_actions(1), crd.format_money(2, True))
 		self.price = 5
 		self.type = "Action|Attack"
 
@@ -603,8 +605,8 @@ class Torturer(crd.AttackCard):
 	def __init__(self, game, played_by):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Torturer"
-		self.description = "{}Each other player chooses one: he discards 2 cards; \
-			or he gains a Curse card, putting it in their hand.".format(crd.format_draw(3))
+		self.description = "{}Each other player chooses one: he discards 2 cards; "\
+			"or he gains a Curse card, putting it in their hand.".format(crd.format_draw(3))
 		self.price = 5
 		self.type = "Action|Attack"
 
