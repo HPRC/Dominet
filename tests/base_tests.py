@@ -1,4 +1,5 @@
 import unittest
+import unittest.mock
 import client as c
 import sets.base as base
 import sets.intrigue as intrigue
@@ -29,37 +30,59 @@ class TestCard(tornado.testing.AsyncTestCase):
 	# --------------------------------------------------------
 	# ------------------------- Base -------------------------
 	# --------------------------------------------------------
-
+ 
 	@tornado.testing.gen_test
 	def test_Cellar(self):
 		tu.print_test_header("test Cellar")
+		
+		selection_future = gen.Future()
+		select_mock = unittest.mock.MagicMock(return_value=selection_future)
+		draw_mock = unittest.mock.Mock()
+		discard_mock = unittest.mock.Mock()
+		self.player1.select = select_mock
+		self.player1.draw = draw_mock
+		self.player1.discard = gen.coroutine(discard_mock)
+		
+		base.Cellar(self.game, self.player1).play()
 
-		self.player1.hand.add(base.Cellar(self.game, self.player1))
-		self.player1.hand.play("Cellar")
-		self.assertTrue(self.player1.handler.log[-1]["command"] == "updateMode")
-		self.assertTrue(self.player1.handler.log[-1]["mode"] == "select")
-
-		selection = crd.card_list_to_titles(self.player1.hand.card_array())
-		yield tu.send_input(self.player1, "post_selection", selection)
-		self.assertTrue(len(self.player1.discard_pile) == 5)
-		self.assertTrue(len(self.player1.hand) == 5)
+		self.assertTrue(select_mock.called)
+		to_discard = crd.card_list_to_titles(self.player1.hand.card_array())
+		selection_future.set_result(to_discard)
+		yield gen.moment
+		discard_mock.assert_any_call(to_discard, self.player1.discard_pile)
+		draw_mock.assert_called_once_with(5)
 
 	@tornado.testing.gen_test
 	def test_Militia(self):
 		tu.print_test_header("test Militia")
-		self.player1.hand.add(base.Militia(self.game, self.player1))
-		self.player1.hand.play("Militia")
-		self.assertTrue(self.player2.handler.log[-1]["command"] == "updateMode")
-		self.assertTrue(self.player2.handler.log[-1]["mode"] == "select")
-		self.assertTrue(self.player2.handler.log[-1]["select_from"] == crd.card_list_to_titles(self.player2.hand.card_array()))
 
-		selection = crd.card_list_to_titles(self.player2.hand.card_array())[:2]
-		yield tu.send_input(self.player2, "post_selection", selection)
-		self.assertTrue(len(self.player2.hand) == 3)
+		player2_discard_future = gen.Future()
+		player3_discard_future = gen.Future()
+		select_mock2 = unittest.mock.MagicMock(return_value=player2_discard_future)
+		select_mock3 = unittest.mock.MagicMock(return_value=player3_discard_future)
+		discard_mock2 =unittest.mock.Mock()
+		discard_mock3 =unittest.mock.Mock()
+
+		self.player2.select = select_mock2
+		self.player3.select = select_mock3
+		self.player2.discard = gen.coroutine(discard_mock2)
+		self.player3.discard = gen.coroutine(discard_mock3)
+
+		base.Militia(self.game, self.player1).play()
+		self.assertTrue(select_mock2.called)
+		self.assertTrue(select_mock3.called)
+		select_mock2.assert_called_with(unittest.mock.ANY, unittest.mock.ANY, 
+			crd.card_list_to_titles(self.player2.hand.card_array()), unittest.mock.ANY)
+
+		player2_selection = crd.card_list_to_titles(self.player2.hand.card_array())[:2]
+		player2_discard_future.set_result(player2_selection)
+		yield gen.moment
+		discard_mock2.assert_called_once_with(player2_selection, self.player2.discard_pile)
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
-		yield tu.send_input(self.player3, "post_selection", ["Copper", "Copper"])
-		self.assertTrue(self.player1.last_mode["mode"] != "wait")
-		self.assertTrue(len(self.player3.hand) == 3)
+		player3_selection = ["Copper", "Copper"]
+		player3_discard_future.set_result(player3_selection)
+		yield gen.moment
+		discard_mock3.assert_called_once_with(player3_selection, self.player3.discard_pile)
 
 	@tornado.testing.gen_test
 	def test_Moat_reaction(self):
