@@ -87,52 +87,82 @@ class TestCard(tornado.testing.AsyncTestCase):
 	@tornado.testing.gen_test
 	def test_Moat_reaction(self):
 		tu.print_test_header("test Moat Reaction")
-		self.player2.hand.add(base.Moat(self.game, self.player2))
-		self.player1.hand.add(base.Witch(self.game, self.player1))
-		self.player1.hand.play("Witch")
-		self.assertTrue("Reveal" in self.player2.handler.log[-1]["select_from"])
+		moat = base.Moat(self.game, self.player2)
+		self.player2.hand.add(moat)
+		moat.react = unittest.mock.Mock(moat, wraps=moat.react)
+		self.player2.gain = unittest.mock.Mock()
 
-		yield tu.send_input(self.player2, "post_selection", ["Reveal"])
-		# didn't gain curse
-		self.assertTrue(len(self.player2.discard_pile) == 0)
+		reveal_future = gen.Future()
+		reveal_mock = unittest.mock.MagicMock(return_value=reveal_future)
+		self.player2.select = reveal_mock
+		base.Witch(self.game, self.player1).play()
+		self.assertTrue(moat.react.called)
+		reveal_future.set_result(["Reveal"])
+		yield gen.moment
+		self.assertTrue(self.player2.protection == 1)
+		self.assertFalse(self.player2.gain.called)
+		self.assertTrue(self.player2.search_and_extract_card("Curse") == None)
 
 	@tornado.testing.gen_test
 	def test_Throne_Room_on_Village(self):
 		tu.print_test_header("test Throne Room Village")
 		throne_room_card = base.Throne_Room(self.game, self.player1)
+		village = base.Village(self.game, self.player1)
 		self.player1.hand.add(throne_room_card)
-		self.player1.hand.add(base.Village(self.game, self.player1))
+		self.player1.hand.add(village)
+		
+		village.play = unittest.mock.Mock()
+		select_future = gen.Future()
+		throne_room_selection = unittest.mock.MagicMock(return_value=select_future)
+		
+		self.player1.select = throne_room_selection
+
 		throne_room_card.play()
-		yield tu.send_input(self.player1, "post_selection", ["Village"])
-		self.assertTrue(self.player1.actions == 4)
+		select_future.set_result(["Village"])
+		yield gen.moment
+		village.play.assert_called_with(True)
+		self.assertTrue(village.play.call_count == 2)
 
 	@tornado.testing.gen_test
 	def test_Throne_Room_on_Workshop(self):
 		tu.print_test_header("test Throne Room workshop")
-		throne_room_card = base.Throne_Room(self.game, self.player1)
-		self.player1.hand.add(throne_room_card)
-		workshopCard = base.Workshop(self.game, self.player1)
-		self.player1.hand.add(workshopCard)
-		throne_room_card.play()
-		yield tu.send_input(self.player1, "post_selection", ["Workshop"])
+		throne_room = base.Throne_Room(self.game, self.player1)
+		workshop = base.Workshop(self.game, self.player1)
+		self.player1.hand.add(workshop)
+		self.player1.hand.add(throne_room)
 
-		yield tu.send_input(self.player1, "selectSupply", ["Silver"])
-		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
+		select_future = gen.Future()
+		select_from_supply_future = gen.Future()
+		select_from_supply_future2 = gen.Future()
+		self.player1.select = unittest.mock.MagicMock(return_value=select_future)
+		self.player1.select_from_supply = unittest.mock.MagicMock(side_effect=[select_from_supply_future, select_from_supply_future2])
+		self.player1.gain = unittest.mock.Mock(wraps=self.player1.gain)
 
-		yield tu.send_input(self.player1, "selectSupply", ["Estate"])
-		self.assertTrue(self.player1.discard_pile[-1].title == "Estate")
+		throne_room.play()
+		select_future.set_result(["Workshop"])
+		yield gen.moment
+
+		select_from_supply_future.set_result(["Silver"])
+		yield gen.moment
+		self.player1.gain.assert_called_once_with("Silver")
+
+		select_from_supply_future2.set_result(["Estate"])
+		yield gen.moment
+		self.player1.gain.assert_called_with("Estate")
 
 	@tornado.testing.gen_test
 	def test_Feast(self):
 		tu.print_test_header("test Feast")
 		feast_card = base.Feast(self.game, self.player1)
 		self.player1.hand.add(feast_card)
+		select_future = gen.Future()
+		self.player1.select_from_supply = unittest.mock.MagicMock(return_value=select_future)
+		self.player1.gain = unittest.mock.Mock(return_value = gen.Future())
 		feast_card.play()
-
-		self.assertTrue(self.player1.handler.log[-1]["mode"] == "selectSupply")
+		select_future.set_result(["Duchy"])
+		yield gen.moment
 		self.assertTrue(self.game.trash_pile[-1] == feast_card)
-		yield tu.send_input(self.player1, "post_selection", ["Duchy"])
-		self.assertTrue(self.player1.discard_pile[-1].title == "Duchy")
+		self.player1.gain.assert_called_with("Duchy")
 
 	@tornado.testing.gen_test
 	def test_Thief_2_treasures(self):
@@ -141,13 +171,20 @@ class TestCard(tornado.testing.AsyncTestCase):
 		self.player1.hand.add(thief_card)
 		self.player2.deck.append(supply_cards.Copper(self.game, self.player2))
 		self.player2.deck.append(supply_cards.Silver(self.game, self.player2))
+		select_trash_future = gen.Future()
+		select_gain_future = gen.Future()
+		self.player1.select = unittest.mock.MagicMock(side_effect=[select_trash_future, select_gain_future])
+		self.player1.gain = unittest.mock.Mock(return_value=gen.Future())
+
 		thief_card.play()
-		self.assertTrue("Copper" in self.player1.handler.log[-1]['select_from'])
-		self.assertTrue("Silver" in self.player1.handler.log[-1]['select_from'])
-		yield tu.send_input(self.player1, "post_selection", ["Silver"])
+
+		self.player1.select.assert_called_with(1, 1, ["Silver", "Copper"], unittest.mock.ANY)
+		select_trash_future.set_result(["Silver"])
+		yield gen.moment
 		self.assertTrue(self.game.trash_pile[-1].title == "Silver")
-		yield tu.send_input(self.player1, "post_selection", ["Yes"])
-		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
+		select_gain_future.set_result(["Yes"])
+		yield gen.moment
+		self.player1.gain.assert_called_with("Silver", False)
 
 	@tornado.testing.gen_test
 	def test_Thief_1_treasure(self):
@@ -156,10 +193,14 @@ class TestCard(tornado.testing.AsyncTestCase):
 		self.player1.hand.add(thief_card)
 		self.player2.deck.append(supply_cards.Estate(self.game, self.player2))
 		self.player2.deck.append(supply_cards.Gold(self.game, self.player2))
+		select_gain_future = gen.Future()
+		self.player1.select = unittest.mock.MagicMock(return_value=select_gain_future)
+		self.player1.gain = unittest.mock.Mock(return_value=gen.Future())
 		thief_card.play()
 		self.assertTrue(self.game.trash_pile[-1].title == "Gold")
-		yield tu.send_input(self.player1, "post_selection", ["Yes"])
-		self.assertTrue(self.player1.discard_pile[-1].title == "Gold")
+		select_gain_future.set_result(["Yes"])
+		yield gen.moment
+		self.player1.gain.assert_called_with("Gold", False)
 
 	@tornado.testing.gen_test
 	def test_Thief_3_players(self):
