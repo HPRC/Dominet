@@ -352,8 +352,7 @@ class Noble_Brigand(crd.AttackCard):
 				yield player.gain("Copper")
 			if from_buy:
 				yield self.get_next(player)
-			else:
-				yield crd.AttackCard.get_next(self, player)
+		yield crd.AttackCard.get_next(self, player)
 
 	@gen.coroutine
 	def get_next(self, victim):
