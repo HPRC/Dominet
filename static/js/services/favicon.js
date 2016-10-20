@@ -1,4 +1,4 @@
-clientModule.factory('favicon', function($interval){
+clientModule.factory('favicon', function($interval, alertSound){
 	var flashing = null;
 	//isActive boolean for tracking if we are showing the red or alerted color favicon
 	var isActive = false;
@@ -17,6 +17,7 @@ clientModule.factory('favicon', function($interval){
 	};
 
 	this.alertFavicon = function(){
+		alertSound.playSound();
 		if (flashing === null){
 			flashing = $interval(function(){
 				if (isActive){

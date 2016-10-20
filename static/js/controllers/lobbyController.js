@@ -1,9 +1,8 @@
-clientModule.controller("lobbyController", function($rootScope, $scope, $uibModal, gameTable, socket, client){
+clientModule.controller("lobbyController", function($rootScope, $scope, $uibModal, gameTable, socket, client, alertSound){
 	$scope.lobbyList = [];
 	$scope.gameTables = [];
 	$scope.atTable = false;
 	$scope.newGameTable = gameTable;
-
 	socket.send(JSON.stringify({
 		"command": "getLobby"
 	}));
@@ -12,6 +11,10 @@ clientModule.controller("lobbyController", function($rootScope, $scope, $uibModa
 		$scope.name = client.getName();
 		$scope.lobbyList = json.lobby_list;
 		$scope.gameTables = json.game_tables;
+	};
+
+	$scope.joinedMyTable = function(){
+		alertSound.playSound();
 	};
 
 	$scope.createGameTable = function(){
