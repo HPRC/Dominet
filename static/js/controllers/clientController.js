@@ -1,4 +1,4 @@
-clientModule.controller("clientController", function($rootScope, $scope, socket, client, favicon, $sce, $timeout){
+clientModule.controller("clientController", function($rootScope, $scope, socket, client, favicon, $sce, $timeout, alertSound){
 	
 	var updateScopeClient = function(){
 		$scope.hand = client.getHand();

@@ -1,4 +1,4 @@
-clientModule.factory('client', function(socket, favicon) {
+clientModule.factory('client', function(socket, favicon, alertSound) {
 	var constructor = function() {
 		this.id = null;
 		this.name = null;
@@ -76,6 +76,7 @@ clientModule.factory('client', function(socket, favicon) {
 	};
 
 	constructor.prototype.updateMode = function(json){
+		var previousMode = this.modeJson;
 		this.modeJson = json;
 		if (!this.turn){
 			if (this.modeJson.mode === "selectSupply" || this.modeJson.mode === "select"){
@@ -88,7 +89,7 @@ clientModule.factory('client', function(socket, favicon) {
 				this.endTurn();
 			} else if (this.modeJson.mode === "wait"){
 				favicon.stopAlert();
-			} else {
+			} else if (previousMode.mode === "wait") {
 				favicon.alertFavicon();
 			}
 		}

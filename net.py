@@ -173,6 +173,8 @@ class GameHandler(websocket.WebSocketHandler):
 	def join_table(self, json):
 		table = self.application.game_tables[json["host"]]
 		self.table = table
+		for i in table.players:
+			i.write_json(command="joinedMyTable")
 		table.add_player(self.client)
 		self.update_lobby()
 
@@ -234,7 +236,8 @@ class DmApplication(web.Application):
 		]
 		settings = {
 			"static_path": os.path.join(os.path.dirname(__file__), "static"),
-			"debug": True
+			"debug": True,
+			"static_hash_cache": False
 		}
 		#super.init
 		web.Application.__init__(self, handlers, **settings)
