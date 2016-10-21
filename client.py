@@ -1,4 +1,3 @@
-from collections import deque
 import json
 import sets.card as crd
 import cardpile as cp
@@ -126,9 +125,6 @@ class DmClient(Client):
 		self.waiter = w.WaitHandler(self)
 		self.gamelog = []
 		self.cb = None
-		# input from client that was received when there wasn't a callback, stored and popped if available on next selection
-		self.input_deque = deque()
-		self.queue_choices = []
 		self.protection = 0
 		self.phase = "action"
 		#boolean to keep track of if we bought a card to disable spending treasure afterwards
@@ -224,8 +220,6 @@ class DmClient(Client):
 		if self.cb is not None:
 			self.cb.set_result(choice)
 			self.cb = None
-		else:
-			self.input_deque.append(choice)
 
 	def reconnect(self):
 		self.game.announce(self.name_string() + " has reconnected!")
@@ -317,8 +311,6 @@ class DmClient(Client):
 
 			future = tornado.concurrent.Future()
 			self.cb = future
-			if self.input_deque:
-				self.exec_selected_choice(self.input_deque.pop())
 			return future
 		else:
 			return []
@@ -505,8 +497,6 @@ class DmClient(Client):
 
 			future = tornado.concurrent.Future()
 			self.cb = future
-			if self.input_deque:
-				self.exec_selected_choice(self.input_deque.pop())
 			return future
 		else:
 			self.game.announce("-- but there is nothing available in supply")

@@ -298,9 +298,9 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 
 		yield tu.send_input(self.player3, "post_selection", ["Gain a Curse"])
 		self.assertTrue("Curse" in self.player3.hand)
+		yield gen.sleep(.1)
 		#Second torturer
 		yield tu.send_input(self.player2, "post_selection", ["Discard 2 cards"])
-		yield gen.sleep(.1)
 		self.assertTrue(self.player1.last_mode["mode"] == "wait")
 		self.assertTrue(self.player3.last_mode["mode"] == "wait")
 		yield tu.send_input(self.player2, "post_selection", ["Curse", "Copper"])
@@ -698,9 +698,9 @@ class TestIntrigue(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "post_selection", ["Silver"])
 		yield tu.send_input(self.player1, "selectSupply", ["Coppersmith"])
 		self.assertTrue(self.player1.discard_pile[-1].title == "Coppersmith")
+		yield gen.moment
 		yield tu.send_input(self.player1, "post_selection", ["Estate"])
 		yield tu.send_input(self.player1, "selectSupply", ["Silver"])
-
 		self.assertTrue(self.player1.discard_pile[-1].title == "Silver")
 
 	@tornado.testing.gen_test
