@@ -268,7 +268,7 @@ class Swindler(crd.AttackCard):
 		crd.AttackCard.__init__(self, game, played_by)
 		self.title = "Swindler"
 		self.description = "{}Each other player trashes the top card of their deck"\
-			"and gains a card with the same cost that you choose.".format(crd.format_money(2))
+			" and gains a card with the same cost that you choose.".format(crd.format_money(2))
 		self.price = 3
 		self.type = "Action|Attack"
 
