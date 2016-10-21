@@ -261,6 +261,7 @@ class Explorer(crd.Card):
 		if self.played_by.hand.get_count('Province') > 0:
 			selection = yield self.played_by.select(1, 1, ['Yes', 'No'], "Reveal Province?")
 			if selection[0] == 'Yes':
+				self.game.announce("-- revealing a {}".format(self.played_by.hand.get_card("Province").log_string()))
 				self.played_by.gain_to_hand('Gold')
 				selected = True
 
