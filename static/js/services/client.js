@@ -73,10 +73,10 @@ clientModule.factory('client', function(socket, favicon, alertSound) {
 		this.spendableMoney = 0;
 		this.updateSpendable();
 		favicon.alertFavicon();
+		alertSound.playSound();
 	};
 
 	constructor.prototype.updateMode = function(json){
-		var previousMode = this.modeJson;
 		this.modeJson = json;
 		if (!this.turn){
 			if (this.modeJson.mode === "selectSupply" || this.modeJson.mode === "select"){
@@ -89,8 +89,6 @@ clientModule.factory('client', function(socket, favicon, alertSound) {
 				this.endTurn();
 			} else if (this.modeJson.mode === "wait"){
 				favicon.stopAlert();
-			} else if (previousMode.mode === "wait") {
-				favicon.alertFavicon();
 			}
 		}
 	};
