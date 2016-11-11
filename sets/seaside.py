@@ -183,13 +183,12 @@ class Sea_Hag(crd.AttackCard):
 	def fire(self, player):
 		if crd.AttackCard.fire(self, player):
 			topdeck = player.topdeck()
-			yield player.discard_floating([topdeck])
-
-			self.game.announce('-- ' + player.name_string() + ' discards ' + self.game.log_string_from_title(topdeck.title))
+			if topdeck:
+				yield player.discard_floating([topdeck])
+				self.game.announce('-- ' + player.name_string() + ' discards ' + self.game.log_string_from_title(topdeck.title))
+			else:
+				self.game.announce('-- {} discards nothing'.format(player.name_string()))
 			yield player.gain_to_deck('Curse')
-
-		yield crd.AttackCard.get_next(self, player)
-
 
 class Treasure_Map(crd.Card):
 	def __init__(self, game, played_by):
