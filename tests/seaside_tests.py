@@ -1,5 +1,6 @@
 import unittest
 import client as c
+import unittest.mock
 import sets.base as base
 import sets.intrigue as intrigue
 import sets.prosperity as prosperity
@@ -182,6 +183,29 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "post_selection", ["Copper", "Copper", "Copper"])
 		self.assertTrue(len(self.player1.hand) == 6)
 
+	@tornado.testing.gen_test
+	def test_block_sea_hag_3p(self):
+		tu.print_test_header("Test block sea hag 3p")
+		sea_hag = sea.Sea_Hag(self.game, self.player2)
+		self.player2.hand.add(sea_hag)
+		self.player1.hand.add(base.Moat(self.game, self.player1))
+		self.player3.hand.add(base.Moat(self.game, self.player3))
+
+		self.player1.gain_to_deck = unittest.mock.Mock(return_value=gen.Future())
+		player1_select_future = gen.Future()
+		self.player1.select = unittest.mock.Mock(return_value=player1_select_future)
+		self.player3.gain_to_deck = unittest.mock.Mock(return_value=gen.Future())
+		player3_select_future = gen.Future()
+		self.player3.select = unittest.mock.Mock(return_value=player3_select_future)
+		yield tu.send_input(self.player2, "play", "Sea Hag")
+		yield gen.moment
+		player1_select_future.set_result(["Reveal"])
+		yield gen.sleep(.1)
+		player3_select_future.set_result(["Reveal"])
+		yield gen.sleep(.1)
+
+		self.assertTrue(self.player1.gain_to_deck.call_count == 0)
+		self.assertTrue(self.player3.gain_to_deck.call_count == 0)
 
 if __name__ == '__main__':
 		unittest.main()
