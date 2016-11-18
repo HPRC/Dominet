@@ -189,6 +189,7 @@ class Sea_Hag(crd.AttackCard):
 			else:
 				self.game.announce('-- {} discards nothing'.format(player.name_string()))
 			yield player.gain_to_deck('Curse')
+			yield crd.AttackCard.get_next(self, player)
 
 class Treasure_Map(crd.Card):
 	def __init__(self, game, played_by):
