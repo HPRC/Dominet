@@ -1,3 +1,4 @@
+from collections import deque
 import json
 import sets.card as crd
 import cardpile as cp
@@ -118,6 +119,7 @@ class DmClient(Client):
 		# all cards played, if a card was throne roomed, it is added twice
 		self.played_inclusive = []
 		self.durations = []
+		self.duration_cbs = deque()
 		self.actions = 0
 		self.buys = 0
 		self.balance = 0
@@ -141,10 +143,11 @@ class DmClient(Client):
 	def take_turn(self):
 		self.actions = 1
 		self.buys = 1
-		while self.durations:
-			d = self.durations.pop(0)
-			yield gen.maybe_future(d.duration())
-			self.played_cards.append(d)
+		while self.duration_cbs:
+			d = self.duration_cbs.popleft()
+			yield gen.maybe_future(d())
+		self.played_cards += self.durations
+		self.durations = []
 		self.game.update_duration_mat()
 		self.phase = "action"
 		self.write_json(command="updateMode", mode="action")

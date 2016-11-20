@@ -1,3 +1,4 @@
+from collections import deque
 import unittest
 import unittest.mock
 import net
@@ -143,12 +144,16 @@ class TestGame(tornado.testing.AsyncTestCase):
 	def test_duration_called(self):
 		tu.print_test_header("test duration")
 		mock_duration_card = unittest.mock.Mock()
+		mock_duration_card.duration = unittest.mock.Mock()
 		mock_duration_card2 = unittest.mock.Mock()
+		mock_duration_card2.duration = unittest.mock.Mock()
 		self.player1.durations = [mock_duration_card, mock_duration_card2]
+		self.player1.duration_cbs.extend([mock_duration_card.duration, mock_duration_card2.duration])
 		yield self.player1.take_turn()
 		mock_duration_card.duration.assert_called_once_with()
 		mock_duration_card2.duration.assert_called_once_with()
-		self.assertTrue(self.player1.durations == [])
+		self.assertTrue(len(self.player1.duration_cbs) == 0)
+		self.assertTrue(len(self.player1.durations) == 0)
 		self.assertTrue(mock_duration_card in self.player1.played_cards)
 		self.assertTrue(mock_duration_card2 in self.player1.played_cards)
 
