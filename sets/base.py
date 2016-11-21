@@ -463,13 +463,15 @@ class Throne_Room(crd.Card):
 			selected_card = self.played_by.hand.extract(selection[0])
 			throne_room_str = self.played_by.name_string() + " " + self.log_string(True) + " " + selected_card.log_string()
 			on_duration = "Duration" in selected_card.type
-			if not on_duration:
-				self.played_by.played_cards.append(selected_card)
-			else:
-				self.played_by.played_cards.pop()
-				self.played_by.durations.append(self)
+			if "Duration" in selected_card.type:
+				if self not in self.played_by.durations:
+					self.played_by.played_cards.pop()
+					self.played_by.durations.append(self)
 				self.played_by.durations.append(selected_card)
+				self.played_by.duration_cbs.append(lambda x=selected_card : self.active_duration(x))
 				self.game.update_duration_mat()
+			else:
+				self.played_by.played_cards.append(selected_card)
 			for i in range(0, 2):
 				self.game.announce(throne_room_str)
 				yield gen.maybe_future(selected_card.play(True))
@@ -478,13 +480,12 @@ class Throne_Room(crd.Card):
 			crd.Card.on_finished(self, False, False)
 
 	@gen.coroutine
-	def duration(self):
-		selected_duration = self.played_by.durations.pop(0)
+	def active_duration(self, selected_duration):
 		throne_room_str = "{} resolves {}".format(self.log_string(), selected_duration.log_string())
 		self.game.announce(throne_room_str)
 		for i in range(0, 2):
-			yield gen.maybe_future(selected_duration.duration())
-		self.played_by.played_cards.append(selected_duration)
+			d = self.played_by.duration_cbs.popleft()
+			yield gen.maybe_future(d())
 
 # --------------------------------------------------------
 # ------------------------ 5 Cost ------------------------

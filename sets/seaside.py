@@ -126,7 +126,7 @@ class Caravan(crd.Duration):
 		self.played_by.actions += 1
 		drawn = self.played_by.draw(1)
 		self.game.announce("-- gaining +1 action and drawing {}".format(drawn))
-		crd.Card.on_finished(self)
+		crd.Duration.on_finished(self)
 
 	def duration(self):
 		crd.Duration.duration(self)
@@ -307,19 +307,20 @@ class Tactician(crd.Duration):
 			crd.Duration.play(self, skip)
 			yield self.played_by.discard(crd.card_list_to_titles(self.played_by.hand.card_array()), self.played_by.discard_pile)
 			self.game.announce("-- discarding their hand")
+			self.duration = self.active_duration
 		else:
 			crd.Card.play(self, skip)
 			self.game.announce("-- but there was nothing to discard")
+			self.duration = lambda : None
 
-		crd.Card.on_finished(self)
+		crd.Duration.on_finished(self)
 
-	def duration(self):
+	def active_duration(self):
 		crd.Duration.duration(self)
 		drawn = self.played_by.draw(5)
 		self.played_by.buys += 1
 		self.played_by.actions += 1
 		self.game.announce("-- drawing " + drawn + " and gaining +1 Buy, +1 Action")
-
 
 class Treasury(crd.Card):
 	def __init__(self, game, played_by):

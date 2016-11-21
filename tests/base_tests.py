@@ -14,7 +14,7 @@ from tornado import gen
 import tornado.testing
 import tests.test_utils as tu
 
-class TestCard(tornado.testing.AsyncTestCase):
+class TestBase(tornado.testing.AsyncTestCase):
 	def setUp(self):
 		super().setUp()
 		self.player1 = c.DmClient("player1", 0, tu.PlayerHandler())
@@ -492,32 +492,6 @@ class TestCard(tornado.testing.AsyncTestCase):
 		yield tu.send_input(self.player1, "post_selection", ["Woodcutter"])
 		self.assertTrue(self.player1.balance == 4)
 		self.assertTrue(self.player1.last_mode["mode"] == "action")
-
-	@tornado.testing.gen_test
-	def test_throne_room_duration(self):
-		tu.print_test_header("Test throne room duration")
-		throne_room = base.Throne_Room(self.game, self.player1)
-		lighthouse = sea.Lighthouse(self.game, self.player1)
-		self.player1.hand.add(throne_room)
-		self.player1.hand.add(lighthouse)
-		yield tu.send_input(self.player1, "play", "Throne Room")
-		yield tu.send_input(self.player1, "post_selection", ["Lighthouse"])
-		self.assertTrue(throne_room in self.player1.durations)
-		self.assertTrue(lighthouse in self.player1.durations)
-		self.assertTrue(throne_room not in self.player1.played_cards)
-		self.assertTrue(lighthouse not in self.player1.played_cards)
-		self.assertTrue(self.player1.actions == 2)
-		self.assertTrue(self.player1.balance == 2)
-
-		self.player1.end_turn()
-		self.player2.end_turn()
-		self.player3.end_turn()
-
-		self.assertTrue(throne_room not in self.player1.durations)
-		self.assertTrue(lighthouse not in self.player1.durations)
-		self.assertTrue(throne_room in self.player1.played_cards)
-		self.assertTrue(lighthouse in self.player1.played_cards)
-		self.assertTrue(self.player1.balance == 2)
 
 if __name__ == '__main__':
 	unittest.main()

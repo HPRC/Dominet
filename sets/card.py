@@ -181,6 +181,10 @@ class Duration(Card):
 	def duration(self):
 		self.game.announce("{} duration effect resolves".format(self.log_string()))
 
+	def on_finished(self, modified_hand=True, modified_resources=True, waiting_cleanup=True):
+		self.played_by.duration_cbs.append(self.duration)
+		Card.on_finished(self, modified_hand, modified_resources, waiting_cleanup)
+
 	def log_string(self, plural=False):
 		return "".join(["<span class='label label-duration'>", self.title, "s</span>" if plural else "</span>"])
 
