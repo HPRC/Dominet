@@ -19,7 +19,7 @@ class Courtyard(crd.Card):
 		drawn = self.played_by.draw(3)
 		self.game.announce("-- drawing " + drawn)
 		self.played_by.update_resources()
-		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),
+		selection = yield self.played_by.select(1, 1, self.played_by.hand.card_title_array(),
 		 "Choose a card to put back on top of your deck.")
 		if selection:
 			self.game.announce("-- " + self.game.log_string_from_title(selection[0]) + " is placed on top of the deck.")
@@ -76,7 +76,7 @@ class Secret_Chamber(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		selection = yield self.played_by.select(None, None,
-		                      crd.card_list_to_titles(self.played_by.hand.card_array()), "select cards to discard")
+		                      self.played_by.hand.card_title_array(), "select cards to discard")
 		yield self.played_by.discard(selection, self.played_by.discard_pile)
 		self.played_by.balance += len(selection)
 		self.game.announce(self.played_by.name_string() + " discarding " + str(len(selection)) + " gaining +$" + str(len(selection)) + ".")
@@ -91,7 +91,7 @@ class Secret_Chamber(crd.Card):
 			self.game.announce(self.played_by.name_string() + " reveals " + self.log_string())
 			drawn_cards = self.played_by.draw(2, False)
 	
-			put_back = yield self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), 
+			put_back = yield self.played_by.select(2, 2, self.played_by.hand.card_title_array(), 
 				"Put two cards to the top of your deck (#1 is on top)", True)
 			if put_back:
 				drawn_cards = yield self.post_react_draw_select(put_back, drawn_cards)
@@ -157,7 +157,7 @@ class Masquerade(crd.Card):
 			yield self.fire(self.game.players[next_player_index])
 		else:
 			#everyone finished passing, trash
-			trash_selection = yield self.played_by.select(None, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Select a card to trash")
+			trash_selection = yield self.played_by.select(None, 1, self.played_by.hand.card_title_array(), "Select a card to trash")
 			if len(trash_selection) > 0:
 				self.game.announce("-- " + self.played_by.name_string() + " trashes " + self.played_by.hand.get_card(trash_selection[0]).log_string())
 				yield self.played_by.discard([trash_selection[0]], self.game.trash_pile)
@@ -246,7 +246,7 @@ class Steward(crd.Card):
 			self.game.announce("-- choosing to trash 2 cards from hand")
 
 			if len(self.played_by.hand) > 2 and not self.played_by.hand.is_homogeneous():
-				to_trash = yield self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "select cards to trash")
+				to_trash = yield self.played_by.select(2, 2, self.played_by.hand.card_title_array(), "select cards to trash")
 				yield self.trash_select(to_trash)
 			else:
 				card_selection = self.played_by.hand.auto_select(2, True)
@@ -583,7 +583,7 @@ class Minion(crd.AttackCard):
 			self.game.announce("-- gaining $2")
 			crd.Card.on_finished(self, False, True)
 		else:
-			yield self.played_by.discard(crd.card_list_to_titles(self.played_by.hand.card_array()), self.played_by.discard_pile)
+			yield self.played_by.discard(self.played_by.hand.card_title_array(), self.played_by.discard_pile)
 			drawn = self.played_by.draw(4)
 			self.game.announce("-- drawing " + drawn)
 			yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
@@ -708,7 +708,7 @@ class Upgrade(crd.Card):
 		if auto_select:
 			yield self.trash_select(auto_select)
 		else:
-			selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), 
+			selection = yield self.played_by.select(1, 1, self.played_by.hand.card_title_array(), 
 				"Choose a card to trash:")
 			yield self.trash_select(selection)
 
@@ -791,7 +791,7 @@ class Trading_Post(crd.Card):
 		if auto_select:
 			self.post_select(auto_select)
 		else:
-			selection = yield self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), "Trash 2 cards from your hand")
+			selection = yield self.played_by.select(2, 2, self.played_by.hand.card_title_array(), "Trash 2 cards from your hand")
 			yield self.post_select(selection)
 
 	@gen.coroutine

@@ -157,6 +157,9 @@ class HandPile(CardPile):
 			arr += lst
 		return arr
 
+	def card_title_array(self):
+		return [c.title for title, card_lst in self.data.items() for c in card_lst]
+
 	def to_json(self):
 		result = []
 		for title, lst in self.data.items():

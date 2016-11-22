@@ -20,7 +20,7 @@ class Cellar(crd.Card):
 		crd.Card.play(self, skip)
 		self.played_by.actions += 1
 		selection = yield self.played_by.select(None, None,
-			crd.card_list_to_titles(self.played_by.hand.card_array()), "select cards to discard")
+			self.played_by.hand.card_title_array(), "select cards to discard")
 		if len(selection) > 0:
 			self.played_by.announce_self("-- you discard " + 
 				" , ".join(list(map(lambda x: self.game.card_from_title(x).log_string(), selection))))
@@ -44,7 +44,7 @@ class Chapel(crd.Card):
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
 		selection = yield self.played_by.select(None, 4,
-			crd.card_list_to_titles(self.played_by.hand.card_array()), "select cards to trash")
+			self.played_by.hand.card_title_array(), "select cards to trash")
 		selection_string = list(map(lambda x: self.game.card_from_title(x).log_string(), selection))
 		if len(selection_string) > 0:
 			self.game.announce(self.played_by.name_string() + " trashes " + ", ".join(selection_string))
@@ -286,7 +286,7 @@ class Remodel(crd.Card):
 	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),
+		selection = yield self.played_by.select(1, 1, self.played_by.hand.card_title_array(),
 		 "select card to remodel")
 		if selection:
 			self.played_by.update_resources()

@@ -102,7 +102,7 @@ class Warehouse(crd.Card):
 		self.played_by.actions += 1
 		self.game.announce("-- gaining 1 action and drawing " + drawn)
 
-		to_discard = yield self.played_by.select(3, 3, crd.card_list_to_titles(self.played_by.hand.card_array()),
+		to_discard = yield self.played_by.select(3, 3, self.played_by.hand.card_title_array(),
 		                                         "Discard 3 cards")
 		yield self.played_by.discard(to_discard, self.played_by.discard_pile)
 		self.game.announce("-- discarding {} cards".format(len(to_discard)))
@@ -149,7 +149,7 @@ class Salvager(crd.Card):
 		self.played_by.buys += 1
 		self.game.announce("-- gaining +1 Buy")
 
-		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),
+		selection = yield self.played_by.select(1, 1, self.played_by.hand.card_title_array(),
 		                                        "Select a card to salvage")
 		selected_card = self.game.card_from_title(selection[0])
 		selected_card_cost = selected_card.get_price()
@@ -305,7 +305,7 @@ class Tactician(crd.Duration):
 		# checks to see if Tactician is the only card in hand, if so call duration super play(), otherwise call card super play()
 		if len(self.played_by.hand) > 1:
 			crd.Duration.play(self, skip)
-			yield self.played_by.discard(crd.card_list_to_titles(self.played_by.hand.card_array()), self.played_by.discard_pile)
+			yield self.played_by.discard(self.played_by.hand.card_title_array(), self.played_by.discard_pile)
 			self.game.announce("-- discarding their hand")
 			self.duration = self.active_duration
 		else:

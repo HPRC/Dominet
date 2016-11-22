@@ -140,7 +140,7 @@ class Develop(crd.Card):
 	@gen.coroutine
 	def play(self, skip = False):
 		crd.Card.play(self, skip) 
-		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), 
+		selection = yield self.played_by.select(1, 1, self.played_by.hand.card_title_array(), 
 			'select a card to develop')
 		if selection:
 			self.played_by.update_resources()
@@ -179,7 +179,7 @@ class Oasis(crd.Card):
 		self.played_by.balance += 1
 		self.played_by.update_resources()
 		self.game.announce("-- drawing {} and gaining +1 action, +$1".format(drawn))
-		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), 
+		selection = yield self.played_by.select(1, 1, self.played_by.hand.card_title_array(), 
 			'Select a card to discard')
 		yield self.played_by.discard(selection, self.played_by.discard_pile)
 		self.game.announce("-- discarding {}".format(self.game.log_string_from_title(selection[0])))
@@ -448,7 +448,7 @@ class Trader(crd.Card):
 	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),  
+		selection = yield self.played_by.select(1, 1, self.played_by.hand.card_title_array(),  
 			"Select card to trash")
 		trashed = self.played_by.hand.get_card(selection[0])
 		yield self.played_by.discard(selection, self.game.trash_pile)
@@ -543,7 +543,7 @@ class Embassy(crd.Card):
 		crd.Card.play(self, skip)
 		drawn = self.played_by.draw(5)
 		self.game.announce("-- drawing {}".format(drawn))
-		to_discard = yield self.played_by.select(3, 3, crd.card_list_to_titles(self.played_by.hand.card_array()), 
+		to_discard = yield self.played_by.select(3, 3, self.played_by.hand.card_title_array(), 
 			"Discard 3 cards")
 		self.game.announce("-- discarding {} cards".format(len(to_discard)))
 		yield self.played_by.discard(to_discard, self.played_by.discard_pile)
@@ -646,7 +646,7 @@ class Inn(crd.Card):
 		self.played_by.actions += 2
 		drawn = self.played_by.draw(2)
 		self.game.announce("-- gaining 2 actions and drawing {}".format(drawn))
-		to_discard = yield self.played_by.select(2, 2, crd.card_list_to_titles(self.played_by.hand.card_array()), 
+		to_discard = yield self.played_by.select(2, 2, self.played_by.hand.card_title_array(), 
 			"Discard 2 cards")
 		yield self.played_by.discard(to_discard, self.played_by.discard_pile)
 		self.game.announce("-- discarding {} cards".format(len(to_discard)))
@@ -690,7 +690,7 @@ class Mandarin(crd.Card):
 		if top_select:
 			yield self.post_select(top_select)
 		else:
-			selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),  
+			selection = yield self.played_by.select(1, 1, self.played_by.hand.card_title_array(),  
 				"Select card to put back on top of your deck")
 			yield self.post_select(selection)
 			
@@ -808,7 +808,7 @@ class Farmland(crd.VictoryCard):
 
 	@gen.coroutine
 	def on_buy(self):
-		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),
+		selection = yield self.played_by.select(1, 1, self.played_by.hand.card_title_array(),
 		                                        "select card to trash")
 		if selection:
 			yield self.played_by.discard(selection, self.game.trash_pile)

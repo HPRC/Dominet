@@ -124,7 +124,7 @@ class Trade_Route(crd.Card):
 		self.played_by.balance += mat_value
 		self.played_by.buys += 1
 		self.game.announce("-- gaining a buy and $" + str(mat_value))
-		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Choose a card to trash")
+		selection = yield self.played_by.select(1, 1, self.played_by.hand.card_title_array(), "Choose a card to trash")
 		if selection:
 			trashed = self.played_by.hand.extract(selection[0])
 			self.game.announce("-- trashing " + trashed.log_string())
@@ -154,7 +154,7 @@ class Bishop(crd.Card):
 		self.played_by.vp += 1
 
 		self.game.announce("-- gaining +$1 and +1 VP")
-		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()), "Choose a card to trash")
+		selection = yield self.played_by.select(1, 1, self.played_by.hand.card_title_array(), "Choose a card to trash")
 		if selection:
 			trash = self.played_by.hand.extract(selection[0])
 			half_vp = math.floor(trash.get_price() / 2)
@@ -516,7 +516,7 @@ class Vault(crd.Card):
 		self.game.announce("-- drawing " + drawn)
 
 		selection = yield self.played_by.select(None, len(self.played_by.hand.card_array()),
-		                      crd.card_list_to_titles(self.played_by.hand.card_array()), "Discard any number of cards")
+		                      self.played_by.hand.card_title_array(), "Discard any number of cards")
 		yield self.played_by.discard(selection, self.played_by.discard_pile)
 		self.played_by.balance += len(selection)
 		self.game.announce("-- discarding " + str(len(selection)) +
@@ -677,7 +677,7 @@ class Expand(crd.Card):
 	@gen.coroutine
 	def play(self, skip=False):
 		crd.Card.play(self, skip)
-		selection = yield self.played_by.select(1, 1, crd.card_list_to_titles(self.played_by.hand.card_array()),
+		selection = yield self.played_by.select(1, 1, self.played_by.hand.card_title_array(),
 		                      "select card to expand")
 		if selection:
 			yield self.played_by.discard(selection, self.game.trash_pile)
@@ -749,7 +749,7 @@ class Forge(crd.Card):
 		crd.Card.play(self, skip)
 		self.played_by.wait_modeless("", self.played_by, True)
 		forge_selection = yield self.played_by.select(None, len(self.played_by.hand.card_array()), 
-			crd.card_list_to_titles(self.played_by.hand.card_array()), "Trash any number of cards")
+			self.played_by.hand.card_title_array(), "Trash any number of cards")
 		trash_sum = 0
 		if forge_selection:
 			for card in forge_selection:
