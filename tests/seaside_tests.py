@@ -157,16 +157,19 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 	@tornado.testing.gen_test
 	def test_Treasury(self):
 		tu.print_test_header("test Treasury")
-		treasury = sea.Treasury(self.game, self.player1)
+		treasury1 = sea.Treasury(self.game, self.player1)
+		treasury2 = sea.Treasury(self.game, self.player1)
+		self.player1.hand.add(treasury1)
+		self.player1.hand.add(treasury2)
 
-		tu.add_many_to_hand(self.player1, treasury, 2)
-
+		select_future = gen.Future()
+		self.player1.select = unittest.mock.Mock(return_value=select_future)
 		tu.send_input(self.player1, "play", "Treasury")
 		tu.send_input(self.player1, "play", "Treasury")
-		self.player1.buy_card('Copper')
 		self.player1.end_turn()
-
-		yield tu.send_input(self.player1, "post_selection", [2])
+		self.player1.select.assert_called_once_with(1, 1, [0, 1, 2], unittest.mock.ANY)
+		select_future.set_result([2])
+		yield gen.sleep(.1)
 		self.assertTrue(self.player1.hand.get_count("Treasury") == 2)
 
 	@tornado.testing.gen_test

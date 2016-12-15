@@ -345,9 +345,9 @@ class Treasury(crd.Card):
 	def cleanup(self):
 		total_victories_bought = len([x for x in self.played_by.bought_cards if 'Victory' in x.type])
 		if total_victories_bought == 0:
-			total_treasuries_played = len([x for x in self.played_by.played_inclusive if x.title == self.title])
+			total_treasuries_played = len([x for x in self.played_by.played_cards if x.title == self.title])
 			if total_treasuries_played > 1:
-				selection = yield self.played_by.select(1, 1, [x for x in range(1, total_treasuries_played + 1)],
+				selection = yield self.played_by.select(1, 1, [x for x in range(0, total_treasuries_played + 1)],
 				                                        'Select the amount of treasuries you would like to return to the top of your deck')
 				amount_to_return = selection[0]
 			else:
