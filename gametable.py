@@ -18,7 +18,7 @@ class GameTable():
 			"players": self.players_string(),
 			"required": self.required,
 			"excluded": self.excluded,
-		    "req_supply": self.req_supply,
+			"req_supply": self.req_supply,
 			"sets": self.sets
 		}
 
@@ -26,7 +26,12 @@ class GameTable():
 		self.players.append(new_player)
 
 	def remove_player(self, player):
-		self.players.remove(player)
+		try:
+			self.players.remove(player)
+		except ValueError:
+			print("mismatch removing {} from {}".format(player, self.players))
+			# remove by name instead of client object
+			self.players = [x for x in self.players if x.name != player.name]
 		if len(self.players) > 0:
 			self.host = self.players[0]
 
