@@ -154,21 +154,24 @@ class GameHandler(websocket.WebSocketHandler):
 		self.update_lobby()
 
 	def leave_table(self, json):
-		table = self.application.game_tables[json["host"]]
-		self.table = None
-		if self.client == table.host:
-			# no one left at table
-			if len(table.players) == 1:
-				del self.application.game_tables[json["host"]]
+		try:
+			table = self.application.game_tables[json["host"]]
+			self.table = None
+			if self.client == table.host:
+				# no one left at table
+				if len(table.players) == 1:
+					del self.application.game_tables[json["host"]]
+				else:
+					# successor host is chosen
+					table.remove_player(self.client)
+					self.application.game_tables[table.host.name] = table
+					del self.application.game_tables[json["host"]]
 			else:
-				# successor host is chosen
 				table.remove_player(self.client)
-				self.application.game_tables[table.host.name] = table
-				del self.application.game_tables[json["host"]]
-		else:
-			table.remove_player(self.client)
+			self.update_lobby()
+		except KeyError:
+			print("no table found in {} with host {}".format([x.to_json for x in self.application.game_tables], json["host"])) 
 
-		self.update_lobby()
 
 	def join_table(self, json):
 		table = self.application.game_tables[json["host"]]
