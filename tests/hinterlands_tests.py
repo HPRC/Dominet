@@ -146,6 +146,10 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		tu.print_test_header("test Trader")
 		witch = base.Witch(self.game, self.player1)
 		trader = hl.Trader(self.game, self.player2)
+		
+		#2 curses left
+		for i in range(0, self.game.supply.get_count("Curse")-2):
+			self.game.remove_from_supply("Curse")
 
 		self.player1.hand.add(witch)
 		self.player2.hand.add(trader)
@@ -159,7 +163,10 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		yield gen.sleep(.1)
 		self.assertTrue(self.player1.last_mode["mode"] != "wait")
 		self.assertTrue(self.player3.discard_pile[-1].title == "Curse")
-		self.assertTrue(self.game.supply.get_count("Curse") == 19)
+
+		#one curse returned to supply
+		self.assertTrue(self.game.supply.get_count("Curse") == 1)
+		self.assertTrue(self.game.empty_piles == 0)
 
 		self.player1.end_turn()
 
@@ -167,6 +174,7 @@ class TestHinterland(tornado.testing.AsyncTestCase):
 		tu.send_input(self.player2, "play", "Trader")
 		yield tu.send_input(self.player2, "post_selection", ["Estate"])
 		self.assertTrue(len(self.player2.discard_pile) == 3)
+
 
 	@tornado.testing.gen_test
 	def test_Nomad_Camp(self):
