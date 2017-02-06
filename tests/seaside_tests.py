@@ -210,5 +210,22 @@ class TestSeaside(tornado.testing.AsyncTestCase):
 		self.assertTrue(self.player1.gain_to_deck.call_count == 0)
 		self.assertTrue(self.player3.gain_to_deck.call_count == 0)
 
+	@tornado.testing.gen_test
+	def test_Cutpurse(self):
+		tu.print_test_header("test Cutpurse")
+		cutpurse = sea.Cutpurse(self.game, self.player1)
+		self.player1.hand.add(cutpurse)
+		discard_future = gen.Future()
+		self.player2.discard = unittest.mock.Mock(return_value=discard_future)
+		self.player3.discard = unittest.mock.Mock(return_value=gen.Future())
+		balance = self.player1.balance
+		tu.send_input(self.player1, "play", "Cutpurse")
+		
+		self.assertTrue(self.player1.balance == balance + 2)
+		self.player2.discard.assert_called_with(['Copper'], self.player2.discard_pile)
+		discard_future.set_result([])
+		yield gen.moment
+		self.player3.discard.assert_called_with(['Copper'], self.player3.discard_pile)
+
 if __name__ == '__main__':
 		unittest.main()
