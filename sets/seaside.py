@@ -134,6 +134,34 @@ class Caravan(crd.Duration):
 		self.game.announce("-- drawing {}".format(drawn))
 
 
+class Cutpurse(crd.AttackCard):
+	def __init__(self, game, played_by):
+		crd.AttackCard.__init__(self, game, played_by)
+		self.title = "Cutpurse"
+		self.description = "{}Each other player discards a copper or reveals their hand without Copper".format(crd.format_money(2))
+		self.price = 4
+		self.type = "Action|Attack"
+
+	@gen.coroutine
+	def play(self, skip=False):
+		crd.AttackCard.play(self, skip)
+		self.played_by.balance += 2
+		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
+
+	@gen.coroutine
+	def attack(self):
+		yield self.fire(self.played_by.get_left_opponent())
+
+	@gen.coroutine
+	def fire(self, player):
+		if crd.AttackCard.fire(self, player):
+			if "Copper" in player.hand:
+				yield player.discard(["Copper"], player.discard_pile)
+				self.game.announce('-- ' + player.name_string() + ' discards ' + self.game.log_string_from_title("Copper"))
+			else:
+				self.game.announce('-- {} reveals no Copper: {}'.format(player.name_string(), player.hand.reveal_string()))
+			yield crd.AttackCard.get_next(self, player)
+
 class Salvager(crd.Card):
 	def __init__(self, game, played_by):
 		crd.Card.__init__(self, game, played_by)
