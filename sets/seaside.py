@@ -145,6 +145,7 @@ class Cutpurse(crd.AttackCard):
 	@gen.coroutine
 	def play(self, skip=False):
 		crd.AttackCard.play(self, skip)
+		self.game.announce('-- gaining $2')
 		self.played_by.balance += 2
 		yield crd.AttackCard.check_reactions(self, self.played_by.get_opponents())
 
